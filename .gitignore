@@ -40,6 +40,11 @@ Thumbs.db
 *.qbs.user*
 CMakeLists.txt.user*
 
+# Keep the renamed project descriptor visible despite global IDE ignores.
+!/.idea/
+/.idea/*
+!/.idea/Congregation.iml
+
 # xemacs temporary files
 *.flc
 
@@ -95,8 +100,13 @@ resources/UIIcons/.DS_Store
 /packaging
 !/packaging/
 /packaging/*
+!/packaging/macos/
+/packaging/macos/*
+!/packaging/macos/Info.plist
+!/packaging/macos/Congregation.entitlements
+!/packaging/macos/Congregation.xcassets/
 !/packaging/linux/
-!/packaging/linux/com.iisacc.vincent.painter.desktop
+!/packaging/linux/com.iisacc.congregation.painter.desktop
 !/packaging/common/
 !/packaging/common/**
 !/packaging/windows/

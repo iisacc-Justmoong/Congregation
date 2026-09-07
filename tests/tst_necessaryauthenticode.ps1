@@ -69,12 +69,12 @@ Assert-Condition `
     ($endpoint.AbsoluteUri -ceq "https://sign.necessary.nu/windows/sign") `
     "The Necessary signing endpoint must be fixed to the provider's HTTPS HSM service."
 
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-NecessaryTest-" + [Guid]::NewGuid().ToString("N"))
+$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-NecessaryTest-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
 try {
     $toolPath = Join-Path $temporaryRoot "osslsigncode.exe"
     $signToolPath = Join-Path $temporaryRoot "signtool.exe"
-    $inputPath = Join-Path $temporaryRoot "Vincent.exe"
+    $inputPath = Join-Path $temporaryRoot "Congregation.exe"
     [System.IO.File]::WriteAllText($toolPath, "mock tool")
     [System.IO.File]::WriteAllText($signToolPath, "mock SignTool")
     [System.IO.File]::WriteAllText($inputPath, "original")

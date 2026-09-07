@@ -70,7 +70,7 @@ bool ProfileImageProcessor::processProfileImage(const QUrl &sourceUrl)
     painter.end();
 
     auto processedImageFile = std::make_unique<QTemporaryFile>(
-        QDir(QDir::tempPath()).filePath(QStringLiteral("Vincent-profile-image-XXXXXX.png")));
+        QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-profile-image-XXXXXX.png")));
     if (!processedImageFile->open()) {
         setErrorString(processedImageFile->errorString());
         return false;

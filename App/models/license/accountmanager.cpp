@@ -11,7 +11,7 @@ using iisacc::licensing::LicenseClient;
 AccountManager::AccountManager(LicenseManager *credentialSource, QObject *parent)
     : QObject(parent)
     , m_credentialSource(credentialSource)
-    , m_licenseClient(new LicenseClient(QStringLiteral("vincent"), this))
+    , m_licenseClient(new LicenseClient(QStringLiteral("congregation"), this))
 {
 }
 

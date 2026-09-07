@@ -53,7 +53,7 @@ function Get-MsiRows {
 
 $null = Resolve-Path -LiteralPath $BuildDirectory
 if (-not (Test-Path -LiteralPath $MsiPath -PathType Leaf)) {
-    throw "Requested Vincent MSI does not exist: $MsiPath"
+    throw "Requested Congregation MSI does not exist: $MsiPath"
 }
 $msiFile = Get-Item -LiteralPath $MsiPath
 
@@ -82,7 +82,7 @@ Assert-Condition ($properties.ContainsKey("MSIINSTALLPERUSER") -and $properties[
     "A dual-context package must author MSIINSTALLPERUSER=1 so current-user installation is the default."
 Assert-Condition ($properties.ContainsKey("WixAppFolder") -and $properties["WixAppFolder"] -eq "WixPerUserFolder") `
     "WixUI_Advanced must default its scope selection to the current user."
-Assert-Condition ($properties.ContainsKey("ApplicationFolderName") -and $properties["ApplicationFolderName"] -eq "Vincent") `
+Assert-Condition ($properties.ContainsKey("ApplicationFolderName") -and $properties["ApplicationFolderName"] -eq "Congregation") `
     "WixUI_Advanced must define the application folder name."
 
 $appSearchRows = @(Get-MsiRows `
@@ -94,23 +94,23 @@ $registryLocatorRows = @(Get-MsiRows `
         -Query 'SELECT `Signature_`,`Root`,`Key`,`Name` FROM `RegLocator`' `
         -Columns @("Signature", "Root", "Key", "Name"))
 foreach ($contextSearch in @(
-        @{ Property = "VINCENT_EXISTING_USER_CONTEXT"; Root = 1; Name = "installContext" },
-        @{ Property = "VINCENT_LEGACY_USER_CONTEXT"; Root = 1; Name = "installed" },
-        @{ Property = "VINCENT_EXISTING_USER_INSTALLLOCATION"; Root = 1; Name = "InstallLocation" },
-        @{ Property = "VINCENT_EXISTING_MACHINE_CONTEXT"; Root = 2; Name = "installContext" },
-        @{ Property = "VINCENT_LEGACY_MACHINE_CONTEXT"; Root = 2; Name = "machineStartMenuShortcut" },
-        @{ Property = "VINCENT_EXISTING_MACHINE_INSTALLLOCATION"; Root = 2; Name = "InstallLocation" }
+        @{ Property = "CONGREGATION_EXISTING_USER_CONTEXT"; Root = 1; Name = "installContext" },
+        @{ Property = "CONGREGATION_LEGACY_USER_CONTEXT"; Root = 1; Name = "installed" },
+        @{ Property = "CONGREGATION_EXISTING_USER_INSTALLLOCATION"; Root = 1; Name = "InstallLocation" },
+        @{ Property = "CONGREGATION_EXISTING_MACHINE_CONTEXT"; Root = 2; Name = "installContext" },
+        @{ Property = "CONGREGATION_LEGACY_MACHINE_CONTEXT"; Root = 2; Name = "machineStartMenuShortcut" },
+        @{ Property = "CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION"; Root = 2; Name = "InstallLocation" }
     )) {
     $search = @($appSearchRows | Where-Object { $_.Property -eq $contextSearch.Property })
     Assert-Condition ($search.Count -eq 1) "$($contextSearch.Property) must have exactly one AppSearch row."
     $locator = @($registryLocatorRows | Where-Object { $_.Signature -eq $search[0].Signature })
     Assert-Condition ($locator.Count -eq 1 `
             -and [int]$locator[0].Root -eq $contextSearch.Root `
-            -and $locator[0].Key -eq "Software\IISACC\Vincent" `
+            -and $locator[0].Key -eq "Software\IISACC\Congregation" `
             -and $locator[0].Name -eq $contextSearch.Name) `
         "$($contextSearch.Property) must search the expected 64-bit installation-context marker."
 }
-$machineProgramFilesSearch = @($appSearchRows | Where-Object { $_.Property -eq "VINCENT_MACHINE_PROGRAMFILES64" })
+$machineProgramFilesSearch = @($appSearchRows | Where-Object { $_.Property -eq "CONGREGATION_MACHINE_PROGRAMFILES64" })
 Assert-Condition ($machineProgramFilesSearch.Count -eq 1) `
     "The native 64-bit machine Program Files path must have exactly one AppSearch row."
 $machineProgramFilesLocator = @($registryLocatorRows | Where-Object { $_.Signature -eq $machineProgramFilesSearch[0].Signature })
@@ -128,7 +128,7 @@ $nativeMachineFolderActions = @($scopeFolderActions | Where-Object { $_.Action -
 Assert-Condition ($nativeMachineFolderActions.Count -eq 1 `
         -and [int]$nativeMachineFolderActions[0].Type -eq 51 `
         -and $nativeMachineFolderActions[0].Source -eq "WixPerMachineFolder" `
-        -and $nativeMachineFolderActions[0].Target -eq '[VINCENT_MACHINE_PROGRAMFILES64]\[ApplicationFolderName]') `
+        -and $nativeMachineFolderActions[0].Target -eq '[CONGREGATION_MACHINE_PROGRAMFILES64]\[ApplicationFolderName]') `
     "All-users scope must override WixUI_Advanced's 32-bit default with native 64-bit Program Files."
 
 foreach ($sequenceTable in @("InstallUISequence", "InstallExecuteSequence")) {
@@ -195,7 +195,7 @@ Assert-Condition ($advertisedShortcutComponents.Count -eq 1 `
         -and $advertisedShortcutComponents[0].Directory -eq "APPLICATIONFOLDER" `
         -and [string]::IsNullOrEmpty($advertisedShortcutComponents[0].Condition) `
         -and -not [string]::IsNullOrEmpty($advertisedShortcutComponents[0].KeyPath)) `
-    "The Start Menu shortcut must follow the Vincent executable component in both contexts."
+    "The Start Menu shortcut must follow the Congregation executable component in both contexts."
 $shortcutTargetFiles = @(Get-MsiRows `
         -Database $database `
         -Query 'SELECT `File`,`Component_`,`FileName` FROM `File`' `
@@ -204,8 +204,8 @@ $shortcutTargetFiles = @(Get-MsiRows `
         })
 Assert-Condition ($shortcutTargetFiles.Count -eq 1 `
         -and $shortcutTargetFiles[0].Component -eq $applicationShortcutRows[0].Component `
-        -and $shortcutTargetFiles[0].Name -match '(^|\|)Vincent\.exe$') `
-    "The advertised shortcut component key path must be Vincent.exe."
+        -and $shortcutTargetFiles[0].Name -match '(^|\|)Congregation\.exe$') `
+    "The advertised shortcut component key path must be Congregation.exe."
 $packagedFiles = @(Get-MsiRows `
         -Database $database `
         -Query 'SELECT `FileName` FROM `File`' `
@@ -225,7 +225,7 @@ foreach ($requiredLegalFileName in @(
         "The MSI must install required legal material: $requiredLegalFileName"
 }
 Assert-Condition ($installContextComponents.Count -eq 1 `
-        -and $installContextComponents[0].ComponentId -eq "{3048C76F-C0FC-4CEE-9C86-D154BDA6BCD8}" `
+        -and $installContextComponents[0].ComponentId -eq "{05DF7FB6-91BE-5013-AE84-E4A6496550E8}" `
         -and $installContextComponents[0].Directory -eq "APPLICATIONFOLDER") `
     "The required installation-context marker must have a stable component identity."
 $installContextRegistryRows = @($registryRows | Where-Object {
@@ -265,30 +265,30 @@ $scopeLockEvents = @(Get-MsiRows `
 Assert-Condition (@($scopeLockEvents | Where-Object {
                 $_.Event -eq "[WixAppFolder]" `
                 -and $_.Argument -eq "WixPerUserFolder" `
-                -and $_.Condition.Contains("VINCENT_EXISTING_USER_CONTEXT") `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_USER_CONTEXT") `
                 -and $_.Condition.Contains("WIX_UPGRADE_DETECTED") `
-                -and $_.Condition.Contains("VINCENT_EXISTING_MACHINE_CONTEXT") `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_MACHINE_CONTEXT") `
                 -and [int]$_.Ordering -lt 1
             }).Count -eq 1) `
     "An existing or markerless detected current-user installation must lock the scope before WixUI_Advanced processes it."
 Assert-Condition (@($scopeLockEvents | Where-Object {
                 $_.Event -eq "[WixAppFolder]" `
                 -and $_.Argument -eq "WixPerMachineFolder" `
-                -and $_.Condition.Contains("VINCENT_EXISTING_MACHINE_CONTEXT") `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_MACHINE_CONTEXT") `
                 -and [int]$_.Ordering -lt 1
             }).Count -eq 1) `
     "An existing all-users installation must lock the scope before WixUI_Advanced processes it."
 Assert-Condition (@($scopeLockEvents | Where-Object {
                 $_.Event -eq "[APPLICATIONFOLDER]" `
-                -and $_.Argument -eq "[VINCENT_EXISTING_USER_INSTALLLOCATION]" `
-                -and $_.Condition.Contains("VINCENT_EXISTING_USER_INSTALLLOCATION") `
+                -and $_.Argument -eq "[CONGREGATION_EXISTING_USER_INSTALLLOCATION]" `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_USER_INSTALLLOCATION") `
                 -and [int]$_.Ordering -eq 5
             }).Count -eq 1) `
     "A current-user upgrade must preserve its registered installation directory."
 Assert-Condition (@($scopeLockEvents | Where-Object {
                 $_.Event -eq "[APPLICATIONFOLDER]" `
-                -and $_.Argument -eq "[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]" `
-                -and $_.Condition.Contains("VINCENT_EXISTING_MACHINE_INSTALLLOCATION") `
+                -and $_.Argument -eq "[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]" `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION") `
                 -and [int]$_.Ordering -eq 6
             }).Count -eq 1) `
     "An all-users upgrade must preserve its registered installation directory."
@@ -322,15 +322,15 @@ foreach ($installControl in @("Install", "InstallNoShield")) {
         "$installControl must restore ALLUSERS=2 before Windows Installer selects the context."
     Assert-Condition (@($controlEvents | Where-Object {
                     $_.Event -eq "[APPLICATIONFOLDER]" `
-                    -and $_.Argument -eq "[VINCENT_EXISTING_USER_INSTALLLOCATION]" `
-                    -and $_.Condition.Contains("VINCENT_EXISTING_USER_INSTALLLOCATION") `
+                    -and $_.Argument -eq "[CONGREGATION_EXISTING_USER_INSTALLLOCATION]" `
+                    -and $_.Condition.Contains("CONGREGATION_EXISTING_USER_INSTALLLOCATION") `
                     -and [int]$_.Ordering -lt 2
                 }).Count -eq 1) `
         "$installControl must preserve an existing current-user installation directory."
     Assert-Condition (@($controlEvents | Where-Object {
                     $_.Event -eq "[APPLICATIONFOLDER]" `
-                    -and $_.Argument -eq "[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]" `
-                    -and $_.Condition.Contains("VINCENT_EXISTING_MACHINE_INSTALLLOCATION") `
+                    -and $_.Argument -eq "[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]" `
+                    -and $_.Condition.Contains("CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION") `
                     -and [int]$_.Ordering -lt 2
                 }).Count -eq 1) `
         "$installControl must preserve an existing all-users installation directory."
@@ -413,7 +413,7 @@ $removeExistingProducts = @($executeSequenceRows | Where-Object { $_.Action -eq 
 $installInitialize = @($executeSequenceRows | Where-Object { $_.Action -eq "InstallInitialize" })
 $installFinalize = @($executeSequenceRows | Where-Object { $_.Action -eq "InstallFinalize" })
 $executeAppSearch = @($executeSequenceRows | Where-Object { $_.Action -eq "AppSearch" })
-$executeScopeLock = @($executeSequenceRows | Where-Object { $_.Action -eq "VincentSetExistingMachineContext" })
+$executeScopeLock = @($executeSequenceRows | Where-Object { $_.Action -eq "CongregationSetExistingMachineContext" })
 $executeFindRelatedProducts = @($executeSequenceRows | Where-Object { $_.Action -eq "FindRelatedProducts" })
 Assert-Condition ($removeExistingProducts.Count -eq 1) `
     "The MSI must schedule exactly one RemoveExistingProducts action."
@@ -444,7 +444,7 @@ $uiAppSearch = @($uiSequenceRows | Where-Object { $_.Action -eq "AppSearch" })
 Assert-Condition ($uiAppSearch.Count -eq 1 -and [int]$uiAppSearch[0].Sequence -eq 10) `
     "UI AppSearch must detect and lock an existing installation scope before showing dialogs."
 $uiScopeLockActions = @($uiSequenceRows | Where-Object {
-        $_.Action -in @("VincentSetExistingUserUiScope", "VincentSetExistingMachineUiScope", "VincentSetExistingMachineContext")
+        $_.Action -in @("CongregationSetExistingUserUiScope", "CongregationSetExistingMachineUiScope", "CongregationSetExistingMachineContext")
     })
 Assert-Condition ($uiScopeLockActions.Count -eq 3 `
         -and @($uiScopeLockActions | Where-Object {
@@ -452,11 +452,11 @@ Assert-Condition ($uiScopeLockActions.Count -eq 3 `
                 -or [int]$_.Sequence -ge [int]$uiFindRelatedProducts[0].Sequence
             }).Count -eq 0) `
     "Every UI scope lock must run after AppSearch and before FindRelatedProducts."
-$detectedUserScopeLocks = @($uiSequenceRows | Where-Object { $_.Action -eq "VincentSetDetectedUserUiScope" })
+$detectedUserScopeLocks = @($uiSequenceRows | Where-Object { $_.Action -eq "CongregationSetDetectedUserUiScope" })
 Assert-Condition ($detectedUserScopeLocks.Count -eq 1 `
         -and [int]$detectedUserScopeLocks[0].Sequence -gt [int]$uiFindRelatedProducts[0].Sequence `
         -and $detectedUserScopeLocks[0].Condition.Contains("WIX_UPGRADE_DETECTED") `
-        -and $detectedUserScopeLocks[0].Condition.Contains("VINCENT_EXISTING_MACHINE_CONTEXT")) `
+        -and $detectedUserScopeLocks[0].Condition.Contains("CONGREGATION_EXISTING_MACHINE_CONTEXT")) `
     "A markerless related product must lock the UI to current-user scope after upgrade detection."
 
 $launchConditionRows = @(Get-MsiRows `
@@ -464,8 +464,8 @@ $launchConditionRows = @(Get-MsiRows `
         -Query 'SELECT `Condition`,`Description` FROM `LaunchCondition`' `
         -Columns @("Condition", "Description"))
 $ambiguousContextGuards = @($launchConditionRows | Where-Object {
-                $_.Condition.Contains("VINCENT_EXISTING_USER_CONTEXT") `
-                -and $_.Condition.Contains("VINCENT_EXISTING_MACHINE_CONTEXT")
+                $_.Condition.Contains("CONGREGATION_EXISTING_USER_CONTEXT") `
+                -and $_.Condition.Contains("CONGREGATION_EXISTING_MACHINE_CONTEXT")
             })
 Assert-Condition ($ambiguousContextGuards.Count -ge 1) `
     "The MSI must reject ambiguous side-by-side user and machine registrations."

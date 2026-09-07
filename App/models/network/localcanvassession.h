@@ -8,7 +8,7 @@
 #include <QVariantList>
 #include <QVariantMap>
 
-class NearbyVincentDiscovery;
+class NearbyCongregationDiscovery;
 class QTcpServer;
 class QTcpSocket;
 class QTimer;
@@ -40,7 +40,7 @@ class LocalCanvasSession final : public QObject
     Q_PROPERTY(quint64 revision READ revision NOTIFY revisionChanged)
 
   public:
-    explicit LocalCanvasSession(NearbyVincentDiscovery* discovery, QObject* parent = nullptr);
+    explicit LocalCanvasSession(NearbyCongregationDiscovery* discovery, QObject* parent = nullptr);
     ~LocalCanvasSession() override;
 
     [[nodiscard]] bool active() const noexcept;
@@ -129,7 +129,7 @@ class LocalCanvasSession final : public QObject
     [[nodiscard]] bool validSnapshot(const QByteArray& snapshot) const;
     [[nodiscard]] QByteArray participantPayload() const;
 
-    NearbyVincentDiscovery* m_discovery = nullptr;
+    NearbyCongregationDiscovery* m_discovery = nullptr;
     QTcpServer* m_server = nullptr;
     QPointer<QTcpSocket> m_clientSocket;
     QTimer* m_connectTimer = nullptr;

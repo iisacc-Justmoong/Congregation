@@ -1,6 +1,6 @@
 # iiSharedCanvas integration
 
-Vincent's `DrawingSurfaceItem` uses `iiSharedCanvas::CanvasItem` as its native
+Congregation's `DrawingSurfaceItem` uses `iiSharedCanvas::CanvasItem` as its native
 canvas base. A document ViewModel connection creates one selected transparent
 raster layer, and the existing LVRS QML painting surface binds its brush,
 pressure curve, stabilizer, tool, input-state, and undo/redo properties to that
@@ -17,7 +17,7 @@ only painted chunks store pixels.
 The application discovers the installed `iiSharedCanvas` CMake package from
 `$HOME/.local/SDK/iiSharedCanvas`. The package is linked alongside the current
 installed iiPaintEngine; the removed legacy `CanvasAdapter` is no longer part of
-the Vincent source or build contract.
+the Congregation source or build contract.
 
 The installed package version is `0.8.0` and CMake requires that exact version.
 Native layers are `BitmapLayer` or `VectorLayer` alternatives; application code
@@ -29,7 +29,7 @@ with this typed layer contract.
 
 The integration test exercises these application-level gates:
 
-- existing Vincent brush, eraser, fill, text, shape, raster import, PNG, PSD,
+- existing Congregation brush, eraser, fill, text, shape, raster import, PNG, PSD,
   thumbnail, input-pressure, and undo/redo workflows;
 - one `DrawingSurfaceItem` rendering static raster, static native vector, and a
   hold-keyframed raster layer together;
@@ -58,7 +58,7 @@ other-frame content separate while editing. Opening an ordinary bitmap is an
 explicit new-document operation and therefore replaces, rather than partially
 mutates, any previously opened mixed document.
 
-iiSharedCanvas display tiles now render asynchronously. Vincent's flat-file
+iiSharedCanvas display tiles now render asynchronously. Congregation's flat-file
 export and embedded raster-layer snapshot paths therefore render the current
 authoritative document synchronously with `renderFrameRegion()` instead of
 assuming `CanvasItem::framePixels()` is already populated. Display scheduling
@@ -75,8 +75,8 @@ every visibly allocated pixel remains drawable during asynchronous model
 updates and recent-session restoration.
 
 The application open dialog includes `.iisc`, so a mixed raster/vector/timeline
-document can be selected and displayed by the Vincent canvas. The Save As
-dialog deliberately does not advertise `.iisc` yet: Vincent's existing QML
+document can be selected and displayed by the Congregation canvas. The Save As
+dialog deliberately does not advertise `.iisc` yet: Congregation's existing QML
 session-layer stack must first be mapped into native assets so a normal layered
 editing session cannot appear to save while losing content.
 
@@ -107,7 +107,7 @@ persistent recent-session artifact.
 
 Preferences → Members exposes explicit **Share canvas**, **Join nearby…**, and
 **Stop sharing/Leave canvas** actions. Its `+` menu can also invite a specifically
-selected nearby Vincent user who enabled **Allow inviting other users**. The
+selected nearby Congregation user who enabled **Allow inviting other users**. The
 anonymous heartbeat carries no profile or canvas bytes; it adds only an
 invitation-capability Boolean and the host's temporary TCP port while sharing is
 active. Selecting an invitee sends a bounded, target-session-addressed one-hop

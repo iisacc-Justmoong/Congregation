@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - name: Check out Vincent
+      - name: Check out Congregation
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Require pinned iiUpdateManager provenance
@@ -290,13 +290,13 @@ jobs:
       - name: Build verified Windows MSI
         shell: pwsh
         run: |
-          if ([string]::IsNullOrWhiteSpace("${{ vars.VINCENT_CORRESPONDING_SOURCE_URL }}") -or
-              [string]::IsNullOrWhiteSpace("${{ vars.VINCENT_CORRESPONDING_SOURCE_SHA256 }}")) {
+          if ([string]::IsNullOrWhiteSpace("${{ vars.CONGREGATION_CORRESPONDING_SOURCE_URL }}") -or
+              [string]::IsNullOrWhiteSpace("${{ vars.CONGREGATION_CORRESPONDING_SOURCE_SHA256 }}")) {
               throw "Configure the public corresponding-source URL and SHA-256 repository variables."
           }
           $env:QT_PREFIX = $env:QT_ROOT_DIR
-          $env:VINCENT_CORRESPONDING_SOURCE_URL = "${{ vars.VINCENT_CORRESPONDING_SOURCE_URL }}"
-          $env:VINCENT_CORRESPONDING_SOURCE_SHA256 = "${{ vars.VINCENT_CORRESPONDING_SOURCE_SHA256 }}"
+          $env:CONGREGATION_CORRESPONDING_SOURCE_URL = "${{ vars.CONGREGATION_CORRESPONDING_SOURCE_URL }}"
+          $env:CONGREGATION_CORRESPONDING_SOURCE_SHA256 = "${{ vars.CONGREGATION_CORRESPONDING_SOURCE_SHA256 }}"
           if ('${{ inputs.submit-for-signing }}' -eq 'true') {
               .\build-windows.ps1 -BuildType Release -ExternalSigning -SkipPackage -CreateMsi
           } else {
@@ -311,15 +311,15 @@ jobs:
           $versionEntries = @(Get-Content -LiteralPath $cmakeCache |
               Where-Object { $_ -match '^CMAKE_PROJECT_VERSION:STATIC=' })
           if ($versionEntries.Count -ne 1) {
-              throw "The configured Vincent project version was not found exactly once in CMakeCache.txt."
+              throw "The configured Congregation project version was not found exactly once in CMakeCache.txt."
           }
           $expectedVersion = ($versionEntries[0] -split '=', 2)[1]
           if ($expectedVersion -notmatch '^\d+\.\d+(?:\.\d+)?$') {
-              throw "The configured Vincent project version is invalid: $expectedVersion"
+              throw "The configured Congregation project version is invalid: $expectedVersion"
           }
           $expectedTag = "v$expectedVersion"
           if ($env:GITHUB_REF_NAME -cne $expectedTag) {
-              throw "The signing tag must match the configured Vincent version: expected $expectedTag, received $($env:GITHUB_REF_NAME)."
+              throw "The signing tag must match the configured Congregation version: expected $expectedTag, received $($env:GITHUB_REF_NAME)."
           }
 
       - name: Upload unsigned SignPath input
@@ -327,8 +327,8 @@ jobs:
         id: upload-unsigned-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: Vincent-SignPath-input
-          path: build/signpath-input/Vincent-*-Windows.msi
+          name: Congregation-SignPath-input
+          path: build/signpath-input/Congregation-*-Windows.msi
           archive: false
           if-no-files-found: error
           retention-days: 7
@@ -337,8 +337,8 @@ jobs:
         if: ${{ !inputs.submit-for-signing }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: Vincent-website-release-unsigned
-          path: build/Vincent-*-Windows-unsigned.msi
+          name: Congregation-website-release-unsigned
+          path: build/Congregation-*-Windows-unsigned.msi
           archive: false
           if-no-files-found: error
           retention-days: 30
@@ -362,9 +362,9 @@ jobs:
         shell: pwsh
         run: |
           $signedDirectory = Join-Path $env:RUNNER_TEMP "signed"
-          $signedCandidates = @(Get-ChildItem -LiteralPath $signedDirectory -Filter "Vincent-*-Windows.msi" -File)
+          $signedCandidates = @(Get-ChildItem -LiteralPath $signedDirectory -Filter "Congregation-*-Windows.msi" -File)
           if ($signedCandidates.Count -ne 1) {
-              throw "SignPath must return exactly one canonical Vincent MSI; found $($signedCandidates.Count)."
+              throw "SignPath must return exactly one canonical Congregation MSI; found $($signedCandidates.Count)."
           }
           $msi = $signedCandidates[0].FullName
           $signature = Get-AuthenticodeSignature -LiteralPath $msi
@@ -388,11 +388,11 @@ jobs:
           $versionEntries = @(Get-Content -LiteralPath $cmakeCache |
               Where-Object { $_ -match '^CMAKE_PROJECT_VERSION:STATIC=' })
           if ($versionEntries.Count -ne 1) {
-              throw "The configured Vincent project version was not found exactly once in CMakeCache.txt."
+              throw "The configured Congregation project version was not found exactly once in CMakeCache.txt."
           }
           $expectedVersion = ($versionEntries[0] -split '=', 2)[1]
           if ($expectedVersion -notmatch '^\d+\.\d+(?:\.\d+)?$') {
-              throw "The configured Vincent project version is invalid: $expectedVersion"
+              throw "The configured Congregation project version is invalid: $expectedVersion"
           }
           $msiVersion = if ($expectedVersion -match '^\d+\.\d+$') { "$expectedVersion.0" } else { $expectedVersion }
           powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\tst_windowsmsidatabasecontract.ps1 -BuildDirectory .\build -Version $msiVersion -MsiPath $msi
@@ -405,9 +405,9 @@ jobs:
         shell: pwsh
         run: |
           $signedDirectory = Join-Path $env:RUNNER_TEMP "signed"
-          $signedCandidates = @(Get-ChildItem -LiteralPath $signedDirectory -Filter "Vincent-*-Windows.msi" -File)
+          $signedCandidates = @(Get-ChildItem -LiteralPath $signedDirectory -Filter "Congregation-*-Windows.msi" -File)
           if ($signedCandidates.Count -ne 1) {
-              throw "SignPath must return exactly one canonical Vincent MSI before nested verification; found $($signedCandidates.Count)."
+              throw "SignPath must return exactly one canonical Congregation MSI before nested verification; found $($signedCandidates.Count)."
           }
           $msi = $signedCandidates[0].FullName
           $administrativeImageDirectory = Join-Path $env:RUNNER_TEMP "signed-msi-administrative-image"
@@ -425,17 +425,17 @@ jobs:
               throw "Administrative extraction of the signed MSI failed with exit code $($msiExecProcess.ExitCode)."
           }
           $executableCandidates = @(Get-ChildItem -LiteralPath $administrativeImageDirectory `
-              -Filter "Vincent.exe" -Recurse -File)
+              -Filter "Congregation.exe" -Recurse -File)
           if ($executableCandidates.Count -ne 1) {
-              throw "The signed MSI must install exactly one Vincent.exe; found $($executableCandidates.Count)."
+              throw "The signed MSI must install exactly one Congregation.exe; found $($executableCandidates.Count)."
           }
           $executable = $executableCandidates[0].FullName
           $executableSignature = Get-AuthenticodeSignature -LiteralPath $executable
           if ($executableSignature.Status -ne "Valid") {
-              throw "The installed Vincent executable is not Authenticode-signed: $($executableSignature.Status)"
+              throw "The installed Congregation executable is not Authenticode-signed: $($executableSignature.Status)"
           }
           if ($executableSignature.SignerCertificate.Subject -notmatch "SignPath Foundation") {
-              throw "The installed Vincent executable was not signed by the approved SignPath Foundation identity."
+              throw "The installed Congregation executable was not signed by the approved SignPath Foundation identity."
           }
           $windowsKitsBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
           $signTool = Get-ChildItem -LiteralPath $windowsKitsBin -Filter "signtool.exe" -Recurse -File |
@@ -447,7 +447,7 @@ jobs:
           }
           & $signTool.FullName verify /pa /all /tw /v $executable
           if ($LASTEXITCODE -ne 0) {
-              throw "SignTool rejected the installed Vincent executable."
+              throw "SignTool rejected the installed Congregation executable."
           }
           $updateRuntimeCandidates = @(
               @("iiUpdateManager.dll", "libiiUpdateManager.dll") |
@@ -496,8 +496,8 @@ jobs:
         if: ${{ inputs.submit-for-signing }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: Vincent-website-release
-          path: '${{ runner.temp }}/signed/Vincent-*-Windows.msi'
+          name: Congregation-website-release
+          path: '${{ runner.temp }}/signed/Congregation-*-Windows.msi'
           archive: false
           if-no-files-found: error
           retention-days: 30

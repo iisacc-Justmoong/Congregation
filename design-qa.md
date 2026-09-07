@@ -15,23 +15,23 @@
   - Path: `/var/folders/j3/5qyn3r610nsfxzwk8_q8w9gm0000gn/T/codex-clipboard-1c734e3e-84ed-42cc-8366-176a144f21f2.png`
   - Pixel size: 57 x 83 at 1x.
 - Pre-fix black implementation:
-  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-borderless-full.png`
+  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-borderless-full.png`
   - Logical viewport: 1280 x 853.
   - Pixel size: 2560 x 1706 at 2x Retina.
 - Post-fix black implementation:
-  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-white-border-black-full.png`
+  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-white-border-black-full.png`
   - Logical viewport: 1280 x 853.
   - Pixel size: 2560 x 1706 at 2x Retina.
 - Post-fix magenta implementation:
-  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-white-border-magenta-full.png`
+  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-white-border-magenta-full.png`
   - Logical viewport: 1280 x 853.
   - Pixel size: 2560 x 1706 at 2x Retina.
 - Picker-open implementation:
-  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-white-border-black-picker-open.png`
+  - Path: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-white-border-black-picker-open.png`
 - Density-normalized focused captures:
-  - Black before: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-borderless-black-normalized.png`
-  - Black after: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-white-border-black-normalized.png`
-  - Magenta after: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-color-picker-white-border-magenta-normalized.png`
+  - Black before: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-borderless-black-normalized.png`
+  - Black after: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-white-border-black-normalized.png`
+  - Magenta after: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-color-picker-white-border-magenta-normalized.png`
   - Each focused capture was downsampled from the same 2x Retina crop to 57 x 83 at 1x.
 - Combined comparison inputs:
   - Black visibility, left before and right after: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/color-picker-black-before-vs-white-border-after.png`
@@ -80,8 +80,8 @@
 - The full-width toolbar background and bottom separator remain flush with the 1280-pixel window.
 - The toolbar content layout uses `LV.Theme.gap16` for both `anchors.leftMargin` and `anchors.rightMargin`; no stock LVRS button dimension is overridden.
 - In the rebuilt running app, the window frame was `100,80,1280,853`, the 22 x 22 `New canvas` button frame began at `116,115`, and the 22 x 22 `Brush color` button frame began at `1342,115`. The resulting left and right edge gaps are both exactly 16 logical pixels.
-- Closed-state edge evidence: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-toolbar-horizontal-padding-16-edges.png`.
-- Open-state interaction evidence: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/vincent-toolbar-horizontal-padding-16-color-picker-open-crop.png`; the picker remains visible and aligned within the window after the right inset.
+- Closed-state edge evidence: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-toolbar-horizontal-padding-16-edges.png`.
+- Open-state interaction evidence: `/Users/ymy/.codex/visualizations/2026/08/17/01a00d9d-b955-71b3-b20c-e14c2686105e/congregation-toolbar-horizontal-padding-16-color-picker-open-crop.png`; the picker remains visible and aligned within the window after the right inset.
 
 final result: passed
 
@@ -142,7 +142,7 @@ final result: passed
 ## Comparison target
 
 - Component: the selected-image state of the borderless profile `LV.IconButton` in `PreferencesWindow.qml`.
-- Input: `/Volumes/Storage/Workspace/Product/Vincent/docs/marketing/vincent-windows-editor.png`.
+- Input: `/Volumes/Storage/Workspace/Product/Congregation/docs/marketing/congregation-windows-editor.png`.
 - Required state: the selected landscape image must be centered, cropped to a 1:1 square, masked to a circle, and displayed without changing the existing 64-DIP button geometry.
 
 ## Evidence and pixel contract
@@ -189,7 +189,7 @@ final result: passed
 - The direct `onClicked: profileImageDialog.open()` path has been removed.
 - `ContextMenu.openFor()` anchors the popup to the existing borderless profile button without adding another frame.
 - A stock `LV.MenuItem` delegate preserves LVRS styling while binding each visible label to its accessibility name.
-- The Select path reached `Choose profile image`; the Delete path restored the centered stock user icon and left no `Vincent-profile-image-*.png` temporary file.
+- The Select path reached `Choose profile image`; the Delete path restored the centered stock user icon and left no `Congregation-profile-image-*.png` temporary file.
 - No actionable P0, P1, or P2 finding remains.
 
 final result: passed
@@ -204,7 +204,7 @@ final result: passed
 - Pre-smoothing deterministic reproduction with the corrected point ownership but `lineTo` trajectory: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/busy-path-before-smoothing.png`, 1366 × 768 px.
 - Post-fix active-pointer implementation: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/busy-path-after-fix-active.png`, 1366 × 768 px.
 - Post-fix released-pointer implementation: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/busy-path-after-fix-released.png`, 1366 × 768 px.
-- Compiled `build/Vincent.app` released-pointer evidence: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/compiled-app-released-no-dots.jpg`, 1366 × 768 px.
+- Compiled `build/Congregation.app` released-pointer evidence: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/compiled-app-released-no-dots.jpg`, 1366 × 768 px.
 - Full-view three-state comparison: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/laser-pointer-single-dot-comparison.png`, 4098 × 768 px.
 - Controlled polyline/active-curve/released-curve comparison: `/Users/ymy/.codex/visualizations/2026/08/24/01a03156-7a59-7700-8094-3c88247fe505/laser-pointer-smooth-curve-comparison.png`, 4098 × 768 px.
 - Viewport and density: the implementation component was rendered at 1366 × 768 logical and physical pixels with the Qt offscreen software backend. The 1588 × 1026 source was proportionally scaled and center-cropped to 1366 × 768 before comparison.

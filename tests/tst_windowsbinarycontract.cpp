@@ -25,7 +25,7 @@ constexpr quint16 requiredDllCharacteristics = IMAGE_DLLCHARACTERISTICS_HIGH_ENT
 
 QString executablePath()
 {
-    return QString::fromUtf8(VINCENT_EXECUTABLE_PATH);
+    return QString::fromUtf8(CONGREGATION_EXECUTABLE_PATH);
 }
 
 quint16 readUInt16(const QByteArray &bytes, qsizetype offset)
@@ -145,10 +145,10 @@ void tst_WindowsBinaryContract::manifestDeclaresNativeWindowsCapabilities()
     ReleaseActCtx(contextHandle);
 
     const ScopedModule executable(path);
-    QVERIFY2(executable.get(), "Vincent.exe could not be opened as a native resource image");
+    QVERIFY2(executable.get(), "Congregation.exe could not be opened as a native resource image");
 
     const HRSRC manifestResource = FindResourceW(executable.get(), MAKEINTRESOURCEW(1), RT_MANIFEST);
-    QVERIFY2(manifestResource, "Vincent.exe does not contain RT_MANIFEST resource 1");
+    QVERIFY2(manifestResource, "Congregation.exe does not contain RT_MANIFEST resource 1");
     const HGLOBAL loadedManifest = LoadResource(executable.get(), manifestResource);
     QVERIFY(loadedManifest);
     const DWORD manifestSize = SizeofResource(executable.get(), manifestResource);
@@ -168,7 +168,7 @@ void tst_WindowsBinaryContract::versionResourceMatchesProjectVersion()
     DWORD ignoredHandle = 0;
     const DWORD versionInfoSize = GetFileVersionInfoSizeW(reinterpret_cast<LPCWSTR>(path.utf16()),
                                                           &ignoredHandle);
-    QVERIFY2(versionInfoSize > 0, "Vincent.exe does not contain a VERSIONINFO resource");
+    QVERIFY2(versionInfoSize > 0, "Congregation.exe does not contain a VERSIONINFO resource");
 
     QByteArray versionData(versionInfoSize, Qt::Uninitialized);
     QVERIFY(GetFileVersionInfoW(reinterpret_cast<LPCWSTR>(path.utf16()),
@@ -198,7 +198,7 @@ void tst_WindowsBinaryContract::versionResourceMatchesProjectVersion()
                           reinterpret_cast<void **>(&productName),
                           &productNameLength));
     QVERIFY(productName);
-    QCOMPARE(QString::fromWCharArray(productName), QStringLiteral("Vincent"));
+    QCOMPARE(QString::fromWCharArray(productName), QStringLiteral("Congregation"));
 }
 
 void tst_WindowsBinaryContract::launchWindowSizeStaysConstant()
@@ -227,7 +227,7 @@ void tst_WindowsBinaryContract::launchWindowSizeStaysConstant()
         window = visibleTopLevelWindowForProcess(process.processId());
         QTest::qWait(10);
     }
-    QVERIFY2(window, "Vincent did not create a visible top-level window");
+    QVERIFY2(window, "Congregation did not create a visible top-level window");
 
     QSet<QSize> observedOuterSizes;
     QSet<QSize> observedClientSizes;

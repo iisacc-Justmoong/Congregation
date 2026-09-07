@@ -34,13 +34,13 @@ $parseErrors = $null
 $resolvedScriptPath = (Resolve-Path -LiteralPath $ScriptPath).Path
 $scriptSource = Get-Content -LiteralPath $resolvedScriptPath -Raw
 Assert-Condition ($scriptSource.Contains('[ValidateSet("Store", "Development")]')) "The MSIX script must separate Store and Development modes."
-Assert-Condition ($scriptSource.Contains('VINCENT_STORE_IDENTITY_NAME')) "The Store identity name environment contract is missing."
-Assert-Condition ($scriptSource.Contains('VINCENT_STORE_DISPLAY_NAME')) "The reserved Store display-name environment contract is missing."
-Assert-Condition ($scriptSource.Contains('VINCENT_STORE_PUBLISHER_DISPLAY_NAME')) "The Store publisher display-name environment contract is missing."
-Assert-Condition ($scriptSource.Contains('VINCENT_DEVELOPMENT_SIGNING_CERTIFICATE_THUMBPRINT')) "The development certificate selector is missing."
+Assert-Condition ($scriptSource.Contains('CONGREGATION_STORE_IDENTITY_NAME')) "The Store identity name environment contract is missing."
+Assert-Condition ($scriptSource.Contains('CONGREGATION_STORE_DISPLAY_NAME')) "The reserved Store display-name environment contract is missing."
+Assert-Condition ($scriptSource.Contains('CONGREGATION_STORE_PUBLISHER_DISPLAY_NAME')) "The Store publisher display-name environment contract is missing."
+Assert-Condition ($scriptSource.Contains('CONGREGATION_DEVELOPMENT_SIGNING_CERTIFICATE_THUMBPRINT')) "The development certificate selector is missing."
 Assert-Condition ($scriptSource.Contains('LocalMachine\TrustedPeople')) "Development MSIX installation must require machine TrustedPeople trust."
 Assert-Condition ($scriptSource.Contains('Store mode does not allow -SkipBuild')) "Store output must require a current build and tests."
-Assert-Condition ($scriptSource.Contains('Vincent-$Version-Windows-Store-x64')) "The canonical Store artifact name is missing."
+Assert-Condition ($scriptSource.Contains('Congregation-$Version-Windows-Store-x64')) "The canonical Store artifact name is missing."
 Assert-Condition ($scriptSource.Contains('$DistDirectory = Join-Path $RepositoryRoot "dist"')) "Store release artifacts must use the repository dist directory."
 Assert-Condition ($scriptSource.Contains('$outputDirectory = if ($Mode -eq "Store") { $DistDirectory } else { $developmentOutputDirectory }')) "Store release artifacts must be published to dist instead of build."
 Assert-Condition ($scriptSource.Contains('intentionally unsigned')) "The Store upload must document that it remains unsigned before Store ingestion."
@@ -67,31 +67,31 @@ foreach ($functionAst in $ast.FindAll(
 
 $thumbprint = "0123456789ABCDEF0123456789ABCDEF01234567"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Store -IdentityName "" -Publisher "CN=Store Publisher" -DisplayName "Vincent 4" -PublisherDisplayName "Store Publisher" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint ""
+    Assert-StorePackagePolicy -Mode Store -IdentityName "" -Publisher "CN=Store Publisher" -DisplayName "Congregation" -PublisherDisplayName "Store Publisher" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint ""
 } "Package/Identity/Name"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Vincent" -Publisher "" -DisplayName "Vincent 4" -PublisherDisplayName "Store Publisher" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint ""
+    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Congregation" -Publisher "" -DisplayName "Congregation" -PublisherDisplayName "Store Publisher" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint ""
 } "Package/Identity/Publisher"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Vincent" -Publisher "CN=Store Publisher" -DisplayName "" -PublisherDisplayName "Store Publisher" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint ""
+    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Congregation" -Publisher "CN=Store Publisher" -DisplayName "" -PublisherDisplayName "Store Publisher" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint ""
 } "Package/Properties/DisplayName"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Vincent" -Publisher "CN=Store Publisher" -DisplayName "Vincent 4" -PublisherDisplayName "" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint ""
+    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Congregation" -Publisher "CN=Store Publisher" -DisplayName "Congregation" -PublisherDisplayName "" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint ""
 } "PublisherDisplayName"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Vincent" -Publisher "CN=Store Publisher" -DisplayName "Vincent 4" -PublisherDisplayName "Store Publisher" -PackageVersion "6.0.0.1" -DevelopmentCertificateThumbprint ""
+    Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Congregation" -Publisher "CN=Store Publisher" -DisplayName "Congregation" -PublisherDisplayName "Store Publisher" -PackageVersion "1.0.0.1" -DevelopmentCertificateThumbprint ""
 } "fourth version field"
 Assert-Throws {
-    Assert-StorePackagePolicy -Mode Development -IdentityName "IISACC.Vincent.Development" -Publisher "CN=Vincent Development Local Only" -DisplayName "Vincent Development" -PublisherDisplayName "IISACC Development" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint "1234"
+    Assert-StorePackagePolicy -Mode Development -IdentityName "IISACC.Congregation.Development" -Publisher "CN=Congregation Development Local Only" -DisplayName "Congregation Development" -PublisherDisplayName "IISACC Development" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint "1234"
 } "40-hex"
-Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Vincent" -Publisher "CN=Store Publisher" -DisplayName "Vincent 4" -PublisherDisplayName "Store Publisher" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint ""
-Assert-StorePackagePolicy -Mode Development -IdentityName "IISACC.Vincent.Development" -Publisher "CN=Vincent Development Local Only" -DisplayName "Vincent Development" -PublisherDisplayName "IISACC Development" -PackageVersion "6.0.0.0" -DevelopmentCertificateThumbprint $thumbprint
+Assert-StorePackagePolicy -Mode Store -IdentityName "IISACC.Congregation" -Publisher "CN=Store Publisher" -DisplayName "Congregation" -PublisherDisplayName "Store Publisher" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint ""
+Assert-StorePackagePolicy -Mode Development -IdentityName "IISACC.Congregation.Development" -Publisher "CN=Congregation Development Local Only" -DisplayName "Congregation Development" -PublisherDisplayName "IISACC Development" -PackageVersion "1.0.0.0" -DevelopmentCertificateThumbprint $thumbprint
 
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-StorePackageTest-" + [Guid]::NewGuid().ToString("N"))
+$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-StorePackageTest-" + [Guid]::NewGuid().ToString("N"))
 $contentRoot = Join-Path $temporaryRoot "content"
 $manifestPath = Join-Path $contentRoot "AppxManifest.xml"
-$packagePath = Join-Path $temporaryRoot "Vincent.msix"
-$uploadPath = Join-Path $temporaryRoot "Vincent.msixupload"
+$packagePath = Join-Path $temporaryRoot "Congregation.msix"
+$uploadPath = Join-Path $temporaryRoot "Congregation.msixupload"
 try {
     New-Item -ItemType Directory -Path (Join-Path $contentRoot "Assets") -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $contentRoot "legal") -Force | Out-Null
@@ -101,11 +101,11 @@ try {
     Write-StoreAppxManifest `
         -TemplatePath $ManifestTemplatePath `
         -OutputPath $manifestPath `
-        -IdentityName "IISACC.Vincent" `
+        -IdentityName "IISACC.Congregation" `
         -Publisher "CN=IISACC & Co" `
-        -DisplayName "Vincent 4 & Paint" `
+        -DisplayName "Congregation & Paint" `
         -PublisherDisplayName "IISACC & Co" `
-        -PackageVersion "6.0.0.0"
+        -PackageVersion "1.0.0.0"
 
     [xml]$manifest = Get-Content -LiteralPath $manifestPath -Raw
     $namespaceManager = New-Object System.Xml.XmlNamespaceManager($manifest.NameTable)
@@ -114,21 +114,21 @@ try {
     $namespaceManager.AddNamespace("uap10", "http://schemas.microsoft.com/appx/manifest/uap/windows10/10")
     $namespaceManager.AddNamespace("rescap", "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities")
     $identity = $manifest.SelectSingleNode("/f:Package/f:Identity", $namespaceManager)
-    Assert-Condition ($identity.Name -eq "IISACC.Vincent") "The Store identity name was not written exactly."
+    Assert-Condition ($identity.Name -eq "IISACC.Congregation") "The Store identity name was not written exactly."
     Assert-Condition ($identity.Publisher -eq "CN=IISACC & Co") "The Store publisher was not XML escaped and restored exactly."
-    Assert-Condition ($identity.Version -eq "6.0.0.0") "The Store package version changed."
+    Assert-Condition ($identity.Version -eq "1.0.0.0") "The Store package version changed."
     $packageDisplayName = $manifest.SelectSingleNode("/f:Package/f:Properties/f:DisplayName", $namespaceManager)
-    Assert-Condition ($packageDisplayName.InnerText -eq "Vincent 4 & Paint") "The reserved package display name was not written exactly."
+    Assert-Condition ($packageDisplayName.InnerText -eq "Congregation & Paint") "The reserved package display name was not written exactly."
     $application = $manifest.SelectSingleNode("/f:Package/f:Applications/f:Application", $namespaceManager)
     Assert-Condition ($application.GetAttribute("RuntimeBehavior", "http://schemas.microsoft.com/appx/manifest/uap/windows10/10") -eq "packagedClassicApp") "The manifest must declare packagedClassicApp."
     Assert-Condition ($application.GetAttribute("TrustLevel", "http://schemas.microsoft.com/appx/manifest/uap/windows10/10") -eq "mediumIL") "The manifest must declare mediumIL."
     $visualElements = $manifest.SelectSingleNode("/f:Package/f:Applications/f:Application/uap:VisualElements", $namespaceManager)
-    Assert-Condition ($visualElements.GetAttribute("DisplayName") -eq "Vincent 4 & Paint") "The application display name must match the reserved package display name."
+    Assert-Condition ($visualElements.GetAttribute("DisplayName") -eq "Congregation & Paint") "The application display name must match the reserved package display name."
     Assert-Condition ($null -ne $manifest.SelectSingleNode("/f:Package/f:Capabilities/rescap:Capability[@Name='runFullTrust']", $namespaceManager)) "The manifest must declare runFullTrust."
     Assert-Condition ($null -ne $manifest.SelectSingleNode("/f:Package/f:Capabilities/f:Capability[@Name='privateNetworkClientServer']", $namespaceManager)) "The manifest must declare privateNetworkClientServer."
 
     foreach ($relativePath in @(
-            "Vincent.exe",
+            "Congregation.exe",
             "LICENSE.txt",
             "THIRD_PARTY_NOTICES.txt",
             "SOURCE_OFFER.txt",
@@ -166,7 +166,7 @@ try {
     $archive = [System.IO.Compression.ZipFile]::OpenRead($uploadPath)
     try {
         Assert-Condition ($archive.Entries.Count -eq 1) "The MSIX upload archive must contain exactly one package without symbols."
-        Assert-Condition ($archive.Entries[0].FullName -eq "Vincent.msix") "The MSIX upload archive contains the wrong entry name."
+        Assert-Condition ($archive.Entries[0].FullName -eq "Congregation.msix") "The MSIX upload archive contains the wrong entry name."
     } finally {
         $archive.Dispose()
     }

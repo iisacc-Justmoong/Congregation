@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes as Shapes
-import Vincent 2.0
+import Congregation 1.0
 
 Rectangle {
     id: surface
@@ -484,7 +484,7 @@ Rectangle {
             }
             const layerGrowth = item.ensureInfiniteCanvasRegion(nextOriginX, nextOriginY, nextWidth, nextHeight);
             if (layerGrowth && layerGrowth.error) {
-                console.warn("Vincent could not expand raster layer " + key + ": " + layerGrowth.error);
+                console.warn("Congregation could not expand raster layer " + key + ": " + layerGrowth.error);
             }
             item.resizeCanvasSurface(nextWidth, nextHeight);
         }
@@ -830,7 +830,7 @@ Rectangle {
     }
 
     function shouldRestorePsdBackgroundLayer(psdDocument) {
-        const manifest = psdDocument && psdDocument.vincentManifest ? psdDocument.vincentManifest : null;
+        const manifest = psdDocument && psdDocument.congregationManifest ? psdDocument.congregationManifest : null;
         const manifestLayers = manifest && Array.isArray(manifest.layers) ? manifest.layers : [];
         const importedLayers = psdDocument && Array.isArray(psdDocument.layers) ? psdDocument.layers : [];
         if (manifestLayers.length === 0 || importedLayers.length === 0) {

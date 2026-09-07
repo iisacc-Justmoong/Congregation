@@ -59,7 +59,7 @@ public:
         return 30000;
     }
 
-    [[nodiscard]] static PsdCompatibilityDocument fromVincentSession(const QSize &canvasSize,
+    [[nodiscard]] static PsdCompatibilityDocument fromCongregationSession(const QSize &canvasSize,
                                                                      const QVariantList &drawableObjects,
                                                                      bool includeBackgroundLayer = true);
 

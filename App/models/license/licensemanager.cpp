@@ -16,7 +16,7 @@ namespace
 {
 constexpr int maximumResponseSize = 64 * 1024;
 
-const QString vincentProductId = QStringLiteral("vincent");
+const QString congregationProductId = QStringLiteral("congregation");
 const QUrl productionValidationEndpoint(
     QStringLiteral("https://iisacc.com/api/account/license/validate"));
 
@@ -59,7 +59,7 @@ QByteArray serializedCredentials(const QString &email, const QString &licenseKey
     credentials.insert(QStringLiteral("schema"), 1);
     credentials.insert(QStringLiteral("email"), email);
     credentials.insert(QStringLiteral("licenseKey"), licenseKey);
-    credentials.insert(QStringLiteral("productId"), vincentProductId);
+    credentials.insert(QStringLiteral("productId"), congregationProductId);
     return QJsonDocument(credentials).toJson(QJsonDocument::Compact);
 }
 
@@ -85,7 +85,7 @@ bool parseStoredCredentials(const QByteArray &data, QString *email, QString *lic
     const QJsonValue productId = object.value(QStringLiteral("productId"));
     if (!schema.isDouble() || schema.toInt(-1) != 1
         || !storedEmail.isString() || !storedLicenseKey.isString()
-        || !productId.isString() || productId.toString() != vincentProductId) {
+        || !productId.isString() || productId.toString() != congregationProductId) {
         return false;
     }
 
@@ -207,7 +207,7 @@ LicenseManager::LicenseManager(const QUrl &validationEndpoint,
 
 QString LicenseManager::productId() const
 {
-    return vincentProductId;
+    return congregationProductId;
 }
 
 bool LicenseManager::enforcementEnabled() const
@@ -403,7 +403,7 @@ void LicenseManager::startValidation(const QString &normalizedEmail,
     QJsonObject requestObject;
     requestObject.insert(QStringLiteral("email"), normalizedEmail);
     requestObject.insert(QStringLiteral("licenseKey"), normalizedLicenseKey);
-    requestObject.insert(QStringLiteral("productId"), vincentProductId);
+    requestObject.insert(QStringLiteral("productId"), congregationProductId);
     QByteArray requestBody = QJsonDocument(requestObject).toJson(QJsonDocument::Compact);
 
     m_activeReply = m_networkAccessManager.post(request, requestBody);
@@ -453,12 +453,12 @@ void LicenseManager::finishValidation()
             const QJsonValue validValue = responseObject.value(QStringLiteral("valid"));
             const QJsonValue responseProductId = responseObject.value(QStringLiteral("productId"));
             const bool productMatches = !responseObject.contains(QStringLiteral("productId"))
-                || (responseProductId.isString() && responseProductId.toString() == vincentProductId);
+                || (responseProductId.isString() && responseProductId.toString() == congregationProductId);
 
             if (validValue.isBool() && productMatches) {
                 valid = validValue.toBool();
                 authoritativeDecision = !valid
-                    || (responseProductId.isString() && responseProductId.toString() == vincentProductId);
+                    || (responseProductId.isString() && responseProductId.toString() == congregationProductId);
             }
         }
     }

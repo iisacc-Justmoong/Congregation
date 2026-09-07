@@ -5,7 +5,7 @@ param(
     [ValidatePattern("^\d+\.\d+(?:\.\d+)?$")]
     [string]$Version,
 
-    [string]$VincentRevision = "",
+    [string]$CongregationRevision = "",
     [string]$RepositoryRoot = "",
     [string]$LvrsSource = "",
     [string]$IiPaintEngineSource = "",
@@ -44,8 +44,8 @@ if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
 $RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
 $parentDirectory = Split-Path -Parent $RepositoryRoot
 
-if ([string]::IsNullOrWhiteSpace($VincentRevision)) {
-    $VincentRevision = "v$Version"
+if ([string]::IsNullOrWhiteSpace($CongregationRevision)) {
+    $CongregationRevision = "v$Version"
 }
 if ([string]::IsNullOrWhiteSpace($LvrsSource)) {
     $LvrsSource = Join-Path $parentDirectory "LVRS"
@@ -77,7 +77,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $buildRoot "release-source"
 }
 $OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
-$bundleName = "Vincent-$Version-Corresponding-Source"
+$bundleName = "Congregation-$Version-Corresponding-Source"
 $stageDirectory = [System.IO.Path]::GetFullPath((Join-Path $OutputDirectory $bundleName))
 $archivePath = [System.IO.Path]::GetFullPath((Join-Path $OutputDirectory "$bundleName.zip"))
 $sidecarPath = "$archivePath.sha256"
@@ -158,7 +158,7 @@ function Copy-GitRevision {
     })
 
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-    $temporaryArchive = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-source-" + [Guid]::NewGuid().ToString("N") + ".zip")
+    $temporaryArchive = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-source-" + [Guid]::NewGuid().ToString("N") + ".zip")
     try {
         Push-Location -LiteralPath $sourceFull
         try {
@@ -198,7 +198,7 @@ function Copy-GitRevision {
 }
 
 if (-not (Test-Path -LiteralPath $RepositoryRoot -PathType Container)) {
-    throw "Vincent repository root does not exist: $RepositoryRoot"
+    throw "Congregation repository root does not exist: $RepositoryRoot"
 }
 Assert-PathWithinRoot -Path $OutputDirectory -Root $buildRoot -Label "Corresponding-source output directory"
 Assert-PathWithinRoot -Path $stageDirectory -Root $OutputDirectory -Label "Corresponding-source staging directory"
@@ -220,14 +220,14 @@ New-Item -ItemType Directory -Path $stageDirectory -Force | Out-Null
 $components = @()
 $components += Copy-GitRevision `
     -Source $RepositoryRoot `
-    -Destination (Join-Path $stageDirectory "Vincent") `
-    -Label "Vincent" `
-    -Revision $VincentRevision
-$vincentCMakePath = Join-Path $stageDirectory "Vincent\CMakeLists.txt"
-$vincentCMake = Get-Content -LiteralPath $vincentCMakePath -Raw
-$declaredVersionPattern = "project\s*\(\s*Vincent\s+VERSION\s+$([regex]::Escape($Version))(?:\s|\))"
-if ($vincentCMake -notmatch $declaredVersionPattern) {
-    throw "Vincent release revision does not declare version $Version."
+    -Destination (Join-Path $stageDirectory "Congregation") `
+    -Label "Congregation" `
+    -Revision $CongregationRevision
+$congregationCMakePath = Join-Path $stageDirectory "Congregation\CMakeLists.txt"
+$congregationCMake = Get-Content -LiteralPath $congregationCMakePath -Raw
+$declaredVersionPattern = "project\s*\(\s*Congregation\s+VERSION\s+$([regex]::Escape($Version))(?:\s|\))"
+if ($congregationCMake -notmatch $declaredVersionPattern) {
+    throw "Congregation release revision does not declare version $Version."
 }
 $components += Copy-GitRevision `
     -Source $LvrsSource `
@@ -282,7 +282,7 @@ foreach ($module in $qtModules) {
 }
 
 $componentLines = @(
-    "Vincent $Version corresponding-source component manifest",
+    "Congregation $Version corresponding-source component manifest",
     "=====================================================",
     "",
     "First-party and pinned source trees:"
@@ -292,22 +292,22 @@ foreach ($component in $components) {
 }
 $componentLines += @(
     "- Qt modules: $($qtModules -join ', ') from the local Qt 6.8.3 source installation.",
-    "- Windows toolchain: Qt MinGW 13.1.0. Runtime license notices and the GCC Runtime Library Exception are under Vincent/packaging/windows.",
+    "- Windows toolchain: Qt MinGW 13.1.0. Runtime license notices and the GCC Runtime Library Exception are under Congregation/packaging/windows.",
     "",
     "Git components are committed revision snapshots. Local working-tree changes and untracked files are excluded."
 )
 [System.IO.File]::WriteAllLines((Join-Path $stageDirectory "COMPONENTS.txt"), $componentLines, $utf8)
 
 $buildGuideTemplate = @'
-# Vincent @@VERSION@@ Corresponding Source
+# Congregation @@VERSION@@ Corresponding Source
 
-This archive accompanies the Windows website build of Vincent @@VERSION@@. It contains the exact committed first-party source trees used for the release, the pinned psd_sdk and QtKeychain sources, the Qt 6.8.3 module sources conveyed with the application, build and packaging scripts, and license material.
+This archive accompanies the Windows website build of Congregation @@VERSION@@. It contains the exact committed first-party source trees used for the release, the pinned psd_sdk and QtKeychain sources, the Qt 6.8.3 module sources conveyed with the application, build and packaging scripts, and license material.
 
 ## Windows build
 
 1. Install Qt 6.8.3 MinGW 64-bit and the matching MinGW 13.1.0 and Ninja tools.
 2. Install LVRS and iiPaintEngine using their included PowerShell install scripts. Configure, test, and install iiSharedCanvas and iiUpdateManager from each repository-local `build/` directory. Install static libsodium with vcpkg, then configure, test, and install iiLicenseManager from its repository-local `build/` directory with the `x64-mingw-static` triplet.
-3. From `Vincent`, configure, build, and test using the repository-local `build/` directory.
+3. From `Congregation`, configure, build, and test using the repository-local `build/` directory.
 4. Set the public URL and SHA-256 of this archive. During the temporary 2026 unsigned policy, run `powershell -ExecutionPolicy Bypass -File .\build-windows.ps1 -BuildType Release -AllowUnsignedPackage -SkipPackage -CreateMsi`. After trusted signing is available, use `-ExternalSigning` instead.
 
 The unsigned MSI is a temporary website release only through 2026. It exposes an authenticated SHA-256 but has no Authenticode publisher identity, so Windows may display Unknown publisher or SmartScreen warnings. The SignPath path remains the preferred signed successor.
@@ -342,7 +342,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Archive listing failed."
 }
 $requiredSuffixes = @(
-    "/Vincent/CMakeLists.txt",
+    "/Congregation/CMakeLists.txt",
     "/LVRS/CMakeLists.txt",
     "/iiPaintEngine/LICENSE",
     "/iiSharedCanvas/CMakeLists.txt",

@@ -12,13 +12,13 @@ LV.Window {
     height: 360
     title: qsTr("Preferences")
 
-    readonly property url profileImageSource: VincentProfileImageProcessor.imageSource
+    readonly property url profileImageSource: CongregationProfileImageProcessor.imageSource
     property alias profileName: profileNameField.text
     property alias canInviteOtherUsers: inviteOtherUsersCheckBox.checked
     property string accountEmail: ""
     property bool accountEmailLoading: false
     property bool startWithRecentCanvas: false
-    property bool discoverNearbyVincentUsers: true
+    property bool discoverNearbyCongregationUsers: true
     property bool restorePurchasesEnabled: true
     property bool updateCheckEnabled: false
     property bool initialCenteringApplied: false
@@ -30,12 +30,12 @@ LV.Window {
     property var availableLocalCanvases: []
     property var availableLocalInvitees: []
     readonly property bool localCanvasActive: localCanvasState !== "idle"
-    readonly property var displayedCanvasMemberProfiles: VincentMemberProfileListBuilder.build(currentCanvasMemberProfiles, profileName, profileImageSource, currentUserIsCanvasHost)
+    readonly property var displayedCanvasMemberProfiles: CongregationMemberProfileListBuilder.build(currentCanvasMemberProfiles, profileName, profileImageSource, currentUserIsCanvasHost)
 
     signal restorePurchasesRequested
     signal checkForUpdatesRequested
     signal startWithRecentCanvasRequested(bool enabled)
-    signal discoverNearbyVincentUsersRequested(bool enabled)
+    signal discoverNearbyCongregationUsersRequested(bool enabled)
     signal inviteCanvasMemberRequested(string sessionId)
     signal deleteCanvasMemberRequested(var profile, int index)
     signal hostCanvasRequested
@@ -91,7 +91,7 @@ LV.Window {
         for (let index = 0; index < Number(invitees.length || 0); ++index) {
             const invitee = invitees[index];
             result.push({
-                label: invitee.displayName || qsTr("Nearby Vincent user"),
+                label: invitee.displayName || qsTr("Nearby Congregation user"),
                 sessionId: String(invitee.sessionId || ""),
                 showIconSlot: true,
                 iconName: "user",
@@ -106,7 +106,7 @@ LV.Window {
 
         title: qsTr("Choose profile image")
         nameFilters: [qsTr("Image files (*.png *.jpg *.jpeg *.bmp *.webp)")]
-        onAccepted: VincentProfileImageProcessor.processProfileImage(selectedFile)
+        onAccepted: CongregationProfileImageProcessor.processProfileImage(selectedFile)
     }
 
     Component {
@@ -154,7 +154,7 @@ LV.Window {
                 return;
             }
             if (item.action === "delete") {
-                VincentProfileImageProcessor.clearProfileImage();
+                CongregationProfileImageProcessor.clearProfileImage();
             }
         }
     }
@@ -329,12 +329,12 @@ LV.Window {
             }
 
             LV.CheckBox {
-                id: discoverNearbyVincentUsersCheckBox
+                id: discoverNearbyCongregationUsersCheckBox
 
-                objectName: "discoverNearbyVincentUsersCheckBox"
-                text: qsTr("Discover nearby Vincent users")
-                checked: preferencesWindow.discoverNearbyVincentUsers
-                onToggled: preferencesWindow.discoverNearbyVincentUsersRequested(checked)
+                objectName: "discoverNearbyCongregationUsersCheckBox"
+                text: qsTr("Discover nearby Congregation users")
+                checked: preferencesWindow.discoverNearbyCongregationUsers
+                onToggled: preferencesWindow.discoverNearbyCongregationUsersRequested(checked)
             }
         }
 

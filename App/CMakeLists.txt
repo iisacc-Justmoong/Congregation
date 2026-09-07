@@ -19,7 +19,7 @@ if(APPLE)
     set(OPENGL_INCLUDE_DIR "" CACHE PATH "" FORCE)
 endif()
 
-target_sources(Vincent PRIVATE
+target_sources(Congregation PRIVATE
         main.cpp
         metatypes_dummy.cpp
         metatypes_dummy.h
@@ -49,22 +49,22 @@ target_sources(Vincent PRIVATE
         models/license/licensecredentialstore.h
         models/network/localcanvassession.cpp
         models/network/localcanvassession.h
-        models/network/nearbyvincentdiscovery.cpp
-        models/network/nearbyvincentdiscovery.h
+        models/network/nearbycongregationdiscovery.cpp
+        models/network/nearbycongregationdiscovery.h
         models/painting/drawingsurfaceitem.cpp
         models/painting/drawingsurfaceitem.h
         models/preferences/applicationpreferences.cpp
         models/preferences/applicationpreferences.h
         models/profile/profileimageprocessor.cpp
         models/profile/profileimageprocessor.h
-        models/update/vincentupdatecredentialprovider.cpp
-        models/update/vincentupdatecredentialprovider.h
-        models/update/vincentupdatemanager.cpp
-        models/update/vincentupdatemanager.h
+        models/update/congregationupdatecredentialprovider.cpp
+        models/update/congregationupdatecredentialprovider.h
+        models/update/congregationupdatemanager.cpp
+        models/update/congregationupdatemanager.h
         resources.qrc
 )
 
-target_include_directories(Vincent PRIVATE
+target_include_directories(Congregation PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/models/brush
         ${CMAKE_CURRENT_SOURCE_DIR}/models/canvas

@@ -9,7 +9,7 @@
 
 #include <optional>
 
-struct NearbyVincentPresence
+struct NearbyCongregationPresence
 {
     QString sessionId;
     bool online = false;
@@ -17,7 +17,7 @@ struct NearbyVincentPresence
     bool invitationsAllowed = false;
 };
 
-struct NearbyVincentInvitation
+struct NearbyCongregationInvitation
 {
     QString invitationId;
     QString senderSessionId;
@@ -26,32 +26,32 @@ struct NearbyVincentInvitation
     QString inviterProfileName;
 };
 
-class NearbyVincentProtocol final
+class NearbyCongregationProtocol final
 {
   public:
     [[nodiscard]] static QString serviceName();
     [[nodiscard]] static QByteArray encodePresence(const QString& sessionId, bool online,
                                                    quint16 canvasPort = 0,
                                                    bool invitationsAllowed = false);
-    [[nodiscard]] static std::optional<NearbyVincentPresence>
+    [[nodiscard]] static std::optional<NearbyCongregationPresence>
     decodePresence(const QByteArray& payload);
     [[nodiscard]] static QByteArray encodeInvitation(const QString& invitationId,
                                                      const QString& senderSessionId,
                                                      const QString& targetSessionId,
                                                      quint16 canvasPort,
                                                      const QString& inviterProfileName);
-    [[nodiscard]] static std::optional<NearbyVincentInvitation>
+    [[nodiscard]] static std::optional<NearbyCongregationInvitation>
     decodeInvitation(const QByteArray& payload);
     [[nodiscard]] static constexpr qsizetype maximumDatagramSize() noexcept { return 512; }
 };
 
-class NearbyVincentDiscoveryWorker;
+class NearbyCongregationDiscoveryWorker;
 
-class NearbyVincentDiscovery final : public QObject
+class NearbyCongregationDiscovery final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
-    Q_PROPERTY(bool anotherVincentUserDetected READ anotherVincentUserDetected NOTIFY
+    Q_PROPERTY(bool anotherCongregationUserDetected READ anotherCongregationUserDetected NOTIFY
                    nearbyPresenceChanged)
     Q_PROPERTY(int nearbyDeviceCount READ nearbyDeviceCount NOTIFY nearbyPresenceChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
@@ -75,12 +75,12 @@ class NearbyVincentDiscovery final : public QObject
         bool includeLoopbackInterfaces = false;
     };
 
-    explicit NearbyVincentDiscovery(QObject* parent = nullptr);
-    explicit NearbyVincentDiscovery(Configuration configuration, QObject* parent = nullptr);
-    ~NearbyVincentDiscovery() override;
+    explicit NearbyCongregationDiscovery(QObject* parent = nullptr);
+    explicit NearbyCongregationDiscovery(Configuration configuration, QObject* parent = nullptr);
+    ~NearbyCongregationDiscovery() override;
 
     [[nodiscard]] bool running() const noexcept;
-    [[nodiscard]] bool anotherVincentUserDetected() const noexcept;
+    [[nodiscard]] bool anotherCongregationUserDetected() const noexcept;
     [[nodiscard]] int nearbyDeviceCount() const noexcept;
     [[nodiscard]] QString sessionId() const;
     [[nodiscard]] QVariantList availableCanvasSessions() const;
@@ -118,7 +118,7 @@ class NearbyVincentDiscovery final : public QObject
 
     QThread m_workerThread;
     QString m_sessionId;
-    NearbyVincentDiscoveryWorker* m_worker = nullptr;
+    NearbyCongregationDiscoveryWorker* m_worker = nullptr;
     bool m_running = false;
     int m_nearbyDeviceCount = 0;
     quint16 m_hostedCanvasPort = 0;

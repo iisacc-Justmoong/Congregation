@@ -20,13 +20,13 @@ param(
     [switch]$Sign,
     [switch]$AllowUnsignedPackage,
     [switch]$ExternalSigning,
-    [string]$SigningCertificateThumbprint = $env:VINCENT_SIGNING_CERTIFICATE_THUMBPRINT,
+    [string]$SigningCertificateThumbprint = $env:CONGREGATION_SIGNING_CERTIFICATE_THUMBPRINT,
     [ValidateSet("CurrentUser", "LocalMachine")]
     [string]$SigningCertificateStoreLocation = "CurrentUser",
-    [string]$TimestampUrl = $(if ($env:VINCENT_TIMESTAMP_URL) { $env:VINCENT_TIMESTAMP_URL } else { "http://timestamp.digicert.com" }),
+    [string]$TimestampUrl = $(if ($env:CONGREGATION_TIMESTAMP_URL) { $env:CONGREGATION_TIMESTAMP_URL } else { "http://timestamp.digicert.com" }),
     [string]$SignToolPath = $env:SIGNTOOL_PATH,
-    [string]$CorrespondingSourceUrl = $env:VINCENT_CORRESPONDING_SOURCE_URL,
-    [string]$CorrespondingSourceSha256 = $env:VINCENT_CORRESPONDING_SOURCE_SHA256,
+    [string]$CorrespondingSourceUrl = $env:CONGREGATION_CORRESPONDING_SOURCE_URL,
+    [string]$CorrespondingSourceSha256 = $env:CONGREGATION_CORRESPONDING_SOURCE_SHA256,
     [switch]$CreateMsi,
     [string]$WixToolsDir = $env:WIX_TOOLS_DIR,
     [switch]$InstallForCurrentUser,
@@ -36,7 +36,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$Version = "6.0"
+$Version = "1.0.0"
 $UnsignedPublicReleaseExpiresAtUtc = [DateTimeOffset]::Parse("2027-01-01T00:00:00Z")
 $windowsVersionParts = @($Version -split '\.')
 while ($windowsVersionParts.Count -lt 4) {
@@ -46,35 +46,35 @@ $WindowsFileVersion = $windowsVersionParts[0..3] -join "."
 $RepositoryRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 $BuildDir = Join-Path $RepositoryRoot "build"
 $DistRoot = Join-Path $RepositoryRoot "dist"
-$StageDir = Join-Path $DistRoot "Vincent-Windows"
-$SignedZipPath = Join-Path $DistRoot "Vincent-$Version-Windows.zip"
-$UnsignedZipPath = Join-Path $DistRoot "Vincent-$Version-Windows-unsigned.zip"
+$StageDir = Join-Path $DistRoot "Congregation-Windows"
+$SignedZipPath = Join-Path $DistRoot "Congregation-$Version-Windows.zip"
+$UnsignedZipPath = Join-Path $DistRoot "Congregation-$Version-Windows-unsigned.zip"
 $ZipPath = if ($AllowUnsignedPackage) { $UnsignedZipPath } else { $SignedZipPath }
 $ZipChecksumPath = "$ZipPath.sha256"
-$SignedZipPartialPath = Join-Path $DistRoot "Vincent-$Version-Windows.partial.zip"
-$UnsignedZipPartialPath = Join-Path $DistRoot "Vincent-$Version-Windows-unsigned.partial.zip"
+$SignedZipPartialPath = Join-Path $DistRoot "Congregation-$Version-Windows.partial.zip"
+$UnsignedZipPartialPath = Join-Path $DistRoot "Congregation-$Version-Windows-unsigned.partial.zip"
 $ZipPartialPath = if ($AllowUnsignedPackage) { $UnsignedZipPartialPath } else { $SignedZipPartialPath }
 $ZipChecksumPartialPath = "$ZipChecksumPath.partial"
 $MsiWorkDir = Join-Path $BuildDir "msi"
 $ExternalSigningInputDir = Join-Path $BuildDir "signpath-input"
-$SignedMsiPath = Join-Path $BuildDir "Vincent-$Version-Windows.msi"
-$UnsignedMsiPath = Join-Path $BuildDir "Vincent-$Version-Windows-unsigned.msi"
-$ExternalSigningMsiPath = Join-Path $ExternalSigningInputDir "Vincent-$Version-Windows.msi"
+$SignedMsiPath = Join-Path $BuildDir "Congregation-$Version-Windows.msi"
+$UnsignedMsiPath = Join-Path $BuildDir "Congregation-$Version-Windows-unsigned.msi"
+$ExternalSigningMsiPath = Join-Path $ExternalSigningInputDir "Congregation-$Version-Windows.msi"
 $MsiPath = if ($ExternalSigning) { $ExternalSigningMsiPath } elseif ($AllowUnsignedPackage) { $UnsignedMsiPath } else { $SignedMsiPath }
 $MsiChecksumPath = "$MsiPath.sha256"
-$SignedMsiPartialPath = Join-Path $BuildDir "Vincent-$Version-Windows.partial.msi"
-$UnsignedMsiPartialPath = Join-Path $BuildDir "Vincent-$Version-Windows-unsigned.partial.msi"
-$ExternalSigningMsiPartialPath = Join-Path $ExternalSigningInputDir "Vincent-$Version-Windows.partial.msi"
+$SignedMsiPartialPath = Join-Path $BuildDir "Congregation-$Version-Windows.partial.msi"
+$UnsignedMsiPartialPath = Join-Path $BuildDir "Congregation-$Version-Windows-unsigned.partial.msi"
+$ExternalSigningMsiPartialPath = Join-Path $ExternalSigningInputDir "Congregation-$Version-Windows.partial.msi"
 $MsiPartialPath = if ($ExternalSigning) { $ExternalSigningMsiPartialPath } elseif ($AllowUnsignedPackage) { $UnsignedMsiPartialPath } else { $SignedMsiPartialPath }
 $SignedMsiPartialDebugPath = [System.IO.Path]::ChangeExtension($SignedMsiPartialPath, ".wixpdb")
 $UnsignedMsiPartialDebugPath = [System.IO.Path]::ChangeExtension($UnsignedMsiPartialPath, ".wixpdb")
 $ExternalSigningMsiPartialDebugPath = [System.IO.Path]::ChangeExtension($ExternalSigningMsiPartialPath, ".wixpdb")
 $MsiPartialDebugPath = if ($ExternalSigning) { $ExternalSigningMsiPartialDebugPath } elseif ($AllowUnsignedPackage) { $UnsignedMsiPartialDebugPath } else { $SignedMsiPartialDebugPath }
 $MsiChecksumPartialPath = "$MsiChecksumPath.partial"
-$CpackIncompleteZipPath = Join-Path $BuildDir "Vincent-$Version-Windows-unsigned-cpack-incomplete.zip"
-$SignedPackagePublicationJournalPath = Join-Path $DistRoot ".Vincent-$Version-Windows.publication.json"
-$UnsignedPackagePublicationJournalPath = Join-Path $DistRoot ".Vincent-$Version-Windows-unsigned.publication.json"
-$ExternalSigningPublicationJournalPath = Join-Path $ExternalSigningInputDir ".Vincent-$Version-Windows-signpath-input.publication.json"
+$CpackIncompleteZipPath = Join-Path $BuildDir "Congregation-$Version-Windows-unsigned-cpack-incomplete.zip"
+$SignedPackagePublicationJournalPath = Join-Path $DistRoot ".Congregation-$Version-Windows.publication.json"
+$UnsignedPackagePublicationJournalPath = Join-Path $DistRoot ".Congregation-$Version-Windows-unsigned.publication.json"
+$ExternalSigningPublicationJournalPath = Join-Path $ExternalSigningInputDir ".Congregation-$Version-Windows-signpath-input.publication.json"
 $PackagePublicationJournalPath = if ($ExternalSigning) {
     $ExternalSigningPublicationJournalPath
 } elseif ($AllowUnsignedPackage) {
@@ -90,7 +90,7 @@ function Write-Step {
 }
 
 function Enter-WindowsBuildMutex {
-    param([string]$MutexName = "Global\Vincent.BuildWindows.PackagePipeline.v1")
+    param([string]$MutexName = "Global\Congregation.BuildWindows.PackagePipeline.v1")
 
     $mutex = [System.Threading.Mutex]::new($false, $MutexName)
     $acquired = $false
@@ -639,7 +639,7 @@ function Publish-PackageArtifactSet {
         $firstArtifactDirectory = [System.IO.Path]::GetDirectoryName(
             [System.IO.Path]::GetFullPath([string]$Artifacts[0].FinalArtifactPath)
         )
-        $JournalPath = Join-Path $firstArtifactDirectory ".vincent-package-publication.json"
+        $JournalPath = Join-Path $firstArtifactDirectory ".congregation-package-publication.json"
     }
     Restore-PackageArtifactSetBackups -Artifacts $Artifacts -JournalPath $JournalPath
 
@@ -995,7 +995,7 @@ function Sign-AuthenticodeFile {
         "/td", "SHA256",
         "/sha1", $CertificateThumbprint,
         "/s", "My",
-        "/d", "Vincent"
+        "/d", "Congregation"
     )
     if ($StoreLocation -eq "LocalMachine") {
         $arguments += "/sm"
@@ -1041,14 +1041,14 @@ function Get-StagedPeFiles {
     )
 }
 
-function Get-VincentOwnedStageFiles {
+function Get-CongregationOwnedStageFiles {
     param([string]$Directory)
 
     return @(
-        foreach ($fileName in @("Vincent.exe", "LVRS.dll", "libiiPaintEngine.dll")) {
+        foreach ($fileName in @("Congregation.exe", "LVRS.dll", "libiiPaintEngine.dll")) {
             $path = Join-Path $Directory $fileName
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-                throw "Vincent-owned signing target is missing: $path"
+                throw "Congregation-owned signing target is missing: $path"
             }
             Get-Item -LiteralPath $path
         }
@@ -1059,7 +1059,7 @@ function Get-VincentOwnedStageFiles {
                 Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
         )
         if ($sharedCanvasCandidates.Count -ne 1) {
-            throw "Vincent-owned signing target must contain exactly one iiSharedCanvas runtime DLL."
+            throw "Congregation-owned signing target must contain exactly one iiSharedCanvas runtime DLL."
         }
         Get-Item -LiteralPath $sharedCanvasCandidates[0]
 
@@ -1069,7 +1069,7 @@ function Get-VincentOwnedStageFiles {
                 Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
         )
         if ($updateManagerCandidates.Count -ne 1) {
-            throw "Vincent-owned signing target must contain exactly one iiUpdateManager runtime DLL."
+            throw "Congregation-owned signing target must contain exactly one iiUpdateManager runtime DLL."
         }
         Get-Item -LiteralPath $updateManagerCandidates[0]
 
@@ -1079,7 +1079,7 @@ function Get-VincentOwnedStageFiles {
                 Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
         )
         if ($licenseManagerCandidates.Count -ne 1) {
-            throw "Vincent-owned signing target must contain exactly one iiLicenseManager runtime DLL."
+            throw "Congregation-owned signing target must contain exactly one iiLicenseManager runtime DLL."
         }
         Get-Item -LiteralPath $licenseManagerCandidates[0]
     )
@@ -1096,14 +1096,14 @@ function Sign-WindowsStage {
     )
 
     $ownedPaths = @{}
-    foreach ($ownedFile in Get-VincentOwnedStageFiles -Directory $Directory) {
+    foreach ($ownedFile in Get-CongregationOwnedStageFiles -Directory $Directory) {
         $ownedPaths[$ownedFile.FullName] = $true
     }
 
     foreach ($file in Get-StagedPeFiles -Directory $Directory) {
         $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
-        $isVincentOwned = $ownedPaths.ContainsKey($file.FullName)
-        if (($signature.Status -eq "Valid") -and (-not $isVincentOwned)) {
+        $isCongregationOwned = $ownedPaths.ContainsKey($file.FullName)
+        if (($signature.Status -eq "Valid") -and (-not $isCongregationOwned)) {
             continue
         }
         if (($signature.Status -ne "NotSigned") -and ($signature.Status -ne "Valid")) {
@@ -1131,7 +1131,7 @@ function Verify-WindowsStageSignatures {
     )
 
     $ownedPaths = @{}
-    foreach ($ownedFile in Get-VincentOwnedStageFiles -Directory $Directory) {
+    foreach ($ownedFile in Get-CongregationOwnedStageFiles -Directory $Directory) {
         $ownedPaths[$ownedFile.FullName] = $true
     }
 
@@ -1306,12 +1306,12 @@ function Assert-PublicDistributionEvidence {
     $sourceUri = $null
     $validSourceUri = [System.Uri]::TryCreate($SourceUrl, [System.UriKind]::Absolute, [ref]$sourceUri)
     if ((-not $validSourceUri) -or $sourceUri.Scheme -ne "https") {
-        throw "Public Windows packaging requires VINCENT_CORRESPONDING_SOURCE_URL as an absolute HTTPS URL controlled by the publisher."
+        throw "Public Windows packaging requires CONGREGATION_CORRESPONDING_SOURCE_URL as an absolute HTTPS URL controlled by the publisher."
     }
 
     $normalizedSourceHash = ($SourceSha256 | Out-String).Trim().ToUpperInvariant()
     if ($normalizedSourceHash -notmatch '^[0-9A-F]{64}$') {
-        throw "Public Windows packaging requires the exact 64-hex VINCENT_CORRESPONDING_SOURCE_SHA256 value."
+        throw "Public Windows packaging requires the exact 64-hex CONGREGATION_CORRESPONDING_SOURCE_SHA256 value."
     }
 }
 
@@ -1556,11 +1556,11 @@ function Copy-WindowsLegalMaterials {
 
     $sourceOffer = if ($PublicRelease) {
         @"
-Vincent $Version corresponding source
+Congregation $Version corresponding source
 ========================================
 
 The corresponding source for this exact release, including the sources needed
-to comply with the GNU AGPL and LGPL components conveyed with Vincent, is
+to comply with the GNU AGPL and LGPL components conveyed with Congregation, is
 available without charge from the publisher-controlled location below.
 
 URL: $SourceUrl
@@ -1899,13 +1899,13 @@ function New-DeterministicProductCode {
     # A stable UUIDv5 keeps a rebuilt package for the same release in the same
     # Windows Installer product identity. Version and architecture remain part
     # of the name so a real release or architecture change gets a new product.
-    $namespaceGuid = [Guid]"5F580AD5-3A19-4E89-924A-8B7C7A3A9F9B"
+    $namespaceGuid = [Guid]"31432BB7-5B11-55D5-8AE0-CD97E6B1D95F"
     $namespaceBytes = $namespaceGuid.ToByteArray()
     [Array]::Reverse($namespaceBytes, 0, 4)
     [Array]::Reverse($namespaceBytes, 4, 2)
     [Array]::Reverse($namespaceBytes, 6, 2)
 
-    $name = "Vincent|Windows|$($Architecture.ToLowerInvariant())|$ProductVersion"
+    $name = "Congregation|Windows|$($Architecture.ToLowerInvariant())|$ProductVersion"
     $nameBytes = [System.Text.Encoding]::UTF8.GetBytes($name)
     $inputBytes = New-Object byte[] ($namespaceBytes.Length + $nameBytes.Length)
     [Buffer]::BlockCopy($namespaceBytes, 0, $inputBytes, 0, $namespaceBytes.Length)
@@ -1944,165 +1944,165 @@ function Write-MsiProductFile {
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="%%PRODUCT_CODE%%"
            Codepage="1252"
-           Name="Vincent"
+           Name="Congregation"
            Language="1033"
            Version="%%PRODUCT_VERSION%%"
            Manufacturer="IISACC"
-           UpgradeCode="5F580AD5-3A19-4E89-924A-8B7C7A3A9F9B">
+           UpgradeCode="31432BB7-5B11-55D5-8AE0-CD97E6B1D95F">
     <Package InstallerVersion="500"
              Compressed="yes"
              SummaryCodepage="1252"
-             Description="Vincent %%PRODUCT_VERSION%% Windows Installer" />
+             Description="Congregation %%PRODUCT_VERSION%% Windows Installer" />
     <MajorUpgrade Schedule="afterInstallInitialize"
-                  DowngradeErrorMessage="A newer version of Vincent is already installed." />
+                  DowngradeErrorMessage="A newer version of Congregation is already installed." />
     <MediaTemplate EmbedCab="yes" />
-    <Icon Id="VincentIcon" SourceFile="$(var.SourceDir)\resources\Appicon.ico" />
-    <Property Id="ARPPRODUCTICON" Value="VincentIcon" />
+    <Icon Id="CongregationIcon" SourceFile="$(var.SourceDir)\resources\Appicon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="CongregationIcon" />
     <Property Id="ALLUSERS" Value="2" />
     <Property Id="MSIINSTALLPERUSER" Value="1" />
     <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
-    <Property Id="VINCENT_MACHINE_PROGRAMFILES64" Secure="yes">
-      <RegistrySearch Id="VincentMachineProgramFiles64Search"
+    <Property Id="CONGREGATION_MACHINE_PROGRAMFILES64" Secure="yes">
+      <RegistrySearch Id="CongregationMachineProgramFiles64Search"
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion"
                       Name="ProgramFilesDir"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_EXISTING_USER_CONTEXT" Secure="yes">
-      <RegistrySearch Id="VincentExistingUserContextSearch"
+    <Property Id="CONGREGATION_EXISTING_USER_CONTEXT" Secure="yes">
+      <RegistrySearch Id="CongregationExistingUserContextSearch"
                       Root="HKCU"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="installContext"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_LEGACY_USER_CONTEXT" Secure="yes">
-      <RegistrySearch Id="VincentLegacyUserContextSearch"
+    <Property Id="CONGREGATION_LEGACY_USER_CONTEXT" Secure="yes">
+      <RegistrySearch Id="CongregationLegacyUserContextSearch"
                       Root="HKCU"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="installed"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_EXISTING_USER_INSTALLLOCATION" Secure="yes">
-      <RegistrySearch Id="VincentExistingUserInstallLocationSearch"
+    <Property Id="CONGREGATION_EXISTING_USER_INSTALLLOCATION" Secure="yes">
+      <RegistrySearch Id="CongregationExistingUserInstallLocationSearch"
                       Root="HKCU"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="InstallLocation"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_EXISTING_MACHINE_CONTEXT" Secure="yes">
-      <RegistrySearch Id="VincentExistingMachineContextSearch"
+    <Property Id="CONGREGATION_EXISTING_MACHINE_CONTEXT" Secure="yes">
+      <RegistrySearch Id="CongregationExistingMachineContextSearch"
                       Root="HKLM"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="installContext"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_LEGACY_MACHINE_CONTEXT" Secure="yes">
-      <RegistrySearch Id="VincentLegacyMachineContextSearch"
+    <Property Id="CONGREGATION_LEGACY_MACHINE_CONTEXT" Secure="yes">
+      <RegistrySearch Id="CongregationLegacyMachineContextSearch"
                       Root="HKLM"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="machineStartMenuShortcut"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="VINCENT_EXISTING_MACHINE_INSTALLLOCATION" Secure="yes">
-      <RegistrySearch Id="VincentExistingMachineInstallLocationSearch"
+    <Property Id="CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION" Secure="yes">
+      <RegistrySearch Id="CongregationExistingMachineInstallLocationSearch"
                       Root="HKLM"
-                      Key="Software\IISACC\Vincent"
+                      Key="Software\IISACC\Congregation"
                       Name="InstallLocation"
                       Type="raw"
                       Win64="yes" />
     </Property>
-    <Property Id="ApplicationFolderName" Value="Vincent" />
+    <Property Id="ApplicationFolderName" Value="Congregation" />
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
-    <Condition Message="Vincent is registered for both the current user and all users. Remove one installation before continuing.">
-      Installed OR REMOVE~="ALL" OR NOT ((VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT) AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT))
+    <Condition Message="Congregation is registered for both the current user and all users. Remove one installation before continuing.">
+      Installed OR REMOVE~="ALL" OR NOT ((CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT) AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT))
     </Condition>
-    <Condition Message="This Vincent installation is registered for the current user. Run the installer in the current-user context.">
-      Installed OR REMOVE~="ALL" OR NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT OR (WIX_UPGRADE_DETECTED AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT))) OR NOT ALLUSERS
+    <Condition Message="This Congregation installation is registered for the current user. Run the installer in the current-user context.">
+      Installed OR REMOVE~="ALL" OR NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT OR (WIX_UPGRADE_DETECTED AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT))) OR NOT ALLUSERS
     </Condition>
     <Condition Message="The native 64-bit Program Files path could not be resolved.">
-      VINCENT_MACHINE_PROGRAMFILES64
+      CONGREGATION_MACHINE_PROGRAMFILES64
     </Condition>
     <SetProperty Id="ARPINSTALLLOCATION"
                  Value="[APPLICATIONFOLDER]"
                  After="CostFinalize"
                  Sequence="execute" />
     <SetProperty Id="WixPerMachineFolder"
-                 Value="[VINCENT_MACHINE_PROGRAMFILES64]\[ApplicationFolderName]"
+                 Value="[CONGREGATION_MACHINE_PROGRAMFILES64]\[ApplicationFolderName]"
                  After="WixSetDefaultPerMachineFolder"
                  Sequence="both" />
-    <CustomAction Id="VincentSetExistingUserUiScope"
+    <CustomAction Id="CongregationSetExistingUserUiScope"
                   Property="WixAppFolder"
                   Value="WixPerUserFolder"
                   Execute="firstSequence" />
-    <CustomAction Id="VincentSetExistingMachineUiScope"
+    <CustomAction Id="CongregationSetExistingMachineUiScope"
                   Property="WixAppFolder"
                   Value="WixPerMachineFolder"
                   Execute="firstSequence" />
-    <CustomAction Id="VincentSetDetectedUserUiScope"
+    <CustomAction Id="CongregationSetDetectedUserUiScope"
                   Property="WixAppFolder"
                   Value="WixPerUserFolder"
                   Execute="firstSequence" />
-    <CustomAction Id="VincentSetExistingMachineContext"
+    <CustomAction Id="CongregationSetExistingMachineContext"
                   Property="ALLUSERS"
                   Value="1"
                   Execute="firstSequence" />
-    <CustomAction Id="VincentSetExistingUserInstallFolder"
+    <CustomAction Id="CongregationSetExistingUserInstallFolder"
                   Property="APPLICATIONFOLDER"
-                  Value="[VINCENT_EXISTING_USER_INSTALLLOCATION]"
+                  Value="[CONGREGATION_EXISTING_USER_INSTALLLOCATION]"
                   Execute="firstSequence" />
-    <CustomAction Id="VincentSetExistingMachineInstallFolder"
+    <CustomAction Id="CongregationSetExistingMachineInstallFolder"
                   Property="APPLICATIONFOLDER"
-                  Value="[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]"
+                  Value="[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]"
                   Execute="firstSequence" />
     <InstallUISequence>
       <AppSearch Sequence="10" />
-      <Custom Action="VincentSetExistingUserUiScope" Sequence="11">(VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT) AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingMachineUiScope" Sequence="12">(VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT) AND NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingMachineContext" Sequence="13">(VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT) AND NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingUserInstallFolder" Sequence="14">VINCENT_EXISTING_USER_INSTALLLOCATION AND (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT) AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingMachineInstallFolder" Sequence="15">VINCENT_EXISTING_MACHINE_INSTALLLOCATION AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT) AND NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Custom>
-      <Custom Action="VincentSetDetectedUserUiScope" Sequence="26">WIX_UPGRADE_DETECTED AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingUserUiScope" Sequence="11">(CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT) AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingMachineUiScope" Sequence="12">(CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT) AND NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingMachineContext" Sequence="13">(CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT) AND NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingUserInstallFolder" Sequence="14">CONGREGATION_EXISTING_USER_INSTALLLOCATION AND (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT) AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingMachineInstallFolder" Sequence="15">CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT) AND NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Custom>
+      <Custom Action="CongregationSetDetectedUserUiScope" Sequence="26">WIX_UPGRADE_DETECTED AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Custom>
     </InstallUISequence>
     <InstallExecuteSequence>
       <AppSearch Sequence="10" />
-      <Custom Action="VincentSetExistingMachineContext" Sequence="11">(VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT) AND NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingUserInstallFolder" Sequence="12">VINCENT_EXISTING_USER_INSTALLLOCATION AND (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT) AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Custom>
-      <Custom Action="VincentSetExistingMachineInstallFolder" Sequence="13">VINCENT_EXISTING_MACHINE_INSTALLLOCATION AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT) AND NOT (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingMachineContext" Sequence="11">(CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT) AND NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingUserInstallFolder" Sequence="12">CONGREGATION_EXISTING_USER_INSTALLLOCATION AND (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT) AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Custom>
+      <Custom Action="CongregationSetExistingMachineInstallFolder" Sequence="13">CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT) AND NOT (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Custom>
     </InstallExecuteSequence>
     <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
     <UIRef Id="WixUI_Advanced" />
     <UIRef Id="WixUI_ErrorProgressText" />
     <UI>
-      <Publish Dialog="InstallScopeDlg" Control="Next" Property="WixAppFolder" Value="WixPerUserFolder" Order="0">VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT OR (WIX_UPGRADE_DETECTED AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT))</Publish>
-      <Publish Dialog="InstallScopeDlg" Control="Next" Property="WixAppFolder" Value="WixPerMachineFolder" Order="0">VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT</Publish>
-      <Publish Dialog="InstallScopeDlg" Control="Next" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_USER_INSTALLLOCATION]" Order="5">VINCENT_EXISTING_USER_INSTALLLOCATION AND (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Publish>
-      <Publish Dialog="InstallScopeDlg" Control="Next" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]" Order="6">VINCENT_EXISTING_MACHINE_INSTALLLOCATION AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="WixAppFolder" Value="WixPerUserFolder" Order="0">CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT OR (WIX_UPGRADE_DETECTED AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT))</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="WixAppFolder" Value="WixPerMachineFolder" Order="0">CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_USER_INSTALLLOCATION]" Order="5">CONGREGATION_EXISTING_USER_INSTALLLOCATION AND (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]" Order="6">CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Publish>
       <Publish Dialog="FeaturesDlg" Control="Install" Property="MSIINSTALLPERUSER" Value="1" Order="1">NOT Installed AND WixAppFolder = "WixPerUserFolder"</Publish>
       <Publish Dialog="FeaturesDlg" Control="Install" Property="MSIINSTALLPERUSER" Value="{}" Order="1">NOT Installed AND WixAppFolder = "WixPerMachineFolder"</Publish>
       <Publish Dialog="FeaturesDlg" Control="Install" Property="ALLUSERS" Value="2" Order="1">NOT Installed</Publish>
-      <Publish Dialog="FeaturesDlg" Control="Install" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_USER_INSTALLLOCATION]" Order="1">NOT Installed AND VINCENT_EXISTING_USER_INSTALLLOCATION AND (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Publish>
-      <Publish Dialog="FeaturesDlg" Control="Install" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]" Order="1">NOT Installed AND VINCENT_EXISTING_MACHINE_INSTALLLOCATION AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Publish>
+      <Publish Dialog="FeaturesDlg" Control="Install" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_USER_INSTALLLOCATION]" Order="1">NOT Installed AND CONGREGATION_EXISTING_USER_INSTALLLOCATION AND (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Publish>
+      <Publish Dialog="FeaturesDlg" Control="Install" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]" Order="1">NOT Installed AND CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Publish>
       <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="MSIINSTALLPERUSER" Value="1" Order="1">NOT Installed AND WixAppFolder = "WixPerUserFolder"</Publish>
       <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="MSIINSTALLPERUSER" Value="{}" Order="1">NOT Installed AND WixAppFolder = "WixPerMachineFolder"</Publish>
       <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="ALLUSERS" Value="2" Order="1">NOT Installed</Publish>
-      <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_USER_INSTALLLOCATION]" Order="1">NOT Installed AND VINCENT_EXISTING_USER_INSTALLLOCATION AND (VINCENT_EXISTING_USER_CONTEXT OR VINCENT_LEGACY_USER_CONTEXT)</Publish>
-      <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="APPLICATIONFOLDER" Value="[VINCENT_EXISTING_MACHINE_INSTALLLOCATION]" Order="1">NOT Installed AND VINCENT_EXISTING_MACHINE_INSTALLLOCATION AND (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)</Publish>
+      <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_USER_INSTALLLOCATION]" Order="1">NOT Installed AND CONGREGATION_EXISTING_USER_INSTALLLOCATION AND (CONGREGATION_EXISTING_USER_CONTEXT OR CONGREGATION_LEGACY_USER_CONTEXT)</Publish>
+      <Publish Dialog="FeaturesDlg" Control="InstallNoShield" Property="APPLICATIONFOLDER" Value="[CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION]" Order="1">NOT Installed AND CONGREGATION_EXISTING_MACHINE_INSTALLLOCATION AND (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)</Publish>
     </UI>
 
     <Feature Id="CoreFeature"
-             Title="Vincent application files"
-             Description="Installs the files required to run Vincent."
+             Title="Congregation application files"
+             Description="Installs the files required to run Congregation."
              Level="1"
              Absent="disallow"
              ConfigurableDirectory="APPLICATIONFOLDER"
              Display="expand">
-      <ComponentGroupRef Id="VincentRuntime" />
+      <ComponentGroupRef Id="CongregationRuntime" />
       <ComponentRef Id="InstallContextComponent" />
     </Feature>
   </Product>
@@ -2110,25 +2110,25 @@ function Write-MsiProductFile {
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
-        <Directory Id="APPLICATIONFOLDER" Name="Vincent" />
+        <Directory Id="APPLICATIONFOLDER" Name="Congregation" />
       </Directory>
       <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Vincent" />
+        <Directory Id="ApplicationProgramsFolder" Name="Congregation" />
       </Directory>
     </Directory>
   </Fragment>
 
   <Fragment>
     <DirectoryRef Id="APPLICATIONFOLDER">
-      <Component Id="InstallContextComponent" Guid="3048C76F-C0FC-4CEE-9C86-D154BDA6BCD8" Win64="yes">
+      <Component Id="InstallContextComponent" Guid="05DF7FB6-91BE-5013-AE84-E4A6496550E8" Win64="yes">
         <RegistryValue Root="HKMU"
-                       Key="Software\IISACC\Vincent"
+                       Key="Software\IISACC\Congregation"
                        Name="installContext"
                        Type="integer"
                        Value="1"
                        KeyPath="yes" />
         <RegistryValue Root="HKMU"
-                       Key="Software\IISACC\Vincent"
+                       Key="Software\IISACC\Congregation"
                        Name="InstallLocation"
                        Type="string"
                        Value="[APPLICATIONFOLDER]" />
@@ -2165,15 +2165,15 @@ function Add-AdvertisedStartMenuShortcut {
     param([string]$HarvestPath)
 
     $content = Get-Content -LiteralPath $HarvestPath -Raw
-    $vincentFilePattern = '(?m)^(?<indent>\s*)<File (?<attributes>[^>\r\n]*\bSource="\$\(var\.StageDir\)\\Vincent\.exe"[^>\r\n]*) />\r?$'
-    $vincentFiles = [regex]::Matches($content, $vincentFilePattern)
-    if ($vincentFiles.Count -ne 1) {
-        throw "Expected exactly one harvested Vincent.exe file row, found $($vincentFiles.Count)."
+    $congregationFilePattern = '(?m)^(?<indent>\s*)<File (?<attributes>[^>\r\n]*\bSource="\$\(var\.StageDir\)\\Congregation\.exe"[^>\r\n]*) />\r?$'
+    $congregationFiles = [regex]::Matches($content, $congregationFilePattern)
+    if ($congregationFiles.Count -ne 1) {
+        throw "Expected exactly one harvested Congregation.exe file row, found $($congregationFiles.Count)."
     }
 
     $content = [regex]::Replace(
         $content,
-        $vincentFilePattern,
+        $congregationFilePattern,
         {
             param($match)
             $indent = $match.Groups["indent"].Value
@@ -2182,8 +2182,8 @@ function Add-AdvertisedStartMenuShortcut {
                 "${indent}<File $attributes>",
                 "${indent}    <Shortcut Id=`"ApplicationStartMenuShortcut`"",
                 "${indent}              Directory=`"ApplicationProgramsFolder`"",
-                "${indent}              Name=`"Vincent`"",
-                "${indent}              Description=`"Launch Vincent`"",
+                "${indent}              Name=`"Congregation`"",
+                "${indent}              Description=`"Launch Congregation`"",
                 "${indent}              WorkingDirectory=`"APPLICATIONFOLDER`"",
                 "${indent}              Advertise=`"yes`" />",
                 "${indent}</File>",
@@ -2214,20 +2214,20 @@ function New-MsiInstaller {
     $light = Join-Path $wixTools "light.exe"
     $smoke = Join-Path $wixTools "smoke.exe"
     $darice = Join-Path $wixTools "darice.cub"
-    $productPath = Join-Path $WorkDirectory "VincentProduct.wxs"
-    $runtimePath = Join-Path $WorkDirectory "VincentRuntime.wxs"
-    $licensePath = Join-Path $WorkDirectory "VincentLicense.rtf"
+    $productPath = Join-Path $WorkDirectory "CongregationProduct.wxs"
+    $runtimePath = Join-Path $WorkDirectory "CongregationRuntime.wxs"
+    $licensePath = Join-Path $WorkDirectory "CongregationLicense.rtf"
 
     New-Item -ItemType Directory -Force $WorkDirectory | Out-Null
     Write-MsiLicenseRtf -SourcePath (Join-Path $RepositoryRoot "LICENSE") -OutputPath $licensePath
     Write-MsiProductFile -OutputPath $productPath -ProductVersion $ProductVersion -Architecture $Architecture
-    Invoke-Native $heat @("dir", $SourceDirectory, "-wx", "-cg", "VincentRuntime", "-dr", "APPLICATIONFOLDER", "-srd", "-sreg", "-sfrag", "-ag", "-var", "var.StageDir", "-out", $runtimePath)
+    Invoke-Native $heat @("dir", $SourceDirectory, "-wx", "-cg", "CongregationRuntime", "-dr", "APPLICATIONFOLDER", "-srd", "-sreg", "-sfrag", "-ag", "-var", "var.StageDir", "-out", $runtimePath)
     Remove-NonAsciiHarvestedFiles -HarvestPath $runtimePath
     Add-AdvertisedStartMenuShortcut -HarvestPath $runtimePath
 
     Remove-Item -Path (Join-Path $WorkDirectory "*.wixobj"), $OutputPath -Force -ErrorAction SilentlyContinue
     Invoke-Native $candle @("-wx", "-dStageDir=$SourceDirectory", "-dSourceDir=$RepositoryRoot", "-dLicenseRtf=$licensePath", "-arch", $Architecture, "-out", "$WorkDirectory\", $productPath, $runtimePath)
-    Invoke-Native $light @("-wx", "-ext", "WixUIExtension", "-cultures:en-us", "-out", $OutputPath, (Join-Path $WorkDirectory "VincentProduct.wixobj"), (Join-Path $WorkDirectory "VincentRuntime.wixobj"))
+    Invoke-Native $light @("-wx", "-ext", "WixUIExtension", "-cultures:en-us", "-out", $OutputPath, (Join-Path $WorkDirectory "CongregationProduct.wixobj"), (Join-Path $WorkDirectory "CongregationRuntime.wixobj"))
     Invoke-Native $smoke @("-wx", "-nodefault", "-cub", $darice, "-ice:ICE105", $OutputPath)
 }
 
@@ -2408,7 +2408,7 @@ function Strip-WindowsRuntimeBinaries {
     }
 
     foreach ($runtimeName in @(
-        "Vincent.exe",
+        "Congregation.exe",
         "LVRS.dll",
         "libiiPaintEngine.dll",
         "iiSharedCanvas.dll",
@@ -2425,20 +2425,20 @@ function Strip-WindowsRuntimeBinaries {
     }
 }
 
-function Resolve-VincentExecutable {
+function Resolve-CongregationExecutable {
     param(
         [string]$BuildDirectory,
         [string]$Configuration
     )
 
     $candidates = @(
-        (Join-Path $BuildDirectory "Vincent.exe"),
-        (Join-Path $BuildDirectory "$Configuration\Vincent.exe")
+        (Join-Path $BuildDirectory "Congregation.exe"),
+        (Join-Path $BuildDirectory "$Configuration\Congregation.exe")
     )
 
     $executable = Test-AnyPath $candidates
     if (-not $executable) {
-        throw "Vincent.exe was not produced in build/. Checked: $($candidates -join ', ')"
+        throw "Congregation.exe was not produced in build/. Checked: $($candidates -join ', ')"
     }
 
     return $executable
@@ -2452,9 +2452,9 @@ function Verify-WindowsStage {
         [string]$BuildType
     )
 
-    $vincentExe = Join-Path $Directory "Vincent.exe"
-    if (-not (Test-Path $vincentExe)) {
-        throw "Staged Vincent.exe is missing."
+    $congregationExe = Join-Path $Directory "Congregation.exe"
+    if (-not (Test-Path $congregationExe)) {
+        throw "Staged Congregation.exe is missing."
     }
 
     $sharedCanvasRuntime = @(
@@ -2484,35 +2484,35 @@ function Verify-WindowsStage {
         throw "iiLicenseManager runtime deployment must contain exactly one platform DLL."
     }
 
-    $peHeader = Get-PeHeader -Binary $vincentExe
+    $peHeader = Get-PeHeader -Binary $congregationExe
     if ($peHeader.Machine -ne 0x8664) {
-        throw "Staged Vincent.exe is not an AMD64 native binary (machine=0x$('{0:x4}' -f $peHeader.Machine))."
+        throw "Staged Congregation.exe is not an AMD64 native binary (machine=0x$('{0:x4}' -f $peHeader.Machine))."
     }
     if ($peHeader.OptionalHeaderMagic -ne 0x020b) {
-        throw "Staged Vincent.exe is not PE32+ (magic=0x$('{0:x4}' -f $peHeader.OptionalHeaderMagic))."
+        throw "Staged Congregation.exe is not PE32+ (magic=0x$('{0:x4}' -f $peHeader.OptionalHeaderMagic))."
     }
-    if ((Get-PeSubsystem -Binary $vincentExe) -ne 2) {
-        throw "Staged Vincent.exe must use the Windows GUI subsystem."
+    if ((Get-PeSubsystem -Binary $congregationExe) -ne 2) {
+        throw "Staged Congregation.exe must use the Windows GUI subsystem."
     }
     $requiredDllCharacteristics = 0x0160
     if (($peHeader.DllCharacteristics -band $requiredDllCharacteristics) -ne $requiredDllCharacteristics) {
-        throw "Staged Vincent.exe is missing required ASLR/DEP PE security flags."
+        throw "Staged Congregation.exe is missing required ASLR/DEP PE security flags."
     }
     if (($ResolvedQtPrefix -match "mingw") -and
         ($BuildType -in @("Release", "MinSizeRel")) -and
         ($peHeader.PointerToSymbolTable -ne 0)) {
-        throw "Staged MinGW Vincent.exe still contains a COFF symbol table."
+        throw "Staged MinGW Congregation.exe still contains a COFF symbol table."
     }
 
-    $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($vincentExe)
+    $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($congregationExe)
     if ($versionInfo.FileVersion -ne $ExpectedFileVersion) {
-        throw "Staged Vincent.exe file version '$($versionInfo.FileVersion)' does not match '$ExpectedFileVersion'."
+        throw "Staged Congregation.exe file version '$($versionInfo.FileVersion)' does not match '$ExpectedFileVersion'."
     }
     if ($versionInfo.ProductVersion -ne $ExpectedFileVersion) {
-        throw "Staged Vincent.exe product version '$($versionInfo.ProductVersion)' does not match '$ExpectedFileVersion'."
+        throw "Staged Congregation.exe product version '$($versionInfo.ProductVersion)' does not match '$ExpectedFileVersion'."
     }
-    if ($versionInfo.ProductName -ne "Vincent") {
-        throw "Staged Vincent.exe product name is not Vincent."
+    if ($versionInfo.ProductName -ne "Congregation") {
+        throw "Staged Congregation.exe product name is not Congregation."
     }
 
     if (-not (Get-ChildItem -Path $Directory -Filter "Qt6Core*.dll" -File -ErrorAction SilentlyContinue)) {
@@ -2560,7 +2560,7 @@ function Resolve-SafeCurrentUserInstallDirectory {
         throw "The current user's Local Application Data directory could not be resolved."
     }
     if (-not $TargetDirectory) {
-        $TargetDirectory = Join-Path $localAppData "Programs\Vincent"
+        $TargetDirectory = Join-Path $localAppData "Programs\Congregation"
     }
 
     $localAppDataRoot = [System.IO.Path]::GetFullPath($localAppData).TrimEnd(
@@ -2598,14 +2598,14 @@ function Resolve-SafeCurrentUserInstallDirectory {
 
         $existingEntries = @(Get-ChildItem -LiteralPath $resolvedTarget -Force -ErrorAction Stop)
         if ($existingEntries.Count -gt 0) {
-            $ownershipMarker = Join-Path $resolvedTarget ".vincent-install-root"
-            $installedExecutable = Join-Path $resolvedTarget "Vincent.exe"
-            $isExistingVincentInstall = (Test-Path -LiteralPath $ownershipMarker)
-            if ((-not $isExistingVincentInstall) -and (Test-Path -LiteralPath $installedExecutable)) {
-                $isExistingVincentInstall = (Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductName -eq "Vincent"
+            $ownershipMarker = Join-Path $resolvedTarget ".congregation-install-root"
+            $installedExecutable = Join-Path $resolvedTarget "Congregation.exe"
+            $isExistingCongregationInstall = (Test-Path -LiteralPath $ownershipMarker)
+            if ((-not $isExistingCongregationInstall) -and (Test-Path -LiteralPath $installedExecutable)) {
+                $isExistingCongregationInstall = (Get-Item -LiteralPath $installedExecutable).VersionInfo.ProductName -eq "Congregation"
             }
-            if (-not $isExistingVincentInstall) {
-                throw "Refusing to replace a non-empty directory that is not an existing Vincent installation: $resolvedTarget"
+            if (-not $isExistingCongregationInstall) {
+                throw "Refusing to replace a non-empty directory that is not an existing Congregation installation: $resolvedTarget"
             }
         }
     }
@@ -2623,23 +2623,23 @@ function Install-ForCurrentUser {
         -TargetDirectory $TargetDirectory `
         -SourceDirectory $SourceDirectory
 
-    Write-Step "Installing Vincent for the current user"
+    Write-Step "Installing Congregation for the current user"
     if (Test-Path -LiteralPath $TargetDirectory) {
         Remove-Item -LiteralPath $TargetDirectory -Recurse -Force
     }
     New-Item -ItemType Directory -Force $TargetDirectory | Out-Null
     Copy-Item (Join-Path $SourceDirectory "*") -Destination $TargetDirectory -Recurse -Force
-    Set-Content -LiteralPath (Join-Path $TargetDirectory ".vincent-install-root") `
-        -Value "Vincent current-user installation" `
+    Set-Content -LiteralPath (Join-Path $TargetDirectory ".congregation-install-root") `
+        -Value "Congregation current-user installation" `
         -Encoding ASCII
 
     $programsMenu = [Environment]::GetFolderPath("Programs")
-    $shortcutPath = Join-Path $programsMenu "Vincent.lnk"
+    $shortcutPath = Join-Path $programsMenu "Congregation.lnk"
     $shell = New-Object -ComObject WScript.Shell
     $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = Join-Path $TargetDirectory "Vincent.exe"
+    $shortcut.TargetPath = Join-Path $TargetDirectory "Congregation.exe"
     $shortcut.WorkingDirectory = $TargetDirectory
-    $shortcut.IconLocation = Join-Path $TargetDirectory "Vincent.exe"
+    $shortcut.IconLocation = Join-Path $TargetDirectory "Congregation.exe"
     $shortcut.Save()
 
     Write-Host "Installed to: $TargetDirectory"
@@ -2916,7 +2916,7 @@ if ($Clean) {
 $prefixPath = @($QtPrefix, $LVRSPrefix, $IiPaintEnginePrefix, $IiSharedCanvasPrefix, $IiUpdateManagerPrefix, $IiLicenseManagerPrefix) -join ";"
 $buildTesting = if ($SkipTests) { "OFF" } else { "ON" }
 
-Write-Step "Configuring Vincent"
+Write-Step "Configuring Congregation"
 Invoke-Native $CMake @(
     "-S", $RepositoryRoot,
     "-B", $BuildDir,
@@ -2926,10 +2926,10 @@ Invoke-Native $CMake @(
     "-DCMAKE_PREFIX_PATH=$prefixPath"
 )
 
-Write-Step "Building Vincent"
+Write-Step "Building Congregation"
 $buildArguments = @("--build", $BuildDir, "--config", $BuildType, "--parallel")
 if ($SkipTests) {
-    $buildArguments += @("--target", "Vincent")
+    $buildArguments += @("--target", "Congregation")
 }
 Invoke-Native $CMake $buildArguments
 
@@ -2943,11 +2943,11 @@ New-Item -ItemType Directory -Force $DistRoot | Out-Null
 Remove-Item $StageDir -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $StageDir | Out-Null
 
-$VincentExecutable = Resolve-VincentExecutable -BuildDirectory $BuildDir -Configuration $BuildType
-$StagedVincentExecutable = Join-Path $StageDir "Vincent.exe"
-Copy-Item $VincentExecutable -Destination $StagedVincentExecutable -Force
-if ((Get-FileHash -Algorithm SHA256 $VincentExecutable).Hash -ne (Get-FileHash -Algorithm SHA256 $StagedVincentExecutable).Hash) {
-    throw "Staged Vincent.exe does not match the executable produced by the current build."
+$CongregationExecutable = Resolve-CongregationExecutable -BuildDirectory $BuildDir -Configuration $BuildType
+$StagedCongregationExecutable = Join-Path $StageDir "Congregation.exe"
+Copy-Item $CongregationExecutable -Destination $StagedCongregationExecutable -Force
+if ((Get-FileHash -Algorithm SHA256 $CongregationExecutable).Hash -ne (Get-FileHash -Algorithm SHA256 $StagedCongregationExecutable).Hash) {
+    throw "Staged Congregation.exe does not match the executable produced by the current build."
 }
 
 $deployMode = if ($BuildType -eq "Debug") { "--debug" } else { "--release" }
@@ -2963,7 +2963,7 @@ Invoke-Native $WindeployQt @(
     "--exclude-plugins", "qpdf,qtvirtualkeyboardplugin",
     "--verbose", "0",
     "--qmldir", (Join-Path $RepositoryRoot "App\qml"),
-    $StagedVincentExecutable
+    $StagedCongregationExecutable
 )
 
 Copy-DependencyRuntimeFiles -Name "LVRS" -Prefix $LVRSPrefix -Destination $StageDir

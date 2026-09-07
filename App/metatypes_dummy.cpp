@@ -1,8 +1,8 @@
 #include "metatypes_dummy.h"
 
-VincentMetaTypesDummy::VincentMetaTypesDummy(QObject *parent)
+CongregationMetaTypesDummy::CongregationMetaTypesDummy(QObject *parent)
     : QObject(parent)
 {
 }
 
-VincentMetaTypesDummy::~VincentMetaTypesDummy() = default;
+CongregationMetaTypesDummy::~CongregationMetaTypesDummy() = default;

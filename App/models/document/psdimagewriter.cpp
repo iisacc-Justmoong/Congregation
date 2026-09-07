@@ -206,7 +206,7 @@ struct PlanarRgba8 {
     return QJsonDocument(QJsonObject::fromVariantMap(manifest)).toJson(QJsonDocument::Compact);
 }
 
-void addVincentMetadata(psd::ExportDocument *document,
+void addCongregationMetadata(psd::ExportDocument *document,
                         psd::Allocator *allocator,
                         const QVariantMap &manifest,
                         int layerCount)
@@ -214,11 +214,11 @@ void addVincentMetadata(psd::ExportDocument *document,
     const QByteArray encodedManifest = compactManifestJson(manifest).toBase64();
     const QByteArray layerCountValue = QByteArray::number(layerCount);
 
-    psd::AddMetaData(document, allocator, "VincentApplication", "Vincent");
-    psd::AddMetaData(document, allocator, "VincentCompatibilityVersion", "1");
-    psd::AddMetaData(document, allocator, "VincentLayerManifestEncoding", "base64-json");
-    psd::AddMetaData(document, allocator, "VincentLayerManifestBase64", encodedManifest.constData());
-    psd::AddMetaData(document, allocator, "VincentLayerCount", layerCountValue.constData());
+    psd::AddMetaData(document, allocator, "CongregationApplication", "Congregation");
+    psd::AddMetaData(document, allocator, "CongregationCompatibilityVersion", "1");
+    psd::AddMetaData(document, allocator, "CongregationLayerManifestEncoding", "base64-json");
+    psd::AddMetaData(document, allocator, "CongregationLayerManifestBase64", encodedManifest.constData());
+    psd::AddMetaData(document, allocator, "CongregationLayerCount", layerCountValue.constData());
 }
 
 bool addLayer(psd::ExportDocument *document,
@@ -329,7 +329,7 @@ bool PsdImageWriter::writeLayeredImage(const QString &filePath,
         psd::DestroyExportDocument(document, &allocator);
     });
 
-    addVincentMetadata(document, &allocator, manifest, bottomToTopLayers.size());
+    addCongregationMetadata(document, &allocator, manifest, bottomToTopLayers.size());
 
     for (const Layer &layer : bottomToTopLayers) {
         if (!addLayer(document, &allocator, layer)) {

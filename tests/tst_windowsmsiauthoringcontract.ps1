@@ -36,33 +36,33 @@ foreach ($functionAst in $functionAsts) {
     . ([scriptblock]::Create($functionAst.Extent.Text))
 }
 
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-MsiAuthoringTest-" + [Guid]::NewGuid().ToString("N"))
+$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-MsiAuthoringTest-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
 try {
-    $product401X64A = New-DeterministicProductCode -ProductVersion "4.0.1" -Architecture "x64"
-    $product401X64B = New-DeterministicProductCode -ProductVersion "4.0.1" -Architecture "x64"
-    $product404X64 = New-DeterministicProductCode -ProductVersion "4.0.4" -Architecture "x64"
-    $product401Arm64 = New-DeterministicProductCode -ProductVersion "4.0.1" -Architecture "arm64"
-    Assert-Condition ($product401X64A -eq $product401X64B) `
+    $product100X64A = New-DeterministicProductCode -ProductVersion "1.0.0" -Architecture "x64"
+    $product100X64B = New-DeterministicProductCode -ProductVersion "1.0.0" -Architecture "x64"
+    $product101X64 = New-DeterministicProductCode -ProductVersion "1.0.1" -Architecture "x64"
+    $product100Arm64 = New-DeterministicProductCode -ProductVersion "1.0.0" -Architecture "arm64"
+    Assert-Condition ($product100X64A -eq $product100X64B) `
         "The same MSI version and architecture must produce the same ProductCode."
-    Assert-Condition ($product401X64A -ne $product404X64) `
+    Assert-Condition ($product100X64A -ne $product101X64) `
         "Different MSI versions must produce different ProductCodes."
-    Assert-Condition ($product401X64A -ne $product401Arm64) `
+    Assert-Condition ($product100X64A -ne $product100Arm64) `
         "Different MSI architectures must produce different ProductCodes."
     $parsedProductCode = [Guid]::Empty
-    Assert-Condition ([Guid]::TryParse($product401X64A, [ref]$parsedProductCode)) `
+    Assert-Condition ([Guid]::TryParse($product100X64A, [ref]$parsedProductCode)) `
         "The deterministic ProductCode must be a valid GUID."
 
-    $productSourcePath = Join-Path $temporaryRoot "VincentProduct.wxs"
-    Write-MsiProductFile -OutputPath $productSourcePath -ProductVersion "4.0.1" -Architecture "x64"
+    $productSourcePath = Join-Path $temporaryRoot "CongregationProduct.wxs"
+    Write-MsiProductFile -OutputPath $productSourcePath -ProductVersion "1.0.0" -Architecture "x64"
     $productSource = [System.IO.File]::ReadAllText($productSourcePath)
-    Assert-Condition ($productSource.Contains("<Product Id=`"$product401X64A`"")) `
+    Assert-Condition ($productSource.Contains("<Product Id=`"$product100X64A`"")) `
         "The generated MSI source must embed the deterministic ProductCode."
     Assert-Condition (-not $productSource.Contains('<Product Id="*"')) `
         "The generated MSI source must not request a random ProductCode."
     Assert-Condition ($productSource.Contains('Installed OR REMOVE~="ALL" OR NOT (')) `
         "Maintenance and uninstall must bypass cross-context launch guards."
-    Assert-Condition ($productSource.Contains('WIX_UPGRADE_DETECTED AND NOT (VINCENT_EXISTING_MACHINE_CONTEXT OR VINCENT_LEGACY_MACHINE_CONTEXT)')) `
+    Assert-Condition ($productSource.Contains('WIX_UPGRADE_DETECTED AND NOT (CONGREGATION_EXISTING_MACHINE_CONTEXT OR CONGREGATION_LEGACY_MACHINE_CONTEXT)')) `
         "A detected markerless legacy upgrade must remain in the current-user scope."
     $msiConditions = [regex]::Matches(
         $productSource,
@@ -107,11 +107,11 @@ try {
     Assert-Condition ($normalizedRendered -eq $normalizedExpected) `
         "The generated RTF did not round-trip through the Windows RichEdit control."
 
-    $harvestPath = Join-Path $temporaryRoot "VincentRuntime.wxs"
+    $harvestPath = Join-Path $temporaryRoot "CongregationRuntime.wxs"
     $harvestSource = @'
 <Wix>
-  <Component Id="VincentExecutableComponent">
-    <File Id="VincentExecutableFile" KeyPath="yes" Source="$(var.StageDir)\Vincent.exe" />
+  <Component Id="CongregationExecutableComponent">
+    <File Id="CongregationExecutableFile" KeyPath="yes" Source="$(var.StageDir)\Congregation.exe" />
   </Component>
   <Component Id="OtherComponent">
     <File Id="OtherFile" KeyPath="yes" Source="$(var.StageDir)\Other.dll" />
@@ -125,10 +125,10 @@ try {
     )
     Add-AdvertisedStartMenuShortcut -HarvestPath $harvestPath
     $transformedHarvest = [System.IO.File]::ReadAllText($harvestPath)
-    Assert-Condition ($transformedHarvest.Contains('<File Id="VincentExecutableFile" KeyPath="yes" Source="$(var.StageDir)\Vincent.exe">')) `
-        "The Vincent.exe file row was not converted into a shortcut owner."
+    Assert-Condition ($transformedHarvest.Contains('<File Id="CongregationExecutableFile" KeyPath="yes" Source="$(var.StageDir)\Congregation.exe">')) `
+        "The Congregation.exe file row was not converted into a shortcut owner."
     Assert-Condition ($transformedHarvest.Contains('Shortcut Id="ApplicationStartMenuShortcut"')) `
-        "The harvested Vincent.exe component does not own the Start Menu shortcut."
+        "The harvested Congregation.exe component does not own the Start Menu shortcut."
     Assert-Condition ($transformedHarvest.Contains('Directory="ApplicationProgramsFolder"')) `
         "The shortcut does not use the context-aware Program Menu directory."
     Assert-Condition ($transformedHarvest.Contains('Advertise="yes"')) `

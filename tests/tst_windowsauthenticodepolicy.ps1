@@ -108,7 +108,7 @@ Assert-PublicDistributionEvidence -PublicRelease $false -IiPaintEngineLicenseFil
 Assert-Throws {
     Assert-PublicDistributionEvidence -PublicRelease $true -IiPaintEngineLicenseFile "" -IiSharedCanvasLicenseFile "" -IiLicenseManagerNoticeFile "" -SourceUrl "https://example.invalid/source.zip" -SourceSha256 ("A" * 64)
 } "explicit iiPaintEngine LICENSE"
-$temporaryLicenseFile = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-LicenseTest-" + [Guid]::NewGuid().ToString("N") + ".txt")
+$temporaryLicenseFile = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-LicenseTest-" + [Guid]::NewGuid().ToString("N") + ".txt")
 try {
     [System.IO.File]::WriteAllText($temporaryLicenseFile, "test license", [System.Text.Encoding]::UTF8)
     Assert-Throws {
@@ -155,7 +155,7 @@ Assert-Condition `
     "Object-valued certificate EKU identifiers must be supported."
 
 $publicLeafCertificate = [pscustomobject]@{
-    Subject = "CN=Vincent Publisher"
+    Subject = "CN=Congregation Publisher"
     Issuer = "CN=Example Public Code Signing CA"
     Thumbprint = "1111111111111111111111111111111111111111"
 }
@@ -170,8 +170,8 @@ $publicRootCertificate = [pscustomobject]@{
     Thumbprint = "3333333333333333333333333333333333333333"
 }
 $selfSignedCertificate = [pscustomobject]@{
-    Subject = "CN=Vincent Development Local Only"
-    Issuer = "CN=Vincent Development Local Only"
+    Subject = "CN=Congregation Development Local Only"
+    Issuer = "CN=Congregation Development Local Only"
     Thumbprint = "4444444444444444444444444444444444444444"
 }
 $selfIssuedPublicLeafCertificate = [pscustomobject]@{
@@ -235,10 +235,10 @@ function Invoke-Native {
     $script:capturedNativeArguments = $Arguments
 }
 
-Sign-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Vincent.exe" -CertificateThumbprint $thumbprint -StoreLocation LocalMachine -TimestampUrl "http://timestamp.digicert.com"
+Sign-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Congregation.exe" -CertificateThumbprint $thumbprint -StoreLocation LocalMachine -TimestampUrl "http://timestamp.digicert.com"
 $expectedSignArguments = @(
     "sign", "/fd", "SHA256", "/tr", "http://timestamp.digicert.com", "/td", "SHA256",
-    "/sha1", $thumbprint, "/s", "My", "/d", "Vincent", "/sm", "Vincent.exe"
+    "/sha1", $thumbprint, "/s", "My", "/d", "Congregation", "/sm", "Congregation.exe"
 )
 Assert-Condition (($script:capturedNativeArguments -join "|") -eq ($expectedSignArguments -join "|")) "SignTool signing arguments changed."
 
@@ -254,26 +254,26 @@ function Get-AuthenticodeSignature {
     }
 }
 
-Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Vincent.exe" -ExpectedCertificateThumbprint $thumbprint
-Assert-Condition (($script:capturedNativeArguments -join "|") -eq "verify|/pa|/all|/tw|/v|Vincent.exe") "SignTool verification arguments changed."
+Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Congregation.exe" -ExpectedCertificateThumbprint $thumbprint
+Assert-Condition (($script:capturedNativeArguments -join "|") -eq "verify|/pa|/all|/tw|/v|Congregation.exe") "SignTool verification arguments changed."
 
 $script:mockHasTimestamp = $false
 Assert-Throws {
-    Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Vincent.exe" -ExpectedCertificateThumbprint $thumbprint
+    Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Congregation.exe" -ExpectedCertificateThumbprint $thumbprint
 } "RFC 3161 timestamp is missing"
 $script:mockHasTimestamp = $true
 $script:mockSignerThumbprint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 Assert-Throws {
-    Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Vincent.exe" -ExpectedCertificateThumbprint $thumbprint
+    Verify-AuthenticodeFile -SignTool "mock-signtool.exe" -File "Congregation.exe" -ExpectedCertificateThumbprint $thumbprint
 } "does not match the requested certificate"
 
 $script:stageFiles = @(
-    [pscustomobject]@{ FullName = "C:\stage\Vincent.exe" },
+    [pscustomobject]@{ FullName = "C:\stage\Congregation.exe" },
     [pscustomobject]@{ FullName = "C:\stage\Qt6Core.dll" },
     [pscustomobject]@{ FullName = "C:\stage\libgcc_s_seh-1.dll" }
 )
 function Get-StagedPeFiles { return $script:stageFiles }
-function Get-VincentOwnedStageFiles { return @($script:stageFiles[0]) }
+function Get-CongregationOwnedStageFiles { return @($script:stageFiles[0]) }
 function Get-AuthenticodeSignature {
     param([string]$LiteralPath)
 
@@ -302,18 +302,18 @@ function Verify-AuthenticodeFile {
 }
 
 Sign-WindowsStage -Directory "C:\stage" -SignTool "mock" -CertificateThumbprint $thumbprint -StoreLocation CurrentUser -TimestampUrl "http://timestamp.digicert.com"
-Assert-Condition ($script:signedStageFiles -contains "C:\stage\Vincent.exe") "A pre-signed Vincent.exe was not rebound to the selected publisher."
+Assert-Condition ($script:signedStageFiles -contains "C:\stage\Congregation.exe") "A pre-signed Congregation.exe was not rebound to the selected publisher."
 Assert-Condition ($script:signedStageFiles -contains "C:\stage\libgcc_s_seh-1.dll") "An unsigned staged PE was not signed."
 Assert-Condition (-not ($script:signedStageFiles -contains "C:\stage\Qt6Core.dll")) "A valid vendor signature was replaced."
 
 $script:verifiedStageFiles = @()
 Verify-WindowsStageSignatures -Directory "C:\stage" -SignTool "mock" -CertificateThumbprint $thumbprint
-$ownedVerification = $script:verifiedStageFiles | Where-Object { $_.File -eq "C:\stage\Vincent.exe" } | Select-Object -First 1
+$ownedVerification = $script:verifiedStageFiles | Where-Object { $_.File -eq "C:\stage\Congregation.exe" } | Select-Object -First 1
 $vendorVerification = $script:verifiedStageFiles | Where-Object { $_.File -eq "C:\stage\Qt6Core.dll" } | Select-Object -First 1
-Assert-Condition ($ownedVerification.Expected -eq $thumbprint) "Vincent-owned signature verification did not require the selected publisher."
-Assert-Condition ([string]::IsNullOrEmpty($vendorVerification.Expected)) "Vendor signature verification was incorrectly bound to Vincent's certificate."
+Assert-Condition ($ownedVerification.Expected -eq $thumbprint) "Congregation-owned signature verification did not require the selected publisher."
+Assert-Condition ([string]::IsNullOrEmpty($vendorVerification.Expected)) "Vendor signature verification was incorrectly bound to Congregation's certificate."
 
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Vincent-AuthenticodeTest-" + [Guid]::NewGuid().ToString("N"))
+$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Congregation-AuthenticodeTest-" + [Guid]::NewGuid().ToString("N"))
 $artifactPath = Join-Path $temporaryRoot "artifact.partial.zip"
 $recordPath = Join-Path $temporaryRoot "artifact.zip.sha256.partial"
 $finalArtifactPath = Join-Path $temporaryRoot "artifact.zip"
@@ -323,7 +323,7 @@ try {
     $mutexProbeOutput = Join-Path $temporaryRoot "mutex-probe.out"
     $mutexProbeError = Join-Path $temporaryRoot "mutex-probe.err"
     $mutexFunctionText = ($functionAsts | Where-Object { $_.Name -eq "Enter-WindowsBuildMutex" } | Select-Object -First 1).Extent.Text
-    $testMutexName = "Global\Vincent.BuildWindows.Test.$([Guid]::NewGuid().ToString('N'))"
+    $testMutexName = "Global\Congregation.BuildWindows.Test.$([Guid]::NewGuid().ToString('N'))"
     $mutexProbeCommand = @"
 $mutexFunctionText
 `$probeMutex = Enter-WindowsBuildMutex -MutexName '$testMutexName'
@@ -355,7 +355,7 @@ $mutexFunctionText
         -PassThru
     Assert-Condition ($releasedProbe.ExitCode -eq 0) "The workspace mutex was not released for the next package process."
 
-    [System.IO.File]::WriteAllText($artifactPath, "Vincent", [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($artifactPath, "Congregation", [System.Text.Encoding]::UTF8)
     Write-Sha256File -File $artifactPath -OutputPath $recordPath -RecordedFileName "artifact.zip"
     $record = (Get-Content -LiteralPath $recordPath -Raw).Trim()
     Assert-Condition $record.EndsWith(" *artifact.zip") "SHA-256 record did not bind the final artifact name."

@@ -1,8 +1,24 @@
 # Changelog
 
+## 1.0.0 — 2026-09-07
+
+### Congregation 첫 소스 릴리스
+
+- 활성 프로젝트 디렉터리와 소스, QML 모듈, 테스트, 문서, IDE 설정, 플랫폼별 패키징 및 파일명을 `Congregation`으로 통일했다. 소문자 식별자는 `congregation`, 대문자 상수와 환경 변수 접두사는 `CONGREGATION`을 사용한다.
+- 변경 전 프로젝트 전체는 `Product/.Deprecated`에 복제하여 보관했다. 기존 빌드 결과와 배포 패키지, 이전 번들에 서명된 App Store 프로비저닝 프로파일은 보관본에 남기고 활성 프로젝트는 `build/`에서 다시 구성한다.
+- 앱 버전은 `1.0.0`, macOS 빌드 번호는 `1`, QML 모듈은 `1.0`, Windows 파일·MSIX 버전은 `1.0.0.0`으로 초기화했다. 앱 번들 식별자는 `com.iisacc.congregation.painter`이다.
+- 개발 저장소는 `iisacc-Justmoong/Congregation`, 첫 릴리스 태그는 `v1.0.0`이다. 기존 개발 이력은 보존하며, 새 이름의 서명된 설치 패키지·스토어 등록·프로덕션 라이선스 및 업데이트 서비스는 별도 출시 단계이다.
+- Windows MSI의 UpgradeCode와 설치 컨텍스트 컴포넌트 GUID를 새 제품에 맞게 분리했다. 이전 제품의 설치를 다운그레이드하거나 교체하지 않고 독립된 Congregation 업그레이드 계열을 시작한다.
+- 라이선스 테스트의 서명된 인증서 샘플도 `congregation` 제품 ID로 다시 발급했다. 기존 공개 테스트 키를 유지하여 계정 활성화와 재시작 후 계정 정보 복원 검증이 새 제품 ID를 사용한다.
+- 이름이 바뀐 IDE 프로젝트 파일과 macOS entitlements·아이콘 자산이 전역 IDE 무시 규칙과 패키징 무시 규칙에 가려지지 않도록 Git 예외를 명시했다.
+
+## 이전 프로젝트에서 이어받은 개발 이력
+
+아래 버전과 날짜는 이름 변경 전에 축적된 개발 기록이며, Congregation의 현재 릴리스 버전은 위의 `1.0.0`이다.
+
 ## 2026-08-25
 
-### Vincent 6.0 전역 버전 갱신
+### Congregation 6.0 전역 버전 갱신
 
 - 마케팅 버전을 `6.0`, macOS App Store 빌드 번호를 `60000`으로 올렸다. 중앙 CMake 정의에서 앱 런타임, QML 모듈, macOS 번들, CPack 및 플랫폼별 패키지 버전이 같은 릴리스로 파생된다.
 - Windows 일반 배포·Microsoft Store·대응 소스 워크플로와 파일명, macOS 패키징 검증값, 업데이트 비교 계약, 공개 문서의 현재 릴리스 표기를 6.0으로 맞췄다.
@@ -22,14 +38,14 @@
 
 ### 호스트 캔버스 직접 편집
 
-- 참가한 Vincent의 캔버스를 별도 문서 소유자가 아닌 호스트 캔버스의 입력 클라이언트로 변경했다. 참여자 포인터·태블릿 스트로크는 압력과 브러시 스타일만 캡처하며, 채우기·텍스트·도형·변형·캔버스·레이어·실행 취소/재실행·이미지 작업도 참여자 로컬 문서나 편집 기록을 변경하지 않는다.
+- 참가한 Congregation의 캔버스를 별도 문서 소유자가 아닌 호스트 캔버스의 입력 클라이언트로 변경했다. 참여자 포인터·태블릿 스트로크는 압력과 브러시 스타일만 캡처하며, 채우기·텍스트·도형·변형·캔버스·레이어·실행 취소/재실행·이미지 작업도 참여자 로컬 문서나 편집 기록을 변경하지 않는다.
 - `LocalCanvasSession`은 참여자의 전체 `.vrc` 업로드를 거부하고, 키·형식·수치·개수·용량이 제한된 의미 단위 편집 명령만 호스트에 전달한다. 호스트가 실제 `DrawingSurface`에서 명령을 검증·실행한 뒤에만 revision을 증가시키고 SHA-256 검증 가능한 권위 `.vrc`를 모든 참여자에게 배포한다.
 - 새 래스터 레이어의 QML 표면이 생성된 뒤 직렬화되도록 참여자 명령 결과 발행을 다음 이벤트 루프에 모은다. 참여자는 첫 권위 상태 복원이 성공할 때까지 명령을 보내지 않고 연결 해제·복원 실패 시 즉시 준비 상태를 지운다. 호스트 자신의 로컬 편집만 기존 350ms 디바운스를 사용하며, 참여자는 호스트 상태를 항상 복원하고 원격 세션을 자기 Recent canvas로 저장하지 않는다.
 - TCP 루프백 테스트는 명령 전달만으로 호스트 revision이나 스냅샷이 바뀌지 않고 호스트 발행 뒤에만 참여자 상태가 갱신됨을 증명한다. 실제 QML 캔버스 테스트는 참여자 채우기와 스트로크가 로컬 문서를 바꾸지 않고 호스트 적용 경로만 변경함을 검증한다.
 
 ### 캔버스 초대 뱃지와 수락 흐름
 
-- Profile의 `Allow inviting other users`를 켠 Vincent만 Members의 `+` 대상 메뉴에 익명 주소로 나타난다. 평상시 presence beacon에는 프로필 대신 초대 가능 여부 Boolean만 추가하며, 초대자가 특정 대상을 선택해야 현재 캔버스 공유가 시작되고 대상 지정 초대가 전송된다.
+- Profile의 `Allow inviting other users`를 켠 Congregation만 Members의 `+` 대상 메뉴에 익명 주소로 나타난다. 평상시 presence beacon에는 프로필 대신 초대 가능 여부 Boolean만 추가하며, 초대자가 특정 대상을 선택해야 현재 캔버스 공유가 시작되고 대상 지정 초대가 전송된다.
 - 초대는 임시 초대 UUID, 송수신 세션 UUID, 캔버스 포트와 80자 이하 초대자 프로필 이름만 담는다. 계정·기기 이름·문서·프로필 이미지는 포함하지 않으며, 수신 측은 대상·발신 세션·LAN 주소를 검증하고 여러 인터페이스에서 중복 수신한 같은 초대 UUID를 제거한다.
 - 초대를 받으면 툴바 Profile `LV.IconButton`에 LVRS danger 색상 뱃지가 나타난다. 버튼의 `LV.ContextMenu`는 초대자 이름과 stock `user` 아이콘, `Accept`·`Decline` 버튼을 표시하며 응답을 Boolean 인자로 전달한다. Accept는 해당 호스트 캔버스에 참가하고 Decline은 연결 없이 초대를 제거한다.
 - 최대 16개의 서로 다른 발신자 초대를 순서대로 보관하고, 같은 발신자의 새 초대는 이전 대기 항목을 교체한다. 프로필의 초대 허용을 끄면 대기 초대도 함께 제거한다.
@@ -41,7 +57,7 @@
 
 ### 로컬 네트워크 캔버스 공유
 
-- Preferences의 Members에서 현재 캔버스를 명시적으로 공유·중지하고, 같은 LAN에서 발견된 다른 Vincent 호스트 캔버스에 참가·이탈할 수 있게 했다. 호스트는 참가자 목록을 보고 원격 참가자를 제거할 수 있다.
+- Preferences의 Members에서 현재 캔버스를 명시적으로 공유·중지하고, 같은 LAN에서 발견된 다른 Congregation 호스트 캔버스에 참가·이탈할 수 있게 했다. 호스트는 참가자 목록을 보고 원격 참가자를 제거할 수 있다.
 - 기존 익명 UDP 멀티캐스트 presence에는 공유 중일 때만 임시 TCP 포트를 추가한다. 프로필 이름과 캔버스 데이터는 beacon에 포함하지 않고, 참가자가 실제 연결한 뒤에만 해당 TCP 세션으로 전송한다.
 - `LocalCanvasSession`이 최대 16명의 참가자, 크기 제한 프레임, 8초 연결 제한, 프로토콜·세션·UUID 검증, 호스트 권위 단조 revision을 관리한다. 호스트가 발행하는 전체 `.vrc`에는 기본 래스터뿐 아니라 추가 래스터 레이어, 이미지, 텍스트, 도형과 배경 상태도 함께 포함된다.
 - 참여자 편집 명령은 호스트 도착 순서대로 실제 호스트 캔버스에서 직렬 실행한다. 동시 편집의 구조적 병합은 수행하지 않으며, 모든 참여자는 각 명령 실행 뒤 호스트가 발행한 최신 권위 상태로 재동기화한다.
@@ -74,15 +90,15 @@
 - 멤버 리스트의 고정 높이를 제거하고 헤더 아래 기존 20-DIP 간격과 설정 창 하단 24-DIP 패딩 사이를 채우도록 상·하단 앵커를 연결했다. 설정 창 높이가 바뀌면 리스트와 내부 뷰포트가 함께 늘어나거나 줄어들며, 237-DIP 폭과 푸터 배치는 유지된다.
 - 현재 프로필을 멤버 목록에 항상 합성한다. 캔버스 호스트를 첫 행으로 올리고 이름 뒤에 `(host)`, 현재 사용자에게 `(me)`, 두 역할이 같으면 `(host, me)`를 표시한다. 아직 프로필 이름을 입력하지 않은 현재 사용자도 `Unnamed member`로 보이며, 호스트와 현재 사용자 행은 삭제할 수 없다.
 - 푸터는 목록과 항상 함께 표시하며 첫 슬롯은 새 멤버 추가 요청, 두 번째 슬롯은 선택된 제거 가능 멤버의 삭제 요청을 현재 캔버스에 전달한다. 세 번째 22픽셀 버튼 슬롯은 Figma 배치를 유지하되 공백 glyph와 비활성 상태로 두어 아이콘이나 동작이 없다.
-- 주변 Vincent 기기 탐색은 계속 익명 presence 전용으로 유지한다. Members 목록은 인근 기기 수를 프로필로 변환하지 않으며, 실제 캔버스 협업 세션 소유자가 프로필 모델과 추가·삭제 요청을 공급하는 별도 경계를 사용한다.
+- 주변 Congregation 기기 탐색은 계속 익명 presence 전용으로 유지한다. Members 목록은 인근 기기 수를 프로필로 변환하지 않으며, 실제 캔버스 협업 세션 소유자가 프로필 모델과 추가·삭제 요청을 공급하는 별도 경계를 사용한다.
 
 ## 2026-08-20
 
 ### General 환경설정 실제 동작
 
 - General의 고정 레이블을 `Account`로 바꾸고, `iiLicenseManager 0.2`가 서버 승인 활성화에서 확인·보존한 iisacc.com 계정 이메일을 표시한다. 환경설정을 열 때 먼저 서명된 오프라인 라이선스와 연결된 이메일을 읽고, 아직 이관되지 않은 기존 보안 저장소 자격 증명이 있을 때만 C++ 내부에서 iiLicenseManager 활성화를 수행한다. 라이선스 키는 QML에 노출되지 않으며 연결 계정이 없으면 `Not connected`로 표시한다.
-- New canvas/Recent canvas 시작 방식과 주변 Vincent 사용자 탐색 여부를 비민감 `QSettings`에 영속화했다. 최근 캔버스는 외부 파일 경로가 아니라 앱 데이터 디렉터리의 단일 `recent-canvas.vrc` 내부 컨테이너에 1.2초 디바운스로 자동 저장한다. 컨테이너는 현재 보이는 캔버스 크기로 정규화한 iiSharedCanvas 문서와 추가 래스터 레이어·삽입 이미지 PNG, 텍스트·도형 편집 메타데이터를 함께 보존하고 SHA-256 무결성 검사를 거쳐 원자적으로 이전 스냅샷을 교체한다. Recent canvas 시작 시 이 내부 스냅샷을 복원하며, 포함된 PNG는 세션 수명에 묶인 소유자 전용 임시 디렉터리에서만 사용한다. 파일이 없거나 손상되었으면 이를 제거하고 빈 캔버스를 유지한다.
-- 탐색 설정 변경을 C++의 `NearbyVincentDiscovery` 생명주기에 연결했다. 기본값은 활성화이지만 사용자가 끄면 현재 worker를 중지하고 이후 실행에서도 시작하지 않는다.
+- New canvas/Recent canvas 시작 방식과 주변 Congregation 사용자 탐색 여부를 비민감 `QSettings`에 영속화했다. 최근 캔버스는 외부 파일 경로가 아니라 앱 데이터 디렉터리의 단일 `recent-canvas.vrc` 내부 컨테이너에 1.2초 디바운스로 자동 저장한다. 컨테이너는 현재 보이는 캔버스 크기로 정규화한 iiSharedCanvas 문서와 추가 래스터 레이어·삽입 이미지 PNG, 텍스트·도형 편집 메타데이터를 함께 보존하고 SHA-256 무결성 검사를 거쳐 원자적으로 이전 스냅샷을 교체한다. Recent canvas 시작 시 이 내부 스냅샷을 복원하며, 포함된 PNG는 세션 수명에 묶인 소유자 전용 임시 디렉터리에서만 사용한다. 파일이 없거나 손상되었으면 이를 제거하고 빈 캔버스를 유지한다.
+- 탐색 설정 변경을 C++의 `NearbyCongregationDiscovery` 생명주기에 연결했다. 기본값은 활성화이지만 사용자가 끄면 현재 worker를 중지하고 이후 실행에서도 시작하지 않는다.
 - **Restore Purchases**를 활성화해 인증된 `https://iisacc.com/Account/Dashboard` 구매·제품 접근 복구 경로를 기본 브라우저로 연다. **Check for Updates…**는 기존 `iiUpdateManager 0.2` 수동 확인 모달을 그대로 사용하며 자동·시작 시 업데이트 요청은 추가하지 않는다.
 
 ## 2026-08-19
@@ -94,9 +110,9 @@
 
 ### 환경설정 윈도우 기반
 
-- `StandardKey.Preferences`가 제공하는 macOS `Command+,` 및 Windows/Linux `Ctrl+,` 표준 단축키로 별도 LVRS 환경설정 윈도우를 열 수 있게 했다. 메뉴 항목은 macOS에서 Vincent 애플리케이션 메뉴로 승격되고 Windows/Linux에서는 Edit 메뉴에 남는다. Preferences의 최초 표시 중심은 현재 Vincent 메인 윈도우 중심과 정확히 일치하며, 이후 사용자가 옮긴 위치는 강제로 되돌리지 않는다.
+- `StandardKey.Preferences`가 제공하는 macOS `Command+,` 및 Windows/Linux `Ctrl+,` 표준 단축키로 별도 LVRS 환경설정 윈도우를 열 수 있게 했다. 메뉴 항목은 macOS에서 Congregation 애플리케이션 메뉴로 승격되고 Windows/Linux에서는 Edit 메뉴에 남는다. Preferences의 최초 표시 중심은 현재 Congregation 메인 윈도우 중심과 정확히 일치하며, 이후 사용자가 옮긴 위치는 강제로 되돌리지 않는다.
 - 환경설정 윈도우 상단 중앙 헤더를 Figma와 같은 LVRS `LabelSegmentedControl`로 구성하고 General, Profile, Members 항목을 배치했다. 환경설정 윈도우를 열 때마다 General에서 시작하고 기존 설정 내용은 Profile을 선택할 때만 표시하며, Members의 내용 영역은 의도적으로 비워 두었다.
-- General에는 고정 `Account` 레이블, New canvas/Recent canvas 라디오, 주변 Vincent 사용자 탐색 체크박스를 배치했다. 탐색 체크박스는 현재 프로세스의 익명 LAN 탐색을 즉시 시작·중지하고, 하단 좌우에는 구매 복원과 기존 수동 업데이트 확인 흐름을 각각 배치했다. 최근 캔버스 시작 선택은 아직 현재 윈도우 상태만 유지하며, 구매 복원은 실제 백엔드가 생길 때까지 보이는 비활성 상태를 유지한다.
+- General에는 고정 `Account` 레이블, New canvas/Recent canvas 라디오, 주변 Congregation 사용자 탐색 체크박스를 배치했다. 탐색 체크박스는 현재 프로세스의 익명 LAN 탐색을 즉시 시작·중지하고, 하단 좌우에는 구매 복원과 기존 수동 업데이트 확인 흐름을 각각 배치했다. 최근 캔버스 시작 선택은 아직 현재 윈도우 상태만 유지하며, 구매 복원은 실제 백엔드가 생길 때까지 보이는 비활성 상태를 유지한다.
 - 원형 보더리스 프로필 이미지 버튼은 먼저 LVRS 컨텍스트 메뉴를 열고 `Select profile image`와 `Delete profile image`를 표시한다. Select를 선택한 다음 단계에서 로컬 이미지 선택기를 열며, Delete는 등록 이미지가 있을 때 미리보기와 임시 파일을 제거한다. 선택 사진의 방향 메타데이터를 적용한 뒤 짧은 변의 원본 픽셀 수를 유지하는 최대 중앙 정사각형을 원형 무손실 PNG로 절삭한다. 프로필 이름 입력 필드와 다른 사용자 초대 허용 체크박스를 함께 제공하며, 값은 현재 실행 중인 윈도우 인스턴스에만 유지하고 계정 저장이나 서버 연동은 아직 수행하지 않는다.
 
 ### 툴바 컬러 피커 및 프로필 배치
@@ -111,7 +127,7 @@
 
 ## 2026-08-17
 
-### Vincent 5.1 릴리스 패키징
+### Congregation 5.1 릴리스 패키징
 
 - CMake 프로젝트와 런타임 표시의 릴리스 버전을 `5.1`로 올리고, macOS plist·PKG 및 Windows PE·MSI·MSIX 메타데이터가 같은 버전 원천을 따르도록 갱신했다.
 - 두 자리 마케팅 버전은 macOS와 사용자 문서에서 `5.1`로 유지하고, Windows 형식 제약에 맞춰 PE/MSIX는 `5.1.0.0`, MSI는 `5.1.0`으로 패딩한다.
@@ -140,14 +156,14 @@
 
 ### LVRS 순정 컴포넌트 치수 복원
 
-- Vincent가 `LV.IconButton`, `LV.IconMenuButton`, `LV.ToggleSwitch`, `LV.ContextMenu`, `LV.Hierarchy`, `LV.AppCard`, `LV.ApplicationWindow`의 프레임·아이콘·패딩·메뉴·최소 치수를 덮지 않고 설치된 LVRS의 테마 스케일과 `implicitSize`를 그대로 사용하도록 정리했다.
+- Congregation가 `LV.IconButton`, `LV.IconMenuButton`, `LV.ToggleSwitch`, `LV.ContextMenu`, `LV.Hierarchy`, `LV.AppCard`, `LV.ApplicationWindow`의 프레임·아이콘·패딩·메뉴·최소 치수를 덮지 않고 설치된 LVRS의 테마 스케일과 `implicitSize`를 그대로 사용하도록 정리했다.
 - 수제 툴바 버튼과 shape 분할 버튼을 제거하고 stock `IconButton` 및 `IconMenuButton`으로 교체했다. 툴바 본문의 13개 `IconButton`과 1개 `IconMenuButton`은 모두 stock `LV.AbstractButton.Borderless` tone을 사용하며, 제품 코드는 아이콘, 접근성, 모델과 이벤트처럼 동작에 필요한 인자만 제공한다.
 - 초기 창은 표시 전에 LVRS가 산출한 숨은 창의 종횡비를 측정하고 가로 1,280 논리 픽셀에 맞춰 세로를 자동 계산한다. 화면에 들어가지 않을 때만 같은 비율로 축소하며 표시 후에는 크기를 강제하지 않는다.
 - 원시 픽셀 치수의 재도입을 막는 QML 계약 테스트를 추가하고 창 초기 크기 및 Windows 시작 문서를 LVRS 기본 geometry 기준으로 갱신했다.
 
 ### 라이선스 시행 임시 중단
 
-- Vincent 앱 엔트리가 `LicenseManager::EnforcementMode::Disabled`를 명시적으로 선택하도록 하여 활성화 화면 없이 캔버스를 즉시 열고, 시작 시 보안 저장소 조회와 라이선스 검증 네트워크 요청을 수행하지 않게 했다.
+- Congregation 앱 엔트리가 `LicenseManager::EnforcementMode::Disabled`를 명시적으로 선택하도록 하여 활성화 화면 없이 캔버스를 즉시 열고, 시작 시 보안 저장소 조회와 라이선스 검증 네트워크 요청을 수행하지 않게 했다.
 - 온라인 검증, 보안 자격 증명 저장, 수동 업데이트용 자격 증명 제공 구현은 삭제하지 않았다. 추후 앱 정책 한 줄을 `Enabled`로 바꾸면 기존 계약과 테스트를 그대로 재활성화할 수 있다.
 - 비활성 모드에서 활성화, 저장 라이선스 재시도, 라이선스 삭제 호출이 저장소나 네트워크를 변경하지 않는 회귀 테스트를 추가했다.
 
@@ -156,7 +172,7 @@
 ### 보안 라이선스 자동 복원
 
 - 이미 공개된 `v4.0.4` 태그와 그 대응 소스를 변경하지 않고, 라이선스 매니저와 보안 자격 증명 저장이 포함되는 다음 공개 배포본의 버전을 `4.0.5`로 올렸다.
-- 성공적으로 온라인 검증된 계정 이메일과 Vincent 키만 JSON으로 직렬화하여 macOS Keychain 또는 Windows Credential Manager에 저장하도록 QtKeychain 0.17.0을 고정 커밋·정적 구성으로 도입했다. 평문 fallback, 번역, 데모 및 QtKeychain 자체 테스트는 포함하지 않는다.
+- 성공적으로 온라인 검증된 계정 이메일과 Congregation 키만 JSON으로 직렬화하여 macOS Keychain 또는 Windows Credential Manager에 저장하도록 QtKeychain 0.17.0을 고정 커밋·정적 구성으로 도입했다. 평문 fallback, 번역, 데모 및 QtKeychain 자체 테스트는 포함하지 않는다.
 - 다음 실행에는 보안 저장소를 읽어 같은 온라인 검증을 자동 수행한다. 명시적 invalid 또는 손상된 저장 JSON은 삭제하고, 오프라인·타임아웃·429·5xx는 저장값을 보존하여 키 재입력 없이 재시도할 수 있게 했다.
 - 잠긴 활성화 화면에 저장 라이선스 재시도 및 **Use another license** 삭제 경로를 추가했다. 캔버스가 열린 뒤에는 미저장 작업 손실을 막기 위해 삭제 경로를 노출하지 않는다. Linux는 보안 저장소를 지원하지 않으므로 평문 대체 없이 매 실행 수동 활성화를 유지한다.
 - Windows 패키지 legal tree와 대응 소스 도구, macOS 앱 번들에 QtKeychain BSD-3-Clause 고지와 고정 소스를 포함하도록 배포 계약을 갱신했다.
@@ -185,8 +201,8 @@
 - 메모리가 제한된 GitHub 러너에서 LVRS의 대형 QML 리소스 번역 단위가 IPO/LTO로 장시간 정체되지 않도록 의존성 bootstrap의 IPO만 비활성화하고, LVRS와 iiPaintEngine 설치 단계를 분리했다.
 - PowerShell이 LVRS Rust CLI의 CMake 인자 구분자 `--`를 소비하지 않도록 전체 호출 인자를 배열로 구성해 전달한다.
 - LVRS 설치 스크립트의 예제·테스트 제외 옵션을 `--` 앞에 명시하여 자동 추가 옵션이 CMake 인자로 잘못 이동하지 않게 했다.
-- 무료 GitHub 러너에서 대형 LVRS QML 리소스의 Release `-O3` 컴파일이 장시간 소요되어, 해당 의존성만 공식 배포 최적화 구성인 `MinSizeRel`로 빌드하도록 변경했다. 또한 LVRS의 플랫폼 최적화가 별도로 LTO를 다시 켜 MinGW 13 링크 단계에서 내부 컴파일러 오류를 일으키지 않도록 두 최적화 스위치를 모두 끈다. framework bootstrap이 두 스위치를 내부 구성에 전달하지 않거나 명시적인 `OFF` 값을 누락하던 LVRS 결함을 고친 커밋으로 의존성을 갱신했다. Vincent 본체는 계속 Release로 빌드한다.
-- 단일 구성 Ninja에서 iiPaintEngine 설치 대상이 `NOCONFIG`만 내보내 Vincent Release 구성이 import library를 찾지 못하던 문제를 해결한 엔진 커밋을 고정했다.
+- 무료 GitHub 러너에서 대형 LVRS QML 리소스의 Release `-O3` 컴파일이 장시간 소요되어, 해당 의존성만 공식 배포 최적화 구성인 `MinSizeRel`로 빌드하도록 변경했다. 또한 LVRS의 플랫폼 최적화가 별도로 LTO를 다시 켜 MinGW 13 링크 단계에서 내부 컴파일러 오류를 일으키지 않도록 두 최적화 스위치를 모두 끈다. framework bootstrap이 두 스위치를 내부 구성에 전달하지 않거나 명시적인 `OFF` 값을 누락하던 LVRS 결함을 고친 커밋으로 의존성을 갱신했다. Congregation 본체는 계속 Release로 빌드한다.
+- 단일 구성 Ninja에서 iiPaintEngine 설치 대상이 `NOCONFIG`만 내보내 Congregation Release 구성이 import library를 찾지 못하던 문제를 해결한 엔진 커밋을 고정했다.
 - 비대화형 GitHub 러너의 Qt GUI 테스트는 offscreen 플랫폼으로 고정하고, Windows PowerShell 정책 테스트는 `$PSHOME`의 내장 Utility 모듈을 명시적으로 불러 PowerShell 7 모듈 경로 상속의 영향을 제거했다.
 - 선택형 Qt 소스 아카이브가 최상위 `Src/LICENSES`를 만들지 않는 경우에는 동일한 5개 공통 라이선스 문서를 검증한 `qtbase/LICENSES`를 사용하고, 실제 배포되는 번역 모듈의 소스 라이선스도 CI에서 함께 받도록 수정했다.
 - 이미 공개된 소스 전용 `v4.0.2` 태그를 변경하지 않고, 공개 GitHub 러너에서 서명 직전 MSI까지 검증된 최종 배포 계보를 `4.0.3`으로 올렸다.
@@ -239,19 +255,19 @@
 
 - `Main.qml`의 메뉴 단축키 연결을 `Controls.MenuItem.shortcut`에서 `Controls.Action.shortcut`으로 옮겼다. 현재 Qt Quick Controls `MenuItem`에는 `shortcut` 속성이 없어 앱 시작 시 QML 로드가 실패했기 때문이다.
 - 메뉴 항목은 `action` 속성으로 named action에 연결되며, 테스트와 앱 구조 문서는 이 계약을 기준으로 갱신했다.
-- `build.sh` 기본 local 흐름이 `dist/Vincent.app` 생성에서 멈추지 않고 unsigned `dist/Vincent.pkg`와 `dist/Vincent-appstore.pkg`를 함께 재생성하도록 바꿨다.
-- `dist/Vincent.pkg`는 수정 전 산출물이어서 현재 정상 `dist/Vincent.app` 기준으로 unsigned 로컬 설치용 패키지를 재생성했다. 이 패키지는 Developer ID Installer 서명이 없으므로 Gatekeeper 배포 신뢰 대상은 아니다.
-- Transporter Active 목록에 이전 아이콘이 보이는 경우를 패키지 payload 문제와 분리했다. 현재 `dist/Vincent-appstore.pkg`는 `Appicon.icns`를 포함하고 legacy `icon.icns`는 포함하지 않으므로, 목록 썸네일은 App Store Connect 레코드/캐시 아이콘으로 별도 확인해야 한다.
+- `build.sh` 기본 local 흐름이 `dist/Congregation.app` 생성에서 멈추지 않고 unsigned `dist/Congregation.pkg`와 `dist/Congregation-appstore.pkg`를 함께 재생성하도록 바꿨다.
+- `dist/Congregation.pkg`는 수정 전 산출물이어서 현재 정상 `dist/Congregation.app` 기준으로 unsigned 로컬 설치용 패키지를 재생성했다. 이 패키지는 Developer ID Installer 서명이 없으므로 Gatekeeper 배포 신뢰 대상은 아니다.
+- Transporter Active 목록에 이전 아이콘이 보이는 경우를 패키지 payload 문제와 분리했다. 현재 `dist/Congregation-appstore.pkg`는 `Appicon.icns`를 포함하고 legacy `icon.icns`는 포함하지 않으므로, 목록 썸네일은 App Store Connect 레코드/캐시 아이콘으로 별도 확인해야 한다.
 - CMake binary directory를 저장소 루트의 `build/`로 강제했다. 이제 다른 build tree로 configure하면 CMake가 즉시 실패하며, 저장소 지침과 패키징 문서도 `build/` 단일 경로만 안내한다.
-- CMake 프로젝트 버전, macOS `CFBundleShortVersionString`, `CFBundleVersion`, 앱 메뉴 표시, README와 패키징 문서를 모두 Vincent 4.0 기준으로 고정했다.
-- Windows PowerShell용 `build-windows.ps1`을 추가했다. 이 스크립트는 Windows용 Qt/LVRS/iiPaintEngine prefix를 검증하고, `build/`에서 configure/build/test를 수행한 뒤 `windeployqt`, dependency DLL 및 LVRS QML import 복사, `dist/Vincent-Windows` staging, `dist/Vincent-4.0-Windows.zip` 생성을 처리한다.
-- Windows configure에서 macOS 전용 `productbuild` 설정이 섞이지 않도록 CPack 설정을 플랫폼별로 분리하고, Windows install target은 `Vincent.exe` runtime을 패키지 루트에 설치하도록 정리했다.
+- CMake 프로젝트 버전, macOS `CFBundleShortVersionString`, `CFBundleVersion`, 앱 메뉴 표시, README와 패키징 문서를 모두 Congregation 4.0 기준으로 고정했다.
+- Windows PowerShell용 `build-windows.ps1`을 추가했다. 이 스크립트는 Windows용 Qt/LVRS/iiPaintEngine prefix를 검증하고, `build/`에서 configure/build/test를 수행한 뒤 `windeployqt`, dependency DLL 및 LVRS QML import 복사, `dist/Congregation-Windows` staging, `dist/Congregation-4.0-Windows.zip` 생성을 처리한다.
+- Windows configure에서 macOS 전용 `productbuild` 설정이 섞이지 않도록 CPack 설정을 플랫폼별로 분리하고, Windows install target은 `Congregation.exe` runtime을 패키지 루트에 설치하도록 정리했다.
 
 ### 검증 관점
 
 - 오늘 커밋들은 기능 변경에 대응하는 테스트와 문서 갱신을 함께 포함한다.
 - 현재 작업트리 수정본은 아직 커밋되지 않았으며, 설치 앱 시작 실패를 막기 위한 QML 메뉴 단축키 후속 변경과 `build/` 단일 CMake build tree 계약으로 분류된다.
-- `tests_mainqmlcontract`, macOS 빌드 workflow 계약 테스트, 전체 `ctest`, `./build.sh local`, `/Applications/Vincent.app` 실행 스모크, 새 `dist/Vincent.pkg` payload 및 추출 앱 실행 스모크를 통과했다.
-- `dist/Vincent-appstore.pkg` payload의 `Appicon.icns`는 canonical `resources/Appicon.icns`와 일치하며, `CFBundleIconFile`도 `Appicon.icns`로 해석된다.
-- `dist/Vincent.pkg`는 unsigned 상태이므로 `spctl -a -vv -t install dist/Vincent.pkg`는 `no usable signature`로 거부된다. 신뢰 배포용 패키지는 Developer ID Installer 서명과 notarization이 필요하다.
+- `tests_mainqmlcontract`, macOS 빌드 workflow 계약 테스트, 전체 `ctest`, `./build.sh local`, `/Applications/Congregation.app` 실행 스모크, 새 `dist/Congregation.pkg` payload 및 추출 앱 실행 스모크를 통과했다.
+- `dist/Congregation-appstore.pkg` payload의 `Appicon.icns`는 canonical `resources/Appicon.icns`와 일치하며, `CFBundleIconFile`도 `Appicon.icns`로 해석된다.
+- `dist/Congregation.pkg`는 unsigned 상태이므로 `spctl -a -vv -t install dist/Congregation.pkg`는 `no usable signature`로 거부된다. 신뢰 배포용 패키지는 Developer ID Installer 서명과 notarization이 필요하다.
 - Windows 스크립트는 macOS 호스트에서 직접 실행 검증할 수 없으므로, `tests_windowsbuildworkflowcontract`가 PowerShell 실행 계약, CMake Windows install/ZIP CPack 설정, 문서화된 Windows 실행 명령을 텍스트 계약으로 고정한다.

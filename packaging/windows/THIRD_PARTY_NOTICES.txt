@@ -1,13 +1,13 @@
-Vincent 6.0 - Third-Party Notices
+Congregation 1.0.0 - Third-Party Notices
 ====================================
 
 This distribution includes or links the components listed below. The complete
 license texts and machine-readable Qt package information are installed beside
 this file under legal/. Corresponding-source information is in SOURCE_OFFER.txt.
 
-Vincent
+Congregation
   License: GNU Affero General Public License v3.0
-  Source: https://github.com/iisacc-Justmoong/Vincent
+  Source: https://github.com/iisacc-Justmoong/Congregation
 
 LVRS
   License: GNU Affero General Public License v3.0
@@ -51,5 +51,5 @@ Qt 6.8.3 runtime modules
 
 GCC / MinGW-w64 runtime libraries
   The staged libgcc, libstdc++, and winpthreads runtime license texts are in
-  legal/MinGW. These notices do not change the license of Vincent itself.
+  legal/MinGW. These notices do not change the license of Congregation itself.
   Source: https://www.mingw-w64.org/ and https://gcc.gnu.org/

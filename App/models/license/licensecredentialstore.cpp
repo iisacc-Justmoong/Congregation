@@ -8,7 +8,7 @@
 
 namespace
 {
-const QString credentialService = QStringLiteral("com.iisacc.vincent.painter");
+const QString credentialService = QStringLiteral("com.iisacc.congregation.painter");
 const QString credentialKey = QStringLiteral("account-license");
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)

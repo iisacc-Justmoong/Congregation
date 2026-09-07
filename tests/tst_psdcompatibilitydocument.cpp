@@ -15,7 +15,7 @@ private slots:
 
 void tst_PsdCompatibilityDocument::createsRasterBaseLayerForEmptyCanvas()
 {
-    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromVincentSession(QSize(640, 480), {});
+    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromCongregationSession(QSize(640, 480), {});
 
     QCOMPARE(document.canvasSize(), QSize(640, 480));
     QVERIFY(document.isPsdCanvasSizeCompatible());
@@ -76,7 +76,7 @@ void tst_PsdCompatibilityDocument::mapsSessionObjectsToPsdLayerRecords()
     shapeLayer.insert(QStringLiteral("color"), QStringLiteral("#abcdef"));
 
     const QVariantList objects{imageLayer, textLayer, shapeLayer};
-    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromVincentSession(QSize(400, 300), objects);
+    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromCongregationSession(QSize(400, 300), objects);
 
     QCOMPARE(document.layers().size(), 4);
     QCOMPARE(document.layers().at(0).kind(), PsdLayerRecord::Kind::Raster);
@@ -118,7 +118,7 @@ void tst_PsdCompatibilityDocument::omitsBackgroundLayerWhenDisabled()
     layer.insert(QStringLiteral("height"), 48);
 
     const PsdCompatibilityDocument document =
-            PsdCompatibilityDocument::fromVincentSession(QSize(64, 48), {layer}, false);
+            PsdCompatibilityDocument::fromCongregationSession(QSize(64, 48), {layer}, false);
 
     QCOMPARE(document.canvasSize(), QSize(64, 48));
     QCOMPARE(document.layers().size(), 1);
@@ -143,7 +143,7 @@ void tst_PsdCompatibilityDocument::clampsLayerBoundsAndOpacityToPsdSafeValues()
     layer.insert(QStringLiteral("blendMode"), QStringLiteral("multiply"));
     layer.insert(QStringLiteral("shapeKind"), QStringLiteral("rectangle"));
 
-    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromVincentSession(QSize(128, 64), {layer});
+    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromCongregationSession(QSize(128, 64), {layer});
     const PsdLayerRecord psdLayer = document.layers().at(1);
 
     QCOMPARE(psdLayer.bounds(), QRect(0, 8, 128, 13));
@@ -152,7 +152,7 @@ void tst_PsdCompatibilityDocument::clampsLayerBoundsAndOpacityToPsdSafeValues()
     QCOMPARE(psdLayer.blendModeKey(), QStringLiteral("mul "));
 
     const PsdCompatibilityDocument psbSizedDocument =
-            PsdCompatibilityDocument::fromVincentSession(QSize(PsdCompatibilityDocument::maximumPsdCanvasEdge() + 1, 64), {});
+            PsdCompatibilityDocument::fromCongregationSession(QSize(PsdCompatibilityDocument::maximumPsdCanvasEdge() + 1, 64), {});
     QVERIFY(!psbSizedDocument.isPsdCanvasSizeCompatible());
 }
 

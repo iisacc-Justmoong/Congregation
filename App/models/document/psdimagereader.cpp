@@ -271,9 +271,9 @@ private:
     return {};
 }
 
-[[nodiscard]] QVariantMap vincentManifestFromXmp(const QString &xmpMetadata)
+[[nodiscard]] QVariantMap congregationManifestFromXmp(const QString &xmpMetadata)
 {
-    const QString encodedManifest = xmpElementText(xmpMetadata, QStringLiteral("VincentLayerManifestBase64"));
+    const QString encodedManifest = xmpElementText(xmpMetadata, QStringLiteral("CongregationLayerManifestBase64"));
     if (encodedManifest.isEmpty()) {
         return {};
     }
@@ -299,7 +299,7 @@ void readImageResources(const psd::Document *document,
     imported->hasRealMergedImage = imageResources->containsRealMergedData;
     if (imageResources->xmpMetadata) {
         imported->xmpMetadata = QString::fromUtf8(imageResources->xmpMetadata);
-        imported->vincentManifest = vincentManifestFromXmp(imported->xmpMetadata);
+        imported->congregationManifest = congregationManifestFromXmp(imported->xmpMetadata);
     }
 }
 

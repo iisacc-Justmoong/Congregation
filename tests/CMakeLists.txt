@@ -17,7 +17,7 @@ target_link_libraries(tests_canvasdocumentviewmodel PRIVATE
         Qt6::Gui
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_canvasdocumentviewmodel)
+congregation_configure_local_runtime_paths(tests_canvasdocumentviewmodel)
 
 add_test(NAME tests_canvasdocumentviewmodel COMMAND tests_canvasdocumentviewmodel)
 
@@ -36,7 +36,7 @@ target_link_libraries(tests_psdcompatibilitydocument PRIVATE
         Qt6::Gui
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_psdcompatibilitydocument)
+congregation_configure_local_runtime_paths(tests_psdcompatibilitydocument)
 
 add_test(NAME tests_psdcompatibilitydocument COMMAND tests_psdcompatibilitydocument)
 
@@ -48,7 +48,7 @@ target_link_libraries(tests_canvastoolbarqmlcontract PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_canvastoolbarqmlcontract)
+congregation_configure_local_runtime_paths(tests_canvastoolbarqmlcontract)
 
 add_test(NAME tests_canvastoolbarqmlcontract COMMAND tests_canvastoolbarqmlcontract)
 
@@ -60,7 +60,7 @@ target_link_libraries(tests_mainqmlcontract PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_mainqmlcontract)
+congregation_configure_local_runtime_paths(tests_mainqmlcontract)
 
 add_test(NAME tests_mainqmlcontract COMMAND tests_mainqmlcontract)
 
@@ -78,7 +78,7 @@ target_link_libraries(tests_memberprofilelistbuilder PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_memberprofilelistbuilder)
+congregation_configure_local_runtime_paths(tests_memberprofilelistbuilder)
 
 add_test(NAME tests_memberprofilelistbuilder COMMAND tests_memberprofilelistbuilder)
 
@@ -97,7 +97,7 @@ target_link_libraries(tests_profileimageprocessor PRIVATE
         Qt6::Gui
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_profileimageprocessor)
+congregation_configure_local_runtime_paths(tests_profileimageprocessor)
 
 add_test(NAME tests_profileimageprocessor COMMAND tests_profileimageprocessor)
 
@@ -115,28 +115,28 @@ target_link_libraries(tests_applicationpreferences PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_applicationpreferences)
+congregation_configure_local_runtime_paths(tests_applicationpreferences)
 
 add_test(NAME tests_applicationpreferences COMMAND tests_applicationpreferences)
 
-add_executable(tests_nearbyvincentdiscovery
-        tst_nearbyvincentdiscovery.cpp
-        ../App/models/network/nearbyvincentdiscovery.cpp
-        ../App/models/network/nearbyvincentdiscovery.h
+add_executable(tests_nearbycongregationdiscovery
+        tst_nearbycongregationdiscovery.cpp
+        ../App/models/network/nearbycongregationdiscovery.cpp
+        ../App/models/network/nearbycongregationdiscovery.h
 )
 
-target_include_directories(tests_nearbyvincentdiscovery PRIVATE
+target_include_directories(tests_nearbycongregationdiscovery PRIVATE
         ${CMAKE_SOURCE_DIR}/App/models/network
 )
 
-target_link_libraries(tests_nearbyvincentdiscovery PRIVATE
+target_link_libraries(tests_nearbycongregationdiscovery PRIVATE
         Qt6::Core
         Qt6::Network
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_nearbyvincentdiscovery)
+congregation_configure_local_runtime_paths(tests_nearbycongregationdiscovery)
 
-add_test(NAME tests_nearbyvincentdiscovery COMMAND tests_nearbyvincentdiscovery)
+add_test(NAME tests_nearbycongregationdiscovery COMMAND tests_nearbycongregationdiscovery)
 
 add_executable(tests_localcanvassession
         tst_localcanvassession.cpp
@@ -144,8 +144,8 @@ add_executable(tests_localcanvassession
         ../App/models/document/recentcanvascontainer.h
         ../App/models/network/localcanvassession.cpp
         ../App/models/network/localcanvassession.h
-        ../App/models/network/nearbyvincentdiscovery.cpp
-        ../App/models/network/nearbyvincentdiscovery.h
+        ../App/models/network/nearbycongregationdiscovery.cpp
+        ../App/models/network/nearbycongregationdiscovery.h
 )
 
 target_include_directories(tests_localcanvassession PRIVATE
@@ -158,7 +158,7 @@ target_link_libraries(tests_localcanvassession PRIVATE
         Qt6::Network
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_localcanvassession)
+congregation_configure_local_runtime_paths(tests_localcanvassession)
 
 add_test(NAME tests_localcanvassession COMMAND tests_localcanvassession)
 
@@ -177,7 +177,7 @@ target_link_libraries(tests_temporarycamerainput PRIVATE
         Qt6::Gui
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_temporarycamerainput)
+congregation_configure_local_runtime_paths(tests_temporarycamerainput)
 
 add_test(NAME tests_temporarycamerainput COMMAND tests_temporarycamerainput)
 
@@ -204,39 +204,39 @@ target_link_libraries(tests_licensemanager PRIVATE
 if(APPLE OR WIN32)
     target_link_libraries(tests_licensemanager PRIVATE qt6keychain)
 endif()
-vincent_configure_local_runtime_paths(tests_licensemanager)
+congregation_configure_local_runtime_paths(tests_licensemanager)
 
 add_test(NAME tests_licensemanager COMMAND tests_licensemanager)
 
-add_executable(tests_vincentupdatemanager
-        tst_vincentupdatemanager.cpp
+add_executable(tests_congregationupdatemanager
+        tst_congregationupdatemanager.cpp
         ../App/models/license/licensecredentialstore.cpp
         ../App/models/license/licensecredentialstore.h
         ../App/models/license/licensemanager.cpp
         ../App/models/license/licensemanager.h
-        ../App/models/update/vincentupdatecredentialprovider.cpp
-        ../App/models/update/vincentupdatecredentialprovider.h
-        ../App/models/update/vincentupdatemanager.cpp
-        ../App/models/update/vincentupdatemanager.h
+        ../App/models/update/congregationupdatecredentialprovider.cpp
+        ../App/models/update/congregationupdatecredentialprovider.h
+        ../App/models/update/congregationupdatemanager.cpp
+        ../App/models/update/congregationupdatemanager.h
 )
 
-target_include_directories(tests_vincentupdatemanager PRIVATE
+target_include_directories(tests_congregationupdatemanager PRIVATE
         ${CMAKE_SOURCE_DIR}/App/models/license
         ${CMAKE_SOURCE_DIR}/App/models/update
 )
 
-target_link_libraries(tests_vincentupdatemanager PRIVATE
+target_link_libraries(tests_congregationupdatemanager PRIVATE
         Qt6::Core
         Qt6::Network
         Qt6::Test
         iiUpdateManager::iiUpdateManager
 )
 if(APPLE OR WIN32)
-    target_link_libraries(tests_vincentupdatemanager PRIVATE qt6keychain)
+    target_link_libraries(tests_congregationupdatemanager PRIVATE qt6keychain)
 endif()
-vincent_configure_local_runtime_paths(tests_vincentupdatemanager)
+congregation_configure_local_runtime_paths(tests_congregationupdatemanager)
 
-add_test(NAME tests_vincentupdatemanager COMMAND tests_vincentupdatemanager)
+add_test(NAME tests_congregationupdatemanager COMMAND tests_congregationupdatemanager)
 
 add_executable(tests_macosbuildworkflowcontract
         tst_macosbuildworkflowcontract.cpp
@@ -246,7 +246,7 @@ target_link_libraries(tests_macosbuildworkflowcontract PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_macosbuildworkflowcontract)
+congregation_configure_local_runtime_paths(tests_macosbuildworkflowcontract)
 
 add_test(NAME tests_macosbuildworkflowcontract COMMAND tests_macosbuildworkflowcontract)
 
@@ -258,7 +258,7 @@ target_link_libraries(tests_linuxbuildworkflowcontract PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_linuxbuildworkflowcontract)
+congregation_configure_local_runtime_paths(tests_linuxbuildworkflowcontract)
 
 add_test(NAME tests_linuxbuildworkflowcontract COMMAND tests_linuxbuildworkflowcontract)
 
@@ -270,7 +270,7 @@ target_link_libraries(tests_windowsbuildworkflowcontract PRIVATE
         Qt6::Core
         Qt6::Test
 )
-vincent_configure_local_runtime_paths(tests_windowsbuildworkflowcontract)
+congregation_configure_local_runtime_paths(tests_windowsbuildworkflowcontract)
 
 add_test(NAME tests_windowsbuildworkflowcontract COMMAND tests_windowsbuildworkflowcontract)
 
@@ -280,15 +280,15 @@ if(WIN32)
     )
 
     target_compile_definitions(tests_windowsbinarycontract PRIVATE
-            VINCENT_EXECUTABLE_PATH="$<TARGET_FILE:Vincent>"
+            CONGREGATION_EXECUTABLE_PATH="$<TARGET_FILE:Congregation>"
     )
     target_link_libraries(tests_windowsbinarycontract PRIVATE
             Qt6::Core
             Qt6::Test
             version
     )
-    add_dependencies(tests_windowsbinarycontract Vincent)
-    vincent_configure_local_runtime_paths(tests_windowsbinarycontract)
+    add_dependencies(tests_windowsbinarycontract Congregation)
+    congregation_configure_local_runtime_paths(tests_windowsbinarycontract)
 
     add_test(NAME tests_windowsbinarycontract COMMAND tests_windowsbinarycontract)
 endif()
@@ -330,13 +330,13 @@ target_link_libraries(tests_drawingsurfaceitem PRIVATE
         Qt6::Test
         iiPaintEngine::iiPaintEngine
         iiSharedCanvas::iiSharedCanvas
-        vincent_psd_sdk
+        congregation_psd_sdk
 )
-vincent_configure_local_runtime_paths(tests_drawingsurfaceitem)
+congregation_configure_local_runtime_paths(tests_drawingsurfaceitem)
 
 add_test(NAME tests_drawingsurfaceitem COMMAND tests_drawingsurfaceitem)
 
-set(_vincent_test_environment
+set(_congregation_test_environment
         "CMAKE_PREFIX_PATH="
         "QML2_IMPORT_PATH="
         "QTDIR="
@@ -353,108 +353,108 @@ set_tests_properties(
         tests_memberprofilelistbuilder
         tests_profileimageprocessor
         tests_applicationpreferences
-        tests_nearbyvincentdiscovery
+        tests_nearbycongregationdiscovery
         tests_temporarycamerainput
         tests_licensemanager
-        tests_vincentupdatemanager
+        tests_congregationupdatemanager
         tests_macosbuildworkflowcontract
         tests_linuxbuildworkflowcontract
         tests_windowsbuildworkflowcontract
         tests_drawingsurfaceitem
         PROPERTIES
-        ENVIRONMENT "${_vincent_test_environment}"
+        ENVIRONMENT "${_congregation_test_environment}"
 )
 
 if(WIN32)
-    find_program(_vincent_powershell_executable NAMES powershell.exe REQUIRED)
+    find_program(_congregation_powershell_executable NAMES powershell.exe REQUIRED)
     add_test(
             NAME tests_windowsauthenticodepolicy
-            COMMAND "${_vincent_powershell_executable}"
+            COMMAND "${_congregation_powershell_executable}"
                     -NoProfile
                     -ExecutionPolicy Bypass
                     -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_windowsauthenticodepolicy.ps1"
                     -ScriptPath "${CMAKE_SOURCE_DIR}/build-windows.ps1"
     )
     set_tests_properties(tests_windowsauthenticodepolicy PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
 
     add_test(
             NAME tests_necessaryauthenticode
-            COMMAND "${_vincent_powershell_executable}"
+            COMMAND "${_congregation_powershell_executable}"
                     -NoProfile
                     -ExecutionPolicy Bypass
                     -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_necessaryauthenticode.ps1"
                     -ScriptPath "${CMAKE_SOURCE_DIR}/tools/necessary-authenticode.ps1"
     )
     set_tests_properties(tests_necessaryauthenticode PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
 
     add_test(
             NAME tests_necessarywindowsrelease
-            COMMAND "${_vincent_powershell_executable}"
+            COMMAND "${_congregation_powershell_executable}"
                     -NoProfile
                     -ExecutionPolicy Bypass
                     -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_necessarywindowsrelease.ps1"
                     -ScriptPath "${CMAKE_SOURCE_DIR}/tools/necessary-windows-release.ps1"
     )
     set_tests_properties(tests_necessarywindowsrelease PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
 
-    find_program(_vincent_pwsh_executable NAMES pwsh.exe)
-    if(_vincent_pwsh_executable)
+    find_program(_congregation_pwsh_executable NAMES pwsh.exe)
+    if(_congregation_pwsh_executable)
         add_test(
                 NAME tests_windowsauthenticodepolicy_pwsh
-                COMMAND "${_vincent_pwsh_executable}"
+                COMMAND "${_congregation_pwsh_executable}"
                         -NoProfile
                         -ExecutionPolicy Bypass
                         -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_windowsauthenticodepolicy.ps1"
                         -ScriptPath "${CMAKE_SOURCE_DIR}/build-windows.ps1"
         )
         set_tests_properties(tests_windowsauthenticodepolicy_pwsh PROPERTIES
-                ENVIRONMENT "${_vincent_test_environment}"
+                ENVIRONMENT "${_congregation_test_environment}"
         )
 
         add_test(
                 NAME tests_necessaryauthenticode_pwsh
-                COMMAND "${_vincent_pwsh_executable}"
+                COMMAND "${_congregation_pwsh_executable}"
                         -NoProfile
                         -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_necessaryauthenticode.ps1"
                         -ScriptPath "${CMAKE_SOURCE_DIR}/tools/necessary-authenticode.ps1"
         )
         set_tests_properties(tests_necessaryauthenticode_pwsh PROPERTIES
-                ENVIRONMENT "${_vincent_test_environment}"
+                ENVIRONMENT "${_congregation_test_environment}"
         )
 
         add_test(
                 NAME tests_necessarywindowsrelease_pwsh
-                COMMAND "${_vincent_pwsh_executable}"
+                COMMAND "${_congregation_pwsh_executable}"
                         -NoProfile
                         -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_necessarywindowsrelease.ps1"
                         -ScriptPath "${CMAKE_SOURCE_DIR}/tools/necessary-windows-release.ps1"
         )
         set_tests_properties(tests_necessarywindowsrelease_pwsh PROPERTIES
-                ENVIRONMENT "${_vincent_test_environment}"
+                ENVIRONMENT "${_congregation_test_environment}"
         )
     endif()
 
     add_test(
             NAME tests_windowsmsiauthoringcontract
-            COMMAND "${_vincent_powershell_executable}"
+            COMMAND "${_congregation_powershell_executable}"
                     -NoProfile
                     -ExecutionPolicy Bypass
                     -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_windowsmsiauthoringcontract.ps1"
                     -ScriptPath "${CMAKE_SOURCE_DIR}/build-windows.ps1"
     )
     set_tests_properties(tests_windowsmsiauthoringcontract PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
 
     add_test(
             NAME tests_windowsstorepackagecontract
-            COMMAND "${_vincent_powershell_executable}"
+            COMMAND "${_congregation_powershell_executable}"
                     -NoProfile
                     -ExecutionPolicy Bypass
                     -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_windowsstorepackagecontract.ps1"
@@ -462,24 +462,24 @@ if(WIN32)
                     -ManifestTemplatePath "${CMAKE_SOURCE_DIR}/packaging/windows/AppxManifest.xml.in"
     )
     set_tests_properties(tests_windowsstorepackagecontract PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
-    if(_vincent_pwsh_executable)
+    if(_congregation_pwsh_executable)
         add_test(
                 NAME tests_windowsstorepackagecontract_pwsh
-                COMMAND "${_vincent_pwsh_executable}"
+                COMMAND "${_congregation_pwsh_executable}"
                         -NoProfile
                         -File "${CMAKE_CURRENT_SOURCE_DIR}/tst_windowsstorepackagecontract.ps1"
                         -ScriptPath "${CMAKE_SOURCE_DIR}/build-windows-store.ps1"
                         -ManifestTemplatePath "${CMAKE_SOURCE_DIR}/packaging/windows/AppxManifest.xml.in"
         )
         set_tests_properties(tests_windowsstorepackagecontract_pwsh PROPERTIES
-                ENVIRONMENT "${_vincent_test_environment}"
+                ENVIRONMENT "${_congregation_test_environment}"
         )
     endif()
 
     set_tests_properties(tests_windowsbinarycontract PROPERTIES
-            ENVIRONMENT "${_vincent_test_environment}"
+            ENVIRONMENT "${_congregation_test_environment}"
     )
 endif()
 
@@ -492,10 +492,10 @@ if(WIN32)
             tests_memberprofilelistbuilder
             tests_profileimageprocessor
             tests_applicationpreferences
-            tests_nearbyvincentdiscovery
+            tests_nearbycongregationdiscovery
             tests_temporarycamerainput
             tests_licensemanager
-            tests_vincentupdatemanager
+            tests_congregationupdatemanager
             tests_macosbuildworkflowcontract
             tests_linuxbuildworkflowcontract
             tests_windowsbuildworkflowcontract

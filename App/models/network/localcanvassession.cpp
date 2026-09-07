@@ -1,6 +1,6 @@
 #include "localcanvassession.h"
 
-#include "nearbyvincentdiscovery.h"
+#include "nearbycongregationdiscovery.h"
 #include "recentcanvascontainer.h"
 
 #include <QAbstractSocket>
@@ -727,7 +727,7 @@ QJsonObject errorObject(const QString& code, const QString& message)
 }
 } // namespace
 
-LocalCanvasSession::LocalCanvasSession(NearbyVincentDiscovery* discovery, QObject* parent)
+LocalCanvasSession::LocalCanvasSession(NearbyCongregationDiscovery* discovery, QObject* parent)
     : QObject(parent), m_discovery(discovery),
       m_ownSessionId(discovery ? discovery->sessionId()
                                : QUuid::createUuid().toString(QUuid::WithoutBraces)),
@@ -752,11 +752,11 @@ LocalCanvasSession::LocalCanvasSession(NearbyVincentDiscovery* discovery, QObjec
 
     if (m_discovery)
     {
-        connect(m_discovery, &NearbyVincentDiscovery::availableCanvasSessionsChanged, this,
+        connect(m_discovery, &NearbyCongregationDiscovery::availableCanvasSessionsChanged, this,
                 &LocalCanvasSession::availableCanvasesChanged);
-        connect(m_discovery, &NearbyVincentDiscovery::availableInvitationTargetsChanged, this,
+        connect(m_discovery, &NearbyCongregationDiscovery::availableInvitationTargetsChanged, this,
                 &LocalCanvasSession::availableInviteesChanged);
-        connect(m_discovery, &NearbyVincentDiscovery::canvasInvitationReceived, this,
+        connect(m_discovery, &NearbyCongregationDiscovery::canvasInvitationReceived, this,
                 &LocalCanvasSession::receiveCanvasInvitation);
     }
 }
@@ -871,7 +871,7 @@ QVariantList LocalCanvasSession::availableInvitees() const
         result.append(
             QVariantMap{{QStringLiteral("sessionId"), targetSessionId},
                         {QStringLiteral("address"), address},
-                        {QStringLiteral("displayName"), tr("Vincent at %1").arg(address)}});
+                        {QStringLiteral("displayName"), tr("Congregation at %1").arg(address)}});
     }
     return result;
 }
@@ -1027,7 +1027,7 @@ void LocalCanvasSession::setLocalProfileName(const QString& profileName)
     if (connected() && m_clientSocket)
     {
         const QJsonObject hello{
-            {QStringLiteral("service"), QStringLiteral("com.iisacc.vincent.canvas")},
+            {QStringLiteral("service"), QStringLiteral("com.iisacc.congregation.canvas")},
             {QStringLiteral("version"), protocolVersion},
             {QStringLiteral("session"), m_sessionId},
             {QStringLiteral("peer"), m_peerId},
@@ -1124,7 +1124,7 @@ bool LocalCanvasSession::invitePeer(const QString& targetSessionId, const QStrin
                     });
     if (!isCanonicalUuid(normalizedTargetSessionId) || !targetAvailable)
     {
-        setErrorString(tr("The nearby Vincent user is no longer available for invitations."));
+        setErrorString(tr("The nearby Congregation user is no longer available for invitations."));
         return false;
     }
 
@@ -1485,7 +1485,7 @@ void LocalCanvasSession::handleClientConnected()
         return;
     }
     const QJsonObject hello{
-        {QStringLiteral("service"), QStringLiteral("com.iisacc.vincent.canvas")},
+        {QStringLiteral("service"), QStringLiteral("com.iisacc.congregation.canvas")},
         {QStringLiteral("version"), protocolVersion},
         {QStringLiteral("session"), m_sessionId},
         {QStringLiteral("peer"), m_peerId},
@@ -1576,7 +1576,7 @@ void LocalCanvasSession::processHostFrame(QTcpSocket* socket, quint8 rawType,
         const std::optional<QJsonObject> hello = jsonObject(payload);
         if (!hello ||
             hello->value(QStringLiteral("service")).toString() !=
-                QStringLiteral("com.iisacc.vincent.canvas") ||
+                QStringLiteral("com.iisacc.congregation.canvas") ||
             hello->value(QStringLiteral("version")).toInt() != protocolVersion ||
             hello->value(QStringLiteral("session")).toString() != m_sessionId)
         {
@@ -1599,7 +1599,7 @@ void LocalCanvasSession::processHostFrame(QTcpSocket* socket, quint8 rawType,
                 peerIterator->peerId == remotePeerId)
             {
                 disconnectHostPeer(socket, QStringLiteral("duplicate"),
-                                   tr("This Vincent session is already connected."));
+                                   tr("This Congregation session is already connected."));
                 return;
             }
         }
@@ -1625,7 +1625,7 @@ void LocalCanvasSession::processHostFrame(QTcpSocket* socket, quint8 rawType,
         {
             iterator->accepted = true;
             const QJsonObject accepted{
-                {QStringLiteral("service"), QStringLiteral("com.iisacc.vincent.canvas")},
+                {QStringLiteral("service"), QStringLiteral("com.iisacc.congregation.canvas")},
                 {QStringLiteral("version"), protocolVersion},
                 {QStringLiteral("session"), m_sessionId},
                 {QStringLiteral("peer"), m_peerId},
@@ -1688,7 +1688,7 @@ void LocalCanvasSession::processClientFrame(quint8 rawType, const QByteArray& pa
         const std::optional<QJsonObject> hello = jsonObject(payload);
         if (!hello ||
             hello->value(QStringLiteral("service")).toString() !=
-                QStringLiteral("com.iisacc.vincent.canvas") ||
+                QStringLiteral("com.iisacc.congregation.canvas") ||
             hello->value(QStringLiteral("version")).toInt() != protocolVersion ||
             hello->value(QStringLiteral("session")).toString() != m_sessionId ||
             !isCanonicalUuid(hello->value(QStringLiteral("peer")).toString()))

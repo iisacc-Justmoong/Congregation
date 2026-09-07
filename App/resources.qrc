@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/Vincent">
+    <qresource prefix="/Congregation">
         <file>resources/icons/translateObject.svg</file>
         <file>resources/icons/panHand.svg</file>
         <file>resources/icons/typeAlias.svg</file>

@@ -6,7 +6,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage: tools/sync_app_icon_assets.sh [source.icns] [AppIcon.appiconset]
 
-Regenerates the macOS AppIcon asset catalog from the canonical Vincent .icns.
+Regenerates the macOS AppIcon asset catalog from the canonical Congregation .icns.
 USAGE
 }
 
@@ -16,7 +16,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 source_icon="${1:-resources/Appicon.icns}"
-asset_dir="${2:-packaging/macos/Vincent.xcassets/AppIcon.appiconset}"
+asset_dir="${2:-packaging/macos/Congregation.xcassets/AppIcon.appiconset}"
 
 [[ -f "$source_icon" ]] || { printf 'ERROR: source icon not found: %s\n' "$source_icon" >&2; exit 1; }
 [[ -d "$asset_dir" ]] || { printf 'ERROR: asset catalog not found: %s\n' "$asset_dir" >&2; exit 1; }
@@ -24,7 +24,7 @@ asset_dir="${2:-packaging/macos/Vincent.xcassets/AppIcon.appiconset}"
 command -v iconutil >/dev/null 2>&1 || { printf 'ERROR: iconutil not found\n' >&2; exit 1; }
 command -v sips >/dev/null 2>&1 || { printf 'ERROR: sips not found\n' >&2; exit 1; }
 
-tmpdir="$(mktemp -d -t vincent_icon_assets_XXXXXX)"
+tmpdir="$(mktemp -d -t congregation_icon_assets_XXXXXX)"
 cleanup() { rm -rf "$tmpdir" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 

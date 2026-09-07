@@ -13,8 +13,8 @@ class ApplicationPreferences final : public QObject
     Q_OBJECT
     Q_PROPERTY(bool startWithRecentCanvas READ startWithRecentCanvas WRITE
                    setStartWithRecentCanvas NOTIFY startWithRecentCanvasChanged)
-    Q_PROPERTY(bool discoverNearbyVincentUsers READ discoverNearbyVincentUsers WRITE
-                   setDiscoverNearbyVincentUsers NOTIFY discoverNearbyVincentUsersChanged)
+    Q_PROPERTY(bool discoverNearbyCongregationUsers READ discoverNearbyCongregationUsers WRITE
+                   setDiscoverNearbyCongregationUsers NOTIFY discoverNearbyCongregationUsersChanged)
     Q_PROPERTY(QUrl recentCanvasUrl READ recentCanvasUrl NOTIFY recentCanvasUrlChanged)
     Q_PROPERTY(QUrl recentCanvasStorageUrl READ recentCanvasStorageUrl CONSTANT)
 
@@ -27,18 +27,18 @@ public:
     ~ApplicationPreferences() override;
 
     [[nodiscard]] bool startWithRecentCanvas() const noexcept;
-    [[nodiscard]] bool discoverNearbyVincentUsers() const noexcept;
+    [[nodiscard]] bool discoverNearbyCongregationUsers() const noexcept;
     [[nodiscard]] QUrl recentCanvasUrl() const;
     [[nodiscard]] QUrl recentCanvasStorageUrl() const;
 
     Q_INVOKABLE void setStartWithRecentCanvas(bool startWithRecentCanvas);
-    Q_INVOKABLE void setDiscoverNearbyVincentUsers(bool discoverNearbyVincentUsers);
+    Q_INVOKABLE void setDiscoverNearbyCongregationUsers(bool discoverNearbyCongregationUsers);
     Q_INVOKABLE bool recordRecentCanvas(const QUrl &fileUrl);
     Q_INVOKABLE bool clearRecentCanvas();
 
 signals:
     void startWithRecentCanvasChanged();
-    void discoverNearbyVincentUsersChanged();
+    void discoverNearbyCongregationUsersChanged();
     void recentCanvasUrlChanged();
 
 private:
@@ -50,6 +50,6 @@ private:
     QSettings *m_settings = nullptr;
     QString m_storageDirectory;
     bool m_startWithRecentCanvas = false;
-    bool m_discoverNearbyVincentUsers = true;
+    bool m_discoverNearbyCongregationUsers = true;
     QUrl m_recentCanvasUrl;
 };

@@ -8,9 +8,9 @@
 #include <QUuid>
 #include <QtTest>
 
-#include "nearbyvincentdiscovery.h"
+#include "nearbycongregationdiscovery.h"
 
-class tst_NearbyVincentDiscovery : public QObject
+class tst_NearbyCongregationDiscovery : public QObject
 {
     Q_OBJECT
 
@@ -24,14 +24,14 @@ class tst_NearbyVincentDiscovery : public QObject
     void applicationStartsDiscoveryAfterShowingTheWindow();
 };
 
-void tst_NearbyVincentDiscovery::presenceBeaconIsAnonymousAndRoundTrips()
+void tst_NearbyCongregationDiscovery::presenceBeaconIsAnonymousAndRoundTrips()
 {
     const QString sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    const QByteArray payload = NearbyVincentProtocol::encodePresence(sessionId, true);
+    const QByteArray payload = NearbyCongregationProtocol::encodePresence(sessionId, true);
     QVERIFY(!payload.isEmpty());
 
-    const std::optional<NearbyVincentPresence> presence =
-        NearbyVincentProtocol::decodePresence(payload);
+    const std::optional<NearbyCongregationPresence> presence =
+        NearbyCongregationProtocol::decodePresence(payload);
     QVERIFY(presence.has_value());
     QCOMPARE(presence->sessionId, sessionId);
     QVERIFY(presence->online);
@@ -55,12 +55,12 @@ void tst_NearbyVincentDiscovery::presenceBeaconIsAnonymousAndRoundTrips()
     }
 }
 
-void tst_NearbyVincentDiscovery::sharingBeaconAddsOnlyCanvasEndpoint()
+void tst_NearbyCongregationDiscovery::sharingBeaconAddsOnlyCanvasEndpoint()
 {
     const QString sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    const QByteArray payload = NearbyVincentProtocol::encodePresence(sessionId, true, 54321);
-    const std::optional<NearbyVincentPresence> presence =
-        NearbyVincentProtocol::decodePresence(payload);
+    const QByteArray payload = NearbyCongregationProtocol::encodePresence(sessionId, true, 54321);
+    const std::optional<NearbyCongregationPresence> presence =
+        NearbyCongregationProtocol::decodePresence(payload);
     QVERIFY(presence.has_value());
     QCOMPARE(presence->sessionId, sessionId);
     QCOMPARE(presence->canvasPort, quint16(54321));
@@ -85,34 +85,34 @@ void tst_NearbyVincentDiscovery::sharingBeaconAddsOnlyCanvasEndpoint()
 
     QJsonObject invalidPort = object;
     invalidPort.insert(QStringLiteral("canvasPort"), 70000);
-    QVERIFY(!NearbyVincentProtocol::decodePresence(
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(
                  QJsonDocument(invalidPort).toJson(QJsonDocument::Compact))
                  .has_value());
 }
 
-void tst_NearbyVincentDiscovery::invitationDatagramIsTargetedAndCarriesInviterProfile()
+void tst_NearbyCongregationDiscovery::invitationDatagramIsTargetedAndCarriesInviterProfile()
 {
     const QString invitationId = QUuid::createUuid().toString(QUuid::WithoutBraces);
     const QString senderSessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
     const QString targetSessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    const QByteArray payload = NearbyVincentProtocol::encodeInvitation(
+    const QByteArray payload = NearbyCongregationProtocol::encodeInvitation(
         invitationId, senderSessionId, targetSessionId, 54321, QStringLiteral("Host Artist"));
     QVERIFY(!payload.isEmpty());
 
-    const std::optional<NearbyVincentInvitation> invitation =
-        NearbyVincentProtocol::decodeInvitation(payload);
+    const std::optional<NearbyCongregationInvitation> invitation =
+        NearbyCongregationProtocol::decodeInvitation(payload);
     QVERIFY(invitation.has_value());
     QCOMPARE(invitation->invitationId, invitationId);
     QCOMPARE(invitation->senderSessionId, senderSessionId);
     QCOMPARE(invitation->targetSessionId, targetSessionId);
     QCOMPARE(invitation->canvasPort, quint16(54321));
     QCOMPARE(invitation->inviterProfileName, QStringLiteral("Host Artist"));
-    QVERIFY(!NearbyVincentProtocol::decodePresence(payload).has_value());
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(payload).has_value());
 
     const QByteArray invitationCapability =
-        NearbyVincentProtocol::encodePresence(targetSessionId, true, 0, true);
-    const std::optional<NearbyVincentPresence> invitablePresence =
-        NearbyVincentProtocol::decodePresence(invitationCapability);
+        NearbyCongregationProtocol::encodePresence(targetSessionId, true, 0, true);
+    const std::optional<NearbyCongregationPresence> invitablePresence =
+        NearbyCongregationProtocol::decodePresence(invitationCapability);
     QVERIFY(invitablePresence.has_value());
     QVERIFY(invitablePresence->invitationsAllowed);
     const QJsonObject capabilityObject = QJsonDocument::fromJson(invitationCapability).object();
@@ -130,41 +130,41 @@ void tst_NearbyVincentDiscovery::invitationDatagramIsTargetedAndCarriesInviterPr
 
     QJsonObject invalidTarget = object;
     invalidTarget.insert(QStringLiteral("target"), QStringLiteral("not-a-session"));
-    QVERIFY(!NearbyVincentProtocol::decodeInvitation(
+    QVERIFY(!NearbyCongregationProtocol::decodeInvitation(
                  QJsonDocument(invalidTarget).toJson(QJsonDocument::Compact))
                  .has_value());
 }
 
-void tst_NearbyVincentDiscovery::malformedAndForeignBeaconsAreRejected()
+void tst_NearbyCongregationDiscovery::malformedAndForeignBeaconsAreRejected()
 {
-    QVERIFY(!NearbyVincentProtocol::decodePresence(QByteArrayLiteral("not-json")).has_value());
-    QVERIFY(!NearbyVincentProtocol::decodePresence(QByteArray(2048, 'x')).has_value());
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(QByteArrayLiteral("not-json")).has_value());
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(QByteArray(2048, 'x')).has_value());
 
     QJsonObject foreignObject{
         {QStringLiteral("service"), QStringLiteral("com.example.foreign")},
         {QStringLiteral("version"), 1},
         {QStringLiteral("session"), QUuid::createUuid().toString(QUuid::WithoutBraces)},
         {QStringLiteral("state"), QStringLiteral("online")}};
-    QVERIFY(!NearbyVincentProtocol::decodePresence(
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(
                  QJsonDocument(foreignObject).toJson(QJsonDocument::Compact))
                  .has_value());
 
-    foreignObject.insert(QStringLiteral("service"), NearbyVincentProtocol::serviceName());
+    foreignObject.insert(QStringLiteral("service"), NearbyCongregationProtocol::serviceName());
     foreignObject.insert(QStringLiteral("version"), 2);
-    QVERIFY(!NearbyVincentProtocol::decodePresence(
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(
                  QJsonDocument(foreignObject).toJson(QJsonDocument::Compact))
                  .has_value());
 
     foreignObject.insert(QStringLiteral("version"), 1);
     foreignObject.insert(QStringLiteral("session"), QStringLiteral("not-a-uuid"));
-    QVERIFY(!NearbyVincentProtocol::decodePresence(
+    QVERIFY(!NearbyCongregationProtocol::decodePresence(
                  QJsonDocument(foreignObject).toJson(QJsonDocument::Compact))
                  .has_value());
 }
 
-void tst_NearbyVincentDiscovery::twoBackgroundServicesDiscoverAndForgetEachOther()
+void tst_NearbyCongregationDiscovery::twoBackgroundServicesDiscoverAndForgetEachOther()
 {
-    NearbyVincentDiscovery::Configuration configuration;
+    NearbyCongregationDiscovery::Configuration configuration;
     configuration.port = static_cast<quint16>(49152 + QRandomGenerator::global()->bounded(12000));
     configuration.heartbeatIntervalMs = 100;
     configuration.peerTimeoutMs = 700;
@@ -172,13 +172,13 @@ void tst_NearbyVincentDiscovery::twoBackgroundServicesDiscoverAndForgetEachOther
     configuration.ignoreLocalSenders = false;
     configuration.includeLoopbackInterfaces = true;
 
-    NearbyVincentDiscovery first(configuration);
-    NearbyVincentDiscovery second(configuration);
+    NearbyCongregationDiscovery first(configuration);
+    NearbyCongregationDiscovery second(configuration);
     first.setHostedCanvasPort(54321);
     second.setInvitationsAllowed(true);
-    QSignalSpy firstPresenceSpy(&first, &NearbyVincentDiscovery::nearbyPresenceChanged);
-    QSignalSpy secondPresenceSpy(&second, &NearbyVincentDiscovery::nearbyPresenceChanged);
-    QSignalSpy invitationSpy(&second, &NearbyVincentDiscovery::canvasInvitationReceived);
+    QSignalSpy firstPresenceSpy(&first, &NearbyCongregationDiscovery::nearbyPresenceChanged);
+    QSignalSpy secondPresenceSpy(&second, &NearbyCongregationDiscovery::nearbyPresenceChanged);
+    QSignalSpy invitationSpy(&second, &NearbyCongregationDiscovery::canvasInvitationReceived);
 
     first.start();
     second.start();
@@ -187,8 +187,8 @@ void tst_NearbyVincentDiscovery::twoBackgroundServicesDiscoverAndForgetEachOther
     QTRY_VERIFY_WITH_TIMEOUT(second.running(), 5000);
     QTRY_COMPARE_WITH_TIMEOUT(first.nearbyDeviceCount(), 1, 5000);
     QTRY_COMPARE_WITH_TIMEOUT(second.nearbyDeviceCount(), 1, 5000);
-    QVERIFY(first.anotherVincentUserDetected());
-    QVERIFY(second.anotherVincentUserDetected());
+    QVERIFY(first.anotherCongregationUserDetected());
+    QVERIFY(second.anotherCongregationUserDetected());
     QVERIFY(!firstPresenceSpy.isEmpty());
     QVERIFY(!secondPresenceSpy.isEmpty());
     QTRY_COMPARE_WITH_TIMEOUT(second.availableCanvasSessions().size(), 1, 5000);
@@ -218,12 +218,12 @@ void tst_NearbyVincentDiscovery::twoBackgroundServicesDiscoverAndForgetEachOther
     QTRY_VERIFY_WITH_TIMEOUT(!second.running(), 5000);
     QTRY_COMPARE_WITH_TIMEOUT(first.nearbyDeviceCount(), 0, 5000);
     QTRY_COMPARE_WITH_TIMEOUT(first.availableInvitationTargets().size(), 0, 5000);
-    QVERIFY(!first.anotherVincentUserDetected());
+    QVERIFY(!first.anotherCongregationUserDetected());
 }
 
-void tst_NearbyVincentDiscovery::servicesOnTheSameDeviceAreNotReported()
+void tst_NearbyCongregationDiscovery::servicesOnTheSameDeviceAreNotReported()
 {
-    NearbyVincentDiscovery::Configuration configuration;
+    NearbyCongregationDiscovery::Configuration configuration;
     configuration.port = static_cast<quint16>(49152 + QRandomGenerator::global()->bounded(12000));
     configuration.heartbeatIntervalMs = 100;
     configuration.peerTimeoutMs = 700;
@@ -231,8 +231,8 @@ void tst_NearbyVincentDiscovery::servicesOnTheSameDeviceAreNotReported()
     configuration.ignoreLocalSenders = true;
     configuration.includeLoopbackInterfaces = true;
 
-    NearbyVincentDiscovery first(configuration);
-    NearbyVincentDiscovery second(configuration);
+    NearbyCongregationDiscovery first(configuration);
+    NearbyCongregationDiscovery second(configuration);
     first.start();
     second.start();
 
@@ -241,11 +241,11 @@ void tst_NearbyVincentDiscovery::servicesOnTheSameDeviceAreNotReported()
     QTest::qWait(350);
     QCOMPARE(first.nearbyDeviceCount(), 0);
     QCOMPARE(second.nearbyDeviceCount(), 0);
-    QVERIFY(!first.anotherVincentUserDetected());
-    QVERIFY(!second.anotherVincentUserDetected());
+    QVERIFY(!first.anotherCongregationUserDetected());
+    QVERIFY(!second.anotherCongregationUserDetected());
 }
 
-void tst_NearbyVincentDiscovery::applicationStartsDiscoveryAfterShowingTheWindow()
+void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheWindow()
 {
     const QString mainPath = QFINDTESTDATA("../App/main.cpp");
     QVERIFY2(!mainPath.isEmpty(), "App/main.cpp test data was not found");
@@ -254,23 +254,23 @@ void tst_NearbyVincentDiscovery::applicationStartsDiscoveryAfterShowingTheWindow
     const QString mainSource = QString::fromUtf8(mainFile.readAll());
 
     QVERIFY(mainSource.contains(
-        QStringLiteral("setContextProperty(\"VincentNearbyDiscovery\", nearbyDiscovery)")));
+        QStringLiteral("setContextProperty(\"CongregationNearbyDiscovery\", nearbyDiscovery)")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("setContextProperty(\"VincentApplicationPreferences\",")));
+        QStringLiteral("setContextProperty(\"CongregationApplicationPreferences\",")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("&ApplicationPreferences::discoverNearbyVincentUsersChanged")));
+        QStringLiteral("&ApplicationPreferences::discoverNearbyCongregationUsersChanged")));
     const qsizetype showIndex = mainSource.indexOf(QStringLiteral("showLaunchWindow(engine);"));
     const qsizetype startIndex = mainSource.indexOf(QStringLiteral(
         "QTimer::singleShot(0, nearbyDiscovery, [applicationPreferences, nearbyDiscovery]()"));
     QVERIFY(showIndex >= 0);
     QVERIFY(startIndex > showIndex);
     QVERIFY(mainSource.contains(
-        QStringLiteral("if (applicationPreferences->discoverNearbyVincentUsers())")));
+        QStringLiteral("if (applicationPreferences->discoverNearbyCongregationUsers())")));
     QVERIFY(mainSource.contains(QStringLiteral("nearbyDiscovery->start();")));
     QVERIFY(mainSource.contains(QStringLiteral("nearbyDiscovery->stop();")));
 
     const QString implementationPath =
-        QFINDTESTDATA("../App/models/network/nearbyvincentdiscovery.cpp");
+        QFINDTESTDATA("../App/models/network/nearbycongregationdiscovery.cpp");
     QVERIFY2(!implementationPath.isEmpty(), "nearby discovery implementation was not found");
     QFile implementationFile(implementationPath);
     QVERIFY(implementationFile.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -279,10 +279,10 @@ void tst_NearbyVincentDiscovery::applicationStartsDiscoveryAfterShowingTheWindow
     QVERIFY(implementationSource.contains(
         QStringLiteral("Q_ASSERT(QThread::currentThread() == thread())")));
     QVERIFY(implementationSource.contains(
-        QStringLiteral("QMetaObject::invokeMethod(m_worker, &NearbyVincentDiscoveryWorker::start, "
+        QStringLiteral("QMetaObject::invokeMethod(m_worker, &NearbyCongregationDiscoveryWorker::start, "
                        "Qt::QueuedConnection)")));
 }
 
-QTEST_GUILESS_MAIN(tst_NearbyVincentDiscovery)
+QTEST_GUILESS_MAIN(tst_NearbyCongregationDiscovery)
 
-#include "tst_nearbyvincentdiscovery.moc"
+#include "tst_nearbycongregationdiscovery.moc"

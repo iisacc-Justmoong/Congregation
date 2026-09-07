@@ -22,15 +22,16 @@ namespace
 const QString validLicenseKey = QStringLiteral("IIL1_0123456789abcdefghijklmnopqrstuv");
 const QByteArray testAccountPublicKey = QByteArrayLiteral(
     "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg");
+// Ed25519 fixture signed with the public test seed containing bytes 0x00..0x1f.
+// Regenerate the signed payload when changing the application-owned product ID.
 const QByteArray testAccountCertificate = QByteArrayLiteral(
     "eyJhbGciOiJFZERTQSIsImtpZCI6InRlc3QtMjAyNiIsInR5cCI6IklJU0FDQy1MSUNFTlNFIn0."
     "eyJ2IjoxLCJpc3MiOiJodHRwczovL2lpc2FjYy5jb20iLCJsaWNlbnNlSWQiOiIxMTExMTExMS0x"
     "MTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLCJhY3RpdmF0aW9uSWQiOiIyMjIyMjIyMi0yMjIy"
-    "LTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLCJwcm9kdWN0SWQiOiJ2aW5jZW50IiwiaW5zdGFsbGF0"
-    "aW9uSWQiOiJ0ZXN0aW5zdGFsbGF0aW9uaWQwMTIzNDU2Nzg5MDEyMyIsImlzc3VlZEF0IjoiMjAy"
-    "Ni0wOC0xNFQwMDowMDowMC4wMDBaIn0."
-    "-z2QlPCpjx8Mi85Wh3P8eO90LRBoOm7zAu5dCIikPPdQv1wgTKBuiFNaxYWDP0-ohUd2y9Ik47KI"
-    "7PPq5miJAA");
+    "LTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLCJwcm9kdWN0SWQiOiJjb25ncmVnYXRpb24iLCJpbnN0"
+    "YWxsYXRpb25JZCI6InRlc3RpbnN0YWxsYXRpb25pZDAxMjM0NTY3ODkwMTIzIiwiaXNzdWVkQXQi"
+    "OiIyMDI2LTA4LTE0VDAwOjAwOjAwLjAwMFoifQ.s6t-ConH-l9X3fNHU6ZTe3E3Puo2sOMfnpp6t"
+    "XTKzSZ8AjrucMgZnfmLNh2tuFgxC4wGMlZC-usXLg-wD15cAA");
 
 QByteArray storedCredentials(const QString &email = QStringLiteral("verified@example.com"),
                              const QString &licenseKey = validLicenseKey)
@@ -39,7 +40,7 @@ QByteArray storedCredentials(const QString &email = QStringLiteral("verified@exa
     object.insert(QStringLiteral("schema"), 1);
     object.insert(QStringLiteral("email"), email);
     object.insert(QStringLiteral("licenseKey"), licenseKey);
-    object.insert(QStringLiteral("productId"), QStringLiteral("vincent"));
+    object.insert(QStringLiteral("productId"), QStringLiteral("congregation"));
     return QJsonDocument(object).toJson(QJsonDocument::Compact);
 }
 
@@ -231,7 +232,7 @@ void tst_LicenseManager::disabledEnforcementStartsUnlockedWithoutAutomaticCreden
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral("{\"valid\":true,\"productId\":\"vincent\"}")));
+        QByteArrayLiteral("{\"valid\":true,\"productId\":\"congregation\"}")));
     QVERIFY(server.listen(QHostAddress::LocalHost));
 
     FakeCredentialStore store;
@@ -276,7 +277,7 @@ void tst_LicenseManager::accountEmailComesFromIiLicenseManagerActivation()
     const QByteArray responseBody = QJsonDocument(QJsonObject{
         {QStringLiteral("activated"), true},
         {QStringLiteral("certificate"), QString::fromLatin1(testAccountCertificate)},
-        {QStringLiteral("productId"), QStringLiteral("vincent")},
+        {QStringLiteral("productId"), QStringLiteral("congregation")},
     }).toJson(QJsonDocument::Compact);
     SingleResponseServer server(httpResponse(200, responseBody));
     QVERIFY(server.listen(QHostAddress::LocalHost));
@@ -295,7 +296,7 @@ void tst_LicenseManager::accountEmailComesFromIiLicenseManagerActivation()
                                QByteArray::Base64UrlEncoding
                                    | QByteArray::AbortOnBase64DecodingErrors),
     }};
-    iisacc::licensing::LicenseClient accountLicense(QStringLiteral("vincent"),
+    iisacc::licensing::LicenseClient accountLicense(QStringLiteral("congregation"),
                                                     server.endpoint(),
                                                     licenseStorage.path(),
                                                     trustedKeys);
@@ -319,7 +320,7 @@ void tst_LicenseManager::accountEmailComesFromIiLicenseManagerActivation()
 
     SingleResponseServer offlineTrap(httpResponse(503, QByteArrayLiteral("{}")));
     QVERIFY(offlineTrap.listen(QHostAddress::LocalHost));
-    iisacc::licensing::LicenseClient restartedLicense(QStringLiteral("vincent"),
+    iisacc::licensing::LicenseClient restartedLicense(QStringLiteral("congregation"),
                                                       offlineTrap.endpoint(),
                                                       licenseStorage.path(),
                                                       trustedKeys);
@@ -371,7 +372,7 @@ void tst_LicenseManager::updateCredentialReadRejectsNonCanonicalStoredJson_data(
         << QByteArray(" \n") + storedCredentials() + QByteArray("\n");
     QTest::newRow("duplicate-key")
         << QByteArrayLiteral(
-               R"({"email":"verified@example.com","email":"attacker@example.com","licenseKey":"IIL1_0123456789abcdefghijklmnopqrstuv","productId":"vincent","schema":1})");
+               R"({"email":"verified@example.com","email":"attacker@example.com","licenseKey":"IIL1_0123456789abcdefghijklmnopqrstuv","productId":"congregation","schema":1})");
     QTest::newRow("non-normalized-email")
         << storedCredentials(QStringLiteral("Verified@Example.com"));
 }
@@ -440,7 +441,7 @@ void tst_LicenseManager::updateCredentialReadReportsStorageOutcomes()
 void tst_LicenseManager::productIdentityIsApplicationOwned()
 {
     LicenseManager manager(QUrl(QStringLiteral("http://127.0.0.1/validate")), 1000);
-    QCOMPARE(manager.productId(), QStringLiteral("vincent"));
+    QCOMPARE(manager.productId(), QStringLiteral("congregation"));
     QVERIFY(manager.enforcementEnabled());
     QVERIFY(!manager.licensed());
     QVERIFY(!manager.verifying());
@@ -450,7 +451,7 @@ void tst_LicenseManager::successfulValidationStoresOnlyNormalizedVerifiedCredent
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     LicenseManager manager(server.endpoint(), 1000, &store);
@@ -470,14 +471,14 @@ void tst_LicenseManager::successfulValidationStoresOnlyNormalizedVerifiedCredent
              QStringLiteral("verified@example.com"));
     QCOMPARE(storedObject.value(QStringLiteral("licenseKey")).toString(), validLicenseKey);
     QCOMPARE(storedObject.value(QStringLiteral("productId")).toString(),
-             QStringLiteral("vincent"));
+             QStringLiteral("congregation"));
 }
 
 void tst_LicenseManager::manualSuccessWaitsForSecureStorageCompletion()
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     store.completeWritesImmediately = false;
@@ -505,7 +506,7 @@ void tst_LicenseManager::secureStorageFailureUnlocksWithVisibleNoticeState()
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     store.completeWritesImmediately = false;
@@ -530,7 +531,7 @@ void tst_LicenseManager::storedCredentialsRestoreAndValidateAutomatically()
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     store.readStatus = LicenseCredentialStore::ReadStatus::Found;
@@ -597,7 +598,7 @@ void tst_LicenseManager::malformedStoredCredentialsAreDeletedWithoutNetworkAcces
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     store.readStatus = LicenseCredentialStore::ReadStatus::Found;
@@ -637,7 +638,7 @@ void tst_LicenseManager::forgetLicenseCannotDiscardLicensedCanvas()
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     LicenseManager manager(server.endpoint(), 1000, &store);
@@ -655,7 +656,7 @@ void tst_LicenseManager::forgetLicenseCannotDiscardLicensedCanvas()
 void tst_LicenseManager::successfulValidationPostsPrivateFixedContractAndUnlocks()
 {
     const QByteArray body = QByteArrayLiteral(
-        R"({"checkedAt":"2026-08-13T00:00:00.000Z","expiresAt":null,"productId":"vincent","valid":true})");
+        R"({"checkedAt":"2026-08-13T00:00:00.000Z","expiresAt":null,"productId":"congregation","valid":true})");
     SingleResponseServer server(httpResponse(200, body));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
 
@@ -689,7 +690,7 @@ void tst_LicenseManager::successfulValidationPostsPrivateFixedContractAndUnlocks
              QStringLiteral("verified@example.com"));
     QCOMPARE(requestObject.value(QStringLiteral("licenseKey")).toString(), validLicenseKey);
     QCOMPARE(requestObject.value(QStringLiteral("productId")).toString(),
-             QStringLiteral("vincent"));
+             QStringLiteral("congregation"));
 }
 
 void tst_LicenseManager::invalidLicenseDecisionRemainsLocked()
@@ -718,7 +719,7 @@ void tst_LicenseManager::rejectsNonAuthoritativeResponses_data()
     QTest::addColumn<QByteArray>("response");
 
     QTest::newRow("server-error")
-        << httpResponse(503, QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})"));
+        << httpResponse(503, QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})"));
     QTest::newRow("redirect")
         << httpResponse(302,
                         QByteArray{},
@@ -728,7 +729,7 @@ void tst_LicenseManager::rejectsNonAuthoritativeResponses_data()
         << httpResponse(200, QByteArrayLiteral("{not-json"));
     QTest::newRow("string-not-boolean")
         << httpResponse(200,
-                        QByteArrayLiteral(R"({"valid":"true","productId":"vincent"})"));
+                        QByteArrayLiteral(R"({"valid":"true","productId":"congregation"})"));
     QTest::newRow("missing-product")
         << httpResponse(200, QByteArrayLiteral(R"({"valid":true})"));
     QTest::newRow("wrong-product")
@@ -736,7 +737,7 @@ void tst_LicenseManager::rejectsNonAuthoritativeResponses_data()
                         QByteArrayLiteral(R"({"valid":true,"productId":"another-product"})"));
     QTest::newRow("wrong-content-type")
         << httpResponse(200,
-                        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})"),
+                        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})"),
                         QByteArrayLiteral("text/plain"));
 }
 
@@ -761,7 +762,7 @@ void tst_LicenseManager::invalidInputDoesNotReachTheNetwork()
 {
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
 
     LicenseManager manager(server.endpoint(), 1000);
@@ -796,7 +797,7 @@ void tst_LicenseManager::acceptsSupportedKeyVersionsAndRejectsOutOfRangeVersions
 
     SingleResponseServer server(httpResponse(
         200,
-        QByteArrayLiteral(R"({"valid":true,"productId":"vincent"})")));
+        QByteArrayLiteral(R"({"valid":true,"productId":"congregation"})")));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
 
     LicenseManager manager(server.endpoint(), 1000);

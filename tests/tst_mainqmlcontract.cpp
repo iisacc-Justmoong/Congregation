@@ -340,9 +340,9 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
 {
     const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
     const QString updateManagerPath =
-        QFINDTESTDATA("../App/models/update/vincentupdatemanager.cpp");
+        QFINDTESTDATA("../App/models/update/congregationupdatemanager.cpp");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
-    QVERIFY2(!updateManagerPath.isEmpty(), "Vincent update manager test data was not found");
+    QVERIFY2(!updateManagerPath.isEmpty(), "Congregation update manager test data was not found");
 
     QFile mainQml(mainQmlPath);
     QVERIFY(mainQml.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -353,27 +353,27 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
 
     QVERIFY(mainSource.contains(QStringLiteral("Check for Updates…")));
     QVERIFY(mainSource.contains(QStringLiteral("LV.Modal")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentUpdateManager.checkForUpdates()")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentUpdateManager.updateNow()")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentUpdateManager.cancelUpdate()")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentUpdateManager.progress")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationUpdateManager.checkForUpdates()")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationUpdateManager.updateNow()")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationUpdateManager.cancelUpdate()")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationUpdateManager.progress")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("enabled: VincentUpdateManager.selfUpdateSupported")));
+        mainSource.contains(QStringLiteral("enabled: CongregationUpdateManager.selfUpdateSupported")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("visible: VincentUpdateManager.selfUpdateSupported")));
+        mainSource.contains(QStringLiteral("visible: CongregationUpdateManager.selfUpdateSupported")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("GetCurrentPackageFullName")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("APPMODEL_ERROR_NO_PACKAGE")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("_MASReceipt/receipt")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("IISACCDistributionChannel")));
-    QVERIFY(updateManagerSource.contains(QStringLiteral("Vincent will not quit automatically")));
+    QVERIFY(updateManagerSource.contains(QStringLiteral("Congregation will not quit automatically")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("platform safety policy")));
     QVERIFY(!updateManagerSource.contains(QStringLiteral("platform signature")));
     QVERIFY(updateManagerSource.contains(
         QStringLiteral("case UpdateManager::UpdateError::DownloadInvalidResponse:")));
     const qsizetype canCancelStart = updateManagerSource.indexOf(
-        QStringLiteral("bool VincentUpdateManager::canCancel() const noexcept"));
+        QStringLiteral("bool CongregationUpdateManager::canCancel() const noexcept"));
     const qsizetype canCancelEnd = updateManagerSource.indexOf(
-        QStringLiteral("bool VincentUpdateManager::checkForUpdates()"), canCancelStart);
+        QStringLiteral("bool CongregationUpdateManager::checkForUpdates()"), canCancelStart);
     QVERIFY(canCancelStart >= 0);
     QVERIFY(canCancelEnd > canCancelStart);
     const QString canCancelBlock =
@@ -382,7 +382,7 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
     QVERIFY(canCancelBlock.contains(QStringLiteral("State::Downloading")));
     QVERIFY(canCancelBlock.contains(QStringLiteral("State::Verifying")));
     QVERIFY(canCancelBlock.contains(QStringLiteral("State::LaunchingInstaller")));
-    QVERIFY(mainSource.contains(QStringLiteral("dismissOnBackground: !VincentUpdateManager.busy")));
+    QVERIFY(mainSource.contains(QStringLiteral("dismissOnBackground: !CongregationUpdateManager.busy")));
 
     QVERIFY(!mainSource.contains(QStringLiteral("licenseKey")));
     QVERIFY(!mainSource.contains(QStringLiteral("signedUrl")));
@@ -396,7 +396,7 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
     QVERIFY(startupStart >= 0);
     QVERIFY(startupEnd > startupStart);
     const QString startupBlock = mainSource.mid(startupStart, startupEnd - startupStart);
-    QVERIFY(!startupBlock.contains(QStringLiteral("VincentUpdateManager")));
+    QVERIFY(!startupBlock.contains(QStringLiteral("CongregationUpdateManager")));
 }
 
 void tst_MainQmlContract::applicationWindowKeepsNativeControlsWhileUsingSolidVisualChrome()
@@ -523,20 +523,20 @@ void tst_MainQmlContract::applicationWindowTemporarilyDisablesLicenseEnforcement
     QVERIFY(!appEntrySource.isEmpty());
 
     QVERIFY(mainSource.contains(QStringLiteral(
-        "!VincentLicenseManager.enforcementEnabled || VincentLicenseManager.licensed")));
+        "!CongregationLicenseManager.enforcementEnabled || CongregationLicenseManager.licensed")));
     QVERIFY(mainSource.contains(
         QStringLiteral("active: window.canvasIncubationRequested && window.licenseGranted")));
     QVERIFY(mainSource.contains(QStringLiteral("LicenseViews.LicenseActivationPage")));
     QVERIFY(mainSource.contains(QStringLiteral(
-        "visible: VincentLicenseManager.enforcementEnabled && !window.licenseGranted")));
+        "visible: CongregationLicenseManager.enforcementEnabled && !window.licenseGranted")));
     QVERIFY(mainSource.contains(QStringLiteral("objectName: \"licensePersistenceWarning\"")));
     QVERIFY(
         !mainSource.contains(QStringLiteral("width: Math.min(560, Math.max(320, parent.width")));
     QVERIFY(
         !mainSource.contains(QStringLiteral("width: Math.min(620, Math.max(320, parent.width")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentLicenseManager.enforcementEnabled && window.licenseGranted && "
-                       "VincentLicenseManager.resultCode === "
+        QStringLiteral("CongregationLicenseManager.enforcementEnabled && window.licenseGranted && "
+                       "CongregationLicenseManager.resultCode === "
                        "\"secure_storage_unavailable\"")));
     QVERIFY(mainSource.contains(QStringLiteral(
         "visible: window.licenseGranted && painterPageLoader.status !== Loader.Ready")));
@@ -554,27 +554,27 @@ void tst_MainQmlContract::applicationWindowTemporarilyDisablesLicenseEnforcement
     QVERIFY(activationSource.contains(
         QStringLiteral("Accessible.name: qsTr(\"Verified account email\")")));
     QVERIFY(activationSource.contains(
-        QStringLiteral("Accessible.name: qsTr(\"Vincent license key\")")));
+        QStringLiteral("Accessible.name: qsTr(\"Congregation license key\")")));
     QVERIFY(
-        activationSource.contains(QStringLiteral("Accessible.name: qsTr(\"Activate Vincent\")")));
+        activationSource.contains(QStringLiteral("Accessible.name: qsTr(\"Activate Congregation\")")));
     QVERIFY(activationSource.contains(QStringLiteral(
-        "VincentLicenseManager.validateLicense(emailInput.text, licenseKeyInput.text)")));
+        "CongregationLicenseManager.validateLicense(emailInput.text, licenseKeyInput.text)")));
     QVERIFY(activationSource.contains(
-        QStringLiteral("visible: VincentLicenseManager.hasStoredLicense")));
+        QStringLiteral("visible: CongregationLicenseManager.hasStoredLicense")));
     QVERIFY(
-        activationSource.contains(QStringLiteral("VincentLicenseManager.retryStoredLicense()")));
-    QVERIFY(activationSource.contains(QStringLiteral("VincentLicenseManager.forgetLicense()")));
+        activationSource.contains(QStringLiteral("CongregationLicenseManager.retryStoredLicense()")));
+    QVERIFY(activationSource.contains(QStringLiteral("CongregationLicenseManager.forgetLicense()")));
     QVERIFY(activationSource.contains(QStringLiteral("objectName: \"retryStoredLicenseButton\"")));
     QVERIFY(activationSource.contains(QStringLiteral("objectName: \"forgetStoredLicenseButton\"")));
-    QVERIFY(!mainSource.contains(QStringLiteral("VincentLicenseManager.forgetLicense()")));
-    QVERIFY(activationSource.contains(QStringLiteral("text: qsTr(\"Vincent\")")));
+    QVERIFY(!mainSource.contains(QStringLiteral("CongregationLicenseManager.forgetLicense()")));
+    QVERIFY(activationSource.contains(QStringLiteral("text: qsTr(\"Congregation\")")));
     QVERIFY(!activationSource.contains(QStringLiteral("productIdInput")));
     QVERIFY(!activationSource.contains(QStringLiteral("productIdField")));
 
     QVERIFY(appEntrySource.contains(
         QStringLiteral("new LicenseManager(LicenseManager::EnforcementMode::Disabled, &engine)")));
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("setContextProperty(\"VincentLicenseManager\", licenseManager)")));
+        QStringLiteral("setContextProperty(\"CongregationLicenseManager\", licenseManager)")));
 }
 
 void tst_MainQmlContract::applicationWindowProvidesApplicationMenuBar()
@@ -627,7 +627,7 @@ void tst_MainQmlContract::applicationWindowProvidesApplicationMenuBar()
     QVERIFY(mainSource.contains(QStringLiteral("text: qsTr(\"Reset Canvas View\")")));
     QVERIFY(mainSource.contains(QStringLiteral("title: qsTr(\"Keyboard Shortcuts\")")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("text: qsTr(\"Vincent %1\").arg(Qt.application.version)")));
+        QStringLiteral("text: qsTr(\"Congregation %1\").arg(Qt.application.version)")));
 }
 
 void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
@@ -703,7 +703,7 @@ void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
     QVERIFY(mainSource.contains(QStringLiteral("height: visible ? implicitHeight : 0")));
     QVERIFY(mainSource.contains(QStringLiteral("barColor: window.windowColor")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("updateSupported: VincentUpdateManager.selfUpdateSupported")));
+        QStringLiteral("updateSupported: CongregationUpdateManager.selfUpdateSupported")));
 
     const QStringList windowsActionBindings = {
         QStringLiteral("\"newCanvas\": newCanvasAction"),
@@ -791,7 +791,7 @@ void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
     QVERIFY(appEntry.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString appEntrySource = QString::fromUtf8(appEntry.readAll());
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("QGuiApplication::setApplicationVersion(QStringLiteral(VINCENT_VERSION))")));
+        QStringLiteral("QGuiApplication::setApplicationVersion(QStringLiteral(CONGREGATION_VERSION))")));
     QVERIFY(!appEntrySource.contains(QStringLiteral("AA_DontUseNativeMenuBar")));
 }
 
@@ -927,7 +927,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
         "readonly property string shortcutPreferences: menuCommandModifier + \"+,\"")));
     QVERIFY(mainSource.contains(QStringLiteral("function requestPreferences()")));
     const qsizetype refreshAccountEmailIndex =
-        mainSource.indexOf(QStringLiteral("VincentAccountManager.refresh();"));
+        mainSource.indexOf(QStringLiteral("CongregationAccountManager.refresh();"));
     const qsizetype centerPreferencesIndex =
         mainSource.indexOf(QStringLiteral("preferencesWindow.applyInitialCentering();"));
     const qsizetype showGeneralSectionIndex =
@@ -957,68 +957,68 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(
         mainSource.contains(QStringLiteral("updateCheckEnabled: checkForUpdatesAction.enabled")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("accountEmail: VincentAccountManager.accountEmail")));
+        mainSource.contains(QStringLiteral("accountEmail: CongregationAccountManager.accountEmail")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("accountEmailLoading: VincentAccountManager.accountEmailLoading")));
-    QVERIFY(!mainSource.contains(QStringLiteral("VincentLicenseManager.accountEmail")));
+        QStringLiteral("accountEmailLoading: CongregationAccountManager.accountEmailLoading")));
+    QVERIFY(!mainSource.contains(QStringLiteral("CongregationLicenseManager.accountEmail")));
     QVERIFY(appEntrySource.contains(QStringLiteral("new AccountManager(licenseManager, &engine)")));
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("setContextProperty(\"VincentAccountManager\", accountManager)")));
+        QStringLiteral("setContextProperty(\"CongregationAccountManager\", accountManager)")));
     QVERIFY(
         cmakeSource.contains(QStringLiteral("find_package(iiLicenseManager 0.2 CONFIG REQUIRED)")));
     QVERIFY(cmakeSource.contains(QStringLiteral("iiLicenseManager::iiLicenseManager")));
     QVERIFY(mainSource.contains(QStringLiteral(
-        "startWithRecentCanvas: VincentApplicationPreferences.startWithRecentCanvas")));
+        "startWithRecentCanvas: CongregationApplicationPreferences.startWithRecentCanvas")));
     QVERIFY(mainSource.contains(QStringLiteral(
-        "discoverNearbyVincentUsers: VincentApplicationPreferences.discoverNearbyVincentUsers")));
+        "discoverNearbyCongregationUsers: CongregationApplicationPreferences.discoverNearbyCongregationUsers")));
     QVERIFY(mainSource.contains(QStringLiteral("currentCanvasMemberProfiles: window.canvasPage ? "
                                                "window.canvasPage.collaboratorProfiles : []")));
     QVERIFY(
         mainSource.contains(QStringLiteral("currentUserIsCanvasHost: window.canvasPage ? "
                                            "window.canvasPage.currentUserIsCanvasHost : true")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("localCanvasState: VincentLocalCanvasSession.state")));
+        mainSource.contains(QStringLiteral("localCanvasState: CongregationLocalCanvasSession.state")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("localCanvasError: VincentLocalCanvasSession.errorString")));
+        QStringLiteral("localCanvasError: CongregationLocalCanvasSession.errorString")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("localCanvasParticipantCount: VincentLocalCanvasSession.participantCount")));
+        QStringLiteral("localCanvasParticipantCount: CongregationLocalCanvasSession.participantCount")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("availableLocalCanvases: VincentLocalCanvasSession.availableCanvases")));
+        QStringLiteral("availableLocalCanvases: CongregationLocalCanvasSession.availableCanvases")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("availableLocalInvitees: VincentLocalCanvasSession.availableInvitees")));
+        QStringLiteral("availableLocalInvitees: CongregationLocalCanvasSession.availableInvitees")));
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("setContextProperty(\"VincentMemberProfileListBuilder\",")));
+        QStringLiteral("setContextProperty(\"CongregationMemberProfileListBuilder\",")));
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("setContextProperty(\"VincentLocalCanvasSession\", localCanvasSession)")));
+        QStringLiteral("setContextProperty(\"CongregationLocalCanvasSession\", localCanvasSession)")));
     QVERIFY(mainSource.contains(QStringLiteral("onCanInviteOtherUsersChanged: {")));
     QVERIFY(mainSource.contains(QStringLiteral("if (canInviteOtherUsers) {")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentApplicationPreferences.setDiscoverNearbyVincentUsers(true);")));
+        QStringLiteral("CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(true);")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentLocalCanvasSession.setInvitationsAllowed(canInviteOtherUsers);")));
+        QStringLiteral("CongregationLocalCanvasSession.setInvitationsAllowed(canInviteOtherUsers);")));
     QVERIFY(
         mainSource.contains(QStringLiteral("onInviteCanvasMemberRequested: function (sessionId)")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentLocalCanvasSession.invitePeer(sessionId, profileName);")));
+        QStringLiteral("CongregationLocalCanvasSession.invitePeer(sessionId, profileName);")));
     QVERIFY(mainSource.contains(QStringLiteral("onDeleteCanvasMemberRequested:")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentLocalCanvasSession.removeParticipant(String(profile.peerId));")));
+        QStringLiteral("CongregationLocalCanvasSession.removeParticipant(String(profile.peerId));")));
     QVERIFY(mainSource.contains(
         QStringLiteral("onStartWithRecentCanvasRequested: enabled => "
-                       "VincentApplicationPreferences.setStartWithRecentCanvas(enabled)")));
+                       "CongregationApplicationPreferences.setStartWithRecentCanvas(enabled)")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("onDiscoverNearbyVincentUsersRequested: function (enabled)")));
+        QStringLiteral("onDiscoverNearbyCongregationUsersRequested: function (enabled)")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentApplicationPreferences.setDiscoverNearbyVincentUsers(enabled);")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentLocalCanvasSession.stopSession();")));
+        QStringLiteral("CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(enabled);")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationLocalCanvasSession.stopSession();")));
     QVERIFY(mainSource.contains(QStringLiteral(
-        "onProfileNameChanged: VincentLocalCanvasSession.setLocalProfileName(profileName)")));
+        "onProfileNameChanged: CongregationLocalCanvasSession.setLocalProfileName(profileName)")));
     QVERIFY(mainSource.contains(QStringLiteral("onHostCanvasRequested:")));
     QVERIFY(mainSource.contains(QStringLiteral("onJoinCanvasRequested: function (sessionId)")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("VincentLocalCanvasSession.joinCanvas(sessionId, profileName);")));
+        QStringLiteral("CongregationLocalCanvasSession.joinCanvas(sessionId, profileName);")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("onLeaveCanvasRequested: VincentLocalCanvasSession.stopSession()")));
+        QStringLiteral("onLeaveCanvasRequested: CongregationLocalCanvasSession.stopSession()")));
     QVERIFY(mainSource.contains(
         QStringLiteral("onRestorePurchasesRequested: window.requestRestorePurchases()")));
     QVERIFY(mainSource.contains(
@@ -1037,10 +1037,10 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
         mainSource.contains(QStringLiteral("Qt.openUrlExternally(window.accountDashboardUrl)")));
     QVERIFY(mainSource.contains(QStringLiteral("function acceptCanvasPage(page)")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("VincentApplicationPreferences.startWithRecentCanvas")));
-    QVERIFY(mainSource.contains(QStringLiteral("VincentApplicationPreferences.recentCanvasUrl")));
+        mainSource.contains(QStringLiteral("CongregationApplicationPreferences.startWithRecentCanvas")));
+    QVERIFY(mainSource.contains(QStringLiteral("CongregationApplicationPreferences.recentCanvasUrl")));
     QVERIFY(
-        mainSource.contains(QStringLiteral("VincentApplicationPreferences.clearRecentCanvas();")));
+        mainSource.contains(QStringLiteral("CongregationApplicationPreferences.clearRecentCanvas();")));
     QVERIFY(
         mainSource.contains(QStringLiteral("onPageReady: window.acceptCanvasPage(painterPage)")));
     QVERIFY(mainSource.contains(QStringLiteral("page.openRecentCanvas(recentCanvasUrl)")));
@@ -1054,7 +1054,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
         QStringLiteral("QGuiApplication::setOrganizationDomain(QStringLiteral(\"iisacc.com\"))")));
     QVERIFY(appEntrySource.contains(QStringLiteral("new ApplicationPreferences(&engine)")));
     QVERIFY(appEntrySource.contains(
-        QStringLiteral("setContextProperty(\"VincentApplicationPreferences\",")));
+        QStringLiteral("setContextProperty(\"CongregationApplicationPreferences\",")));
 
     QVERIFY(preferencesSource.contains(QStringLiteral("LV.Window {")));
     QVERIFY(preferencesSource.contains(QStringLiteral("objectName: \"preferencesWindow\"")));
@@ -1077,7 +1077,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(preferencesSource.contains(QStringLiteral("function showGeneralSection()")));
     QVERIFY(preferencesSource.contains(QStringLiteral("generalSectionButton.checked = true;")));
     QVERIFY(preferencesSource.contains(QStringLiteral(
-        "readonly property url profileImageSource: VincentProfileImageProcessor.imageSource")));
+        "readonly property url profileImageSource: CongregationProfileImageProcessor.imageSource")));
     QVERIFY(preferencesSource.contains(
         QStringLiteral("property alias profileName: profileNameField.text")));
     QVERIFY(preferencesSource.contains(
@@ -1087,7 +1087,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(
         preferencesSource.contains(QStringLiteral("property bool startWithRecentCanvas: false")));
     QVERIFY(preferencesSource.contains(
-        QStringLiteral("property bool discoverNearbyVincentUsers: true")));
+        QStringLiteral("property bool discoverNearbyCongregationUsers: true")));
     QVERIFY(
         preferencesSource.contains(QStringLiteral("property bool restorePurchasesEnabled: true")));
     QVERIFY(preferencesSource.contains(QStringLiteral("property bool updateCheckEnabled: false")));
@@ -1106,13 +1106,13 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
         QStringLiteral("readonly property bool localCanvasActive: localCanvasState !== \"idle\"")));
     QVERIFY(preferencesSource.contains(
         QStringLiteral("readonly property var displayedCanvasMemberProfiles: "
-                       "VincentMemberProfileListBuilder.build(")));
+                       "CongregationMemberProfileListBuilder.build(")));
     QVERIFY(preferencesSource.contains(QStringLiteral("signal restorePurchasesRequested")));
     QVERIFY(preferencesSource.contains(QStringLiteral("signal checkForUpdatesRequested")));
     QVERIFY(preferencesSource.contains(
         QStringLiteral("signal startWithRecentCanvasRequested(bool enabled)")));
     QVERIFY(preferencesSource.contains(
-        QStringLiteral("signal discoverNearbyVincentUsersRequested(bool enabled)")));
+        QStringLiteral("signal discoverNearbyCongregationUsersRequested(bool enabled)")));
     QVERIFY(preferencesSource.contains(
         QStringLiteral("signal inviteCanvasMemberRequested(string sessionId)")));
     QVERIFY(preferencesSource.contains(
@@ -1126,7 +1126,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(preferencesSource.contains(QStringLiteral("id: profileImageDialog")));
     QVERIFY(preferencesSource.contains(QStringLiteral("title: qsTr(\"Choose profile image\")")));
     QVERIFY(preferencesSource.contains(QStringLiteral(
-        "onAccepted: VincentProfileImageProcessor.processProfileImage(selectedFile)")));
+        "onAccepted: CongregationProfileImageProcessor.processProfileImage(selectedFile)")));
     QVERIFY(!preferencesSource.contains(
         QStringLiteral("preferencesWindow.profileImageSource = selectedFile")));
 
@@ -1189,16 +1189,16 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
         QStringLiteral("checked: preferencesWindow.startWithRecentCanvas")));
     QVERIFY(preferencesSource.contains(
         QStringLiteral("preferencesWindow.startWithRecentCanvasRequested(true)")));
-    QVERIFY(preferencesSource.contains(QStringLiteral("id: discoverNearbyVincentUsersCheckBox")));
+    QVERIFY(preferencesSource.contains(QStringLiteral("id: discoverNearbyCongregationUsersCheckBox")));
     QVERIFY(preferencesSource.contains(
-        QStringLiteral("text: qsTr(\"Discover nearby Vincent users\")")));
+        QStringLiteral("text: qsTr(\"Discover nearby Congregation users\")")));
     QVERIFY(preferencesSource.contains(
-        QStringLiteral("checked: preferencesWindow.discoverNearbyVincentUsers")));
+        QStringLiteral("checked: preferencesWindow.discoverNearbyCongregationUsers")));
     QVERIFY(preferencesSource.contains(QStringLiteral(
-        "onToggled: preferencesWindow.discoverNearbyVincentUsersRequested(checked)")));
+        "onToggled: preferencesWindow.discoverNearbyCongregationUsersRequested(checked)")));
     QCOMPARE(preferencesSource.count(QStringLiteral("onToggled:")), 3);
-    QVERIFY(!preferencesSource.contains(QStringLiteral("VincentNearbyDiscovery.start();")));
-    QVERIFY(!preferencesSource.contains(QStringLiteral("VincentNearbyDiscovery.stop();")));
+    QVERIFY(!preferencesSource.contains(QStringLiteral("CongregationNearbyDiscovery.start();")));
+    QVERIFY(!preferencesSource.contains(QStringLiteral("CongregationNearbyDiscovery.stop();")));
     QVERIFY(preferencesSource.contains(QStringLiteral("id: generalActions")));
     QVERIFY(preferencesSource.contains(QStringLiteral("anchors.bottom: parent.bottom")));
     QCOMPARE(preferencesSource.count(QStringLiteral("LV.Spacer {")), 1);
@@ -1285,18 +1285,18 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(
         painterPageSource.contains(QStringLiteral("property bool currentUserIsCanvasHost: true")));
     QVERIFY(painterPageSource.contains(QStringLiteral("property var localCanvasSession: null")));
-    QVERIFY(mainSource.contains(QStringLiteral("localCanvasSession: VincentLocalCanvasSession")));
+    QVERIFY(mainSource.contains(QStringLiteral("localCanvasSession: CongregationLocalCanvasSession")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("collaboratorProfiles: VincentLocalCanvasSession.participantProfiles")));
+        QStringLiteral("collaboratorProfiles: CongregationLocalCanvasSession.participantProfiles")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("currentUserIsCanvasHost: VincentLocalCanvasSession.currentUserIsHost")));
+        QStringLiteral("currentUserIsCanvasHost: CongregationLocalCanvasSession.currentUserIsHost")));
     QVERIFY(mainSource.contains(
-        QStringLiteral("pendingInvitation: VincentLocalCanvasSession.pendingInvitation")));
+        QStringLiteral("pendingInvitation: CongregationLocalCanvasSession.pendingInvitation")));
     QVERIFY(mainSource.contains(QStringLiteral(
-        "pendingInvitationCount: VincentLocalCanvasSession.pendingInvitationCount")));
+        "pendingInvitationCount: CongregationLocalCanvasSession.pendingInvitationCount")));
     QVERIFY(mainSource.contains(
         QStringLiteral("onInvitationResponseRequested: accepted => "
-                       "VincentLocalCanvasSession.respondToPendingInvitation(accepted, "
+                       "CongregationLocalCanvasSession.respondToPendingInvitation(accepted, "
                        "preferencesWindow.profileName)")));
     QVERIFY(painterPageSource.contains(QStringLiteral("signal collaboratorInvitationRequested")));
     QVERIFY(painterPageSource.contains(
@@ -1344,7 +1344,7 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(preferencesSource.contains(QStringLiteral("Qt.callLater(function ()")));
     QVERIFY(preferencesSource.contains(QStringLiteral("profileImageDialog.open();")));
     QVERIFY(preferencesSource.contains(
-        QStringLiteral("VincentProfileImageProcessor.clearProfileImage();")));
+        QStringLiteral("CongregationProfileImageProcessor.clearProfileImage();")));
     QVERIFY(preferencesSource.contains(QStringLiteral(
         "onClicked: profileImageMenu.openFor(profileImageButton, 0, profileImageButton.height)")));
     QVERIFY(!preferencesSource.contains(QStringLiteral("onClicked: profileImageDialog.open()")));

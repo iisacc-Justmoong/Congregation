@@ -46,8 +46,8 @@ Item {
     readonly property int fallbackNewCanvasWidth: 1024
     readonly property int fallbackNewCanvasHeight: 768
     readonly property int toolbarAuxiliaryControlSize: LV.Theme.controlHeightMd
-    readonly property url panHandIconSource: "qrc:/Vincent/resources/icons/panHand.svg"
-    readonly property url translateObjectIconSource: "qrc:/Vincent/resources/icons/translateObject.svg"
+    readonly property url panHandIconSource: "qrc:/Congregation/resources/icons/panHand.svg"
+    readonly property url translateObjectIconSource: "qrc:/Congregation/resources/icons/translateObject.svg"
     readonly property var shapeMenuEntries: [
         {
             shape: "rectangle",

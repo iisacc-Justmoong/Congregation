@@ -45,7 +45,7 @@ class tst_MacOSBuildWorkflowContract : public QObject
     Q_OBJECT
 
 private slots:
-    void cmakeFixesApplicationVersionAt60();
+    void cmakeFixesApplicationVersionAt100();
     void cmakeRequiresRepositoryBuildDirectory();
     void cmakeAvoidsRedundantMacOSRuntimeRpaths();
     void localNetworkDiscoveryDeclaresPrivacyAndSandboxAccess();
@@ -57,7 +57,7 @@ private slots:
     void buildScriptFailsClosedOnMissingNotaryProfileBeforeBuild();
 };
 
-void tst_MacOSBuildWorkflowContract::cmakeFixesApplicationVersionAt60()
+void tst_MacOSBuildWorkflowContract::cmakeFixesApplicationVersionAt100()
 {
     const QString cmakePath = QFINDTESTDATA("../CMakeLists.txt");
     QVERIFY2(!cmakePath.isEmpty(), "CMakeLists.txt test data was not found");
@@ -73,17 +73,17 @@ void tst_MacOSBuildWorkflowContract::cmakeFixesApplicationVersionAt60()
     QVERIFY(infoPlist.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString infoPlistSource = QString::fromUtf8(infoPlist.readAll());
 
-    QVERIFY(cmakeSource.contains(QStringLiteral("project(Vincent VERSION 6.0 LANGUAGES C CXX)")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("project(Congregation VERSION 1.0.0 LANGUAGES C CXX)")));
     QVERIFY(cmakeSource.contains(QStringLiteral("if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Darwin\" AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)")));
     const qsizetype deploymentTargetIndex = cmakeSource.indexOf(QStringLiteral("set(CMAKE_OSX_DEPLOYMENT_TARGET"));
-    const qsizetype projectIndex = cmakeSource.indexOf(QStringLiteral("project(Vincent VERSION 6.0 LANGUAGES C CXX)"));
+    const qsizetype projectIndex = cmakeSource.indexOf(QStringLiteral("project(Congregation VERSION 1.0.0 LANGUAGES C CXX)"));
     QVERIFY(deploymentTargetIndex >= 0);
     QVERIFY(projectIndex > deploymentTargetIndex);
-    QVERIFY(cmakeSource.contains(QStringLiteral("set(VINCENT_BUNDLE_VERSION \"60000\")")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_BUNDLE_BUNDLE_VERSION \"${VINCENT_BUNDLE_VERSION}\"")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("set(CONGREGATION_BUNDLE_VERSION \"1\")")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_BUNDLE_BUNDLE_VERSION \"${CONGREGATION_BUNDLE_VERSION}\"")));
     QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_BUNDLE_SHORT_VERSION_STRING \"${PROJECT_VERSION}\"")));
     QVERIFY(infoPlistSource.contains(QStringLiteral("<string>@PROJECT_VERSION@</string>")));
-    QVERIFY(infoPlistSource.contains(QStringLiteral("<string>@VINCENT_BUNDLE_VERSION@</string>")));
+    QVERIFY(infoPlistSource.contains(QStringLiteral("<string>@CONGREGATION_BUNDLE_VERSION@</string>")));
 }
 
 void tst_MacOSBuildWorkflowContract::cmakeRequiresRepositoryBuildDirectory()
@@ -96,8 +96,8 @@ void tst_MacOSBuildWorkflowContract::cmakeRequiresRepositoryBuildDirectory()
     const QString cmakeSource = QString::fromUtf8(cmakeFile.readAll());
 
     QVERIFY(cmakeSource.contains(QStringLiteral("repository-local build/ directory")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("cmake -S ${CMAKE_SOURCE_DIR} -B ${_vincent_required_build_dir}")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("NOT _vincent_actual_build_dir STREQUAL _vincent_required_build_dir")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("cmake -S ${CMAKE_SOURCE_DIR} -B ${_congregation_required_build_dir}")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("NOT _congregation_actual_build_dir STREQUAL _congregation_required_build_dir")));
 }
 
 void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
@@ -110,15 +110,15 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
     const QString source = QString::fromUtf8(cmakeFile.readAll());
 
     QVERIFY(source.contains(QStringLiteral("if(UNIX AND NOT APPLE)\n"
-                                           "    list(APPEND _vincent_local_dependency_runtime_candidates")));
+                                           "    list(APPEND _congregation_local_dependency_runtime_candidates")));
     QVERIFY(!source.contains(QStringLiteral("if(UNIX)\n"
-                                            "    list(APPEND _vincent_local_dependency_runtime_candidates")));
+                                            "    list(APPEND _congregation_local_dependency_runtime_candidates")));
     QVERIFY(source.contains(QStringLiteral("GIT_TAG 875f77d9f61bd97fd84cca47ce3bc71186dfbd09")));
     QVERIFY(source.contains(QStringLiteral("set(BUILD_TRANSLATIONS OFF)")));
     QVERIFY(source.contains(QStringLiteral("set(BUILD_SHARED_LIBS OFF)")));
     QVERIFY(source.contains(QStringLiteral("set(BUILD_TESTING OFF)")));
     QVERIFY(source.contains(QStringLiteral("set(USE_CREDENTIAL_STORE ON)")));
-    QVERIFY(source.contains(QStringLiteral("target_link_libraries(Vincent PRIVATE qt6keychain)")));
+    QVERIFY(source.contains(QStringLiteral("target_link_libraries(Congregation PRIVATE qt6keychain)")));
     QVERIFY(source.contains(QStringLiteral("MACOSX_PACKAGE_LOCATION \"Resources/legal/QtKeychain\"")));
     QVERIFY(source.contains(QStringLiteral("find_package(iiUpdateManager 0.2 CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("iiUpdateManager::iiUpdateManager")));
@@ -126,7 +126,7 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
     QVERIFY(source.contains(QStringLiteral("iiLicenseManager::iiLicenseManager")));
     QVERIFY(source.contains(QStringLiteral(
         "MACOSX_PACKAGE_LOCATION \"Resources/legal/iiLicenseManager\"")));
-    QVERIFY(source.contains(QStringLiteral("VINCENT_IILICENSEMANAGER_THIRD_PARTY_NOTICES")));
+    QVERIFY(source.contains(QStringLiteral("CONGREGATION_IILICENSEMANAGER_THIRD_PARTY_NOTICES")));
     QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.8.0 EXACT CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("iiSharedCanvas::iiSharedCanvas")));
 }
@@ -140,12 +140,12 @@ void tst_MacOSBuildWorkflowContract::localNetworkDiscoveryDeclaresPrivacyAndSand
     const QString infoPlistSource = QString::fromUtf8(infoPlist.readAll());
     QVERIFY(infoPlistSource.contains(QStringLiteral("<key>NSLocalNetworkUsageDescription</key>")));
     QVERIFY(infoPlistSource.contains(QStringLiteral(
-        "Vincent uses your local network to find nearby Vincent users and share a canvas when "
+        "Congregation uses your local network to find nearby Congregation users and share a canvas when "
         "you choose.")));
 
     const QString entitlementsPath =
-        QFINDTESTDATA("../packaging/macos/Vincent.entitlements");
-    QVERIFY2(!entitlementsPath.isEmpty(), "Vincent.entitlements test data was not found");
+        QFINDTESTDATA("../packaging/macos/Congregation.entitlements");
+    QVERIFY2(!entitlementsPath.isEmpty(), "Congregation.entitlements test data was not found");
     QFile entitlements(entitlementsPath);
     QVERIFY(entitlements.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString entitlementSource = QString::fromUtf8(entitlements.readAll());
@@ -185,12 +185,12 @@ void tst_MacOSBuildWorkflowContract::buildGuideSeparatesLocalAndDistributionSign
     QVERIFY(!source.contains(legacyClionBuildTreeName()));
     QVERIFY(source.contains(QStringLiteral("ctest --test-dir build --output-on-failure")));
     QVERIFY(source.contains(QStringLiteral("Apple Development")));
-    QVERIFY(source.contains(QStringLiteral("dist/Vincent.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Vincent-appstore.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Vincent-local-unsigned.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Vincent-appstore-local-unsigned.pkg")));
-    QVERIFY(source.contains(QStringLiteral("VINCENT_BUILD_MODE=devid ./build.sh")));
-    QVERIFY(source.contains(QStringLiteral("VINCENT_BUILD_MODE=mas ./build.sh")));
+    QVERIFY(source.contains(QStringLiteral("dist/Congregation.pkg")));
+    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore.pkg")));
+    QVERIFY(source.contains(QStringLiteral("dist/Congregation-local-unsigned.pkg")));
+    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore-local-unsigned.pkg")));
+    QVERIFY(source.contains(QStringLiteral("CONGREGATION_BUILD_MODE=devid ./build.sh")));
+    QVERIFY(source.contains(QStringLiteral("CONGREGATION_BUILD_MODE=mas ./build.sh")));
     QVERIFY(source.contains(QStringLiteral("Developer ID Application")));
     QVERIFY(source.contains(QStringLiteral("Apple Distribution")));
     QVERIFY(source.contains(QStringLiteral("NOTARY_APP_PASSWORD")));
@@ -199,11 +199,11 @@ void tst_MacOSBuildWorkflowContract::buildGuideSeparatesLocalAndDistributionSign
     QVERIFY(source.contains(QStringLiteral("CMAKE_EXTRA_ARGS")));
     QVERIFY(source.contains(QStringLiteral("Contents/Resources/Appicon.icns")));
     QVERIFY(source.contains(QStringLiteral("stale installer package")));
-    QVERIFY(source.contains(QStringLiteral("pkgutil --payload-files dist/Vincent.pkg")));
-    QVERIFY(source.contains(QStringLiteral("./Vincent.app/Contents/Resources/Appicon.icns")));
-    QVERIFY(source.contains(QStringLiteral("./Vincent.app/Contents/Resources/icon.icns")));
+    QVERIFY(source.contains(QStringLiteral("pkgutil --payload-files dist/Congregation.pkg")));
+    QVERIFY(source.contains(QStringLiteral("./Congregation.app/Contents/Resources/Appicon.icns")));
+    QVERIFY(source.contains(QStringLiteral("./Congregation.app/Contents/Resources/icon.icns")));
     QVERIFY(source.contains(QStringLiteral("Transporter's Active list")));
-    QVERIFY(source.contains(QStringLiteral("dist/Vincent-appstore.pkg")));
+    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore.pkg")));
     QVERIFY(source.contains(QStringLiteral("App Store Connect record")));
     QVERIFY(source.contains(QStringLiteral("cmp resources/Appicon.icns")));
     QVERIFY(source.contains(QStringLiteral("Distribution `product`")));
@@ -237,17 +237,17 @@ void tst_MacOSBuildWorkflowContract::platformAppIconsAreBundledFromResources()
 
     QVERIFY2(!QFINDTESTDATA("../resources/Appicon.icns").isEmpty(), "macOS app icon is missing");
     QVERIFY2(!QFINDTESTDATA("../resources/Appicon.ico").isEmpty(), "Windows app icon is missing");
-    QVERIFY(cmakeSource.contains(QStringLiteral("set(VINCENT_MACOS_APP_ICON \"${CMAKE_SOURCE_DIR}/resources/Appicon.icns\")")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("set(VINCENT_WINDOWS_APP_ICON \"${CMAKE_SOURCE_DIR}/resources/Appicon.ico\")")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("set(VINCENT_LEGACY_MACOS_APP_ICON_FILE \"icon.icns\")")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("set(CONGREGATION_MACOS_APP_ICON \"${CMAKE_SOURCE_DIR}/resources/Appicon.icns\")")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("set(CONGREGATION_WINDOWS_APP_ICON \"${CMAKE_SOURCE_DIR}/resources/Appicon.ico\")")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("set(CONGREGATION_LEGACY_MACOS_APP_ICON_FILE \"icon.icns\")")));
     QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_PACKAGE_LOCATION \"Resources\"")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_BUNDLE_ICON_FILE \"${VINCENT_MACOS_APP_ICON_FILE}\"")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("$<TARGET_BUNDLE_DIR:Vincent>/Contents/Resources/${VINCENT_LEGACY_MACOS_APP_ICON_FILE}")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("configure_file(\"${VINCENT_WINDOWS_RESOURCE_TEMPLATE}\"")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("target_sources(Vincent PRIVATE \"${_vincent_windows_resource_file}\")")));
-    QVERIFY(infoPlistSource.contains(QStringLiteral("<string>@VINCENT_MACOS_APP_ICON_FILE@</string>")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("MACOSX_BUNDLE_ICON_FILE \"${CONGREGATION_MACOS_APP_ICON_FILE}\"")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("$<TARGET_BUNDLE_DIR:Congregation>/Contents/Resources/${CONGREGATION_LEGACY_MACOS_APP_ICON_FILE}")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("configure_file(\"${CONGREGATION_WINDOWS_RESOURCE_TEMPLATE}\"")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("target_sources(Congregation PRIVATE \"${_congregation_windows_resource_file}\")")));
+    QVERIFY(infoPlistSource.contains(QStringLiteral("<string>@CONGREGATION_MACOS_APP_ICON_FILE@</string>")));
     QVERIFY(syncScriptSource.contains(QStringLiteral("resources/Appicon.icns")));
-    QVERIFY(syncScriptSource.contains(QStringLiteral("packaging/macos/Vincent.xcassets/AppIcon.appiconset")));
+    QVERIFY(syncScriptSource.contains(QStringLiteral("packaging/macos/Congregation.xcassets/AppIcon.appiconset")));
     QVERIFY(syncScriptSource.contains(QStringLiteral("iconutil -c iconset")));
     QVERIFY(syncScriptSource.contains(QStringLiteral("AppIcon-1024.png")));
     QVERIFY(gitignoreSource.contains(QStringLiteral("!/resources/Appicon.icns")));
@@ -263,7 +263,7 @@ void tst_MacOSBuildWorkflowContract::buildScriptUsesIncrementalBuildsAndStripsDi
     const QString source = QString::fromUtf8(buildScript.readAll());
 
     QVERIFY(source.contains(QStringLiteral("Usage: ./build.sh [--clean] [local|devid|mas|all]")));
-    QVERIFY(source.contains(QStringLiteral("BUILD_MODE=\"${VINCENT_BUILD_MODE:-devid}\"")));
+    QVERIFY(source.contains(QStringLiteral("BUILD_MODE=\"${CONGREGATION_BUILD_MODE:-devid}\"")));
     QVERIFY(source.contains(QStringLiteral("OUT_LOCAL_DEVID_PKG=\"${DIST_DIR}/${APP_NAME}-local-unsigned.pkg\"")));
     QVERIFY(source.contains(QStringLiteral("OUT_LOCAL_MAS_PKG=\"${DIST_DIR}/${APP_NAME}-appstore-local-unsigned.pkg\"")));
     QVERIFY(source.contains(QStringLiteral("validate_notary_credentials()")));
@@ -395,14 +395,14 @@ if [ -z "$build_dir" ]; then
     build_dir="./build"
 fi
 
-mkdir -p "$build_dir/Vincent.app/Contents/MacOS" "$build_dir/Vincent.app/Contents/Resources"
-cat > "$build_dir/Vincent.app/Contents/MacOS/Vincent" <<'APP'
+mkdir -p "$build_dir/Congregation.app/Contents/MacOS" "$build_dir/Congregation.app/Contents/Resources"
+cat > "$build_dir/Congregation.app/Contents/MacOS/Congregation" <<'APP'
 #!/bin/sh
 exit 0
 APP
-chmod +x "$build_dir/Vincent.app/Contents/MacOS/Vincent"
-printf 'fake icon\n' > "$build_dir/Vincent.app/Contents/Resources/Appicon.icns"
-cat > "$build_dir/Vincent.app/Contents/Info.plist" <<'PLIST'
+chmod +x "$build_dir/Congregation.app/Contents/MacOS/Congregation"
+printf 'fake icon\n' > "$build_dir/Congregation.app/Contents/Resources/Appicon.icns"
+cat > "$build_dir/Congregation.app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
         "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -411,9 +411,9 @@ cat > "$build_dir/Vincent.app/Contents/Info.plist" <<'PLIST'
     <key>CFBundleIconFile</key>
     <string>Appicon.icns</string>
     <key>CFBundleShortVersionString</key>
-    <string>6.0</string>
+    <string>1.0.0</string>
     <key>CFBundleVersion</key>
-    <string>60000</string>
+    <string>1</string>
 </dict>
 </plist>
 PLIST
@@ -466,23 +466,23 @@ case "${1:-}" in
         printf 'Package "%s":\n   Status: no signature\n' "$(basename "${2:-}")"
         ;;
     --payload-files)
-        printf './Vincent.app/Contents/MacOS/Vincent\n'
-        printf './Vincent.app/Contents/Resources/Appicon.icns\n'
-        printf './Vincent.app/Contents/Frameworks/libiiUpdateManager.0.dylib\n'
-        printf './Vincent.app/Contents/Frameworks/libiiLicenseManager.0.dylib\n'
+        printf './Congregation.app/Contents/MacOS/Congregation\n'
+        printf './Congregation.app/Contents/Resources/Appicon.icns\n'
+        printf './Congregation.app/Contents/Frameworks/libiiUpdateManager.0.dylib\n'
+        printf './Congregation.app/Contents/Frameworks/libiiLicenseManager.0.dylib\n'
         ;;
     --expand)
         mkdir -p "${3:-}"
         case "${2:-}" in
-            *appstore*) product_id="com.iisacc.vincent.painter" ;;
-            *) product_id="com.iisacc.app.vincent.pkg" ;;
+            *appstore*) product_id="com.iisacc.congregation.painter" ;;
+            *) product_id="com.iisacc.app.congregation.pkg" ;;
         esac
         cat > "${3:-}/Distribution" <<DISTRIBUTION
 <installer-gui-script minSpecVersion="2" hostArchitectures="arm64">
 <allowed-os-versions><os-version min="12.0"/></allowed-os-versions>
-<bundle path="Vincent.app" CFBundleShortVersionString="6.0" CFBundleVersion="60000"/>
-<product id="$product_id" version="6.0"/>
-<pkg-ref id="com.iisacc.vincent.painter" version="6.0"/>
+<bundle path="Congregation.app" CFBundleShortVersionString="1.0.0" CFBundleVersion="1"/>
+<product id="$product_id" version="1.0.0"/>
+<pkg-ref id="com.iisacc.congregation.painter" version="1.0.0"/>
 </installer-gui-script>
 DISTRIBUTION
         ;;
@@ -498,7 +498,7 @@ esac
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("PATH"), binDir + QStringLiteral(":") + environment.value(QStringLiteral("PATH")));
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
-    environment.insert(QStringLiteral("VINCENT_BUILD_MODE"), QStringLiteral("local"));
+    environment.insert(QStringLiteral("CONGREGATION_BUILD_MODE"), QStringLiteral("local"));
     environment.insert(QStringLiteral("IIUPDATEMANAGER_PREFIX"), updateManagerPrefix);
     environment.insert(QStringLiteral("IILICENSEMANAGER_PREFIX"), licenseManagerPrefix);
     process.setProcessEnvironment(environment);
@@ -513,13 +513,13 @@ esac
     QVERIFY2(process.exitCode() == 0, qPrintable(output));
     QVERIFY2(!output.contains(QStringLiteral("unbound variable")), qPrintable(output));
     QVERIFY2(output.contains(QStringLiteral("done")), qPrintable(output));
-    QVERIFY2(!QDir(temp.filePath(QStringLiteral("dist/Vincent.app/Contents/PlugIns/sqldrivers"))).exists(),
+    QVERIFY2(!QDir(temp.filePath(QStringLiteral("dist/Congregation.app/Contents/PlugIns/sqldrivers"))).exists(),
              qPrintable(output));
-    QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Vincent-local-unsigned.pkg"))), qPrintable(output));
-    QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Vincent-appstore-local-unsigned.pkg"))), qPrintable(output));
-    QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Vincent.pkg"))), qPrintable(output));
-    QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Vincent-appstore.pkg"))), qPrintable(output));
-    QFile stagedInfoPlist(temp.filePath(QStringLiteral("dist/Vincent.app/Contents/Info.plist")));
+    QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-local-unsigned.pkg"))), qPrintable(output));
+    QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-appstore-local-unsigned.pkg"))), qPrintable(output));
+    QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Congregation.pkg"))), qPrintable(output));
+    QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-appstore.pkg"))), qPrintable(output));
+    QFile stagedInfoPlist(temp.filePath(QStringLiteral("dist/Congregation.app/Contents/Info.plist")));
     QVERIFY(stagedInfoPlist.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString stagedInfoSource = QString::fromUtf8(stagedInfoPlist.readAll());
     QVERIFY(stagedInfoSource.contains(QStringLiteral("IISACCDistributionChannel")));
@@ -631,7 +631,7 @@ exit 1
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
     environment.insert(QStringLiteral("IIUPDATEMANAGER_PREFIX"), updateManagerPrefix);
     environment.insert(QStringLiteral("IILICENSEMANAGER_PREFIX"), licenseManagerPrefix);
-    environment.remove(QStringLiteral("VINCENT_BUILD_MODE"));
+    environment.remove(QStringLiteral("CONGREGATION_BUILD_MODE"));
     environment.remove(QStringLiteral("NOTARY_APP_PASSWORD"));
     process.setProcessEnvironment(environment);
     process.setWorkingDirectory(tempDir.path());

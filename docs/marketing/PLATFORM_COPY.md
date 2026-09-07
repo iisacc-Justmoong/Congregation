@@ -1,26 +1,26 @@
-# Vincent external-platform launch kit
+# Congregation external-platform launch kit
 
-This document contains factual, reusable English copy for Vincent listings on
+This document contains factual, reusable English copy for Congregation listings on
 platforms other than iisacc.com. It must not be changed to claim that a signed
 Windows installer is publicly available until a Microsoft Store listing or a
 publicly trusted Authenticode-signed release has been verified.
 
 ## Canonical facts
 
-- Product: Vincent 6.0
-- Current source release: 6.0
+- Product: Congregation 1.0.0
+- Current source release: 1.0.0
 - Category: raster drawing, digital paper, handwriting, note-taking
 - Platforms: Windows, macOS, and Linux source/build support
 - License: GNU AGPLv3
-- Price: commercial Vincent license sold through iisacc.com; source available under GNU AGPLv3
-- Privacy: account email and license key are used only for online license validation and a user-requested update grant; opening Preferences may explicitly read the stored email for an email-only fixed display. There is no telemetry, analytics, advertising, cloud document upload, remote polling, or automatic/background update check. When the user-controlled nearby-discovery setting is enabled, Vincent exchanges an ephemeral anonymous presence heartbeat only within the current LAN; it includes no profile, account, device name, or document data, only an invitation-capability Boolean and a temporary TCP port while the user explicitly shares a canvas. Selecting an opted-in nearby user from Members sends that target a one-hop invitation containing the inviter's profile name and temporary canvas endpoint. After acceptance or an explicit join, participants send bounded edit commands to the host-owned canvas and only the host returns complete authoritative canvas snapshots directly over the LAN without an Internet relay
-- Public project URL: https://github.com/iisacc-Justmoong/Vincent
+- Distribution: version 1.0.0 source release under GNU AGPLv3; a commercial Congregation listing and signed installers are separate rollout steps
+- Privacy: account email and license key are used only for online license validation and a user-requested update grant; opening Preferences may explicitly read the stored email for an email-only fixed display. There is no telemetry, analytics, advertising, cloud document upload, remote polling, or automatic/background update check. When the user-controlled nearby-discovery setting is enabled, Congregation exchanges an ephemeral anonymous presence heartbeat only within the current LAN; it includes no profile, account, device name, or document data, only an invitation-capability Boolean and a temporary TCP port while the user explicitly shares a canvas. Selecting an opted-in nearby user from Members sends that target a one-hop invitation containing the inviter's profile name and temporary canvas endpoint. After acceptance or an explicit join, participants send bounded edit commands to the host-owned canvas and only the host returns complete authoritative canvas snapshots directly over the LAN without an Internet relay
+- Public project URL: https://github.com/iisacc-Justmoong/Congregation
 - Source release URL:
-  https://github.com/iisacc-Justmoong/Vincent/releases/tag/v6.0
+  https://github.com/iisacc-Justmoong/Congregation/releases/tag/v1.0.0
 - Feedback URL:
-  https://github.com/iisacc-Justmoong/Vincent/discussions/17
+  https://github.com/iisacc-Justmoong/Congregation/discussions
 - Windows testing URL:
-  https://github.com/iisacc-Justmoong/Vincent/issues/18
+  https://github.com/iisacc-Justmoong/Congregation/issues/new
 
 ## Tagline
 
@@ -28,12 +28,12 @@ Private, local-first digital paper for focused drawing.
 
 ## Short description
 
-Vincent is a local-first raster drawing app for focused drawing, handwriting,
+Congregation is a local-first raster drawing app for focused drawing, handwriting,
 layered editing, and PSD-compatible workflows. A purchased iisacc account
 license unlocks the canvas through online verification, while documents remain
 local with no telemetry, advertising, remote polling, or automatic update
 checks. An optional anonymous one-hop local-network heartbeat detects other
-nearby Vincent devices without sending profile, account, device-name, or
+nearby Congregation devices without sending profile, account, device-name, or
 document data. Users can explicitly share or join a canvas, or invite a
 specifically selected opted-in nearby user. Only that explicit invitation adds
 the inviter's profile name and endpoint; accepted sessions transfer profile
@@ -43,7 +43,7 @@ cloud relay.
 
 ## Directory summary
 
-Vincent 6.0 is a Qt 6 desktop raster editor for drawing, handwriting, layered
+Congregation 1.0.0 is a Qt 6 desktop raster editor for drawing, handwriting, layered
 canvas work, and PSD-compatible import and export. Its local-first design keeps
 documents on the user's device; the app sends account-license credentials only
 for activation and a user-requested update, with no telemetry, advertising, or
@@ -59,20 +59,20 @@ A publicly trusted Windows package is in preparation.
 
 ## Product Hunt description
 
-Vincent is a local-first raster drawing app for handwriting, layered artwork,
+Congregation is a local-first raster drawing app for handwriting, layered artwork,
 and PSD-compatible workflows. A purchased license is checked online while
 documents stay on the device with no telemetry or ads. AGPLv3 source is
 available now; an optional anonymous one-hop LAN beacon can detect another nearby
-Vincent device, and a signed Windows release is in preparation.
+Congregation device, and a signed Windows release is in preparation.
 
 ## First launch comment
 
-I built Vincent because a drawing surface should feel like paper, not a
+I built Congregation because a drawing surface should feel like paper, not a
 service. It is a native Qt 6 desktop application with pressure-aware brushes,
 layers, shapes, text, image import, and PSD-compatible workflows. Documents
-stay local. Vincent uses the purchaser's iisacc account email and license key
+stay local. Congregation uses the purchaser's iisacc account email and license key
 only for activation or a user-requested update, and has no telemetry, advertising, or automatic update checks.
-Nearby Vincent discovery is confined to an anonymous one-hop LAN heartbeat and
+Nearby Congregation discovery is confined to an anonymous one-hop LAN heartbeat and
 contains no profile, account, device-name, or document data, only an invitation
 capability and a temporary port while canvas sharing is active. Selecting an
 opted-in nearby user can send that target the inviter's profile name and endpoint;
@@ -80,7 +80,7 @@ accepted or explicitly joined devices send profile names and bounded edit comman
 to the host-owned canvas; only the host returns authoritative snapshots directly
 over that LAN, without a cloud relay.
 
-Version 6.0 is available as complete AGPLv3 source. We are currently
+Version 1.0.0 is available as complete AGPLv3 source. We are currently
 preparing the publicly trusted Windows distribution and would especially value
 feedback from artists, pen-tablet users, Qt developers, and Windows testers.
 
@@ -107,14 +107,14 @@ same primary workflow:
 - Paint.NET
 - Sketchbook
 
-Do not describe Vincent as a complete replacement for these products. Present
+Do not describe Congregation as a complete replacement for these products. Present
 it as a focused, local-first alternative.
 
 ## Asset inventory
 
-- `vincent-windows-editor.png`: verified screenshot of the running Windows
+- `congregation-windows-editor.png`: verified screenshot of the running Windows
   application, suitable as the primary gallery image.
-- `vincent-sample-artwork.png`: generated demonstration artwork opened in the
+- `congregation-sample-artwork.png`: generated demonstration artwork opened in the
   application screenshot. Use it only as a secondary example image and never
   present it as application UI.
 

@@ -94,7 +94,7 @@ Rectangle {
         }
         entries.push(root.submenuEntry(qsTr("Keyboard Shortcuts"), "keyboardShortcuts", "help"));
         entries.push({
-            label: qsTr("Vincent %1").arg(root.applicationVersion),
+            label: qsTr("Congregation %1").arg(root.applicationVersion),
             showIconSlot: false,
             showChevron: false,
             hasChildItems: false,
@@ -467,7 +467,7 @@ Rectangle {
     ApplicationContextMenu {
         id: shortcutFileContextMenu
         objectName: "windowsShortcutFileContextMenu"
-        items: [root.referenceEntry(qsTr("New Canvas"), "newCanvas"), root.referenceEntry(qsTr("Open Image"), "openImage"), root.referenceEntry(qsTr("Save Image As"), "saveImageAs"), root.referenceEntry(qsTr("Clear Canvas"), "clearCanvas"), root.referenceEntry(qsTr("Quit Vincent"), "quit")]
+        items: [root.referenceEntry(qsTr("New Canvas"), "newCanvas"), root.referenceEntry(qsTr("Open Image"), "openImage"), root.referenceEntry(qsTr("Save Image As"), "saveImageAs"), root.referenceEntry(qsTr("Clear Canvas"), "clearCanvas"), root.referenceEntry(qsTr("Quit Congregation"), "quit")]
     }
 
     ApplicationContextMenu {

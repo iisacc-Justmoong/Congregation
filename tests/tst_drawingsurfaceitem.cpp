@@ -464,7 +464,7 @@ QStringList psdLayerRecordNames(const QByteArray& psd)
 void tst_DrawingSurfaceItem::initTestCase()
 {
     QStandardPaths::setTestModeEnabled(true);
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 }
 
 void tst_DrawingSurfaceItem::createsInitialCanvasInsideWorkspaceMargins()
@@ -555,7 +555,7 @@ void tst_DrawingSurfaceItem::createsInitialCanvasInsideWorkspaceMargins()
 
 void tst_DrawingSurfaceItem::createsNewCanvasAtCurrentWorkspaceSize()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -745,7 +745,7 @@ void tst_DrawingSurfaceItem::createsNewCanvasAtCurrentWorkspaceSize()
 
 void tst_DrawingSurfaceItem::createsInfiniteCanvasAndExpandsItWhilePanning()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
@@ -972,7 +972,7 @@ void tst_DrawingSurfaceItem::createsInfiniteCanvasAndExpandsItWhilePanning()
 
 void tst_DrawingSurfaceItem::constrainsShapeDragWithShiftModifier()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -1033,7 +1033,7 @@ void tst_DrawingSurfaceItem::constrainsShapeDragWithShiftModifier()
 
 void tst_DrawingSurfaceItem::pansCanvasWithHandToolDrag()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -1187,7 +1187,7 @@ void tst_DrawingSurfaceItem::pansCanvasWithHandToolDrag()
 
 void tst_DrawingSurfaceItem::zoomsCanvasWithHorizontalDrag()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -1281,7 +1281,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithHorizontalDrag()
 
 void tst_DrawingSurfaceItem::zoomsCanvasWithMouseWheelInEveryToolMode()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
@@ -1343,7 +1343,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithMouseWheelInEveryToolMode()
 
 void tst_DrawingSurfaceItem::zoomsCanvasWithNativeTemporaryCameraDrag()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
@@ -1438,7 +1438,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithNativeTemporaryCameraDrag()
 
 void tst_DrawingSurfaceItem::usesToolAppropriateCanvasCursors()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -1627,7 +1627,7 @@ void tst_DrawingSurfaceItem::usesToolAppropriateCanvasCursors()
 
 void tst_DrawingSurfaceItem::tracksBrushCursorDuringNativePointerInput()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
@@ -1753,7 +1753,7 @@ void tst_DrawingSurfaceItem::tracksBrushCursorDuringNativePointerInput()
 
 void tst_DrawingSurfaceItem::pastesSystemClipboardImageAsTransformableObject()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QClipboard* clipboard = QGuiApplication::clipboard();
     QVERIFY(clipboard);
@@ -2146,7 +2146,7 @@ void tst_DrawingSurfaceItem::importsDraggedImageMimeFilesAndWebImages()
     nonImageDrop.m_text = QStringLiteral("plain text");
     QVERIFY(!canvasItem.canImportDroppedImage(&nonImageDrop));
 
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
     QQmlEngine engine;
     QQmlComponent component(&engine);
     const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
@@ -2263,7 +2263,7 @@ void tst_DrawingSurfaceItem::importsDraggedImageMimeFilesAndWebImages()
 
 void tst_DrawingSurfaceItem::movesAndResizesDrawableObjects()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2403,7 +2403,7 @@ void tst_DrawingSurfaceItem::movesAndResizesDrawableObjects()
 
 void tst_DrawingSurfaceItem::constrainsDrawableObjectTransformWithShiftModifier()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2485,7 +2485,7 @@ void tst_DrawingSurfaceItem::constrainsDrawableObjectTransformWithShiftModifier(
 
 void tst_DrawingSurfaceItem::deletesSelectedDrawableObject()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2541,7 +2541,7 @@ void tst_DrawingSurfaceItem::deletesSelectedDrawableObject()
 
 void tst_DrawingSurfaceItem::deletesBackgroundLayerLikeRegularLayer()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2662,7 +2662,7 @@ void tst_DrawingSurfaceItem::deletesBackgroundLayerLikeRegularLayer()
     QCOMPARE(importedDocument.layers.size(), 1);
     QCOMPARE(importedDocument.layers.first().name, QStringLiteral("Layer 1"));
     const QVariantList manifestLayers =
-        importedDocument.vincentManifest.value(QStringLiteral("layers")).toList();
+        importedDocument.congregationManifest.value(QStringLiteral("layers")).toList();
     QCOMPARE(manifestLayers.size(), 1);
     QCOMPARE(manifestLayers.first().toMap().value(QStringLiteral("name")).toString(),
              QStringLiteral("Layer 1"));
@@ -2670,7 +2670,7 @@ void tst_DrawingSurfaceItem::deletesBackgroundLayerLikeRegularLayer()
 
 void tst_DrawingSurfaceItem::addsBlankLayerRowsWithoutTransformHitTesting()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2817,7 +2817,7 @@ void tst_DrawingSurfaceItem::addsBlankLayerRowsWithoutTransformHitTesting()
 
 void tst_DrawingSurfaceItem::shapeAndTextToolsCreateSeparateLayerRows()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -2956,7 +2956,7 @@ void tst_DrawingSurfaceItem::savesRasterLayerItemsAsIndependentCanvasLayers()
 
 void tst_DrawingSurfaceItem::deletingRasterLayerRemovesItsPaintFromQmlComposite()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -3051,7 +3051,7 @@ void tst_DrawingSurfaceItem::deletingRasterLayerRemovesItsPaintFromQmlComposite(
 
 void tst_DrawingSurfaceItem::addsManyRasterLayersWithoutSnapshotChurn()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -3124,7 +3124,7 @@ void tst_DrawingSurfaceItem::addsManyRasterLayersWithoutSnapshotChurn()
 
 void tst_DrawingSurfaceItem::renamesLayerRowsAndDrawableObjectMetadata()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -3196,7 +3196,7 @@ void tst_DrawingSurfaceItem::renamesLayerRowsAndDrawableObjectMetadata()
 
 void tst_DrawingSurfaceItem::layersExposeHierarchyRowsAndReorderDrawableObjects()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 
@@ -3861,7 +3861,7 @@ void tst_DrawingSurfaceItem::roundTripsRecentCanvasContainerWithEditableObjects(
     QFile firstSnapshot(recentPath);
     QVERIFY(firstSnapshot.open(QIODevice::ReadOnly));
     const QByteArray firstSnapshotBytes = firstSnapshot.readAll();
-    QVERIFY(firstSnapshotBytes.startsWith("VINCENTRC\r\n\x1a\n"));
+    QVERIFY(firstSnapshotBytes.startsWith("CONGREGATIONRC\r\n\x1a\n"));
     firstSnapshot.close();
 
     QVERIFY(background.saveRecentCanvas(recentPath, objects, rasterLayers, false));
@@ -3970,7 +3970,7 @@ void tst_DrawingSurfaceItem::recentCanvasPreservesVisualCanvasExtentAfterLateRes
 
 void tst_DrawingSurfaceItem::roundTripsRecentCanvasThroughQmlSurface()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
@@ -4176,7 +4176,7 @@ void tst_DrawingSurfaceItem::commitsTextToRasterCanvas()
     item.setBrushColor(QColor(QStringLiteral("#d32f2f")));
     item.setDocumentViewModel(&viewModel);
 
-    QVERIFY(item.commitText(16, 18, 140, QStringLiteral("Vincent"), 28,
+    QVERIFY(item.commitText(16, 18, 140, QStringLiteral("Congregation"), 28,
                             QColor(QStringLiteral("#d32f2f"))));
 
     QTemporaryDir dir;
@@ -4565,8 +4565,8 @@ void tst_DrawingSurfaceItem::savesCompositeDrawableObjectsAsLayeredPsdWithMetada
     QVERIFY(resourcesOffset + 4 < psd.size());
     const quint32 imageResourcesLength = readUInt32(psd, static_cast<int>(resourcesOffset));
     QVERIFY(imageResourcesLength > 0);
-    QVERIFY(psd.contains("VincentLayerManifestBase64"));
-    QVERIFY(psd.contains("VincentLayerCount"));
+    QVERIFY(psd.contains("CongregationLayerManifestBase64"));
+    QVERIFY(psd.contains("CongregationLayerCount"));
     QVERIFY(psd.contains("base64-json"));
 
     const qsizetype layerOffset = layerMaskLengthOffset(psd);
@@ -4584,9 +4584,9 @@ void tst_DrawingSurfaceItem::savesCompositeDrawableObjectsAsLayeredPsdWithMetada
     QCOMPARE(importedDocument.canvasSize, QSize(20, 12));
     QCOMPARE(importedDocument.bitsPerChannel, 8);
     QVERIFY(!importedDocument.xmpMetadata.isEmpty());
-    QCOMPARE(importedDocument.vincentManifest.value(QStringLiteral("compatibilityVersion")).toInt(),
+    QCOMPARE(importedDocument.congregationManifest.value(QStringLiteral("compatibilityVersion")).toInt(),
              1);
-    QCOMPARE(importedDocument.vincentManifest.value(QStringLiteral("layers")).toList().size(), 2);
+    QCOMPARE(importedDocument.congregationManifest.value(QStringLiteral("layers")).toList().size(), 2);
     QCOMPARE(importedDocument.layers.size(), 2);
     QCOMPARE(importedDocument.layers.at(0).name, QStringLiteral("Background"));
     QCOMPARE(importedDocument.layers.at(0).bounds, QRect(0, 0, 20, 12));
@@ -4759,7 +4759,7 @@ void tst_DrawingSurfaceItem::opensLargeRasterAtOriginalImageSize()
 
 void tst_DrawingSurfaceItem::opensRasterImagesAsCanvasAtSourceResolution()
 {
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     QQmlEngine engine;
 

@@ -54,10 +54,10 @@ void tst_CanvasToolBarQmlContract::recentCanvasUsesDebouncedInternalContainer()
     QVERIFY(pageSource.contains(QStringLiteral("function flushRecentCanvasSave()")));
     QVERIFY(pageSource.contains(QStringLiteral("Qt.callLater(function ()")));
     QVERIFY(pageSource.contains(
-        QStringLiteral("VincentApplicationPreferences.recentCanvasStorageUrl")));
+        QStringLiteral("CongregationApplicationPreferences.recentCanvasStorageUrl")));
     QVERIFY(pageSource.contains(QStringLiteral("drawingSurface.saveRecentCanvas(")));
     QVERIFY(pageSource.contains(
-        QStringLiteral("VincentApplicationPreferences.recordRecentCanvas(storageUrl)")));
+        QStringLiteral("CongregationApplicationPreferences.recordRecentCanvas(storageUrl)")));
     QVERIFY(pageSource.contains(QStringLiteral("function openRecentCanvas(fileUrl)")));
     QVERIFY(pageSource.contains(QStringLiteral("drawingSurface.openRecentCanvas(fileUrl)")));
     QVERIFY(pageSource.contains(QStringLiteral("onSessionChanged:")));
@@ -179,15 +179,15 @@ void tst_CanvasToolBarQmlContract::modifierSpaceUsesApplicationWideCameraModes()
     QVERIFY(
         mainCppSource.contains(QStringLiteral("app.installEventFilter(temporaryCameraInput);")));
     QVERIFY(mainCppSource.contains(
-        QStringLiteral("engine.rootContext()->setContextProperty(\"VincentTemporaryCameraInput\", "
+        QStringLiteral("engine.rootContext()->setContextProperty(\"CongregationTemporaryCameraInput\", "
                        "temporaryCameraInput);")));
-    QCOMPARE(pageSource.count(QStringLiteral("target: VincentTemporaryCameraInput")), 2);
+    QCOMPARE(pageSource.count(QStringLiteral("target: CongregationTemporaryCameraInput")), 2);
     QVERIFY(pageSource.contains(QStringLiteral("property: \"enabled\"")));
     QVERIFY(pageSource.contains(QStringLiteral(
         "value: drawingSurface.toolShortcutsEnabled && !drawingSurface.textEditingActive")));
     QVERIFY(pageSource.contains(QStringLiteral("function onModeChanged()")));
     QVERIFY(pageSource.contains(QStringLiteral(
-        "drawingSurface.setTemporaryCameraMode(VincentTemporaryCameraInput.mode);")));
+        "drawingSurface.setTemporaryCameraMode(CongregationTemporaryCameraInput.mode);")));
     QVERIFY(surfaceSource.contains(QStringLiteral("property string temporaryCameraMode: \"\"")));
     QVERIFY(surfaceSource.contains(QStringLiteral("function setTemporaryCameraMode(mode)")));
     QVERIFY(surfaceSource.contains(QStringLiteral("function beginSpaceZoomMode()")));
@@ -519,10 +519,10 @@ void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
     QVERIFY(!toolbarSource.contains(QStringLiteral("toolbarColorSwatchSize")));
     QVERIFY(!toolbarSource.contains(QStringLiteral("toolbarColorSwatchRingSize")));
     QVERIFY(toolbarSource.contains(QStringLiteral(
-        "readonly property url panHandIconSource: \"qrc:/Vincent/resources/icons/panHand.svg\"")));
+        "readonly property url panHandIconSource: \"qrc:/Congregation/resources/icons/panHand.svg\"")));
     QVERIFY(toolbarSource.contains(
         QStringLiteral("readonly property url translateObjectIconSource: "
-                       "\"qrc:/Vincent/resources/icons/translateObject.svg\"")));
+                       "\"qrc:/Congregation/resources/icons/translateObject.svg\"")));
     QVERIFY(!toolbarSource.contains(QStringLiteral("typeAliasIconSource")));
     QVERIFY(toolbarSource.contains(
         QStringLiteral("property color backgroundColor: LV.Theme.panelBackground03")));

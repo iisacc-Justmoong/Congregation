@@ -26,7 +26,7 @@ struct PsdImportedDocument {
     bool hasRealMergedImage = false;
     QImage mergedImage;
     QString xmpMetadata;
-    QVariantMap vincentManifest;
+    QVariantMap congregationManifest;
     QList<PsdImportedLayer> layers;
     QStringList compatibilityWarnings;
 

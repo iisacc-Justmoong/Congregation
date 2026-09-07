@@ -3,7 +3,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-function Get-VincentNecessaryReleaseVersion {
+function Get-CongregationNecessaryReleaseVersion {
     param(
         [Parameter(Mandatory = $true)]
         [string]$BuildDirectory
@@ -24,12 +24,12 @@ function Get-VincentNecessaryReleaseVersion {
 
     $version = ($versionEntries[0] -split '=', 2)[1]
     if ($version -notmatch '^\d+\.\d+(?:\.\d+)?$') {
-        throw "The configured Vincent release version is invalid: $version"
+        throw "The configured Congregation release version is invalid: $version"
     }
     return $version
 }
 
-function Assert-VincentNecessaryChildPath {
+function Assert-CongregationNecessaryChildPath {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Root,
@@ -52,7 +52,7 @@ function Assert-VincentNecessaryChildPath {
     return $resolvedPath
 }
 
-function Get-VincentNecessaryFileSha256 {
+function Get-CongregationNecessaryFileSha256 {
     param(
         [Parameter(Mandatory = $true)]
         [string]$File
@@ -71,7 +71,7 @@ function Get-VincentNecessaryFileSha256 {
     return (Get-FileHash -LiteralPath $File -Algorithm SHA256).Hash.ToUpperInvariant()
 }
 
-function Invoke-VincentNecessaryReleaseNative {
+function Invoke-CongregationNecessaryReleaseNative {
     param(
         [Parameter(Mandatory = $true)]
         [string]$FilePath,
@@ -90,7 +90,7 @@ function Invoke-VincentNecessaryReleaseNative {
     }
 }
 
-function Invoke-VincentNecessaryMsiDatabaseContract {
+function Invoke-CongregationNecessaryMsiDatabaseContract {
     param(
         [Parameter(Mandatory = $true)]
         [string]$RepositoryRoot,
@@ -108,7 +108,7 @@ function Invoke-VincentNecessaryMsiDatabaseContract {
     }
     $windowsPowerShell = Get-Command powershell.exe -CommandType Application -ErrorAction Stop |
         Select-Object -First 1
-    Invoke-VincentNecessaryReleaseNative $windowsPowerShell.Source @(
+    Invoke-CongregationNecessaryReleaseNative $windowsPowerShell.Source @(
         "-NoProfile",
         "-ExecutionPolicy", "Bypass",
         "-File", $contractPath,
@@ -118,7 +118,7 @@ function Invoke-VincentNecessaryMsiDatabaseContract {
     )
 }
 
-function Invoke-VincentNecessaryAdministrativeExtraction {
+function Invoke-CongregationNecessaryAdministrativeExtraction {
     param(
         [Parameter(Mandatory = $true)]
         [string]$MsiPath,
@@ -149,7 +149,7 @@ function Invoke-VincentNecessaryAdministrativeExtraction {
     }
 }
 
-function Publish-VincentNecessaryReleaseFile {
+function Publish-CongregationNecessaryReleaseFile {
     param(
         [Parameter(Mandatory = $true)]
         [string]$CandidatePath,
@@ -187,7 +187,7 @@ function Publish-VincentNecessaryReleaseFile {
     }
 }
 
-function Invoke-VincentNecessaryWindowsRelease {
+function Invoke-CongregationNecessaryWindowsRelease {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -235,13 +235,13 @@ function Invoke-VincentNecessaryWindowsRelease {
 
     $resolvedStageDirectory = (Resolve-Path -LiteralPath $StageDirectory).Path
     $expectedStageDirectory = [System.IO.Path]::GetFullPath(
-        (Join-Path $resolvedRepositoryRoot "dist\Vincent-Windows")
+        (Join-Path $resolvedRepositoryRoot "dist\Congregation-Windows")
     )
     if (-not $resolvedStageDirectory.Equals(
         $expectedStageDirectory,
         [System.StringComparison]::OrdinalIgnoreCase
     )) {
-        throw "The Necessary release stage must be dist\Vincent-Windows."
+        throw "The Necessary release stage must be dist\Congregation-Windows."
     }
 
     $resolvedWixToolsDirectory = (Resolve-Path -LiteralPath $WixToolsDirectory).Path
@@ -264,23 +264,23 @@ function Invoke-VincentNecessaryWindowsRelease {
         }
     }
 
-    $version = Get-VincentNecessaryReleaseVersion -BuildDirectory $resolvedBuildDirectory
+    $version = Get-CongregationNecessaryReleaseVersion -BuildDirectory $resolvedBuildDirectory
     $msiWorkDirectory = Join-Path $resolvedBuildDirectory "msi"
-    $productPath = Join-Path $msiWorkDirectory "VincentProduct.wxs"
-    $runtimePath = Join-Path $msiWorkDirectory "VincentRuntime.wxs"
-    $licensePath = Join-Path $msiWorkDirectory "VincentLicense.rtf"
+    $productPath = Join-Path $msiWorkDirectory "CongregationProduct.wxs"
+    $runtimePath = Join-Path $msiWorkDirectory "CongregationRuntime.wxs"
+    $licensePath = Join-Path $msiWorkDirectory "CongregationLicense.rtf"
     foreach ($path in @($productPath, $runtimePath, $licensePath)) {
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
             throw "A verified MSI authoring input is missing: $path"
         }
     }
 
-    $ownedNames = @("Vincent.exe", "LVRS.dll", "libiiPaintEngine.dll")
+    $ownedNames = @("Congregation.exe", "LVRS.dll", "libiiPaintEngine.dll")
     $ownedPaths = @{}
     foreach ($ownedName in $ownedNames) {
         $ownedPath = Join-Path $resolvedStageDirectory $ownedName
         if (-not (Test-Path -LiteralPath $ownedPath -PathType Leaf)) {
-            throw "A Vincent-owned signing target is missing: $ownedPath"
+            throw "A Congregation-owned signing target is missing: $ownedPath"
         }
         $ownedPaths[[System.IO.Path]::GetFullPath($ownedPath).ToUpperInvariant()] = $true
     }
@@ -296,19 +296,19 @@ function Invoke-VincentNecessaryWindowsRelease {
 
     $temporaryRoot = Join-Path $resolvedBuildDirectory "necessary-signing-temp"
     New-Item -ItemType Directory -Path $temporaryRoot -Force | Out-Null
-    $partialMsi = Assert-VincentNecessaryChildPath `
+    $partialMsi = Assert-CongregationNecessaryChildPath `
         -Root $resolvedBuildDirectory `
-        -Path (Join-Path $resolvedBuildDirectory "Vincent-$version-Windows.necessary.partial.msi")
-    $candidateMsi = Assert-VincentNecessaryChildPath `
+        -Path (Join-Path $resolvedBuildDirectory "Congregation-$version-Windows.necessary.partial.msi")
+    $candidateMsi = Assert-CongregationNecessaryChildPath `
         -Root $resolvedBuildDirectory `
-        -Path (Join-Path $resolvedBuildDirectory "Vincent-$version-Windows.necessary.candidate.msi")
-    $finalMsi = Assert-VincentNecessaryChildPath `
+        -Path (Join-Path $resolvedBuildDirectory "Congregation-$version-Windows.necessary.candidate.msi")
+    $finalMsi = Assert-CongregationNecessaryChildPath `
         -Root $resolvedBuildDirectory `
-        -Path (Join-Path $resolvedBuildDirectory "Vincent-$version-Windows.msi")
-    $partialSidecar = Assert-VincentNecessaryChildPath `
+        -Path (Join-Path $resolvedBuildDirectory "Congregation-$version-Windows.msi")
+    $partialSidecar = Assert-CongregationNecessaryChildPath `
         -Root $resolvedBuildDirectory `
         -Path "$finalMsi.sha256.partial"
-    $administrativeImageDirectory = Assert-VincentNecessaryChildPath `
+    $administrativeImageDirectory = Assert-CongregationNecessaryChildPath `
         -Root $resolvedBuildDirectory `
         -Path (Join-Path $resolvedBuildDirectory (
             "necessary-administrative-image-" + [Guid]::NewGuid().ToString("N")
@@ -320,8 +320,8 @@ function Invoke-VincentNecessaryWindowsRelease {
         foreach ($file in $stageFiles) {
             $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
             $pathKey = [System.IO.Path]::GetFullPath($file.FullName).ToUpperInvariant()
-            $isVincentOwned = $ownedPaths.ContainsKey($pathKey)
-            if (($signature.Status -eq "Valid") -and (-not $isVincentOwned)) {
+            $isCongregationOwned = $ownedPaths.ContainsKey($pathKey)
+            if (($signature.Status -eq "Valid") -and (-not $isCongregationOwned)) {
                 continue
             }
             if ($signature.Status -notin @("Valid", "NotSigned")) {
@@ -364,21 +364,21 @@ function Invoke-VincentNecessaryWindowsRelease {
                     $ExpectedPublisher,
                     [System.StringComparison]::OrdinalIgnoreCase
                 ) -lt 0) {
-                    throw "A Vincent-owned PE has an unexpected Publisher: $($file.FullName)"
+                    throw "A Congregation-owned PE has an unexpected Publisher: $($file.FullName)"
                 }
                 if ($signature.SignerCertificate.Thumbprint.ToUpperInvariant() -cne
                     $releaseCertificateThumbprint) {
-                    throw "A Vincent-owned PE was not signed by the release certificate."
+                    throw "A Congregation-owned PE was not signed by the release certificate."
                 }
             }
-            Invoke-VincentNecessaryReleaseNative $resolvedSignTool @(
+            Invoke-CongregationNecessaryReleaseNative $resolvedSignTool @(
                 "verify", "/pa", "/all", "/tw", "/v", $file.FullName
             )
         }
 
         foreach ($path in @(
-            (Join-Path $msiWorkDirectory "VincentProduct.wixobj"),
-            (Join-Path $msiWorkDirectory "VincentRuntime.wixobj"),
+            (Join-Path $msiWorkDirectory "CongregationProduct.wixobj"),
+            (Join-Path $msiWorkDirectory "CongregationRuntime.wixobj"),
             $partialMsi,
             $candidateMsi,
             $partialSidecar
@@ -388,7 +388,7 @@ function Invoke-VincentNecessaryWindowsRelease {
             }
         }
 
-        Invoke-VincentNecessaryReleaseNative $candlePath @(
+        Invoke-CongregationNecessaryReleaseNative $candlePath @(
             "-wx",
             "-dStageDir=$resolvedStageDirectory",
             "-dSourceDir=$resolvedRepositoryRoot",
@@ -398,18 +398,18 @@ function Invoke-VincentNecessaryWindowsRelease {
             $productPath,
             $runtimePath
         )
-        Invoke-VincentNecessaryReleaseNative $lightPath @(
+        Invoke-CongregationNecessaryReleaseNative $lightPath @(
             "-wx",
             "-ext", "WixUIExtension",
             "-cultures:en-us",
             "-out", $partialMsi,
-            (Join-Path $msiWorkDirectory "VincentProduct.wixobj"),
-            (Join-Path $msiWorkDirectory "VincentRuntime.wixobj")
+            (Join-Path $msiWorkDirectory "CongregationProduct.wixobj"),
+            (Join-Path $msiWorkDirectory "CongregationRuntime.wixobj")
         )
         if (-not (Test-Path -LiteralPath $partialMsi -PathType Leaf)) {
             throw "WiX Light did not produce the Necessary MSI candidate."
         }
-        Invoke-VincentNecessaryReleaseNative $smokePath @(
+        Invoke-CongregationNecessaryReleaseNative $smokePath @(
             "-wx", "-nodefault", "-cub", $daricePath, "-ice:ICE105", $partialMsi
         )
 
@@ -439,17 +439,17 @@ function Invoke-VincentNecessaryWindowsRelease {
             $releaseCertificateThumbprint) {
             throw "The final MSI candidate was not signed by the release certificate."
         }
-        Invoke-VincentNecessaryReleaseNative $resolvedSignTool @(
+        Invoke-CongregationNecessaryReleaseNative $resolvedSignTool @(
             "verify", "/pa", "/all", "/tw", "/v", $candidateMsi
         )
 
-        Invoke-VincentNecessaryMsiDatabaseContract `
+        Invoke-CongregationNecessaryMsiDatabaseContract `
             -RepositoryRoot $resolvedRepositoryRoot `
             -BuildDirectory $resolvedBuildDirectory `
             -Version $version `
             -MsiPath $candidateMsi
 
-        Invoke-VincentNecessaryAdministrativeExtraction `
+        Invoke-CongregationNecessaryAdministrativeExtraction `
             -MsiPath $candidateMsi `
             -OutputDirectory $administrativeImageDirectory
         foreach ($ownedName in $ownedNames) {
@@ -478,23 +478,23 @@ function Invoke-VincentNecessaryWindowsRelease {
                 $releaseCertificateThumbprint) {
                 throw "The installed $ownedName was not signed by the release certificate."
             }
-            Invoke-VincentNecessaryReleaseNative $resolvedSignTool @(
+            Invoke-CongregationNecessaryReleaseNative $resolvedSignTool @(
                 "verify", "/pa", "/all", "/tw", "/v", $candidates[0].FullName
             )
         }
 
-        Publish-VincentNecessaryReleaseFile `
+        Publish-CongregationNecessaryReleaseFile `
             -CandidatePath $candidateMsi `
             -FinalPath $finalMsi
         $finalHash = (
-            Get-VincentNecessaryFileSha256 -File $finalMsi
+            Get-CongregationNecessaryFileSha256 -File $finalMsi
         ).ToLowerInvariant()
         [System.IO.File]::WriteAllText(
             $partialSidecar,
             "$finalHash *$([System.IO.Path]::GetFileName($finalMsi))`r`n",
             [System.Text.Encoding]::ASCII
         )
-        Publish-VincentNecessaryReleaseFile `
+        Publish-CongregationNecessaryReleaseFile `
             -CandidatePath $partialSidecar `
             -FinalPath "$finalMsi.sha256"
 

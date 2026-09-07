@@ -1265,7 +1265,7 @@ bool writeLayeredPsdFile(const QString& filePath, const QImage& rasterImage,
                          const QHash<int, QImage>& rasterLayersByObjectId,
                          bool includeBackgroundLayer)
 {
-    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromVincentSession(
+    const PsdCompatibilityDocument document = PsdCompatibilityDocument::fromCongregationSession(
         rasterImage.size(), objects, includeBackgroundLayer);
     if (!document.isPsdCanvasSizeCompatible())
     {
@@ -1752,7 +1752,7 @@ void DrawingSurfaceItem::requestRemoteDroppedImage(const QUrl& url, qreal maximu
     const QString version = QCoreApplication::applicationVersion().isEmpty()
                                 ? QStringLiteral("development")
                                 : QCoreApplication::applicationVersion();
-    request.setRawHeader("User-Agent", QStringLiteral("Vincent/%1").arg(version).toUtf8());
+    request.setRawHeader("User-Agent", QStringLiteral("Congregation/%1").arg(version).toUtf8());
 
     QNetworkReply* reply = m_networkAccessManager->get(request);
     const auto downloadTooLarge = std::make_shared<bool>(false);
@@ -1853,7 +1853,7 @@ QVariantMap DrawingSurfaceItem::psdImportDocument(const QString& fileUrl) const
     document.insert(QStringLiteral("colorMode"), imported.colorMode);
     document.insert(QStringLiteral("hasRealMergedImage"), imported.hasRealMergedImage);
     document.insert(QStringLiteral("xmpMetadata"), imported.xmpMetadata);
-    document.insert(QStringLiteral("vincentManifest"), imported.vincentManifest);
+    document.insert(QStringLiteral("congregationManifest"), imported.congregationManifest);
     document.insert(QStringLiteral("layers"), layers);
     document.insert(QStringLiteral("compatibilityWarnings"), imported.compatibilityWarnings);
     if (!imported.mergedImage.isNull())
@@ -2196,7 +2196,7 @@ QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
     if (!decodedContainer.container.embeddedAssets.isEmpty())
     {
         extractionDirectory = std::make_unique<QTemporaryDir>(
-            QDir(QDir::tempPath()).filePath(QStringLiteral("Vincent-recent-canvas-XXXXXX")));
+            QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-recent-canvas-XXXXXX")));
         if (!extractionDirectory->isValid() ||
             !QFile::setPermissions(extractionDirectory->path(), QFileDevice::ReadOwner |
                                                                     QFileDevice::WriteOwner |
@@ -2419,7 +2419,7 @@ bool DrawingSurfaceItem::restoreRasterSnapshot(const QString& fileUrl)
 QVariantMap DrawingSurfaceItem::psdCompatibilityManifest(const QVariantList& objects,
                                                          bool includeBackgroundLayer) const
 {
-    return PsdCompatibilityDocument::fromVincentSession(canvasSize(), objects,
+    return PsdCompatibilityDocument::fromCongregationSession(canvasSize(), objects,
                                                         includeBackgroundLayer)
         .toManifest();
 }

@@ -7,13 +7,13 @@
 #include <memory>
 
 class LicenseManager;
-class VincentUpdateCredentialProvider;
+class CongregationUpdateCredentialProvider;
 
 namespace iisacc::updates {
 class UpdateManager;
 }
 
-class VincentUpdateManager final : public QObject
+class CongregationUpdateManager final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
@@ -42,15 +42,15 @@ public:
     };
     Q_ENUM(State)
 
-    explicit VincentUpdateManager(LicenseManager *licenseManager,
+    explicit CongregationUpdateManager(LicenseManager *licenseManager,
                                   QObject *parent = nullptr);
-    VincentUpdateManager(LicenseManager *licenseManager,
+    CongregationUpdateManager(LicenseManager *licenseManager,
                          QString currentVersion,
                          QUrl manifestUrl,
                          QUrl grantUrl,
                          bool selfUpdateSupported,
                          QObject *parent = nullptr);
-    ~VincentUpdateManager() override;
+    ~CongregationUpdateManager() override;
 
     [[nodiscard]] State state() const noexcept;
     [[nodiscard]] double progress() const noexcept;
@@ -84,7 +84,7 @@ private:
     bool rejectStoreManagedSelfUpdate();
 
     bool m_selfUpdateSupported = true;
-    std::unique_ptr<VincentUpdateCredentialProvider> m_credentialProvider;
+    std::unique_ptr<CongregationUpdateCredentialProvider> m_credentialProvider;
     std::unique_ptr<iisacc::updates::UpdateManager> m_backend;
     State m_state = State::Idle;
     double m_progress = 0.0;

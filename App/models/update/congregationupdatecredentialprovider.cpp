@@ -1,4 +1,4 @@
-#include "vincentupdatecredentialprovider.h"
+#include "congregationupdatecredentialprovider.h"
 
 #include "licensemanager.h"
 
@@ -9,7 +9,7 @@
 
 using iisacc::updates::UpdateCredentials;
 
-VincentUpdateCredentialProvider::VincentUpdateCredentialProvider(
+CongregationUpdateCredentialProvider::CongregationUpdateCredentialProvider(
     LicenseManager *licenseManager,
     QObject *parent)
     : UpdateCredentialProvider(parent)
@@ -17,7 +17,7 @@ VincentUpdateCredentialProvider::VincentUpdateCredentialProvider(
 {
 }
 
-void VincentUpdateCredentialProvider::requestCredentials(Completion completion)
+void CongregationUpdateCredentialProvider::requestCredentials(Completion completion)
 {
     if (!completion) {
         return;
@@ -30,7 +30,7 @@ void VincentUpdateCredentialProvider::requestCredentials(Completion completion)
         return;
     }
 
-    QPointer<VincentUpdateCredentialProvider> guard(this);
+    QPointer<CongregationUpdateCredentialProvider> guard(this);
     m_licenseManager->requestStoredCredentials(
         [guard, generation, completion = std::move(completion)](
             LicenseManager::StoredCredentialStatus status,
@@ -42,13 +42,13 @@ void VincentUpdateCredentialProvider::requestCredentials(Completion completion)
             if (status == LicenseManager::StoredCredentialStatus::Invalid) {
                 std::optional<UpdateCredentials> invalidCredentials(std::in_place);
                 completion(std::move(invalidCredentials),
-                           QStringLiteral("The stored Vincent license is invalid."));
+                           QStringLiteral("The stored Congregation license is invalid."));
                 return;
             }
 
             if (status != LicenseManager::StoredCredentialStatus::Available) {
                 const QString message = status == LicenseManager::StoredCredentialStatus::NotFound
-                    ? QStringLiteral("No stored Vincent license is available.")
+                    ? QStringLiteral("No stored Congregation license is available.")
                     : QStringLiteral("Secure license storage is unavailable.");
                 completion(std::nullopt, message);
                 return;
@@ -64,7 +64,7 @@ void VincentUpdateCredentialProvider::requestCredentials(Completion completion)
             if (!updateCredentials->isValid()) {
                 updateCredentials->clear();
                 completion(std::nullopt,
-                           QStringLiteral("The stored Vincent license is invalid."));
+                           QStringLiteral("The stored Congregation license is invalid."));
                 return;
             }
 
@@ -72,7 +72,7 @@ void VincentUpdateCredentialProvider::requestCredentials(Completion completion)
         });
 }
 
-void VincentUpdateCredentialProvider::cancel() noexcept
+void CongregationUpdateCredentialProvider::cancel() noexcept
 {
     ++m_requestGeneration;
 }

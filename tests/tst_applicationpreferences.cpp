@@ -31,7 +31,7 @@ void tst_ApplicationPreferences::defaultsToNewCanvasAndNearbyDiscovery()
     ApplicationPreferences preferences(&settings, storageDirectory);
 
     QVERIFY(!preferences.startWithRecentCanvas());
-    QVERIFY(preferences.discoverNearbyVincentUsers());
+    QVERIFY(preferences.discoverNearbyCongregationUsers());
     QVERIFY(preferences.recentCanvasUrl().isEmpty());
     QCOMPARE(
         preferences.recentCanvasStorageUrl(),
@@ -51,10 +51,10 @@ void tst_ApplicationPreferences::generalChoicesPersistAcrossInstances()
                               &ApplicationPreferences::startWithRecentCanvasChanged);
         QSignalSpy discoverySpy(
             &preferences,
-            &ApplicationPreferences::discoverNearbyVincentUsersChanged);
+            &ApplicationPreferences::discoverNearbyCongregationUsersChanged);
 
         preferences.setStartWithRecentCanvas(true);
-        preferences.setDiscoverNearbyVincentUsers(false);
+        preferences.setDiscoverNearbyCongregationUsers(false);
 
         QCOMPARE(startupSpy.size(), 1);
         QCOMPARE(discoverySpy.size(), 1);
@@ -64,13 +64,13 @@ void tst_ApplicationPreferences::generalChoicesPersistAcrossInstances()
         QVERIFY(persistedSettings.open(QIODevice::ReadOnly | QIODevice::Text));
         const QByteArray persistedData = persistedSettings.readAll();
         QVERIFY(persistedData.contains("startWithRecentCanvas=true"));
-        QVERIFY(persistedData.contains("discoverNearbyVincentUsers=false"));
+        QVERIFY(persistedData.contains("discoverNearbyCongregationUsers=false"));
     }
 
     QSettings restoredSettings(settingsPath, QSettings::IniFormat);
     ApplicationPreferences restored(&restoredSettings);
     QVERIFY(restored.startWithRecentCanvas());
-    QVERIFY(!restored.discoverNearbyVincentUsers());
+    QVERIFY(!restored.discoverNearbyCongregationUsers());
 }
 
 void tst_ApplicationPreferences::internalContainerBecomesTheOnlyRecentCanvas()

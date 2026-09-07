@@ -248,7 +248,7 @@ Item {
             return false;
         }
 
-        const storageUrl = VincentApplicationPreferences.recentCanvasStorageUrl;
+        const storageUrl = CongregationApplicationPreferences.recentCanvasStorageUrl;
         if (!storageUrl || storageUrl.toString().length === 0) {
             return false;
         }
@@ -257,9 +257,9 @@ Item {
         const saved = drawingSurface.saveRecentCanvas(storageUrl);
         painterPage.recentCanvasSaveInProgress = false;
         if (saved) {
-            VincentApplicationPreferences.recordRecentCanvas(storageUrl);
+            CongregationApplicationPreferences.recordRecentCanvas(storageUrl);
         } else {
-            console.warn("Vincent could not update the internal recent canvas container.");
+            console.warn("Congregation could not update the internal recent canvas container.");
         }
         return saved;
     }
@@ -282,17 +282,17 @@ Item {
     }
 
     Binding {
-        target: VincentTemporaryCameraInput
+        target: CongregationTemporaryCameraInput
         property: "enabled"
         value: drawingSurface.toolShortcutsEnabled && !drawingSurface.textEditingActive
         restoreMode: Binding.RestoreBindingOrValue
     }
 
     Connections {
-        target: VincentTemporaryCameraInput
+        target: CongregationTemporaryCameraInput
 
         function onModeChanged() {
-            drawingSurface.setTemporaryCameraMode(VincentTemporaryCameraInput.mode);
+            drawingSurface.setTemporaryCameraMode(CongregationTemporaryCameraInput.mode);
         }
     }
 

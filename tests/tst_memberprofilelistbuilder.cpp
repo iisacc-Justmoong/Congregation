@@ -16,17 +16,17 @@ class tst_MemberProfileListBuilder : public QObject
 void tst_MemberProfileListBuilder::localHostIsFirstAndMarkedAsHostAndMe()
 {
     MemberProfileListBuilder builder;
-    const QVariantList members = builder.build({}, QStringLiteral("Vincent"),
-                                               QUrl(QStringLiteral("file:///vincent.png")), true);
+    const QVariantList members = builder.build({}, QStringLiteral("Congregation"),
+                                               QUrl(QStringLiteral("file:///congregation.png")), true);
 
     QCOMPARE(members.size(), 1);
     const QVariantMap currentUser = members.at(0).toMap();
     QCOMPARE(currentUser.value(QStringLiteral("displayName")).toString(),
-             QStringLiteral("Vincent (host, me)"));
+             QStringLiteral("Congregation (host, me)"));
     QCOMPARE(currentUser.value(QStringLiteral("profileName")).toString(),
-             QStringLiteral("Vincent"));
+             QStringLiteral("Congregation"));
     QCOMPARE(currentUser.value(QStringLiteral("profileImageSource")).toUrl(),
-             QUrl(QStringLiteral("file:///vincent.png")));
+             QUrl(QStringLiteral("file:///congregation.png")));
     QVERIFY(currentUser.value(QStringLiteral("isHost")).toBool());
     QVERIFY(currentUser.value(QStringLiteral("isMe")).toBool());
     QVERIFY(!currentUser.value(QStringLiteral("removable")).toBool());
@@ -48,7 +48,7 @@ void tst_MemberProfileListBuilder::remoteHostPrecedesCurrentUserAndOtherCollabor
     };
 
     const QVariantList members =
-        builder.build({peer, host}, QStringLiteral("Vincent"), QUrl{}, false);
+        builder.build({peer, host}, QStringLiteral("Congregation"), QUrl{}, false);
 
     QCOMPARE(members.size(), 3);
     const QVariantMap first = members.at(0).toMap();
@@ -61,7 +61,7 @@ void tst_MemberProfileListBuilder::remoteHostPrecedesCurrentUserAndOtherCollabor
     QVERIFY(!first.value(QStringLiteral("removable")).toBool());
     QCOMPARE(first.value(QStringLiteral("sourceIndex")).toInt(), 1);
     QCOMPARE(second.value(QStringLiteral("displayName")).toString(),
-             QStringLiteral("Vincent (me)"));
+             QStringLiteral("Congregation (me)"));
     QVERIFY(!second.value(QStringLiteral("isHost")).toBool());
     QVERIFY(second.value(QStringLiteral("isMe")).toBool());
     QCOMPARE(third.value(QStringLiteral("displayName")).toString(), QStringLiteral("Peer"));

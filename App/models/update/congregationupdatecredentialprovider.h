@@ -6,11 +6,11 @@
 
 class LicenseManager;
 
-class VincentUpdateCredentialProvider final
+class CongregationUpdateCredentialProvider final
     : public iisacc::updates::UpdateCredentialProvider
 {
 public:
-    explicit VincentUpdateCredentialProvider(LicenseManager *licenseManager,
+    explicit CongregationUpdateCredentialProvider(LicenseManager *licenseManager,
                                              QObject *parent = nullptr);
 
     void requestCredentials(Completion completion) override;

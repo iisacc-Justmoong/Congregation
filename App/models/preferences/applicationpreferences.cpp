@@ -9,7 +9,7 @@
 namespace
 {
 constexpr auto startWithRecentCanvasKey = "General/startWithRecentCanvas";
-constexpr auto discoverNearbyVincentUsersKey = "General/discoverNearbyVincentUsers";
+constexpr auto discoverNearbyCongregationUsersKey = "General/discoverNearbyCongregationUsers";
 constexpr auto legacyRecentCanvasUrlKey = "General/recentCanvasUrl";
 constexpr auto recentCanvasFileName = "recent-canvas.vrc";
 
@@ -63,9 +63,9 @@ bool ApplicationPreferences::startWithRecentCanvas() const noexcept
     return m_startWithRecentCanvas;
 }
 
-bool ApplicationPreferences::discoverNearbyVincentUsers() const noexcept
+bool ApplicationPreferences::discoverNearbyCongregationUsers() const noexcept
 {
-    return m_discoverNearbyVincentUsers;
+    return m_discoverNearbyCongregationUsers;
 }
 
 QUrl ApplicationPreferences::recentCanvasUrl() const
@@ -91,17 +91,17 @@ void ApplicationPreferences::setStartWithRecentCanvas(bool startWithRecentCanvas
     emit startWithRecentCanvasChanged();
 }
 
-void ApplicationPreferences::setDiscoverNearbyVincentUsers(bool discoverNearbyVincentUsers)
+void ApplicationPreferences::setDiscoverNearbyCongregationUsers(bool discoverNearbyCongregationUsers)
 {
-    if (m_discoverNearbyVincentUsers == discoverNearbyVincentUsers) {
+    if (m_discoverNearbyCongregationUsers == discoverNearbyCongregationUsers) {
         return;
     }
 
-    m_discoverNearbyVincentUsers = discoverNearbyVincentUsers;
-    m_settings->setValue(QLatin1String(discoverNearbyVincentUsersKey),
-                         discoverNearbyVincentUsers);
+    m_discoverNearbyCongregationUsers = discoverNearbyCongregationUsers;
+    m_settings->setValue(QLatin1String(discoverNearbyCongregationUsersKey),
+                         discoverNearbyCongregationUsers);
     m_settings->sync();
-    emit discoverNearbyVincentUsersChanged();
+    emit discoverNearbyCongregationUsersChanged();
 }
 
 bool ApplicationPreferences::recordRecentCanvas(const QUrl &fileUrl)
@@ -152,8 +152,8 @@ void ApplicationPreferences::load()
 {
     m_startWithRecentCanvas =
         m_settings->value(QLatin1String(startWithRecentCanvasKey), false).toBool();
-    m_discoverNearbyVincentUsers =
-        m_settings->value(QLatin1String(discoverNearbyVincentUsersKey), true).toBool();
+    m_discoverNearbyCongregationUsers =
+        m_settings->value(QLatin1String(discoverNearbyCongregationUsersKey), true).toBool();
 
     if (m_settings->contains(QLatin1String(legacyRecentCanvasUrlKey))) {
         m_settings->remove(QLatin1String(legacyRecentCanvasUrlKey));

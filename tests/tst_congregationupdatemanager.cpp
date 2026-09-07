@@ -1,7 +1,7 @@
 #include "licensecredentialstore.h"
 #include "licensemanager.h"
-#include "vincentupdatecredentialprovider.h"
-#include "vincentupdatemanager.h"
+#include "congregationupdatecredentialprovider.h"
+#include "congregationupdatemanager.h"
 
 #include <iiUpdateManager/UpdateCredentialProvider.h>
 
@@ -29,7 +29,7 @@ QByteArray storedCredentials()
         {QStringLiteral("schema"), 1},
         {QStringLiteral("email"), QStringLiteral("verified@example.com")},
         {QStringLiteral("licenseKey"), validLicenseKey},
-        {QStringLiteral("productId"), QStringLiteral("vincent")},
+        {QStringLiteral("productId"), QStringLiteral("congregation")},
     }).toJson(QJsonDocument::Compact);
 }
 
@@ -112,12 +112,12 @@ public:
     {
         const QJsonObject manifest{
             {QStringLiteral("schemaVersion"), 1},
-            {QStringLiteral("productId"), QStringLiteral("vincent")},
+            {QStringLiteral("productId"), QStringLiteral("congregation")},
             {QStringLiteral("releases"), QJsonObject{
                  {platformKey(), QJsonObject{
                       {QStringLiteral("version"), std::move(version)},
                       {QStringLiteral("updateUrl"),
-                       QStringLiteral("https://iisacc.com/Store/Vincent/Download")},
+                       QStringLiteral("https://iisacc.com/Store/Congregation/Download")},
                   }},
              }},
         };
@@ -164,7 +164,7 @@ private:
 };
 }
 
-class tst_VincentUpdateManager final : public QObject
+class tst_CongregationUpdateManager final : public QObject
 {
     Q_OBJECT
 
@@ -178,7 +178,7 @@ private slots:
     void macStoreMarkerOrReceiptDisablesSelfUpdate();
 };
 
-void tst_VincentUpdateManager::credentialProviderReadsTheExistingStoreOnlyWhenRequested()
+void tst_CongregationUpdateManager::credentialProviderReadsTheExistingStoreOnlyWhenRequested()
 {
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
@@ -186,7 +186,7 @@ void tst_VincentUpdateManager::credentialProviderReadsTheExistingStoreOnlyWhenRe
                                   &store);
     QTRY_COMPARE_WITH_TIMEOUT(store.readCount, 1, 1000);
 
-    VincentUpdateCredentialProvider provider(&licenseManager);
+    CongregationUpdateCredentialProvider provider(&licenseManager);
     QCOMPARE(store.readCount, 1);
     store.readStatus = LicenseCredentialStore::ReadStatus::Found;
     store.readData = storedCredentials();
@@ -206,7 +206,7 @@ void tst_VincentUpdateManager::credentialProviderReadsTheExistingStoreOnlyWhenRe
     QCOMPARE(store.readCount, 2);
 }
 
-void tst_VincentUpdateManager::credentialProviderDistinguishesInvalidStoredJson()
+void tst_CongregationUpdateManager::credentialProviderDistinguishesInvalidStoredJson()
 {
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
@@ -216,7 +216,7 @@ void tst_VincentUpdateManager::credentialProviderDistinguishesInvalidStoredJson(
     store.readStatus = LicenseCredentialStore::ReadStatus::Found;
     store.readData = QByteArrayLiteral("{}");
 
-    VincentUpdateCredentialProvider provider(&licenseManager);
+    CongregationUpdateCredentialProvider provider(&licenseManager);
     bool completed = false;
     provider.requestCredentials(
         [&completed](std::optional<iisacc::updates::UpdateCredentials> credentials,
@@ -231,7 +231,7 @@ void tst_VincentUpdateManager::credentialProviderDistinguishesInvalidStoredJson(
     QCOMPARE(store.readCount, 2);
 }
 
-void tst_VincentUpdateManager::credentialProviderCancellationSuppressesLateSecrets()
+void tst_CongregationUpdateManager::credentialProviderCancellationSuppressesLateSecrets()
 {
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
@@ -242,7 +242,7 @@ void tst_VincentUpdateManager::credentialProviderCancellationSuppressesLateSecre
     store.readData = storedCredentials();
     store.completeReadsImmediately = false;
 
-    VincentUpdateCredentialProvider provider(&licenseManager);
+    CongregationUpdateCredentialProvider provider(&licenseManager);
     bool completed = false;
     provider.requestCredentials(
         [&completed](std::optional<iisacc::updates::UpdateCredentials>, const QString &) {
@@ -255,21 +255,21 @@ void tst_VincentUpdateManager::credentialProviderCancellationSuppressesLateSecre
     QVERIFY(!completed);
 }
 
-void tst_VincentUpdateManager::constructionDoesNotCheckAndOneManualCheckMakesOneRequest()
+void tst_CongregationUpdateManager::constructionDoesNotCheckAndOneManualCheckMakesOneRequest()
 {
-    ManifestServer server(QStringLiteral("6.0.0"));
+    ManifestServer server(QStringLiteral("1.0.0"));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
                                   1000,
                                   &store);
-    VincentUpdateManager updateManager(&licenseManager,
-                                       QStringLiteral("6.0"),
+    CongregationUpdateManager updateManager(&licenseManager,
+                                       QStringLiteral("1.0.0"),
                                        server.manifestUrl(),
                                        server.grantUrl(),
                                        true);
 
-    QCOMPARE(updateManager.state(), VincentUpdateManager::State::Idle);
+    QCOMPARE(updateManager.state(), CongregationUpdateManager::State::Idle);
     QCOMPARE(updateManager.progress(), 0.0);
     QCOMPARE(server.connectionCount(), 0);
     QTest::qWait(25);
@@ -277,16 +277,16 @@ void tst_VincentUpdateManager::constructionDoesNotCheckAndOneManualCheckMakesOne
 
     QVERIFY(updateManager.checkForUpdates());
     QTRY_COMPARE_WITH_TIMEOUT(updateManager.state(),
-                              VincentUpdateManager::State::UpToDate,
+                              CongregationUpdateManager::State::UpToDate,
                               2000);
     QCOMPARE(server.connectionCount(), 1);
     QVERIFY(!updateManager.title().isEmpty());
     QVERIFY(!updateManager.message().isEmpty());
 }
 
-void tst_VincentUpdateManager::updateNowAloneReadsCredentialsAfterAnAvailableCheck()
+void tst_CongregationUpdateManager::updateNowAloneReadsCredentialsAfterAnAvailableCheck()
 {
-    ManifestServer server(QStringLiteral("6.1.0"));
+    ManifestServer server(QStringLiteral("1.1.0"));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
@@ -294,8 +294,8 @@ void tst_VincentUpdateManager::updateNowAloneReadsCredentialsAfterAnAvailableChe
                                   &store);
     QTRY_COMPARE_WITH_TIMEOUT(store.readCount, 1, 1000);
 
-    VincentUpdateManager updateManager(&licenseManager,
-                                       QStringLiteral("6.0"),
+    CongregationUpdateManager updateManager(&licenseManager,
+                                       QStringLiteral("1.0.0"),
                                        server.manifestUrl(),
                                        server.grantUrl(),
                                        true);
@@ -303,7 +303,7 @@ void tst_VincentUpdateManager::updateNowAloneReadsCredentialsAfterAnAvailableChe
     QCOMPARE(store.readCount, 1);
     QVERIFY(updateManager.checkForUpdates());
     QTRY_COMPARE_WITH_TIMEOUT(updateManager.state(),
-                              VincentUpdateManager::State::UpdateAvailable,
+                              CongregationUpdateManager::State::UpdateAvailable,
                               2000);
     QCOMPARE(server.connectionCount(), 1);
     QCOMPARE(store.readCount, 1);
@@ -313,22 +313,22 @@ void tst_VincentUpdateManager::updateNowAloneReadsCredentialsAfterAnAvailableChe
     store.completeReadsImmediately = false;
 
     QVERIFY(updateManager.updateNow());
-    QCOMPARE(updateManager.state(), VincentUpdateManager::State::Authorizing);
+    QCOMPARE(updateManager.state(), CongregationUpdateManager::State::Authorizing);
     QVERIFY(updateManager.canCancel());
     QCOMPARE(store.readCount, 2);
     QCOMPARE(server.connectionCount(), 1);
 
     QVERIFY(updateManager.cancelUpdate());
-    QCOMPARE(updateManager.state(), VincentUpdateManager::State::UpdateAvailable);
+    QCOMPARE(updateManager.state(), CongregationUpdateManager::State::UpdateAvailable);
     store.completeRead();
     QTest::qWait(25);
     QCOMPARE(server.connectionCount(), 1);
     QCOMPARE(store.readCount, 2);
 }
 
-void tst_VincentUpdateManager::storeManagedBuildRejectsSelfUpdateWithoutNetworkOrCredentialRead()
+void tst_CongregationUpdateManager::storeManagedBuildRejectsSelfUpdateWithoutNetworkOrCredentialRead()
 {
-    ManifestServer server(QStringLiteral("6.1.0"));
+    ManifestServer server(QStringLiteral("1.1.0"));
     QVERIFY(server.listen(QHostAddress::LocalHost, 0));
     FakeCredentialStore store;
     LicenseManager licenseManager(QUrl(QStringLiteral("http://127.0.0.1/validate")),
@@ -336,8 +336,8 @@ void tst_VincentUpdateManager::storeManagedBuildRejectsSelfUpdateWithoutNetworkO
                                   &store);
     QTRY_COMPARE_WITH_TIMEOUT(store.readCount, 1, 1000);
 
-    VincentUpdateManager updateManager(&licenseManager,
-                                       QStringLiteral("6.0"),
+    CongregationUpdateManager updateManager(&licenseManager,
+                                       QStringLiteral("1.0.0"),
                                        server.manifestUrl(),
                                        server.grantUrl(),
                                        false);
@@ -346,7 +346,7 @@ void tst_VincentUpdateManager::storeManagedBuildRejectsSelfUpdateWithoutNetworkO
     QVERIFY(!updateManager.checkForUpdates());
     QVERIFY(!updateManager.updateNow());
     QVERIFY(!updateManager.cancelUpdate());
-    QCOMPARE(updateManager.state(), VincentUpdateManager::State::Failed);
+    QCOMPARE(updateManager.state(), CongregationUpdateManager::State::Failed);
     QCOMPARE(store.readCount, 1);
     QCOMPARE(server.connectionCount(), 0);
     QTest::qWait(25);
@@ -354,7 +354,7 @@ void tst_VincentUpdateManager::storeManagedBuildRejectsSelfUpdateWithoutNetworkO
     QCOMPARE(server.connectionCount(), 0);
 }
 
-void tst_VincentUpdateManager::macStoreMarkerOrReceiptDisablesSelfUpdate()
+void tst_CongregationUpdateManager::macStoreMarkerOrReceiptDisablesSelfUpdate()
 {
 #ifndef Q_OS_MACOS
     QSKIP("macOS bundle markers are only interpreted on macOS");
@@ -362,13 +362,13 @@ void tst_VincentUpdateManager::macStoreMarkerOrReceiptDisablesSelfUpdate()
     QTemporaryDir temporaryDirectory;
     QVERIFY(temporaryDirectory.isValid());
     QDir root(temporaryDirectory.path());
-    QVERIFY(root.mkpath(QStringLiteral("Vincent.app/Contents/MacOS")));
+    QVERIFY(root.mkpath(QStringLiteral("Congregation.app/Contents/MacOS")));
     const QString executableDirectory =
-        root.filePath(QStringLiteral("Vincent.app/Contents/MacOS"));
+        root.filePath(QStringLiteral("Congregation.app/Contents/MacOS"));
     const QString contentsDirectory =
-        root.filePath(QStringLiteral("Vincent.app/Contents"));
+        root.filePath(QStringLiteral("Congregation.app/Contents"));
     const QString infoPlistPath =
-        root.filePath(QStringLiteral("Vincent.app/Contents/Info.plist"));
+        root.filePath(QStringLiteral("Congregation.app/Contents/Info.plist"));
 
     const auto writeMarker = [&infoPlistPath](const QString &channel) {
         QFile infoPlist(infoPlistPath);
@@ -384,11 +384,11 @@ void tst_VincentUpdateManager::macStoreMarkerOrReceiptDisablesSelfUpdate()
     };
 
     QVERIFY(writeMarker(QStringLiteral("direct")));
-    QVERIFY(VincentUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
+    QVERIFY(CongregationUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
         executableDirectory));
 
     QVERIFY(writeMarker(QStringLiteral("appstore")));
-    QVERIFY(!VincentUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
+    QVERIFY(!CongregationUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
         executableDirectory));
 
     QVERIFY(writeMarker(QStringLiteral("direct")));
@@ -398,11 +398,11 @@ void tst_VincentUpdateManager::macStoreMarkerOrReceiptDisablesSelfUpdate()
     QVERIFY(receipt.open(QIODevice::WriteOnly));
     QVERIFY(receipt.write("receipt") > 0);
     receipt.close();
-    QVERIFY(!VincentUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
+    QVERIFY(!CongregationUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
         executableDirectory));
 #endif
 }
 
-QTEST_GUILESS_MAIN(tst_VincentUpdateManager)
+QTEST_GUILESS_MAIN(tst_CongregationUpdateManager)
 
-#include "tst_vincentupdatemanager.moc"
+#include "tst_congregationupdatemanager.moc"

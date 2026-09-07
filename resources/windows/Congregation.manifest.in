@@ -3,10 +3,10 @@
           xmlns:asmv3="urn:schemas-microsoft-com:asm.v3"
           manifestVersion="1.0">
   <assemblyIdentity type="win32"
-                    name="IISACC.Vincent"
-                    version="@VINCENT_WINDOWS_VERSION_DOTTED@"
+                    name="IISACC.Congregation"
+                    version="@CONGREGATION_WINDOWS_VERSION_DOTTED@"
                     processorArchitecture="*" />
-  <description>Vincent raster drawing application</description>
+  <description>Congregation raster drawing application</description>
 
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>

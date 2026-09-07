@@ -290,7 +290,7 @@ QVariantMap PsdLayerRecord::toVariantMap() const
     return layer;
 }
 
-PsdCompatibilityDocument PsdCompatibilityDocument::fromVincentSession(const QSize &canvasSize,
+PsdCompatibilityDocument PsdCompatibilityDocument::fromCongregationSession(const QSize &canvasSize,
                                                                       const QVariantList &drawableObjects,
                                                                       bool includeBackgroundLayer)
 {

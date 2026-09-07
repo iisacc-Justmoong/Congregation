@@ -54,13 +54,13 @@ foreach ($functionAst in $functionAsts) {
 }
 
 foreach ($requiredFunction in @(
-    "Get-VincentNecessaryReleaseVersion",
-    "Get-VincentNecessaryFileSha256",
-    "Invoke-VincentNecessaryReleaseNative",
-    "Invoke-VincentNecessaryMsiDatabaseContract",
-    "Invoke-VincentNecessaryAdministrativeExtraction",
-    "Publish-VincentNecessaryReleaseFile",
-    "Invoke-VincentNecessaryWindowsRelease"
+    "Get-CongregationNecessaryReleaseVersion",
+    "Get-CongregationNecessaryFileSha256",
+    "Invoke-CongregationNecessaryReleaseNative",
+    "Invoke-CongregationNecessaryMsiDatabaseContract",
+    "Invoke-CongregationNecessaryAdministrativeExtraction",
+    "Publish-CongregationNecessaryReleaseFile",
+    "Invoke-CongregationNecessaryWindowsRelease"
 )) {
     Assert-Condition `
         ($null -ne (Get-Command $requiredFunction -CommandType Function -ErrorAction SilentlyContinue)) `
@@ -69,10 +69,10 @@ foreach ($requiredFunction in @(
 
 $temporaryRoot = Join-Path `
     ([System.IO.Path]::GetTempPath()) `
-    ("Vincent-NecessaryReleaseTest-" + [Guid]::NewGuid().ToString("N"))
+    ("Congregation-NecessaryReleaseTest-" + [Guid]::NewGuid().ToString("N"))
 $repositoryRoot = Join-Path $temporaryRoot "repository"
 $buildDirectory = Join-Path $repositoryRoot "build"
-$stageDirectory = Join-Path $repositoryRoot "dist\Vincent-Windows"
+$stageDirectory = Join-Path $repositoryRoot "dist\Congregation-Windows"
 $msiWorkDirectory = Join-Path $buildDirectory "msi"
 $wixToolsDirectory = Join-Path $temporaryRoot "wix"
 $mockToolsDirectory = Join-Path $temporaryRoot "tools"
@@ -92,9 +92,9 @@ try {
 
     [System.IO.File]::WriteAllText(
         (Join-Path $buildDirectory "CMakeCache.txt"),
-        "CMAKE_PROJECT_VERSION:STATIC=6.0`r`n"
+        "CMAKE_PROJECT_VERSION:STATIC=1.0.0`r`n"
     )
-    foreach ($name in @("VincentProduct.wxs", "VincentRuntime.wxs", "VincentLicense.rtf")) {
+    foreach ($name in @("CongregationProduct.wxs", "CongregationRuntime.wxs", "CongregationLicense.rtf")) {
         [System.IO.File]::WriteAllText((Join-Path $msiWorkDirectory $name), "verified MSI input")
     }
     [System.IO.File]::WriteAllText(
@@ -111,7 +111,7 @@ try {
     [System.IO.File]::WriteAllText($signToolPath, "mock SignTool")
 
     foreach ($name in @(
-        "Vincent.exe",
+        "Congregation.exe",
         "LVRS.dll",
         "libiiPaintEngine.dll",
         "libgcc_s_seh-1.dll"
@@ -191,7 +191,7 @@ try {
         }
     }
 
-    function Invoke-VincentNecessaryReleaseNative {
+    function Invoke-CongregationNecessaryReleaseNative {
         param(
             [string]$FilePath,
             [string[]]$Arguments
@@ -207,7 +207,7 @@ try {
         }
     }
 
-    function Invoke-VincentNecessaryMsiDatabaseContract {
+    function Invoke-CongregationNecessaryMsiDatabaseContract {
         param(
             [string]$RepositoryRoot,
             [string]$BuildDirectory,
@@ -221,7 +221,7 @@ try {
         }
     }
 
-    function Invoke-VincentNecessaryAdministrativeExtraction {
+    function Invoke-CongregationNecessaryAdministrativeExtraction {
         param(
             [string]$MsiPath,
             [string]$OutputDirectory
@@ -229,7 +229,7 @@ try {
 
         $script:administrativeExtractionCalls++
         New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
-        foreach ($name in @("Vincent.exe", "LVRS.dll", "libiiPaintEngine.dll")) {
+        foreach ($name in @("Congregation.exe", "LVRS.dll", "libiiPaintEngine.dll")) {
             [System.IO.File]::WriteAllText(
                 (Join-Path $OutputDirectory $name),
                 "signed-by-necessary"
@@ -237,7 +237,7 @@ try {
         }
     }
 
-    $result = Invoke-VincentNecessaryWindowsRelease `
+    $result = Invoke-CongregationNecessaryWindowsRelease `
         -RepositoryRoot $repositoryRoot `
         -BuildDirectory $buildDirectory `
         -StageDirectory $stageDirectory `
@@ -247,7 +247,7 @@ try {
         -SigningToken "secret-token" `
         -TimestampUrl "http://timestamp.digicert.com"
 
-    $expectedFinalMsi = Join-Path $buildDirectory "Vincent-6.0-Windows.msi"
+    $expectedFinalMsi = Join-Path $buildDirectory "Congregation-1.0.0-Windows.msi"
     Assert-Condition ($result.File -ceq $expectedFinalMsi) `
         "The verified release was not published to the canonical versioned MSI path."
     Assert-Condition (Test-Path -LiteralPath $expectedFinalMsi -PathType Leaf) `
@@ -258,7 +258,7 @@ try {
     Assert-Condition ($result.Thumbprint -ceq $script:necessaryThumbprint) `
         "The release result did not report the bound Necessary certificate."
     Assert-Condition ($script:signCalls.Count -eq 5) `
-        "Exactly four unsigned/Vincent-owned PEs and the MSI must be signed."
+        "Exactly four unsigned/Congregation-owned PEs and the MSI must be signed."
     Assert-Condition `
         ([string]::IsNullOrWhiteSpace($script:signCalls[0].ExpectedCertificateThumbprint)) `
         "The first signing request must establish the release certificate thumbprint."
@@ -279,7 +279,7 @@ try {
     Assert-Condition (Test-Path -LiteralPath $sidecarPath -PathType Leaf) `
         "The verified MSI SHA-256 sidecar was not published."
     $expectedHash = (
-        Get-VincentNecessaryFileSha256 -File $expectedFinalMsi
+        Get-CongregationNecessaryFileSha256 -File $expectedFinalMsi
     ).ToLowerInvariant()
     Assert-Condition `
         ((Get-Content -LiteralPath $sidecarPath -Raw).Contains($expectedHash)) `
@@ -288,7 +288,7 @@ try {
     [System.IO.File]::WriteAllText($expectedFinalMsi, "stable previous release")
     [System.IO.File]::WriteAllText($sidecarPath, "stable previous sidecar")
     foreach ($name in @(
-        "Vincent.exe",
+        "Congregation.exe",
         "LVRS.dll",
         "libiiPaintEngine.dll",
         "libgcc_s_seh-1.dll"
@@ -298,7 +298,7 @@ try {
     $script:failDatabaseContract = $true
 
     Assert-Throws {
-        Invoke-VincentNecessaryWindowsRelease `
+        Invoke-CongregationNecessaryWindowsRelease `
             -RepositoryRoot $repositoryRoot `
             -BuildDirectory $buildDirectory `
             -StageDirectory $stageDirectory `

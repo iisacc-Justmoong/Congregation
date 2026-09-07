@@ -26,12 +26,12 @@
 #include "models/license/accountmanager.h"
 #include "models/license/licensemanager.h"
 #include "models/network/localcanvassession.h"
-#include "models/network/nearbyvincentdiscovery.h"
+#include "models/network/nearbycongregationdiscovery.h"
 #include "models/painting/drawingsurfaceitem.h"
 #include "models/preferences/applicationpreferences.h"
 #include "models/profile/profileimageprocessor.h"
 #include "models/brush/paletteutils.h"
-#include "models/update/vincentupdatemanager.h"
+#include "models/update/congregationupdatemanager.h"
 
 void qml_register_types_LVRS();
 
@@ -50,7 +50,7 @@ QString startupLogPath()
             return QString{};
         }
 
-        return QDir(logDirectory).filePath(QStringLiteral("Vincent-startup.log"));
+        return QDir(logDirectory).filePath(QStringLiteral("Congregation-startup.log"));
     }();
     return path;
 }
@@ -69,7 +69,7 @@ QFile &startupLogFile()
 
 bool startupTraceEnabled()
 {
-    static const bool enabled = qEnvironmentVariableIntValue("VINCENT_STARTUP_TRACE") > 0;
+    static const bool enabled = qEnvironmentVariableIntValue("CONGREGATION_STARTUP_TRACE") > 0;
     return enabled;
 }
 
@@ -227,12 +227,12 @@ int main(int argc, char *argv[])
     startupLogPath();
 
     QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName(QStringLiteral("Vincent"));
-    QGuiApplication::setApplicationVersion(QStringLiteral(VINCENT_VERSION));
+    QGuiApplication::setApplicationName(QStringLiteral("Congregation"));
+    QGuiApplication::setApplicationVersion(QStringLiteral(CONGREGATION_VERSION));
     QGuiApplication::setOrganizationName(QStringLiteral("iisacc"));
     QGuiApplication::setOrganizationDomain(QStringLiteral("iisacc.com"));
     QQuickStyle::setStyle(QStringLiteral("Basic"));
-    traceStartup(QStringLiteral("Vincent startup initialized in %1 ms").arg(launchTimer.elapsed()));
+    traceStartup(QStringLiteral("Congregation startup initialized in %1 ms").arg(launchTimer.elapsed()));
 
     qml_register_types_LVRS();
     iiSharedCanvas::registerIiSharedCanvasQmlTypes();
@@ -240,38 +240,38 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     configureEngineImports(engine);
-    qmlRegisterType<DrawingSurfaceItem>("Vincent", 2, 0, "DrawingSurfaceItem");
+    qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
 
     auto *temporaryCameraInput = new TemporaryCameraInput(&app);
     app.installEventFilter(temporaryCameraInput);
-    engine.rootContext()->setContextProperty("VincentTemporaryCameraInput", temporaryCameraInput);
+    engine.rootContext()->setContextProperty("CongregationTemporaryCameraInput", temporaryCameraInput);
     auto *paletteUtils = new PaletteUtils(&engine);
     engine.rootContext()->setContextProperty("PaletteUtils", paletteUtils);
     auto *profileImageProcessor = new ProfileImageProcessor(&engine);
-    engine.rootContext()->setContextProperty("VincentProfileImageProcessor",
+    engine.rootContext()->setContextProperty("CongregationProfileImageProcessor",
                                              profileImageProcessor);
     auto *memberProfileListBuilder = new MemberProfileListBuilder(&engine);
-    engine.rootContext()->setContextProperty("VincentMemberProfileListBuilder",
+    engine.rootContext()->setContextProperty("CongregationMemberProfileListBuilder",
                                              memberProfileListBuilder);
     auto *applicationPreferences = new ApplicationPreferences(&engine);
-    engine.rootContext()->setContextProperty("VincentApplicationPreferences",
+    engine.rootContext()->setContextProperty("CongregationApplicationPreferences",
                                              applicationPreferences);
     auto *licenseManager =
         new LicenseManager(LicenseManager::EnforcementMode::Disabled, &engine);
-    engine.rootContext()->setContextProperty("VincentLicenseManager", licenseManager);
+    engine.rootContext()->setContextProperty("CongregationLicenseManager", licenseManager);
     auto *accountManager = new AccountManager(licenseManager, &engine);
-    engine.rootContext()->setContextProperty("VincentAccountManager", accountManager);
-    auto *updateManager = new VincentUpdateManager(licenseManager, &engine);
-    engine.rootContext()->setContextProperty("VincentUpdateManager", updateManager);
-    auto *nearbyDiscovery = new NearbyVincentDiscovery(&engine);
-    engine.rootContext()->setContextProperty("VincentNearbyDiscovery", nearbyDiscovery);
+    engine.rootContext()->setContextProperty("CongregationAccountManager", accountManager);
+    auto *updateManager = new CongregationUpdateManager(licenseManager, &engine);
+    engine.rootContext()->setContextProperty("CongregationUpdateManager", updateManager);
+    auto *nearbyDiscovery = new NearbyCongregationDiscovery(&engine);
+    engine.rootContext()->setContextProperty("CongregationNearbyDiscovery", nearbyDiscovery);
     auto* localCanvasSession = new LocalCanvasSession(nearbyDiscovery, &engine);
-    engine.rootContext()->setContextProperty("VincentLocalCanvasSession", localCanvasSession);
+    engine.rootContext()->setContextProperty("CongregationLocalCanvasSession", localCanvasSession);
     QObject::connect(applicationPreferences,
-                     &ApplicationPreferences::discoverNearbyVincentUsersChanged,
+                     &ApplicationPreferences::discoverNearbyCongregationUsersChanged,
                      nearbyDiscovery,
                      [applicationPreferences, nearbyDiscovery]() {
-                         if (applicationPreferences->discoverNearbyVincentUsers()) {
+                         if (applicationPreferences->discoverNearbyCongregationUsers()) {
                              nearbyDiscovery->start();
                              return;
                          }
@@ -284,20 +284,20 @@ int main(int argc, char *argv[])
                      &app,
                      []() {
                          appendStartupLog(QStringLiteral("critical"),
-                                          QStringLiteral("Vincent.Main object creation failed"),
+                                          QStringLiteral("Congregation.Main object creation failed"),
                                           true);
-                         qCritical("Vincent.Main object creation failed");
+                         qCritical("Congregation.Main object creation failed");
                          QCoreApplication::exit(-1);
                      },
                      Qt::QueuedConnection);
-    traceStartup(QStringLiteral("Loading Vincent.Main at %1 ms").arg(launchTimer.elapsed()));
-    engine.loadFromModule(QStringLiteral("Vincent"), QStringLiteral("Main"));
-    traceStartup(QStringLiteral("Loaded Vincent.Main with %1 root object(s) in %2 ms")
+    traceStartup(QStringLiteral("Loading Congregation.Main at %1 ms").arg(launchTimer.elapsed()));
+    engine.loadFromModule(QStringLiteral("Congregation"), QStringLiteral("Main"));
+    traceStartup(QStringLiteral("Loaded Congregation.Main with %1 root object(s) in %2 ms")
                      .arg(engine.rootObjects().size())
                      .arg(launchTimer.elapsed()));
     showLaunchWindow(engine);
     QTimer::singleShot(0, nearbyDiscovery, [applicationPreferences, nearbyDiscovery]() {
-        if (applicationPreferences->discoverNearbyVincentUsers()) {
+        if (applicationPreferences->discoverNearbyCongregationUsers()) {
             nearbyDiscovery->start();
         }
     });

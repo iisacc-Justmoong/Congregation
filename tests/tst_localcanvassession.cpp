@@ -4,7 +4,7 @@
 #include <QtTest>
 
 #include "localcanvassession.h"
-#include "nearbyvincentdiscovery.h"
+#include "nearbycongregationdiscovery.h"
 #include "recentcanvascontainer.h"
 
 namespace
@@ -109,7 +109,7 @@ void tst_LocalCanvasSession::hostExecutesClientCommandsAndPublishesVersionedSnap
 
 void tst_LocalCanvasSession::invitationDecisionControlsCanvasConnection()
 {
-    NearbyVincentDiscovery::Configuration configuration;
+    NearbyCongregationDiscovery::Configuration configuration;
     configuration.port = static_cast<quint16>(49152 + QRandomGenerator::global()->bounded(12000));
     configuration.heartbeatIntervalMs = 100;
     configuration.peerTimeoutMs = 700;
@@ -117,8 +117,8 @@ void tst_LocalCanvasSession::invitationDecisionControlsCanvasConnection()
     configuration.ignoreLocalSenders = false;
     configuration.includeLoopbackInterfaces = true;
 
-    NearbyVincentDiscovery hostDiscovery(configuration);
-    NearbyVincentDiscovery guestDiscovery(configuration);
+    NearbyCongregationDiscovery hostDiscovery(configuration);
+    NearbyCongregationDiscovery guestDiscovery(configuration);
     LocalCanvasSession host(&hostDiscovery);
     LocalCanvasSession guest(&guestDiscovery);
     guest.setInvitationsAllowed(true);
@@ -157,7 +157,7 @@ void tst_LocalCanvasSession::invitationDecisionControlsCanvasConnection()
 void tst_LocalCanvasSession::invalidSnapshotsAndEndpointsAreRejected()
 {
     LocalCanvasSession session(nullptr);
-    QVERIFY(!session.publishSnapshot(QByteArrayLiteral("not-a-vincent-canvas")));
+    QVERIFY(!session.publishSnapshot(QByteArrayLiteral("not-a-congregation-canvas")));
     QVERIFY(!session.errorString().isEmpty());
     QCOMPARE(session.revision(), quint64(0));
 

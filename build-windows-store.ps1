@@ -10,14 +10,14 @@ param(
     [switch]$SkipBuild,
     [switch]$InstallDevelopment,
 
-    [string]$IdentityName = $env:VINCENT_STORE_IDENTITY_NAME,
-    [string]$Publisher = $env:VINCENT_STORE_PUBLISHER,
-    [string]$DisplayName = $env:VINCENT_STORE_DISPLAY_NAME,
-    [string]$PublisherDisplayName = $env:VINCENT_STORE_PUBLISHER_DISPLAY_NAME,
-    [string]$DevelopmentCertificateThumbprint = $env:VINCENT_DEVELOPMENT_SIGNING_CERTIFICATE_THUMBPRINT,
-    [string]$CorrespondingSourceUrl = $env:VINCENT_CORRESPONDING_SOURCE_URL,
-    [string]$CorrespondingSourceSha256 = $env:VINCENT_CORRESPONDING_SOURCE_SHA256,
-    [string]$TimestampUrl = $(if ($env:VINCENT_TIMESTAMP_URL) { $env:VINCENT_TIMESTAMP_URL } else { "http://timestamp.digicert.com" }),
+    [string]$IdentityName = $env:CONGREGATION_STORE_IDENTITY_NAME,
+    [string]$Publisher = $env:CONGREGATION_STORE_PUBLISHER,
+    [string]$DisplayName = $env:CONGREGATION_STORE_DISPLAY_NAME,
+    [string]$PublisherDisplayName = $env:CONGREGATION_STORE_PUBLISHER_DISPLAY_NAME,
+    [string]$DevelopmentCertificateThumbprint = $env:CONGREGATION_DEVELOPMENT_SIGNING_CERTIFICATE_THUMBPRINT,
+    [string]$CorrespondingSourceUrl = $env:CONGREGATION_CORRESPONDING_SOURCE_URL,
+    [string]$CorrespondingSourceSha256 = $env:CONGREGATION_CORRESPONDING_SOURCE_SHA256,
+    [string]$TimestampUrl = $(if ($env:CONGREGATION_TIMESTAMP_URL) { $env:CONGREGATION_TIMESTAMP_URL } else { "http://timestamp.digicert.com" }),
     [string]$MakeAppxPath = $env:MAKEAPPX_PATH,
     [string]$SignToolPath = $env:SIGNTOOL_PATH
 )
@@ -25,7 +25,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$Version = "6.0"
+$Version = "1.0.0"
 $packageVersionParts = @($Version -split '\.')
 while ($packageVersionParts.Count -lt 4) {
     $packageVersionParts += "0"
@@ -34,11 +34,11 @@ $PackageVersion = $packageVersionParts[0..3] -join "."
 $RepositoryRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 $BuildDirectory = Join-Path $RepositoryRoot "build"
 $DistDirectory = Join-Path $RepositoryRoot "dist"
-$StageDirectory = Join-Path $RepositoryRoot "dist\Vincent-Windows"
+$StageDirectory = Join-Path $RepositoryRoot "dist\Congregation-Windows"
 $WorkDirectory = Join-Path $BuildDirectory "msix-store"
 $ContentDirectory = Join-Path $WorkDirectory "content"
 $ManifestTemplatePath = Join-Path $RepositoryRoot "packaging\windows\AppxManifest.xml.in"
-$IconSourcePath = Join-Path $RepositoryRoot "packaging\macos\Vincent.xcassets\AppIcon.appiconset\AppIcon-1024.png"
+$IconSourcePath = Join-Path $RepositoryRoot "packaging\macos\Congregation.xcassets\AppIcon.appiconset\AppIcon-1024.png"
 
 function Write-Step {
     param([string]$Message)
@@ -162,7 +162,7 @@ function Assert-StorePackageContent {
 
     $requiredPaths = @(
         "AppxManifest.xml",
-        "Vincent.exe",
+        "Congregation.exe",
         "LICENSE.txt",
         "THIRD_PARTY_NOTICES.txt",
         "SOURCE_OFFER.txt",
@@ -412,19 +412,19 @@ function Write-StoreCorrespondingSourceOffer {
     $sourceUri = $null
     if ((-not [System.Uri]::TryCreate($SourceUrl, [System.UriKind]::Absolute, [ref]$sourceUri)) -or
         $sourceUri.Scheme -ne "https") {
-        throw "Store packaging requires VINCENT_CORRESPONDING_SOURCE_URL as an absolute HTTPS URL."
+        throw "Store packaging requires CONGREGATION_CORRESPONDING_SOURCE_URL as an absolute HTTPS URL."
     }
     $normalizedHash = (($SourceSha256 | Out-String).Trim() -replace '\s', '').ToUpperInvariant()
     if ($normalizedHash -notmatch '^[0-9A-F]{64}$') {
-        throw "Store packaging requires VINCENT_CORRESPONDING_SOURCE_SHA256 as an exact 64-hex value."
+        throw "Store packaging requires CONGREGATION_CORRESPONDING_SOURCE_SHA256 as an exact 64-hex value."
     }
 
     $offer = @"
-Vincent $Version corresponding source
+Congregation $Version corresponding source
 ========================================
 
 The corresponding source for this exact release, including the sources needed
-to comply with the GNU AGPL and LGPL components conveyed with Vincent, is
+to comply with the GNU AGPL and LGPL components conveyed with Congregation, is
 available without charge from the publisher-controlled location below.
 
 URL: $SourceUrl
@@ -508,27 +508,27 @@ function Install-AndVerifyDevelopmentMsix {
         Remove-AppxPackage -Package $existingPackage.PackageFullName -ErrorAction Stop
     }
 
-    $beforeProcessIds = @(Get-Process -Name "Vincent" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
+    $beforeProcessIds = @(Get-Process -Name "Congregation" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
     $newProcessIds = @()
     $installedPackage = $null
     try {
         Add-AppxPackage -Path $PackagePath -ErrorAction Stop
         $installedPackage = Get-AppxPackage | Where-Object { $_.Name -ceq $IdentityName } | Select-Object -First 1
         if (-not $installedPackage) {
-            throw "Add-AppxPackage completed but the Vincent development package is not registered."
+            throw "Add-AppxPackage completed but the Congregation development package is not registered."
         }
-        foreach ($relativePath in @("Vincent.exe", "LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "SOURCE_OFFER.txt")) {
+        foreach ($relativePath in @("Congregation.exe", "LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "SOURCE_OFFER.txt")) {
             if (-not (Test-Path -LiteralPath (Join-Path $installedPackage.InstallLocation $relativePath) -PathType Leaf)) {
                 throw "The installed MSIX is missing $relativePath."
             }
         }
 
-        Start-Process "explorer.exe" -ArgumentList "shell:AppsFolder\$($installedPackage.PackageFamilyName)!Vincent"
+        Start-Process "explorer.exe" -ArgumentList "shell:AppsFolder\$($installedPackage.PackageFamilyName)!Congregation"
         $deadline = [DateTime]::UtcNow.AddSeconds(45)
         $visibleProcess = $null
         while ([DateTime]::UtcNow -lt $deadline) {
             Start-Sleep -Milliseconds 250
-            $candidateProcesses = @(Get-Process -Name "Vincent" -ErrorAction SilentlyContinue |
+            $candidateProcesses = @(Get-Process -Name "Congregation" -ErrorAction SilentlyContinue |
                 Where-Object { $_.Id -notin $beforeProcessIds })
             $newProcessIds = @($candidateProcesses | Select-Object -ExpandProperty Id)
             foreach ($candidate in $candidateProcesses) {
@@ -543,9 +543,9 @@ function Install-AndVerifyDevelopmentMsix {
             }
         }
         if (-not $visibleProcess) {
-            throw "The installed Vincent MSIX did not create a visible application window within 45 seconds."
+            throw "The installed Congregation MSIX did not create a visible application window within 45 seconds."
         }
-        Write-Host "Visible packaged Vincent window: PID $($visibleProcess.Id), HWND $($visibleProcess.MainWindowHandle)"
+        Write-Host "Visible packaged Congregation window: PID $($visibleProcess.Id), HWND $($visibleProcess.MainWindowHandle)"
     } finally {
         foreach ($processId in $newProcessIds) {
             Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
@@ -556,7 +556,7 @@ function Install-AndVerifyDevelopmentMsix {
     }
 
     if (Get-AppxPackage | Where-Object { $_.Name -ceq $IdentityName } | Select-Object -First 1) {
-        throw "The Vincent development package remained registered after the verification cleanup."
+        throw "The Congregation development package remained registered after the verification cleanup."
     }
 }
 
@@ -571,13 +571,13 @@ if (-not $isWindowsRuntime) {
 
 if ($Mode -eq "Development") {
     if ([string]::IsNullOrWhiteSpace($IdentityName)) {
-        $IdentityName = "IISACC.Vincent.Development"
+        $IdentityName = "IISACC.Congregation.Development"
     }
     if ([string]::IsNullOrWhiteSpace($Publisher)) {
-        $Publisher = "CN=Vincent Development Local Only"
+        $Publisher = "CN=Congregation Development Local Only"
     }
     if ([string]::IsNullOrWhiteSpace($DisplayName)) {
-        $DisplayName = "Vincent Development"
+        $DisplayName = "Congregation Development"
     }
     if ([string]::IsNullOrWhiteSpace($PublisherDisplayName)) {
         $PublisherDisplayName = "IISACC Development"
@@ -624,7 +624,7 @@ if (-not $SkipBuild) {
     )
 }
 
-if (-not (Test-Path -LiteralPath (Join-Path $StageDirectory "Vincent.exe") -PathType Leaf)) {
+if (-not (Test-Path -LiteralPath (Join-Path $StageDirectory "Congregation.exe") -PathType Leaf)) {
     throw "The staged Windows runtime is missing. Run without -SkipBuild first."
 }
 
@@ -643,7 +643,7 @@ Write-StoreAppxManifest `
     -PackageVersion $PackageVersion
 
 if (-not (Test-Path -LiteralPath $IconSourcePath -PathType Leaf)) {
-    throw "The 1024x1024 Vincent icon source is missing: $IconSourcePath"
+    throw "The 1024x1024 Congregation icon source is missing: $IconSourcePath"
 }
 $assetDefinitions = @(
     [pscustomobject]@{ Name = "StoreLogo.png"; Size = 50 },
@@ -666,13 +666,13 @@ if ($Mode -eq "Store") {
 Assert-StorePackageContent -Directory $ContentDirectory -StoreSubmission ($Mode -eq "Store")
 
 $developmentOutputDirectory = Join-Path $BuildDirectory "development-only"
-$storeBaseName = "Vincent-$Version-Windows-Store-x64"
-$developmentBaseName = "Vincent-$Version-Windows-Sideload-Development-x64"
+$storeBaseName = "Congregation-$Version-Windows-Store-x64"
+$developmentBaseName = "Congregation-$Version-Windows-Sideload-Development-x64"
 $outputDirectory = if ($Mode -eq "Store") { $DistDirectory } else { $developmentOutputDirectory }
 $baseName = if ($Mode -eq "Store") { $storeBaseName } else { $developmentBaseName }
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 if ($Mode -eq "Development") {
-    $publicCertificatePath = Join-Path $outputDirectory "Vincent-Development-Local-Only.cer"
+    $publicCertificatePath = Join-Path $outputDirectory "Congregation-Development-Local-Only.cer"
     Export-Certificate -Cert $developmentCertificate -FilePath $publicCertificatePath -Force | Out-Null
     Write-Host "Development public certificate: $publicCertificatePath"
 }

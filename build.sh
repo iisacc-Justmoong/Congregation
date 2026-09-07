@@ -18,7 +18,7 @@ usage() {
 Usage: ./build.sh [--clean] [local|devid|mas|all]
 
 Modes:
-  local   Build, test, deploy Qt runtime, sign dist/Vincent.app for local use,
+  local   Build, test, deploy Qt runtime, sign dist/Congregation.app for local use,
           and create unsigned local installer packages.
           Uses LOCAL_APP_CERT, the first valid Apple Development identity, or ad-hoc signing.
   devid   Build, test, create the Developer ID pkg, notarize it, and staple it. (default)
@@ -26,7 +26,7 @@ Modes:
   all     Build, test, create both Developer ID and Mac App Store pkgs.
 
 Environment:
-  VINCENT_BUILD_MODE may be used instead of the positional mode.
+  CONGREGATION_BUILD_MODE may be used instead of the positional mode.
   CLEAN_BUILD_DIR=1 or --clean discards build/ before configuring.
   RUN_TESTS=0 skips ctest.
   IIUPDATEMANAGER_PREFIX selects the installed iiUpdateManager 0.2 prefix.
@@ -216,7 +216,7 @@ to_lower() {
 # 템플릿 설정: 프로젝트별로 이 구역만 수정하는 것을 전제로 한다.
 # =============================================================================
 
-BUILD_MODE="${VINCENT_BUILD_MODE:-devid}"
+BUILD_MODE="${CONGREGATION_BUILD_MODE:-devid}"
 CLEAN_BUILD_DIR="${CLEAN_BUILD_DIR:-0}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -238,7 +238,7 @@ BUILD_MODE="$(normalize_build_mode "$BUILD_MODE")"
 RUN_TESTS="${RUN_TESTS:-1}"
 
 # 앱 이름(.app 제외)
-APP_NAME="Vincent"
+APP_NAME="Congregation"
 APP_ICON_FILE="Appicon.icns"
 LEGACY_APP_ICON_FILE="icon.icns"
 
@@ -247,8 +247,8 @@ CMAKE_SOURCE_DIR="."
 BUILD_DIR="./build"
 DIST_DIR="./dist"
 BUILD_TYPE="Release"          # 보통 Release 고정
-VINCENT_MIN_MACOS_VERSION="${VINCENT_MIN_MACOS_VERSION:-12.0}"
-VINCENT_MACOS_ARCHITECTURE="arm64"
+CONGREGATION_MIN_MACOS_VERSION="${CONGREGATION_MIN_MACOS_VERSION:-12.0}"
+CONGREGATION_MACOS_ARCHITECTURE="arm64"
 CMAKE_PRESET=""               # 사용 시 preset의 binaryDir가 BUILD_DIR와 일치하도록 맞추는 것이 정석이다.
 CMAKE_GENERATOR="Ninja"       # Qt Quick + CMake + Ninja 전제
 declare -a CMAKE_EXTRA_ARGS
@@ -286,11 +286,11 @@ INSTALL_DIR="/Applications"
 
 # pkg 메타데이터
 APP_VERSION=""                # 비워 두면 dist/<App>.app의 Info.plist에서 CFBundleShortVersionString을 자동으로 읽는다.
-PKG_ID_DEVID="com.iisacc.app.vincent.pkg"
-PKG_ID_MAS="com.iisacc.vincent.painter"
+PKG_ID_DEVID="com.iisacc.app.congregation.pkg"
+PKG_ID_MAS="com.iisacc.congregation.painter"
 
 # 엔타이틀먼트(MAS는 사실상 필수)
-ENTITLEMENTS_MAS_APP="./packaging/macos/Vincent.entitlements"
+ENTITLEMENTS_MAS_APP="./packaging/macos/Congregation.entitlements"
 ENTITLEMENTS_MAS_INHERIT=""   # helper(.xpc/.appex/.app) 상속용(필요 시)
 # Developer ID는 일반적으로 비우는 편이나, 필요한 앱은 지정한다.
 ENTITLEMENTS_DEVID_APP=""
@@ -509,8 +509,8 @@ else
     CMAKE_CONFIGURE_ARGS+=("${GEN_ARGS[@]}")
   fi
   CMAKE_CONFIGURE_ARGS+=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE")
-  CMAKE_CONFIGURE_ARGS+=(-DCMAKE_OSX_DEPLOYMENT_TARGET="$VINCENT_MIN_MACOS_VERSION")
-  CMAKE_CONFIGURE_ARGS+=(-DCMAKE_OSX_ARCHITECTURES="$VINCENT_MACOS_ARCHITECTURE")
+  CMAKE_CONFIGURE_ARGS+=(-DCMAKE_OSX_DEPLOYMENT_TARGET="$CONGREGATION_MIN_MACOS_VERSION")
+  CMAKE_CONFIGURE_ARGS+=(-DCMAKE_OSX_ARCHITECTURES="$CONGREGATION_MACOS_ARCHITECTURE")
   if [[ "${#TESTING_ARGS[@]}" -gt 0 ]]; then
     CMAKE_CONFIGURE_ARGS+=("${TESTING_ARGS[@]}")
   fi
@@ -706,7 +706,7 @@ assert_update_manager_runtime() {
   local executable="${app}/Contents/MacOS/${APP_NAME}"
   require_nonempty_file "$executable"
 
-  # Contract tests use a shell-script stand-in; deployed Vincent binaries are Mach-O.
+  # Contract tests use a shell-script stand-in; deployed Congregation binaries are Mach-O.
   if ! /usr/bin/file -b "$executable" 2>/dev/null | grep -q 'Mach-O'; then
     return 0
   fi
@@ -714,7 +714,7 @@ assert_update_manager_runtime() {
   /usr/bin/otool -L "$executable" \
     | sed -nE 's#^[[:space:]]+(@rpath/libiiUpdateManager[^[:space:]]*[.]dylib).*#\1#p' \
     | grep -q . \
-    || die "Vincent does not link the iiUpdateManager runtime"
+    || die "Congregation does not link the iiUpdateManager runtime"
 
   local runtime
   runtime="$(find "${app}/Contents/Frameworks" -maxdepth 1 \
@@ -729,7 +729,7 @@ assert_license_manager_runtime() {
   local executable="${app}/Contents/MacOS/${APP_NAME}"
   require_nonempty_file "$executable"
 
-  # Contract tests use a shell-script stand-in; deployed Vincent binaries are Mach-O.
+  # Contract tests use a shell-script stand-in; deployed Congregation binaries are Mach-O.
   if ! /usr/bin/file -b "$executable" 2>/dev/null | grep -q 'Mach-O'; then
     return 0
   fi
@@ -737,7 +737,7 @@ assert_license_manager_runtime() {
   /usr/bin/otool -L "$executable" \
     | sed -nE 's#^[[:space:]]+(@rpath/libiiLicenseManager[^[:space:]]*[.]dylib).*#\1#p' \
     | grep -q . \
-    || die "Vincent does not link the iiLicenseManager runtime"
+    || die "Congregation does not link the iiLicenseManager runtime"
 
   local runtime
   runtime="$(find "${app}/Contents/Frameworks" -maxdepth 1 \
@@ -770,9 +770,9 @@ assert_macos_deployment_targets() {
     fi
 
     while IFS= read -r deployment_target; do
-      if [[ "$deployment_target" != "$VINCENT_MIN_MACOS_VERSION" ]]; then
+      if [[ "$deployment_target" != "$CONGREGATION_MIN_MACOS_VERSION" ]]; then
         printf '%s: minos %s does not match required macOS deployment target %s\n' \
-          "$binary" "$deployment_target" "$VINCENT_MIN_MACOS_VERSION" >> "$violations"
+          "$binary" "$deployment_target" "$CONGREGATION_MIN_MACOS_VERSION" >> "$violations"
       fi
     done <<< "$deployment_targets"
   done < <(find "${app}/Contents" -type f -print0)
@@ -801,19 +801,19 @@ assert_macos_architectures() {
     fi
 
     case " $architectures " in
-      *" $VINCENT_MACOS_ARCHITECTURE "*) ;;
+      *" $CONGREGATION_MACOS_ARCHITECTURE "*) ;;
       *)
         printf '%s: architectures %s do not include required %s slice\n' \
-          "$binary" "$architectures" "$VINCENT_MACOS_ARCHITECTURE" >> "$violations"
+          "$binary" "$architectures" "$CONGREGATION_MACOS_ARCHITECTURE" >> "$violations"
         ;;
     esac
 
     local relative_path="${binary#${app}/Contents/}"
     case "$relative_path" in
       "MacOS/${APP_NAME}"|Frameworks/libLVRS.dylib|Frameworks/libiiPaintEngine.dylib|Frameworks/libiiUpdateManager*.dylib|Frameworks/libiiLicenseManager*.dylib)
-        if [[ "$architectures" != "$VINCENT_MACOS_ARCHITECTURE" ]]; then
-          printf '%s: Vincent-owned Mach-O architectures %s must be exactly %s\n' \
-            "$binary" "$architectures" "$VINCENT_MACOS_ARCHITECTURE" >> "$violations"
+        if [[ "$architectures" != "$CONGREGATION_MACOS_ARCHITECTURE" ]]; then
+          printf '%s: Congregation-owned Mach-O architectures %s must be exactly %s\n' \
+            "$binary" "$architectures" "$CONGREGATION_MACOS_ARCHITECTURE" >> "$violations"
         fi
         ;;
     esac
@@ -979,8 +979,8 @@ write_product_requirements() {
 
   run rm -f "$requirements_plist" || true
   run /usr/bin/plutil -create xml1 "$requirements_plist"
-  run /usr/bin/plutil -insert os -json "[\"$VINCENT_MIN_MACOS_VERSION\"]" "$requirements_plist"
-  run /usr/bin/plutil -insert arch -json "[\"$VINCENT_MACOS_ARCHITECTURE\"]" "$requirements_plist"
+  run /usr/bin/plutil -insert os -json "[\"$CONGREGATION_MIN_MACOS_VERSION\"]" "$requirements_plist"
+  run /usr/bin/plutil -insert arch -json "[\"$CONGREGATION_MACOS_ARCHITECTURE\"]" "$requirements_plist"
   lint_plist "$requirements_plist"
 }
 
@@ -995,10 +995,10 @@ verify_pkg_distribution() {
   run pkgutil --expand "$pkg" "$expanded_dir"
   require_file "$distribution"
 
-  grep -F "hostArchitectures=\"$VINCENT_MACOS_ARCHITECTURE\"" "$distribution" >/dev/null \
-    || die "package Distribution is not ${VINCENT_MACOS_ARCHITECTURE}-only: $pkg"
-  grep -F "<os-version min=\"$VINCENT_MIN_MACOS_VERSION\"" "$distribution" >/dev/null \
-    || die "package Distribution does not require macOS $VINCENT_MIN_MACOS_VERSION or later: $pkg"
+  grep -F "hostArchitectures=\"$CONGREGATION_MACOS_ARCHITECTURE\"" "$distribution" >/dev/null \
+    || die "package Distribution is not ${CONGREGATION_MACOS_ARCHITECTURE}-only: $pkg"
+  grep -F "<os-version min=\"$CONGREGATION_MIN_MACOS_VERSION\"" "$distribution" >/dev/null \
+    || die "package Distribution does not require macOS $CONGREGATION_MIN_MACOS_VERSION or later: $pkg"
   grep -F "path=\"${APP_NAME}.app\"" "$distribution" \
     | grep -F "CFBundleShortVersionString=\"$APP_VERSION\"" \
     | grep -F "CFBundleVersion=\"$APP_BUNDLE_VERSION\"" >/dev/null \

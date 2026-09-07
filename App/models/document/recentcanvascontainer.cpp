@@ -14,7 +14,7 @@
 
 namespace
 {
-const QByteArray containerMagic = QByteArrayLiteral("VINCENTRC\r\n\x1a\n");
+const QByteArray containerMagic = QByteArrayLiteral("CONGREGATIONRC\r\n\x1a\n");
 constexpr quint32 containerVersion = 1;
 constexpr qsizetype checksumSize = 32;
 constexpr qsizetype maximumManifestBytes = 1024 * 1024;

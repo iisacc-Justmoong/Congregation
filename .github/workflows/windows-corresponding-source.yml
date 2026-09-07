@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Check out Vincent
+      - name: Check out Congregation
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
@@ -119,8 +119,8 @@ jobs:
           $updateManagerSource = Join-Path $env:GITHUB_WORKSPACE "_private\iiUpdateManager"
           $licenseManagerSource = Join-Path $env:GITHUB_WORKSPACE "_private\iiLicenseManager"
           .\tools\new-corresponding-source.ps1 `
-              -Version 6.0 `
-              -VincentRevision $env:GITHUB_SHA `
+              -Version 1.0.0 `
+              -CongregationRevision $env:GITHUB_SHA `
               -IiSharedCanvasRevision $env:IISHAREDCANVAS_COMMIT `
               -IiUpdateManagerSource $updateManagerSource `
               -IiUpdateManagerRevision $env:IIUPDATEMANAGER_COMMIT `
@@ -131,9 +131,9 @@ jobs:
       - name: Upload corresponding source and checksum
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: Vincent-6.0-corresponding-source
+          name: Congregation-1.0.0-corresponding-source
           path: |
-            build/release-source/Vincent-6.0-Corresponding-Source.zip
-            build/release-source/Vincent-6.0-Corresponding-Source.zip.sha256
+            build/release-source/Congregation-1.0.0-Corresponding-Source.zip
+            build/release-source/Congregation-1.0.0-Corresponding-Source.zip.sha256
           if-no-files-found: error
           retention-days: 30

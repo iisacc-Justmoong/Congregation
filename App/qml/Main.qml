@@ -21,7 +21,7 @@ LV.ApplicationWindow {
     property int prePresentationWindowVisibility: QtQuickWindow.Window.Windowed
     property bool prePresentationPreferencesVisible: false
     readonly property url accountDashboardUrl: "https://iisacc.com/Account/Dashboard"
-    readonly property bool licenseGranted: !VincentLicenseManager.enforcementEnabled || VincentLicenseManager.licensed
+    readonly property bool licenseGranted: !CongregationLicenseManager.enforcementEnabled || CongregationLicenseManager.licensed
     readonly property bool canvasCommandsEnabled: canvasPage !== null && !canvasPage.dialogActive
     readonly property bool canvasEditingCommandsEnabled: canvasCommandsEnabled && !canvasPage.textEditingActive
     readonly property string currentToolMode: canvasPage && canvasPage.vm ? canvasPage.vm.toolMode : ""
@@ -159,17 +159,17 @@ LV.ApplicationWindow {
         case "no-image":
             return qsTr("Copy an image or a local image file, then paste again.");
         case "decode-failed":
-            return qsTr("Vincent could not read the image. Try another image or copy it and paste again.");
+            return qsTr("Congregation could not read the image. Try another image or copy it and paste again.");
         case "image-too-large":
             return qsTr("The image is too large. Use an image up to 32,768 pixels per side and 64 megapixels.");
         case "cache-write-failed":
-            return qsTr("Vincent could not store the image. Check available disk space and cache-folder permissions.");
+            return qsTr("Congregation could not store the image. Check available disk space and cache-folder permissions.");
         case "download-failed":
-            return qsTr("Vincent could not download the dropped web image. Check the connection, or save the image locally and drop it again.");
+            return qsTr("Congregation could not download the dropped web image. Check the connection, or save the image locally and drop it again.");
         case "download-too-large":
             return qsTr("The dropped web image download exceeds the 64 MB safety limit. Save or resize it locally, then drop it again.");
         default:
-            return qsTr("Vincent could not paste the clipboard image.");
+            return qsTr("Congregation could not paste the clipboard image.");
         }
     }
 
@@ -289,7 +289,7 @@ LV.ApplicationWindow {
     }
 
     function requestPreferences() {
-        VincentAccountManager.refresh();
+        CongregationAccountManager.refresh();
         preferencesWindow.showGeneralSection();
         preferencesWindow.applyInitialCentering();
         preferencesWindow.showNormal();
@@ -303,16 +303,16 @@ LV.ApplicationWindow {
 
     function acceptCanvasPage(page) {
         window.canvasPage = page;
-        if (!VincentApplicationPreferences.startWithRecentCanvas) {
+        if (!CongregationApplicationPreferences.startWithRecentCanvas) {
             return;
         }
 
-        const recentCanvasUrl = VincentApplicationPreferences.recentCanvasUrl;
+        const recentCanvasUrl = CongregationApplicationPreferences.recentCanvasUrl;
         if (recentCanvasUrl.toString().length === 0) {
             return;
         }
         if (!page.openRecentCanvas(recentCanvasUrl)) {
-            VincentApplicationPreferences.clearRecentCanvas();
+            CongregationApplicationPreferences.clearRecentCanvas();
         }
     }
 
@@ -381,7 +381,7 @@ LV.ApplicationWindow {
 
     Controls.Action {
         id: quitAction
-        text: qsTr("Quit Vincent")
+        text: qsTr("Quit Congregation")
         shortcut: window.shortcutQuit
         onTriggered: Qt.quit()
     }
@@ -396,10 +396,10 @@ LV.ApplicationWindow {
     Controls.Action {
         id: checkForUpdatesAction
         text: qsTr("Check for Updates…")
-        enabled: VincentUpdateManager.selfUpdateSupported && !VincentUpdateManager.busy
+        enabled: CongregationUpdateManager.selfUpdateSupported && !CongregationUpdateManager.busy
         onTriggered: {
             updateModal.open = true;
-            VincentUpdateManager.checkForUpdates();
+            CongregationUpdateManager.checkForUpdates();
         }
     }
 
@@ -653,7 +653,7 @@ LV.ApplicationWindow {
         height: visible ? implicitHeight : 0
         barColor: window.windowColor
         applicationVersion: Qt.application.version
-        updateSupported: VincentUpdateManager.selfUpdateSupported
+        updateSupported: CongregationUpdateManager.selfUpdateSupported
         menuActions: ({
             "newCanvas": newCanvasAction,
             "openImage": openImageAction,
@@ -928,11 +928,11 @@ LV.ApplicationWindow {
 
             ApplicationMenuItem {
                 action: checkForUpdatesAction
-                visible: VincentUpdateManager.selfUpdateSupported
+                visible: CongregationUpdateManager.selfUpdateSupported
             }
 
             Controls.MenuSeparator {
-                visible: VincentUpdateManager.selfUpdateSupported
+                visible: CongregationUpdateManager.selfUpdateSupported
             }
 
             ApplicationMenu {
@@ -976,7 +976,7 @@ LV.ApplicationWindow {
                 }
 
                 ApplicationMenuItem {
-                    text: window.shortcutReference(qsTr("Quit Vincent"), window.shortcutQuit)
+                    text: window.shortcutReference(qsTr("Quit Congregation"), window.shortcutQuit)
                     enabled: false
                 }
 
@@ -1140,7 +1140,7 @@ LV.ApplicationWindow {
             }
 
             ApplicationMenuItem {
-                text: qsTr("Vincent %1").arg(Qt.application.version)
+                text: qsTr("Congregation %1").arg(Qt.application.version)
                 enabled: false
             }
         }
@@ -1149,47 +1149,47 @@ LV.ApplicationWindow {
     PreferencesViews.PreferencesWindow {
         id: preferencesWindow
         transientParent: window
-        accountEmail: VincentAccountManager.accountEmail
-        accountEmailLoading: VincentAccountManager.accountEmailLoading
-        startWithRecentCanvas: VincentApplicationPreferences.startWithRecentCanvas
-        discoverNearbyVincentUsers: VincentApplicationPreferences.discoverNearbyVincentUsers
+        accountEmail: CongregationAccountManager.accountEmail
+        accountEmailLoading: CongregationAccountManager.accountEmailLoading
+        startWithRecentCanvas: CongregationApplicationPreferences.startWithRecentCanvas
+        discoverNearbyCongregationUsers: CongregationApplicationPreferences.discoverNearbyCongregationUsers
         currentCanvasMemberProfiles: window.canvasPage ? window.canvasPage.collaboratorProfiles : []
         currentUserIsCanvasHost: window.canvasPage ? window.canvasPage.currentUserIsCanvasHost : true
-        localCanvasState: VincentLocalCanvasSession.state
-        localCanvasError: VincentLocalCanvasSession.errorString
-        localCanvasParticipantCount: VincentLocalCanvasSession.participantCount
-        availableLocalCanvases: VincentLocalCanvasSession.availableCanvases
-        availableLocalInvitees: VincentLocalCanvasSession.availableInvitees
+        localCanvasState: CongregationLocalCanvasSession.state
+        localCanvasError: CongregationLocalCanvasSession.errorString
+        localCanvasParticipantCount: CongregationLocalCanvasSession.participantCount
+        availableLocalCanvases: CongregationLocalCanvasSession.availableCanvases
+        availableLocalInvitees: CongregationLocalCanvasSession.availableInvitees
         updateCheckEnabled: checkForUpdatesAction.enabled
-        onStartWithRecentCanvasRequested: enabled => VincentApplicationPreferences.setStartWithRecentCanvas(enabled)
-        onDiscoverNearbyVincentUsersRequested: function (enabled) {
-            VincentApplicationPreferences.setDiscoverNearbyVincentUsers(enabled);
+        onStartWithRecentCanvasRequested: enabled => CongregationApplicationPreferences.setStartWithRecentCanvas(enabled)
+        onDiscoverNearbyCongregationUsersRequested: function (enabled) {
+            CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(enabled);
             if (!enabled)
-                VincentLocalCanvasSession.stopSession();
+                CongregationLocalCanvasSession.stopSession();
         }
-        onProfileNameChanged: VincentLocalCanvasSession.setLocalProfileName(profileName)
+        onProfileNameChanged: CongregationLocalCanvasSession.setLocalProfileName(profileName)
         onCanInviteOtherUsersChanged: {
             if (canInviteOtherUsers) {
-                VincentApplicationPreferences.setDiscoverNearbyVincentUsers(true);
+                CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(true);
             }
-            VincentLocalCanvasSession.setInvitationsAllowed(canInviteOtherUsers);
+            CongregationLocalCanvasSession.setInvitationsAllowed(canInviteOtherUsers);
         }
         onHostCanvasRequested: {
-            VincentApplicationPreferences.setDiscoverNearbyVincentUsers(true);
-            VincentLocalCanvasSession.startHosting(profileName);
+            CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(true);
+            CongregationLocalCanvasSession.startHosting(profileName);
         }
         onJoinCanvasRequested: function (sessionId) {
-            VincentApplicationPreferences.setDiscoverNearbyVincentUsers(true);
-            VincentLocalCanvasSession.joinCanvas(sessionId, profileName);
+            CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(true);
+            CongregationLocalCanvasSession.joinCanvas(sessionId, profileName);
         }
-        onLeaveCanvasRequested: VincentLocalCanvasSession.stopSession()
+        onLeaveCanvasRequested: CongregationLocalCanvasSession.stopSession()
         onInviteCanvasMemberRequested: function (sessionId) {
-            VincentApplicationPreferences.setDiscoverNearbyVincentUsers(true);
-            VincentLocalCanvasSession.invitePeer(sessionId, profileName);
+            CongregationApplicationPreferences.setDiscoverNearbyCongregationUsers(true);
+            CongregationLocalCanvasSession.invitePeer(sessionId, profileName);
         }
         onDeleteCanvasMemberRequested: function (profile, index) {
             if (profile && profile.peerId)
-                VincentLocalCanvasSession.removeParticipant(String(profile.peerId));
+                CongregationLocalCanvasSession.removeParticipant(String(profile.peerId));
         }
         onRestorePurchasesRequested: window.requestRestorePurchases()
         onCheckForUpdatesRequested: window.requestUpdateCheckFromPreferences()
@@ -1203,14 +1203,14 @@ LV.ApplicationWindow {
         sourceComponent: CanvasViews.PainterCanvasPage {
             id: painterPage
             topChromeReservedHeight: window.windowDragHandleEnabled ? window.windowDragHandleHeight : 0
-            localCanvasSession: VincentLocalCanvasSession
-            collaboratorProfiles: VincentLocalCanvasSession.participantProfiles
-            currentUserIsCanvasHost: VincentLocalCanvasSession.currentUserIsHost
-            pendingInvitation: VincentLocalCanvasSession.pendingInvitation
-            pendingInvitationCount: VincentLocalCanvasSession.pendingInvitationCount
+            localCanvasSession: CongregationLocalCanvasSession
+            collaboratorProfiles: CongregationLocalCanvasSession.participantProfiles
+            currentUserIsCanvasHost: CongregationLocalCanvasSession.currentUserIsHost
+            pendingInvitation: CongregationLocalCanvasSession.pendingInvitation
+            pendingInvitationCount: CongregationLocalCanvasSession.pendingInvitationCount
             onPageReady: window.acceptCanvasPage(painterPage)
             onPresentationModeRequested: window.enterPresentationMode()
-            onInvitationResponseRequested: accepted => VincentLocalCanvasSession.respondToPendingInvitation(accepted, preferencesWindow.profileName)
+            onInvitationResponseRequested: accepted => CongregationLocalCanvasSession.respondToPendingInvitation(accepted, preferencesWindow.profileName)
             onClipboardImagePasteFailed: errorCode => window.showClipboardPasteFailure(errorCode)
             onImageDropSucceeded: {
                 window.clipboardPasteFailureMessage = "";
@@ -1222,7 +1222,7 @@ LV.ApplicationWindow {
 
     LicenseViews.LicenseActivationPage {
         anchors.fill: parent
-        visible: VincentLicenseManager.enforcementEnabled && !window.licenseGranted
+        visible: CongregationLicenseManager.enforcementEnabled && !window.licenseGranted
     }
 
     LV.AppCard {
@@ -1231,9 +1231,9 @@ LV.ApplicationWindow {
         anchors.topMargin: LV.Theme.gap24
         anchors.horizontalCenter: parent.horizontalCenter
         z: 1000
-        visible: VincentLicenseManager.enforcementEnabled && window.licenseGranted && VincentLicenseManager.resultCode === "secure_storage_unavailable" && !window.presentationMode
-        title: qsTr("Vincent could not remember this license")
-        subtitle: qsTr("The canvas is unlocked for this session. Enter the license again the next time Vincent starts.")
+        visible: CongregationLicenseManager.enforcementEnabled && window.licenseGranted && CongregationLicenseManager.resultCode === "secure_storage_unavailable" && !window.presentationMode
+        title: qsTr("Congregation could not remember this license")
+        subtitle: qsTr("The canvas is unlocked for this session. Enter the license again the next time Congregation starts.")
     }
 
     LV.AppCard {
@@ -1265,30 +1265,30 @@ LV.ApplicationWindow {
 
     LV.Modal {
         id: updateModal
-        objectName: "vincentUpdateModal"
+        objectName: "congregationUpdateModal"
         open: false
-        dismissOnBackground: !VincentUpdateManager.busy
+        dismissOnBackground: !CongregationUpdateManager.busy
         showIcon: false
-        title: VincentUpdateManager.title
-        description: VincentUpdateManager.message + (VincentUpdateManager.busy && VincentUpdateManager.progress > 0 ? qsTr("\n\nProgress: %1%").arg(Math.round(VincentUpdateManager.progress * 100)) : "")
-        buttonCount: VincentUpdateManager.canUpdate ? 2 : 1
-        primaryText: VincentUpdateManager.canCancel ? qsTr("Cancel") : VincentUpdateManager.canUpdate ? qsTr("Update now") : qsTr("Close")
+        title: CongregationUpdateManager.title
+        description: CongregationUpdateManager.message + (CongregationUpdateManager.busy && CongregationUpdateManager.progress > 0 ? qsTr("\n\nProgress: %1%").arg(Math.round(CongregationUpdateManager.progress * 100)) : "")
+        buttonCount: CongregationUpdateManager.canUpdate ? 2 : 1
+        primaryText: CongregationUpdateManager.canCancel ? qsTr("Cancel") : CongregationUpdateManager.canUpdate ? qsTr("Update now") : qsTr("Close")
         secondaryText: qsTr("Not now")
-        primaryEnabled: VincentUpdateManager.canUpdate || VincentUpdateManager.canCancel || !VincentUpdateManager.busy
+        primaryEnabled: CongregationUpdateManager.canUpdate || CongregationUpdateManager.canCancel || !CongregationUpdateManager.busy
 
         onPrimaryClicked: {
-            if (VincentUpdateManager.canUpdate) {
-                VincentUpdateManager.updateNow();
-            } else if (VincentUpdateManager.canCancel) {
-                VincentUpdateManager.cancelUpdate();
+            if (CongregationUpdateManager.canUpdate) {
+                CongregationUpdateManager.updateNow();
+            } else if (CongregationUpdateManager.canCancel) {
+                CongregationUpdateManager.cancelUpdate();
             } else {
                 updateModal.open = false;
             }
         }
         onSecondaryClicked: updateModal.open = false
         onCanceled: {
-            if (VincentUpdateManager.canCancel)
-                VincentUpdateManager.cancelUpdate();
+            if (CongregationUpdateManager.canCancel)
+                CongregationUpdateManager.cancelUpdate();
         }
     }
 }

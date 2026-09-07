@@ -6,25 +6,25 @@ Item {
     id: activationPage
 
     function submitLicense() {
-        if (!VincentLicenseManager.verifying) {
-            VincentLicenseManager.validateLicense(emailInput.text, licenseKeyInput.text);
+        if (!CongregationLicenseManager.verifying) {
+            CongregationLicenseManager.validateLicense(emailInput.text, licenseKeyInput.text);
         }
     }
 
     function resultMessage() {
-        if (VincentLicenseManager.resultCode === "invalid_input") {
-            return qsTr("Enter the verified account email and the complete Vincent license key.");
+        if (CongregationLicenseManager.resultCode === "invalid_input") {
+            return qsTr("Enter the verified account email and the complete Congregation license key.");
         }
-        if (VincentLicenseManager.resultCode === "invalid_license") {
-            return qsTr("That email and license key do not match an active Vincent license.");
+        if (CongregationLicenseManager.resultCode === "invalid_license") {
+            return qsTr("That email and license key do not match an active Congregation license.");
         }
-        if (VincentLicenseManager.resultCode === "verification_unavailable") {
-            return VincentLicenseManager.hasStoredLicense ? qsTr("License verification is temporarily unavailable. Your saved license is safe; reconnect and try again.") : qsTr("License verification is temporarily unavailable. Check your connection and try again.");
+        if (CongregationLicenseManager.resultCode === "verification_unavailable") {
+            return CongregationLicenseManager.hasStoredLicense ? qsTr("License verification is temporarily unavailable. Your saved license is safe; reconnect and try again.") : qsTr("License verification is temporarily unavailable. Check your connection and try again.");
         }
-        if (VincentLicenseManager.resultCode === "secure_storage_unavailable") {
-            return qsTr("Secure credential storage is unavailable. You can continue this session, but Vincent cannot remember the license.");
+        if (CongregationLicenseManager.resultCode === "secure_storage_unavailable") {
+            return qsTr("Secure credential storage is unavailable. You can continue this session, but Congregation cannot remember the license.");
         }
-        if (VincentLicenseManager.resultCode === "stored_license_removed") {
+        if (CongregationLicenseManager.resultCode === "stored_license_removed") {
             return qsTr("The saved license was unreadable and has been removed. Enter it again to continue.");
         }
         return "";
@@ -39,8 +39,8 @@ Item {
         id: activationCard
         objectName: "licenseActivationCard"
         anchors.centerIn: parent
-        title: VincentLicenseManager.hasStoredLicense ? qsTr("Verify saved license") : qsTr("Activate Vincent")
-        subtitle: VincentLicenseManager.hasStoredLicense ? qsTr("Reconnect to verify the license already saved on this device.") : qsTr("Verify this copy before opening the canvas.")
+        title: CongregationLicenseManager.hasStoredLicense ? qsTr("Verify saved license") : qsTr("Activate Congregation")
+        subtitle: CongregationLicenseManager.hasStoredLicense ? qsTr("Reconnect to verify the license already saved on this device.") : qsTr("Verify this copy before opening the canvas.")
 
         ColumnLayout {
             width: parent.width
@@ -70,7 +70,7 @@ Item {
 
                     LV.Label {
                         objectName: "licenseProductName"
-                        text: qsTr("Vincent")
+                        text: qsTr("Congregation")
                         style: body
                         color: LV.Theme.textPrimary
                     }
@@ -79,7 +79,7 @@ Item {
 
             LV.Label {
                 Layout.fillWidth: true
-                visible: !VincentLicenseManager.hasStoredLicense
+                visible: !CongregationLicenseManager.hasStoredLicense
                 text: qsTr("Use the verified email from your iisacc account and the license key in your receipt or private dashboard.")
                 style: description
                 color: LV.Theme.textSecondary
@@ -90,8 +90,8 @@ Item {
                 id: emailInput
                 objectName: "licenseEmailInput"
                 Layout.fillWidth: true
-                visible: !VincentLicenseManager.hasStoredLicense
-                enabled: !VincentLicenseManager.verifying
+                visible: !CongregationLicenseManager.hasStoredLicense
+                enabled: !CongregationLicenseManager.verifying
                 placeholderText: qsTr("Verified account email")
                 maximumLength: 254
                 inputMethodHints: Qt.ImhEmailCharactersOnly | Qt.ImhNoAutoUppercase
@@ -104,56 +104,56 @@ Item {
                 id: licenseKeyInput
                 objectName: "licenseKeyInput"
                 Layout.fillWidth: true
-                visible: !VincentLicenseManager.hasStoredLicense
-                enabled: !VincentLicenseManager.verifying
+                visible: !CongregationLicenseManager.hasStoredLicense
+                enabled: !CongregationLicenseManager.verifying
                 placeholderText: qsTr("IIL… license key")
                 maximumLength: 64
                 echoMode: TextInput.Password
                 passwordMaskDelay: 0
                 inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
                 clearButtonVisible: true
-                Accessible.name: qsTr("Vincent license key")
+                Accessible.name: qsTr("Congregation license key")
                 onAccepted: activationPage.submitLicense()
             }
 
             LV.Label {
                 Layout.fillWidth: true
-                visible: VincentLicenseManager.verifying || activationPage.resultMessage().length > 0
-                text: VincentLicenseManager.verifying ? qsTr("Verifying securely…") : activationPage.resultMessage()
+                visible: CongregationLicenseManager.verifying || activationPage.resultMessage().length > 0
+                text: CongregationLicenseManager.verifying ? qsTr("Verifying securely…") : activationPage.resultMessage()
                 style: description
-                color: VincentLicenseManager.resultCode === "invalid_license" || VincentLicenseManager.resultCode === "invalid_input" ? LV.Theme.danger : LV.Theme.textSecondary
+                color: CongregationLicenseManager.resultCode === "invalid_license" || CongregationLicenseManager.resultCode === "invalid_input" ? LV.Theme.danger : LV.Theme.textSecondary
                 wrapMode: Text.WordWrap
             }
 
             LV.LabelButton {
                 objectName: "activateLicenseButton"
                 Layout.fillWidth: true
-                visible: !VincentLicenseManager.hasStoredLicense
-                text: VincentLicenseManager.verifying ? qsTr("Verifying…") : qsTr("Activate Vincent")
-                enabled: !VincentLicenseManager.verifying && emailInput.text.trim().length > 0 && licenseKeyInput.text.trim().length > 0
-                Accessible.name: qsTr("Activate Vincent")
+                visible: !CongregationLicenseManager.hasStoredLicense
+                text: CongregationLicenseManager.verifying ? qsTr("Verifying…") : qsTr("Activate Congregation")
+                enabled: !CongregationLicenseManager.verifying && emailInput.text.trim().length > 0 && licenseKeyInput.text.trim().length > 0
+                Accessible.name: qsTr("Activate Congregation")
                 onClicked: activationPage.submitLicense()
             }
 
             LV.LabelButton {
                 objectName: "retryStoredLicenseButton"
                 Layout.fillWidth: true
-                visible: VincentLicenseManager.hasStoredLicense
-                text: VincentLicenseManager.verifying ? qsTr("Verifying…") : qsTr("Retry saved license")
-                enabled: !VincentLicenseManager.verifying
-                Accessible.name: qsTr("Retry saved Vincent license")
-                onClicked: VincentLicenseManager.retryStoredLicense()
+                visible: CongregationLicenseManager.hasStoredLicense
+                text: CongregationLicenseManager.verifying ? qsTr("Verifying…") : qsTr("Retry saved license")
+                enabled: !CongregationLicenseManager.verifying
+                Accessible.name: qsTr("Retry saved Congregation license")
+                onClicked: CongregationLicenseManager.retryStoredLicense()
             }
 
             LV.LabelButton {
                 objectName: "forgetStoredLicenseButton"
                 Layout.alignment: Qt.AlignHCenter
-                visible: VincentLicenseManager.hasStoredLicense
-                enabled: !VincentLicenseManager.verifying
+                visible: CongregationLicenseManager.hasStoredLicense
+                enabled: !CongregationLicenseManager.verifying
                 text: qsTr("Use another license")
                 Accessible.name: qsTr("Forget saved license and use another")
                 onClicked: {
-                    VincentLicenseManager.forgetLicense();
+                    CongregationLicenseManager.forgetLicense();
                     Qt.callLater(function () {
                         emailInput.forceInputFocus();
                     });
@@ -162,8 +162,8 @@ Item {
 
             LV.Label {
                 Layout.fillWidth: true
-                visible: !VincentLicenseManager.persistenceSupported
-                text: qsTr("Secure license memory is available on macOS and Windows. This platform requires activation each time Vincent starts.")
+                visible: !CongregationLicenseManager.persistenceSupported
+                text: qsTr("Secure license memory is available on macOS and Windows. This platform requires activation each time Congregation starts.")
                 style: description
                 color: LV.Theme.textTertiary
                 wrapMode: Text.WordWrap
@@ -185,15 +185,15 @@ Item {
                 }
 
                 LV.LabelButton {
-                    text: qsTr("Get Vincent")
-                    onClicked: Qt.openUrlExternally("https://iisacc.com/Store/Vincent")
+                    text: qsTr("Get Congregation")
+                    onClicked: Qt.openUrlExternally("https://iisacc.com/Store/Congregation")
                 }
             }
         }
     }
 
     Connections {
-        target: VincentLicenseManager
+        target: CongregationLicenseManager
 
         function onValidationFinished(valid) {
             if (valid) {

@@ -6,16 +6,16 @@
   <string>@BUNDLE_ID@</string>
 
   <key>CFBundleName</key>
-  <string>Vincent</string>
+  <string>Congregation</string>
 
   <key>CFBundleDisplayName</key>
-  <string>Vincent</string>
+  <string>Congregation</string>
 
   <key>CFBundleIconFile</key>
-  <string>@VINCENT_MACOS_APP_ICON_FILE@</string>
+  <string>@CONGREGATION_MACOS_APP_ICON_FILE@</string>
 
   <key>CFBundleExecutable</key>
-  <string>Vincent</string>
+  <string>Congregation</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
@@ -24,7 +24,7 @@
   <string>@PROJECT_VERSION@</string>
 
   <key>CFBundleVersion</key>
-  <string>@VINCENT_BUNDLE_VERSION@</string>
+  <string>@CONGREGATION_BUNDLE_VERSION@</string>
 
   <key>LSApplicationCategoryType</key>
   <string>public.app-category.graphics-design</string>
@@ -36,9 +36,9 @@
   <string>NSApplication</string>
 
   <key>NSLocalNetworkUsageDescription</key>
-  <string>Vincent uses your local network to find nearby Vincent users and share a canvas when you choose.</string>
+  <string>Congregation uses your local network to find nearby Congregation users and share a canvas when you choose.</string>
 
   <key>LSMinimumSystemVersion</key>
-  <string>@VINCENT_MIN_MACOS_VERSION@</string>
+  <string>@CONGREGATION_MIN_MACOS_VERSION@</string>
 </dict>
 </plist>

@@ -1,12 +1,12 @@
-# Contributing to Vincent
+# Contributing to Congregation
 
-Vincent welcomes reproducible bug reports, Windows hardware testing, documentation improvements, and focused code contributions.
+Congregation welcomes reproducible bug reports, Windows hardware testing, documentation improvements, and focused code contributions.
 
 ## Start with a public discussion or issue
 
-- Use [GitHub Discussions](https://github.com/iisacc-Justmoong/Vincent/discussions) for general feedback, design ideas, and questions.
-- Use [GitHub Issues](https://github.com/iisacc-Justmoong/Vincent/issues) for reproducible defects or bounded implementation work.
-- The [Windows 10/11 testing issue](https://github.com/iisacc-Justmoong/Vincent/issues/18) lists useful first validation tasks.
+- Use [GitHub Discussions](https://github.com/iisacc-Justmoong/Congregation/discussions) for general feedback, design ideas, and questions.
+- Use [GitHub Issues](https://github.com/iisacc-Justmoong/Congregation/issues) for reproducible defects or bounded implementation work.
+- The [Windows 10/11 testing issue](https://github.com/iisacc-Justmoong/Congregation/issues/18) lists useful first validation tasks.
 
 Include the operating-system version, hardware or input device, exact reproduction steps, expected result, and actual result. Remove personal information from screenshots and logs.
 
@@ -33,4 +33,4 @@ Run the complete test suite before submitting a pull request. New behavior shoul
 
 ## Windows release safety
 
-Unsigned MSI, ZIP, MSIX, and self-signed SignPath trial outputs are development-only artifacts. Any Necessary workflow input created before service approval is development-only as well. They must not be attached to a public release or presented as trusted downloads. Never commit or print `NECESSARY_SIGN_TOKEN`; it belongs only in the GitHub Actions repository-secret store after the provider approves Vincent. A website MSI is publishable only after its outer MSI and nested `Vincent.exe` both pass the repository's trusted Authenticode, expected-Publisher, same-certificate, and RFC 3161 timestamp verification gates.
+Unsigned MSI, ZIP, MSIX, and self-signed SignPath trial outputs are development-only artifacts. Any Necessary workflow input created before service approval is development-only as well. They must not be attached to a public release or presented as trusted downloads. Never commit or print `NECESSARY_SIGN_TOKEN`; it belongs only in the GitHub Actions repository-secret store after the provider approves Congregation. A website MSI is publishable only after its outer MSI and nested `Congregation.exe` both pass the repository's trusted Authenticode, expected-Publisher, same-certificate, and RFC 3161 timestamp verification gates.
