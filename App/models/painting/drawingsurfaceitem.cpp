@@ -1982,6 +1982,9 @@ QByteArray DrawingSurfaceItem::exportCanvasSession(const QVariantList& objects,
         return {};
     }
 
+    // Normalizing the exported copy is not a user edit. Keep the original
+    // ledger so repeated snapshots do not create new revision timestamps.
+    sharedCanvasSnapshot.authorship = document()->authorship;
     const iiSharedCanvas::IiscEncodeResult encoded =
         iiSharedCanvas::encodeIisc(sharedCanvasSnapshot);
     if (!encoded.ok() ||

@@ -3942,7 +3942,11 @@ void tst_DrawingSurfaceItem::recentCanvasPreservesVisualCanvasExtentAfterLateRes
     QVERIFY(directory.isValid());
     const QString recentPath = directory.filePath(QStringLiteral("recent-canvas.vrc"));
     QVERIFY(source.saveRecentCanvas(recentPath, {}, {}, true));
+    const QByteArray authorshipBeforeExport = source.document()->authorship.dump();
     const QByteArray inMemorySnapshot = source.exportCanvasSession({}, {}, true);
+    QTest::qWait(20); // Cross the ledger's millisecond timestamp boundary.
+    QCOMPARE(source.exportCanvasSession({}, {}, true), inMemorySnapshot);
+    QCOMPARE(source.document()->authorship.dump(), authorshipBeforeExport);
     QVERIFY(!inMemorySnapshot.isEmpty());
 
     PaletteUtils memoryPaletteUtils;

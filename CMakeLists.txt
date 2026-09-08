@@ -147,7 +147,7 @@ if(BUILD_TESTING)
 endif()
 find_package(LVRS CONFIG REQUIRED)
 find_package(iiPaintEngine CONFIG REQUIRED)
-find_package(iiSharedCanvas 0.8.0 EXACT CONFIG REQUIRED)
+find_package(iiSharedCanvas 0.10.0 EXACT CONFIG REQUIRED)
 find_package(iiUpdateManager 0.2 CONFIG REQUIRED)
 find_package(iiLicenseManager 0.2 CONFIG REQUIRED)
 

@@ -127,7 +127,7 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
     QVERIFY(source.contains(QStringLiteral(
         "MACOSX_PACKAGE_LOCATION \"Resources/legal/iiLicenseManager\"")));
     QVERIFY(source.contains(QStringLiteral("CONGREGATION_IILICENSEMANAGER_THIRD_PARTY_NOTICES")));
-    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.8.0 EXACT CONFIG REQUIRED)")));
+    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.10.0 EXACT CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("iiSharedCanvas::iiSharedCanvas")));
 }
 

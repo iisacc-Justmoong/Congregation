@@ -167,3 +167,10 @@ withdrawing the discovery port.
 Large-document memory budgets, partial host-state deltas, encrypted/authenticated
 LAN sessions, object-level concurrent merge, and physical multi-device package
 validation remain product-hardening gates.
+
+Session export normalizes the extent of a document copy to the visible canvas
+size. It preserves the source authorship ledger after that normalization, since
+exporting or transmitting an unchanged document is not an edit. Repeated
+snapshots therefore retain identical bytes, revisions, and timestamps, including
+a late view resize. The resize/session regression checks both repeated export
+and the original document ledger.

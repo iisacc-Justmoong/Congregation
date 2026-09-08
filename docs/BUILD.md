@@ -17,7 +17,7 @@ Windows MSI starts a separate Congregation upgrade family with UpgradeCode `3143
 - Xcode command-line tools (`xcode-select --install`) and Transporter from the Mac App Store.
 - Qt toolchain (Core, Network, Qml, Quick, QuickControls2, Svg) available in your `PATH` so that `macdeployqt` is callable, plus Git for the pinned QtKeychain FetchContent checkout.
 - iiPaintEngine installed under `$HOME/.local/SDK/iiPaintEngine` or available through `CMAKE_PREFIX_PATH` as `iiPaintEngine::iiPaintEngine`.
-- iiSharedCanvas 0.8.0 (exact package version) installed under `$HOME/.local/SDK/iiSharedCanvas` or selected with `IISHAREDCANVAS_PREFIX`, exporting `iiSharedCanvas::iiSharedCanvas`.
+- iiSharedCanvas 0.10.0 (exact package version) installed under `$HOME/.local/SDK/iiSharedCanvas` or selected with `IISHAREDCANVAS_PREFIX`, exporting `iiSharedCanvas::iiSharedCanvas`.
 - iiUpdateManager 0.2 installed under `$HOME/.local/SDK/iiUpdateManager` or selected with `IIUPDATEMANAGER_PREFIX`, exporting `iiUpdateManager::iiUpdateManager`.
 - iiLicenseManager 0.2 installed under `$HOME/.local/SDK/iiLicenseManager` or selected with `IILICENSEMANAGER_PREFIX`, exporting `iiLicenseManager::iiLicenseManager` and its installed libsodium third-party notice.
 
