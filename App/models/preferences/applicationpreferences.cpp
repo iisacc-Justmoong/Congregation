@@ -1,4 +1,5 @@
 #include "applicationpreferences.h"
+#include <iiFileProvider.h>
 
 #include <QDir>
 #include <QFile>
@@ -135,8 +136,15 @@ bool ApplicationPreferences::recordRecentCanvas(const QUrl &fileUrl)
 bool ApplicationPreferences::clearRecentCanvas()
 {
     const QString storagePath = recentCanvasStoragePath();
-    if (!storagePath.isEmpty() && QFileInfo::exists(storagePath)
-        && !QFile::remove(storagePath)) {
+    try
+    {
+        if (!storagePath.isEmpty() && QFileInfo::exists(storagePath))
+        {
+            iiFileProvider::File::remove(storagePath);
+        }
+    }
+    catch (const iiFileProvider::FileError&)
+    {
         return false;
     }
 

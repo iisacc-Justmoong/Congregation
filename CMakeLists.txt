@@ -147,7 +147,8 @@ if(BUILD_TESTING)
 endif()
 find_package(LVRS CONFIG REQUIRED)
 find_package(iiPaintEngine CONFIG REQUIRED)
-find_package(iiSharedCanvas 0.10.0 EXACT CONFIG REQUIRED)
+find_package(iiFileProvider 0.5 CONFIG REQUIRED)
+find_package(iiSharedCanvas 0.10.1 EXACT CONFIG REQUIRED)
 find_package(iiUpdateManager 0.2 CONFIG REQUIRED)
 find_package(iiLicenseManager 0.2 CONFIG REQUIRED)
 
@@ -251,6 +252,16 @@ unset(_congregation_local_dependency_runtime_candidates)
 unset(_congregation_runtime_path)
 
 function(congregation_configure_local_runtime_paths target_name)
+    if(UNIX)
+        # The configured packages must win over previously installed ABI-compatible SDKs.
+        set_property(TARGET ${target_name} APPEND PROPERTY BUILD_RPATH
+                "$<TARGET_FILE_DIR:LVRS::LVRS>"
+                "$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>"
+                "$<TARGET_FILE_DIR:iiSharedCanvas::iiSharedCanvas>"
+                "$<TARGET_FILE_DIR:iiFileProvider::iiFileProvider>"
+                "$<TARGET_FILE_DIR:iiUpdateManager::iiUpdateManager>"
+                "$<TARGET_FILE_DIR:iiLicenseManager::iiLicenseManager>")
+    endif()
     if(_congregation_local_dependency_runtime_paths)
         set_property(TARGET ${target_name} APPEND PROPERTY
                 BUILD_RPATH "${_congregation_local_dependency_runtime_paths}")
@@ -331,6 +342,7 @@ endif()
 target_link_libraries(Congregation PRIVATE
         Qt6::Core Qt6::Network Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Svg
         iiPaintEngine::iiPaintEngine
+        iiFileProvider::iiFileProvider
         iiSharedCanvas::iiSharedCanvas
         iiUpdateManager::iiUpdateManager
         iiLicenseManager::iiLicenseManager
@@ -378,6 +390,7 @@ if(WIN32)
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different
                     $<TARGET_FILE:LVRS::LVRS>
                     $<TARGET_FILE:iiPaintEngine::iiPaintEngine>
+                    $<TARGET_FILE:iiFileProvider::iiFileProvider>
                     $<TARGET_FILE:iiSharedCanvas::iiSharedCanvas>
                     $<TARGET_FILE:iiUpdateManager::iiUpdateManager>
                     $<TARGET_FILE:iiLicenseManager::iiLicenseManager>

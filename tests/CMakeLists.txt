@@ -114,6 +114,7 @@ target_include_directories(tests_applicationpreferences PRIVATE
 target_link_libraries(tests_applicationpreferences PRIVATE
         Qt6::Core
         Qt6::Test
+        iiFileProvider::iiFileProvider
 )
 congregation_configure_local_runtime_paths(tests_applicationpreferences)
 
@@ -329,6 +330,7 @@ target_link_libraries(tests_drawingsurfaceitem PRIVATE
         Qt6::Network
         Qt6::Test
         iiPaintEngine::iiPaintEngine
+        iiFileProvider::iiFileProvider
         iiSharedCanvas::iiSharedCanvas
         congregation_psd_sdk
 )
@@ -336,7 +338,20 @@ congregation_configure_local_runtime_paths(tests_drawingsurfaceitem)
 
 add_test(NAME tests_drawingsurfaceitem COMMAND tests_drawingsurfaceitem)
 
+if(APPLE)
+    add_test(NAME tests_filesdkruntime
+            COMMAND ${CMAKE_COMMAND}
+                    "-DTEST_EXECUTABLE=$<TARGET_FILE:tests_drawingsurfaceitem>"
+                    "-DIIFILEPROVIDER_LIBRARY=$<TARGET_FILE:iiFileProvider::iiFileProvider>"
+                    "-DIISHAREDCANVAS_LIBRARY=$<TARGET_FILE:iiSharedCanvas::iiSharedCanvas>"
+                    "-DIIPAINTENGINE_LIBRARY=$<TARGET_FILE:iiPaintEngine::iiPaintEngine>"
+                    -P "${CMAKE_CURRENT_SOURCE_DIR}/FileSdkRuntimeTest.cmake")
+endif()
+
 set(_congregation_test_environment
+        "DYLD_LIBRARY_PATH="
+        "DYLD_FRAMEWORK_PATH="
+        "DYLD_FALLBACK_LIBRARY_PATH="
         "CMAKE_PREFIX_PATH="
         "QML2_IMPORT_PATH="
         "QTDIR="
@@ -508,7 +523,7 @@ if(WIN32)
             tests_drawingsurfaceitem
             PROPERTIES
             ENVIRONMENT_MODIFICATION
-        "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSharedCanvas::iiSharedCanvas>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiUpdateManager::iiUpdateManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiLicenseManager::iiLicenseManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:LVRS::LVRS>"
+        "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSharedCanvas::iiSharedCanvas>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiFileProvider::iiFileProvider>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiUpdateManager::iiUpdateManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiLicenseManager::iiLicenseManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:LVRS::LVRS>"
     )
 endif()
 

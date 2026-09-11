@@ -2,10 +2,12 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QLockFile>
 #include <QSettings>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
+#include <iiFileProvider.h>
 
 class tst_ApplicationPreferences : public QObject
 {
@@ -169,10 +171,20 @@ void tst_ApplicationPreferences::clearingRecentCanvasDeletesTheInternalContainer
     QVERIFY(preferences.recordRecentCanvas(QUrl::fromLocalFile(canvasPath)));
 
     QSignalSpy recentCanvasSpy(&preferences, &ApplicationPreferences::recentCanvasUrlChanged);
+    {
+        QLockFile competingWriter(canvasPath + QStringLiteral(".iisacc-lock"));
+        QVERIFY(competingWriter.tryLock(0));
+        QVERIFY(!preferences.clearRecentCanvas());
+        QCOMPARE(recentCanvasSpy.size(), 0);
+        QVERIFY(!preferences.recentCanvasUrl().isEmpty());
+        QCOMPARE(iiFileProvider::File::read(canvasPath), QByteArray("canvas"));
+    }
     QVERIFY(preferences.clearRecentCanvas());
     QCOMPARE(recentCanvasSpy.size(), 1);
     QVERIFY(preferences.recentCanvasUrl().isEmpty());
     QVERIFY(!QFileInfo::exists(canvasPath));
+    QVERIFY(preferences.clearRecentCanvas());
+    QCOMPARE(recentCanvasSpy.size(), 1);
 }
 
 QTEST_APPLESS_MAIN(tst_ApplicationPreferences)

@@ -5,6 +5,7 @@
 #include "../document/psdimagereader.h"
 #include "../document/psdimagewriter.h"
 #include "../document/recentcanvascontainer.h"
+#include <iiFileProvider.h>
 
 #include <QAbstractTextDocumentLayout>
 #include <QByteArray>
@@ -2105,21 +2106,18 @@ bool DrawingSurfaceItem::saveRecentCanvas(const QString& fileUrl, const QVariant
     {
         return false;
     }
-    const QFileInfo targetInfo(filePath);
-    if (targetInfo.isSymLink() || !QDir().mkpath(targetInfo.absolutePath()))
+    try
     {
-        return false;
+        iiFileProvider::File::createDirectories(QFileInfo(filePath).absolutePath());
+        iiFileProvider::File::write(filePath, bytes);
+        if (!QFile::setPermissions(filePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+        {
+            iiFileProvider::File::remove(filePath);
+            return false;
+        }
     }
-
-    QSaveFile file(filePath);
-    file.setDirectWriteFallback(false);
-    if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit())
+    catch (const iiFileProvider::FileError&)
     {
-        return false;
-    }
-    if (!QFile::setPermissions(filePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
-    {
-        QFile::remove(filePath);
         return false;
     }
     return true;
@@ -2130,19 +2128,15 @@ QVariantMap DrawingSurfaceItem::openRecentCanvas(const QString& fileUrl)
     QVariantMap result;
     result.insert(QStringLiteral("valid"), false);
 
-    QFile file(localFilePath(fileUrl));
-    if (!file.open(QIODevice::ReadOnly) || file.size() <= 0 ||
-        file.size() > RecentCanvasMaximumContainerBytes)
+    try
+    {
+        return importCanvasSession(iiFileProvider::File::read(
+            localFilePath(fileUrl), RecentCanvasMaximumContainerBytes));
+    }
+    catch (const iiFileProvider::FileError&)
     {
         return result;
     }
-    const QByteArray bytes = file.read(RecentCanvasMaximumContainerBytes + 1);
-    if (bytes.size() != file.size())
-    {
-        return result;
-    }
-
-    return importCanvasSession(bytes);
 }
 
 QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
@@ -3217,18 +3211,19 @@ bool DrawingSurfaceItem::replaceSelectedRaster(const QImage& source)
 
 bool DrawingSurfaceItem::openSharedCanvasDocument(const QString& fileUrl)
 {
-    const QString filePath = localFilePath(fileUrl);
-    QFile file(filePath);
     const iiSharedCanvas::SerializationLimits limits;
-    if (!file.open(QIODevice::ReadOnly) ||
-        file.size() < static_cast<qint64>(iiSharedCanvas::IiscHeaderSize) ||
-        static_cast<std::uint64_t>(file.size()) > limits.maximumContainerBytes)
+    QByteArray bytes;
+    try
+    {
+        const auto maximumBytes = static_cast<qint64>(std::min<std::uint64_t>(
+            limits.maximumContainerBytes, std::numeric_limits<qsizetype>::max() - 1));
+        bytes = iiFileProvider::File::read(localFilePath(fileUrl), maximumBytes);
+    }
+    catch (const iiFileProvider::FileError&)
     {
         return false;
     }
-
-    const QByteArray bytes = file.readAll();
-    if (bytes.size() != file.size())
+    if (bytes.size() < static_cast<qsizetype>(iiSharedCanvas::IiscHeaderSize))
     {
         return false;
     }
@@ -3281,23 +3276,23 @@ bool DrawingSurfaceItem::saveSharedCanvasDocument(const QString& fileUrl)
     }
     const iiSharedCanvas::IiscEncodeResult encoded = iiSharedCanvas::encodeIisc(*document());
     if (!encoded.ok() ||
-        encoded.bytes.size() > static_cast<std::size_t>(std::numeric_limits<qint64>::max()))
+        encoded.bytes.size() > static_cast<std::size_t>(std::numeric_limits<qsizetype>::max()))
     {
         return false;
     }
 
-    QSaveFile file(localFilePath(fileUrl));
-    if (!file.open(QIODevice::WriteOnly))
+    try
+    {
+        iiFileProvider::File::write(
+            localFilePath(fileUrl),
+            QByteArray::fromRawData(reinterpret_cast<const char*>(encoded.bytes.data()),
+                                   static_cast<qsizetype>(encoded.bytes.size())));
+        return true;
+    }
+    catch (const iiFileProvider::FileError&)
     {
         return false;
     }
-    const qint64 byteCount = static_cast<qint64>(encoded.bytes.size());
-    if (file.write(reinterpret_cast<const char*>(encoded.bytes.data()), byteCount) != byteCount)
-    {
-        file.cancelWriting();
-        return false;
-    }
-    return file.commit();
 }
 
 void DrawingSurfaceItem::syncCanvasSize()

@@ -9,6 +9,7 @@
 #include <QHostAddress>
 #include <QImage>
 #include <QLineF>
+#include <QLockFile>
 #include <QMap>
 #include <QMimeData>
 #include <QQmlComponent>
@@ -29,6 +30,7 @@
 #include <QtTest>
 
 #include <iiSharedCanvas.h>
+#include <iiFileProvider.h>
 
 #include <cstdint>
 #include <vector>
@@ -3736,9 +3738,13 @@ void tst_DrawingSurfaceItem::roundTripsNativeSharedCanvasDocument()
     const QString nativePath = dir.filePath(QStringLiteral("canvas.iisc"));
     QVERIFY(item.saveToFile(nativePath));
 
-    QFile nativeFile(nativePath);
-    QVERIFY(nativeFile.open(QIODevice::ReadOnly));
-    const QByteArray bytes = nativeFile.readAll();
+    const QByteArray bytes = iiFileProvider::File::read(nativePath);
+    {
+        QLockFile competingWriter(nativePath + QStringLiteral(".iisacc-lock"));
+        QVERIFY(competingWriter.tryLock(0));
+        QVERIFY(!item.saveToFile(nativePath));
+        QCOMPARE(iiFileProvider::File::read(nativePath), bytes);
+    }
     QVERIFY(bytes.startsWith("IISC\r\n\x1a\n"));
     const IiscDecodeResult decoded = decodeIisc(
         std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(bytes.constData()),
@@ -3767,6 +3773,10 @@ void tst_DrawingSurfaceItem::roundTripsNativeSharedCanvasDocument()
     const QImage rendered(pngPath);
     QVERIFY(!rendered.isNull());
     QVERIFY(qAlpha(rendered.pixel(16, 12)) > 0);
+    QVERIFY(iiFileProvider::File::remove(nativePath));
+    QVERIFY(!opened.openRaster(nativePath));
+    QCOMPARE(opened.width(), 32.0);
+    QCOMPARE(opened.height(), 24.0);
 }
 
 void tst_DrawingSurfaceItem::roundTripsRecentCanvasContainerWithEditableObjects()
@@ -3863,6 +3873,13 @@ void tst_DrawingSurfaceItem::roundTripsRecentCanvasContainerWithEditableObjects(
     const QByteArray firstSnapshotBytes = firstSnapshot.readAll();
     QVERIFY(firstSnapshotBytes.startsWith("CONGREGATIONRC\r\n\x1a\n"));
     firstSnapshot.close();
+
+    {
+        QLockFile competingWriter(recentPath + QStringLiteral(".iisacc-lock"));
+        QVERIFY(competingWriter.tryLock(0));
+        QVERIFY(!background.saveRecentCanvas(recentPath, objects, rasterLayers, false));
+        QCOMPARE(iiFileProvider::File::read(recentPath), firstSnapshotBytes);
+    }
 
     QVERIFY(background.saveRecentCanvas(recentPath, objects, rasterLayers, false));
     QFile latestSnapshot(recentPath);
