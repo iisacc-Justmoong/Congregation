@@ -262,7 +262,7 @@ CMAKE_BUILD_PARALLEL=""       # 예: "12"
 
 # Qt 배포 도구(macdeployqt)
 MACDEPLOYQT="macdeployqt"
-QML_DIR="./App/qml"               # Qt Quick 프로젝트의 QML 루트(필수에 가깝다)
+QML_DIR="./src/App/qml"               # Qt Quick 프로젝트의 QML 루트(필수에 가깝다)
 MACDEPLOYQT_VERBOSE="2"       # 0-3
 MACDEPLOYQT_NO_STRIP="${MACDEPLOYQT_NO_STRIP:-}"
 MACDEPLOYQT_ALWAYS_OVERWRITE="1" # 1이면 -always-overwrite

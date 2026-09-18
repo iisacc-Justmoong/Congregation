@@ -278,25 +278,33 @@ qt_add_executable(Congregation
 )
 
 # 소스 추가(하위 디렉터리에서 타깃에 파일을 attach)
-add_subdirectory(App)
+add_subdirectory(src/App App)
 
 # QML 모듈
 if(CMAKE_GENERATOR STREQUAL "Xcode")
     set(QT_COPY_QML_FILES_OLD_WAY ON)
 endif()
+# Preserve the existing QML resource URLs when source files move under src/.
+file(GLOB_RECURSE _app_qml_sources CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/src/App/*.qml")
+foreach(_app_qml IN LISTS _app_qml_sources)
+    string(REGEX REPLACE "^src/" "" _app_qml_alias "${_app_qml}")
+    set_source_files_properties("${_app_qml}" PROPERTIES QT_RESOURCE_ALIAS "${_app_qml_alias}")
+endforeach()
+
 qt_add_qml_module(Congregation
         URI Congregation
         VERSION ${CONGREGATION_QML_MODULE_VERSION}
         QML_FILES
-        App/qml/Main.qml
-        App/qml/menus/WindowsApplicationMenuBar.qml
-        App/qml/license/LicenseActivationPage.qml
-        App/qml/preferences/PreferencesWindow.qml
-        App/qml/canvas/PainterCanvasPage.qml
-        App/qml/canvas/PresentationLaserPointer.qml
-        App/qml/brush/CanvasToolBar.qml
-        App/qml/brush/HslTriangleColorPicker.qml
-        App/qml/painting/DrawingSurface.qml
+        src/App/qml/Main.qml
+        src/App/qml/menus/WindowsApplicationMenuBar.qml
+        src/App/qml/license/LicenseActivationPage.qml
+        src/App/qml/preferences/PreferencesWindow.qml
+        src/App/qml/canvas/PainterCanvasPage.qml
+        src/App/qml/canvas/PresentationLaserPointer.qml
+        src/App/qml/brush/CanvasToolBar.qml
+        src/App/qml/brush/HslTriangleColorPicker.qml
+        src/App/qml/painting/DrawingSurface.qml
 )
 
 # qmltyperegistrar 빈 메타타입 안전장치
@@ -533,7 +541,7 @@ endif()
 # CPack install 단계에서 Qt 런타임을 함께 배치해 패키지를 독립 실행 가능 상태로 만든다.
 if(APPLE)
     install(CODE
-            "include(\"${QT_DEPLOY_SUPPORT}\")\nqt6_deploy_runtime_dependencies(\n    EXECUTABLE \"Applications/Congregation.app\"\n    DEPLOY_TOOL_OPTIONS \"-qmldir=${CMAKE_SOURCE_DIR}/App/qml\"\n)\n"
+            "include(\"${QT_DEPLOY_SUPPORT}\")\nqt6_deploy_runtime_dependencies(\n    EXECUTABLE \"Applications/Congregation.app\"\n    DEPLOY_TOOL_OPTIONS \"-qmldir=${CMAKE_SOURCE_DIR}/src/App/qml\"\n)\n"
             COMPONENT Runtime)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     qt_generate_deploy_qml_app_script(

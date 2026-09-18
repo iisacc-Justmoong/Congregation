@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Congregation follows KDE's ECM layout. The root `CMakeLists.txt` wires in ECM modules and delegates to `App/`. All C++ sources live in `App/`, with the application entry point at `src/main.cpp`. QML assets stay under `src/qml/`. Keep every CMake build output in the repository-local `build/` directory; alternate build trees are not supported. Never commit generated binaries.
+Congregation follows KDE's ECM layout. The root `CMakeLists.txt` wires in ECM modules and delegates to `src/App/`. All C++ sources live in `src/App/`, with the application entry point at `src/App/main.cpp`. QML assets stay under `src/App/qml/`. Keep every CMake build output in the repository-local `build/` directory; alternate build trees are not supported. Never commit generated binaries.
 
 ## Build, Test, and Development Commands
 Configure with ECM and KDE install dirs via `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`. The script will emit helpful dependency summaries. Build with `cmake --build build` to produce the `Congregation` bundle in `build/`. Launch the macOS binary from `build/Congregation.app/Contents/MacOS/Congregation` (adjust per platform). Clean artifacts using `cmake --build build --target clean` or by pruning the `build/` directory.

@@ -28,8 +28,8 @@ class tst_CanvasToolBarQmlContract : public QObject
 
 void tst_CanvasToolBarQmlContract::recentCanvasUsesDebouncedInternalContainer()
 {
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
 
@@ -90,8 +90,8 @@ void tst_CanvasToolBarQmlContract::recentCanvasUsesDebouncedInternalContainer()
 
 void tst_CanvasToolBarQmlContract::remoteParticipantsMutateOnlyTheHostCanvas()
 {
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
 
@@ -152,10 +152,10 @@ void tst_CanvasToolBarQmlContract::remoteParticipantsMutateOnlyTheHostCanvas()
 
 void tst_CanvasToolBarQmlContract::modifierSpaceUsesApplicationWideCameraModes()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
-    const QString mainCppPath = QFINDTESTDATA("../App/main.cpp");
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
+    const QString mainCppPath = QFINDTESTDATA("../src/App/main.cpp");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!mainCppPath.isEmpty(), "main.cpp test data was not found");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
@@ -202,8 +202,8 @@ void tst_CanvasToolBarQmlContract::modifierSpaceUsesApplicationWideCameraModes()
 
 void tst_CanvasToolBarQmlContract::clipboardPasteCreatesCenteredTransformableImageObject()
 {
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
 
@@ -260,7 +260,7 @@ void tst_CanvasToolBarQmlContract::clipboardPasteCreatesCenteredTransformableIma
 
 void tst_CanvasToolBarQmlContract::brushReselectionOpensBrushSettingsMenu()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -278,7 +278,7 @@ void tst_CanvasToolBarQmlContract::brushReselectionOpensBrushSettingsMenu()
 
 void tst_CanvasToolBarQmlContract::colorSelectionUsesHslTrianglePicker()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -314,7 +314,7 @@ void tst_CanvasToolBarQmlContract::colorSelectionUsesHslTrianglePicker()
     const QString currentColorButtonSource = toolbarSource.mid(
         currentColorComponentIndex, spacerAfterColorIndex - currentColorComponentIndex);
 
-    const QString pickerQmlPath = QFINDTESTDATA("../App/qml/brush/HslTriangleColorPicker.qml");
+    const QString pickerQmlPath = QFINDTESTDATA("../src/App/qml/brush/HslTriangleColorPicker.qml");
     QVERIFY2(!pickerQmlPath.isEmpty(), "HslTriangleColorPicker.qml test data was not found");
 
     QFile pickerQml(pickerQmlPath);
@@ -378,7 +378,7 @@ void tst_CanvasToolBarQmlContract::colorSelectionUsesHslTrianglePicker()
 
 void tst_CanvasToolBarQmlContract::colorPickerMovesIntoLeftClusterAndProfileStaysTrailing()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -467,7 +467,7 @@ void tst_CanvasToolBarQmlContract::colorPickerMovesIntoLeftClusterAndProfileStay
 
 void tst_CanvasToolBarQmlContract::profileInvitationBadgeUsesDecisionContextMenu()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -497,7 +497,7 @@ void tst_CanvasToolBarQmlContract::profileInvitationBadgeUsesDecisionContextMenu
 
 void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -666,7 +666,7 @@ void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
     QVERIFY(!toolbarSource.contains(QStringLiteral("typeAliasIconSource")));
     QVERIFY(toolbarSource.contains(QStringLiteral("onClicked: toolbar.toolSelected(\"text\")")));
 
-    const QString qrcPath = QFINDTESTDATA("../App/resources.qrc");
+    const QString qrcPath = QFINDTESTDATA("../src/App/resources.qrc");
     QVERIFY2(!qrcPath.isEmpty(), "resources.qrc test data was not found");
     QFile qrcFile(qrcPath);
     QVERIFY(qrcFile.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -674,7 +674,7 @@ void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
     QVERIFY(qrcSource.contains(QStringLiteral("resources/icons/panHand.svg")));
     QVERIFY(qrcSource.contains(QStringLiteral("resources/icons/typeAlias.svg")));
 
-    const QString panHandSvgPath = QFINDTESTDATA("../App/resources/icons/panHand.svg");
+    const QString panHandSvgPath = QFINDTESTDATA("../src/App/resources/icons/panHand.svg");
     QVERIFY2(!panHandSvgPath.isEmpty(), "panHand.svg test data was not found");
     QFile panHandSvg(panHandSvgPath);
     QVERIFY(panHandSvg.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -682,7 +682,7 @@ void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
     QVERIFY(panHandSvgSource.contains(QStringLiteral("stroke=\"#CED0D6\"")));
     QVERIFY(panHandSvgSource.contains(QStringLiteral("fill=\"#2F2936\"")));
 
-    const QString typeAliasSvgPath = QFINDTESTDATA("../App/resources/icons/typeAlias.svg");
+    const QString typeAliasSvgPath = QFINDTESTDATA("../src/App/resources/icons/typeAlias.svg");
     QVERIFY2(!typeAliasSvgPath.isEmpty(), "typeAlias.svg test data was not found");
     QFile typeAliasSvg(typeAliasSvgPath);
     QVERIFY(typeAliasSvg.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -703,7 +703,7 @@ void tst_CanvasToolBarQmlContract::toolbarUsesStockLvrsControlGeometry()
 
 void tst_CanvasToolBarQmlContract::drawingSurfaceProvidesPaintStyleTextToolEditor()
 {
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
 
     QFile drawingSurfaceQml(drawingSurfaceQmlPath);
@@ -834,7 +834,7 @@ void tst_CanvasToolBarQmlContract::drawingSurfaceProvidesPaintStyleTextToolEdito
     QVERIFY(surfaceSource.contains(
         QStringLiteral("onActivated: surface.toolShortcutRequested(\"text\")")));
 
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
 
     QFile painterPageQml(painterPageQmlPath);
@@ -848,7 +848,7 @@ void tst_CanvasToolBarQmlContract::drawingSurfaceProvidesPaintStyleTextToolEdito
 
 void tst_CanvasToolBarQmlContract::shapeToolUsesStockIconMenuAndDragInsertion()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -898,7 +898,7 @@ void tst_CanvasToolBarQmlContract::shapeToolUsesStockIconMenuAndDragInsertion()
         QStringLiteral("return entry && entry.iconName ? entry.iconName : \"rectangle\";")));
     QVERIFY(!toolbarSource.contains(QStringLiteral("id: shapeMenuRepeater")));
 
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
 
     QFile drawingSurfaceQml(drawingSurfaceQmlPath);
@@ -1150,7 +1150,7 @@ void tst_CanvasToolBarQmlContract::shapeToolUsesStockIconMenuAndDragInsertion()
         surfaceSource.contains(QStringLiteral("enabled: surface.effectiveToolMode() === \"pan\"")));
     QVERIFY(surfaceSource.contains(QStringLiteral("const mode = surface.effectiveToolMode();")));
 
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
 
     QFile painterPageQml(painterPageQmlPath);
@@ -1204,7 +1204,7 @@ void tst_CanvasToolBarQmlContract::shapeToolUsesStockIconMenuAndDragInsertion()
 
 void tst_CanvasToolBarQmlContract::brushSizeControlsFlowFromDecreaseToSliderToIncrease()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -1226,7 +1226,7 @@ void tst_CanvasToolBarQmlContract::brushSizeControlsFlowFromDecreaseToSliderToIn
 
 void tst_CanvasToolBarQmlContract::toolbarUsesFullWidthRectangularBackground()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -1273,7 +1273,7 @@ void tst_CanvasToolBarQmlContract::toolbarUsesFullWidthRectangularBackground()
 
 void tst_CanvasToolBarQmlContract::toolbarIsOffsetBelowApplicationWindowTopChrome()
 {
-    const QString pageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString pageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!pageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
 
     QFile pageQml(pageQmlPath);
@@ -1316,7 +1316,7 @@ void tst_CanvasToolBarQmlContract::toolbarIsOffsetBelowApplicationWindowTopChrom
 
 void tst_CanvasToolBarQmlContract::painterPageUsesLvHierarchyLayerPanel()
 {
-    const QString pageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString pageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!pageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
 
     QFile pageQml(pageQmlPath);
@@ -1403,7 +1403,7 @@ void tst_CanvasToolBarQmlContract::painterPageUsesLvHierarchyLayerPanel()
     QVERIFY(pageSource.contains(QStringLiteral("onAccepted: painterPage.commitLayerRename()")));
     QVERIFY(pageSource.contains(QStringLiteral("Keys.onEscapePressed: function (event)")));
 
-    const QString surfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString surfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!surfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
 
     QFile surfaceQml(surfaceQmlPath);
@@ -1537,7 +1537,7 @@ void tst_CanvasToolBarQmlContract::painterPageUsesLvHierarchyLayerPanel()
 
 void tst_CanvasToolBarQmlContract::pressureCurveControlsUseThreePointGraphAtBottom()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
 
     QFile toolbarQml(toolbarQmlPath);
@@ -1573,7 +1573,7 @@ void tst_CanvasToolBarQmlContract::pressureCurveControlsUseThreePointGraphAtBott
 
 void tst_CanvasToolBarQmlContract::brushSettingsExposePressureOpacityToggle()
 {
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");
     QFile toolbarQml(toolbarQmlPath);
     QVERIFY(toolbarQml.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -1602,7 +1602,7 @@ void tst_CanvasToolBarQmlContract::brushSettingsExposePressureOpacityToggle()
     QVERIFY(pressureOpacityIndex > opacityIndex);
     QVERIFY(hardnessIndex > pressureOpacityIndex);
 
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QFile painterPageQml(painterPageQmlPath);
     QVERIFY(painterPageQml.open(QIODevice::ReadOnly | QIODevice::Text));
@@ -1614,7 +1614,7 @@ void tst_CanvasToolBarQmlContract::brushSettingsExposePressureOpacityToggle()
         QStringLiteral("onBrushPressureControlsOpacityChangeRequested: enabled => "
                        "painterPage.setBrushProperty(\"brushPressureControlsOpacity\", enabled)")));
 
-    const QString surfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString surfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!surfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
     QFile surfaceQml(surfaceQmlPath);
     QVERIFY(surfaceQml.open(QIODevice::ReadOnly | QIODevice::Text));

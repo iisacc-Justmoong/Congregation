@@ -27,12 +27,12 @@ class tst_MainQmlContract : public QObject
 
 void tst_MainQmlContract::presentationModeUsesFullScreenCanvasOnlyAndRestoresOnEscape()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
     const QString laserPointerQmlPath =
-        QFINDTESTDATA("../App/qml/canvas/PresentationLaserPointer.qml");
+        QFINDTESTDATA("../src/App/qml/canvas/PresentationLaserPointer.qml");
     const QString cmakePath = QFINDTESTDATA("../CMakeLists.txt");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
@@ -117,7 +117,7 @@ void tst_MainQmlContract::presentationModeUsesFullScreenCanvasOnlyAndRestoresOnE
         QStringLiteral("onWheelZoomRequested: (angleDeltaY, pixelDeltaY) => "
                        "painterPage.zoomCanvasFromWheel(angleDeltaY, pixelDeltaY)")));
 
-    QVERIFY(cmakeSource.contains(QStringLiteral("App/qml/canvas/PresentationLaserPointer.qml")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("src/App/qml/canvas/PresentationLaserPointer.qml")));
     QVERIFY(
         laserPointerSource.contains(QStringLiteral("readonly property int trailLifetimeMs: 2000")));
     QVERIFY(
@@ -249,10 +249,10 @@ void tst_MainQmlContract::presentationModeUsesFullScreenCanvasOnlyAndRestoresOnE
 
 void tst_MainQmlContract::canvasWheelZoomIsAvailableInEveryToolMode()
 {
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString drawingSurfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     const QString laserPointerQmlPath =
-        QFINDTESTDATA("../App/qml/canvas/PresentationLaserPointer.qml");
+        QFINDTESTDATA("../src/App/qml/canvas/PresentationLaserPointer.qml");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QVERIFY2(!drawingSurfaceQmlPath.isEmpty(), "DrawingSurface.qml test data was not found");
     QVERIFY2(!laserPointerQmlPath.isEmpty(),
@@ -312,7 +312,7 @@ void tst_MainQmlContract::canvasWheelZoomIsAvailableInEveryToolMode()
 
 void tst_MainQmlContract::clipboardPasteFailuresAreExplainedWithoutBlockingCanvas()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -338,9 +338,9 @@ void tst_MainQmlContract::clipboardPasteFailuresAreExplainedWithoutBlockingCanva
 
 void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     const QString updateManagerPath =
-        QFINDTESTDATA("../App/models/update/congregationupdatemanager.cpp");
+        QFINDTESTDATA("../src/App/models/update/congregationupdatemanager.cpp");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!updateManagerPath.isEmpty(), "Congregation update manager test data was not found");
 
@@ -401,7 +401,7 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
 
 void tst_MainQmlContract::applicationWindowKeepsNativeControlsWhileUsingSolidVisualChrome()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -419,7 +419,7 @@ void tst_MainQmlContract::applicationWindowKeepsNativeControlsWhileUsingSolidVis
 
 void tst_MainQmlContract::applicationWindowUsesOnlyTheMacOsFullSizeTitleBarDragRegion()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -442,7 +442,7 @@ void tst_MainQmlContract::applicationWindowUsesOnlyTheMacOsFullSizeTitleBarDragR
 
 void tst_MainQmlContract::applicationWindowPassesOnlyTheActiveMacOsDragHeightToCanvasPage()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -456,7 +456,7 @@ void tst_MainQmlContract::applicationWindowPassesOnlyTheActiveMacOsDragHeightToC
 
 void tst_MainQmlContract::applicationWindowUsesStockLvrsGeometry()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -478,7 +478,7 @@ void tst_MainQmlContract::applicationWindowUsesStockLvrsGeometry()
 
 void tst_MainQmlContract::applicationWindowUsesDeferredCanvasIncubation()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -497,13 +497,13 @@ void tst_MainQmlContract::applicationWindowUsesDeferredCanvasIncubation()
 
 void tst_MainQmlContract::applicationWindowTemporarilyDisablesLicenseEnforcement()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     const QString activationPagePath =
-        QFINDTESTDATA("../App/qml/license/LicenseActivationPage.qml");
-    const QString appEntryPath = QFINDTESTDATA("../App/main.cpp");
+        QFINDTESTDATA("../src/App/qml/license/LicenseActivationPage.qml");
+    const QString appEntryPath = QFINDTESTDATA("../src/App/main.cpp");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!activationPagePath.isEmpty(), "LicenseActivationPage.qml test data was not found");
-    QVERIFY2(!appEntryPath.isEmpty(), "App/main.cpp test data was not found");
+    QVERIFY2(!appEntryPath.isEmpty(), "src/App/main.cpp test data was not found");
 
     auto readSource = [](const QString& path)
     {
@@ -579,7 +579,7 @@ void tst_MainQmlContract::applicationWindowTemporarilyDisablesLicenseEnforcement
 
 void tst_MainQmlContract::applicationWindowProvidesApplicationMenuBar()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -632,9 +632,9 @@ void tst_MainQmlContract::applicationWindowProvidesApplicationMenuBar()
 
 void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     const QString windowsMenuQmlPath =
-        QFINDTESTDATA("../App/qml/menus/WindowsApplicationMenuBar.qml");
+        QFINDTESTDATA("../src/App/qml/menus/WindowsApplicationMenuBar.qml");
     const QString rootCMakePath = QFINDTESTDATA("../CMakeLists.txt");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!windowsMenuQmlPath.isEmpty(),
@@ -783,10 +783,10 @@ void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
         "root.submenuEntry(qsTr(\"Keyboard Shortcuts\"), \"keyboardShortcuts\", \"help\")")));
     QVERIFY(windowsMenuSource.contains(
         QStringLiteral("root.referenceEntry(qsTr(\"Preferences\"), \"preferences\")")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("App/qml/menus/WindowsApplicationMenuBar.qml")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("src/App/qml/menus/WindowsApplicationMenuBar.qml")));
 
-    const QString appEntryPath = QFINDTESTDATA("../App/main.cpp");
-    QVERIFY2(!appEntryPath.isEmpty(), "App/main.cpp test data was not found");
+    const QString appEntryPath = QFINDTESTDATA("../src/App/main.cpp");
+    QVERIFY2(!appEntryPath.isEmpty(), "src/App/main.cpp test data was not found");
     QFile appEntry(appEntryPath);
     QVERIFY(appEntry.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString appEntrySource = QString::fromUtf8(appEntry.readAll());
@@ -797,7 +797,7 @@ void tst_MainQmlContract::applicationMenuBarUsesLvrsContextMenusOnWindows()
 
 void tst_MainQmlContract::applicationMenuAssignsShortcutContracts()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
 
     QFile mainQml(mainQmlPath);
@@ -889,17 +889,17 @@ void tst_MainQmlContract::applicationMenuAssignsShortcutContracts()
 
 void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
     const QString preferencesQmlPath =
-        QFINDTESTDATA("../App/qml/preferences/PreferencesWindow.qml");
-    const QString painterPageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
+        QFINDTESTDATA("../src/App/qml/preferences/PreferencesWindow.qml");
+    const QString painterPageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
     const QString rootCMakePath = QFINDTESTDATA("../CMakeLists.txt");
-    const QString appEntryPath = QFINDTESTDATA("../App/main.cpp");
+    const QString appEntryPath = QFINDTESTDATA("../src/App/main.cpp");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!preferencesQmlPath.isEmpty(), "PreferencesWindow.qml test data was not found");
     QVERIFY2(!painterPageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QVERIFY2(!rootCMakePath.isEmpty(), "CMakeLists.txt test data was not found");
-    QVERIFY2(!appEntryPath.isEmpty(), "App/main.cpp test data was not found");
+    QVERIFY2(!appEntryPath.isEmpty(), "src/App/main.cpp test data was not found");
 
     auto readSource = [](const QString& path)
     {
@@ -1359,15 +1359,15 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(
         preferencesSource.contains(QStringLiteral("text: qsTr(\"Allow inviting other users\")")));
     QVERIFY(!preferencesSource.contains(QStringLiteral("preferencesPlaceholderButton")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("App/qml/preferences/PreferencesWindow.qml")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("src/App/qml/preferences/PreferencesWindow.qml")));
 }
 
 void tst_MainQmlContract::applicationActionsAreTheOnlyOwnersOfPortableShortcuts()
 {
-    const QString mainQmlPath = QFINDTESTDATA("../App/qml/Main.qml");
-    const QString pageQmlPath = QFINDTESTDATA("../App/qml/canvas/PainterCanvasPage.qml");
-    const QString toolbarQmlPath = QFINDTESTDATA("../App/qml/brush/CanvasToolBar.qml");
-    const QString surfaceQmlPath = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString mainQmlPath = QFINDTESTDATA("../src/App/qml/Main.qml");
+    const QString pageQmlPath = QFINDTESTDATA("../src/App/qml/canvas/PainterCanvasPage.qml");
+    const QString toolbarQmlPath = QFINDTESTDATA("../src/App/qml/brush/CanvasToolBar.qml");
+    const QString surfaceQmlPath = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!mainQmlPath.isEmpty(), "Main.qml test data was not found");
     QVERIFY2(!pageQmlPath.isEmpty(), "PainterCanvasPage.qml test data was not found");
     QVERIFY2(!toolbarQmlPath.isEmpty(), "CanvasToolBar.qml test data was not found");

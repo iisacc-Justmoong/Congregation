@@ -606,8 +606,8 @@ void tst_WindowsBuildWorkflowContract::cmakeHasWindowsInstallAndPackageRules()
 
 void tst_WindowsBuildWorkflowContract::appEntryPointAvoidsNonExportedLvrsRuntimeSymbols()
 {
-    const QString mainPath = QFINDTESTDATA("../App/main.cpp");
-    QVERIFY2(!mainPath.isEmpty(), "App/main.cpp test data was not found");
+    const QString mainPath = QFINDTESTDATA("../src/App/main.cpp");
+    QVERIFY2(!mainPath.isEmpty(), "src/App/main.cpp test data was not found");
     const QString source = readTextFile(mainPath);
     QVERIFY(!source.isEmpty());
 
@@ -643,8 +643,8 @@ void tst_WindowsBuildWorkflowContract::appEntryPointAvoidsNonExportedLvrsRuntime
 
 void tst_WindowsBuildWorkflowContract::appEntryPointShowsFinalGeometryOnlyOnce()
 {
-    const QString mainPath = QFINDTESTDATA("../App/main.cpp");
-    QVERIFY2(!mainPath.isEmpty(), "App/main.cpp test data was not found");
+    const QString mainPath = QFINDTESTDATA("../src/App/main.cpp");
+    QVERIFY2(!mainPath.isEmpty(), "src/App/main.cpp test data was not found");
     const QString source = readTextFile(mainPath);
     QVERIFY(!source.isEmpty());
 

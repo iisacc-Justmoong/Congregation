@@ -474,7 +474,7 @@ void tst_DrawingSurfaceItem::createsInitialCanvasInsideWorkspaceMargins()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -562,7 +562,7 @@ void tst_DrawingSurfaceItem::createsNewCanvasAtCurrentWorkspaceSize()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -751,7 +751,7 @@ void tst_DrawingSurfaceItem::createsInfiniteCanvasAndExpandsItWhilePanning()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -979,7 +979,7 @@ void tst_DrawingSurfaceItem::constrainsShapeDragWithShiftModifier()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1040,7 +1040,7 @@ void tst_DrawingSurfaceItem::pansCanvasWithHandToolDrag()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1194,7 +1194,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithHorizontalDrag()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1287,7 +1287,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithMouseWheelInEveryToolMode()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1349,7 +1349,7 @@ void tst_DrawingSurfaceItem::zoomsCanvasWithNativeTemporaryCameraDrag()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1445,7 +1445,7 @@ void tst_DrawingSurfaceItem::usesToolAppropriateCanvasCursors()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1633,7 +1633,7 @@ void tst_DrawingSurfaceItem::tracksBrushCursorDuringNativePointerInput()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -1764,7 +1764,7 @@ void tst_DrawingSurfaceItem::pastesSystemClipboardImageAsTransformableObject()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2151,7 +2151,7 @@ void tst_DrawingSurfaceItem::importsDraggedImageMimeFilesAndWebImages()
     qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2270,7 +2270,7 @@ void tst_DrawingSurfaceItem::movesAndResizesDrawableObjects()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2410,7 +2410,7 @@ void tst_DrawingSurfaceItem::constrainsDrawableObjectTransformWithShiftModifier(
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2492,7 +2492,7 @@ void tst_DrawingSurfaceItem::deletesSelectedDrawableObject()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2548,7 +2548,7 @@ void tst_DrawingSurfaceItem::deletesBackgroundLayerLikeRegularLayer()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2677,7 +2677,7 @@ void tst_DrawingSurfaceItem::addsBlankLayerRowsWithoutTransformHitTesting()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2824,7 +2824,7 @@ void tst_DrawingSurfaceItem::shapeAndTextToolsCreateSeparateLayerRows()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -2963,7 +2963,7 @@ void tst_DrawingSurfaceItem::deletingRasterLayerRemovesItsPaintFromQmlComposite(
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -3058,7 +3058,7 @@ void tst_DrawingSurfaceItem::addsManyRasterLayersWithoutSnapshotChurn()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -3131,7 +3131,7 @@ void tst_DrawingSurfaceItem::renamesLayerRowsAndDrawableObjectMetadata()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -3203,7 +3203,7 @@ void tst_DrawingSurfaceItem::layersExposeHierarchyRowsAndReorderDrawableObjects(
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -3445,7 +3445,7 @@ void tst_DrawingSurfaceItem::qmlRemoteParticipantRoutesMutationToHostCanvas()
 {
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -3995,7 +3995,7 @@ void tst_DrawingSurfaceItem::roundTripsRecentCanvasThroughQmlSurface()
 
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());
@@ -4785,7 +4785,7 @@ void tst_DrawingSurfaceItem::opensRasterImagesAsCanvasAtSourceResolution()
     QQmlEngine engine;
 
     QQmlComponent component(&engine);
-    const QString drawingSurfaceQml = QFINDTESTDATA("../App/qml/painting/DrawingSurface.qml");
+    const QString drawingSurfaceQml = QFINDTESTDATA("../src/App/qml/painting/DrawingSurface.qml");
     QVERIFY2(!drawingSurfaceQml.isEmpty(), "DrawingSurface.qml test data was not found");
     component.loadUrl(QUrl::fromLocalFile(drawingSurfaceQml));
     QTRY_VERIFY(component.isReady() || component.isError());

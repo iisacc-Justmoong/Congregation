@@ -264,6 +264,7 @@ void tst_MacOSBuildWorkflowContract::buildScriptUsesIncrementalBuildsAndStripsDi
     const QString source = QString::fromUtf8(buildScript.readAll());
 
     QVERIFY(source.contains(QStringLiteral("Usage: ./build.sh [--clean] [local|devid|mas|all]")));
+    QVERIFY(source.contains(QStringLiteral("QML_DIR=\"./src/App/qml\"")));
     QVERIFY(source.contains(QStringLiteral("BUILD_MODE=\"${CONGREGATION_BUILD_MODE:-devid}\"")));
     QVERIFY(source.contains(QStringLiteral("OUT_LOCAL_DEVID_PKG=\"${DIST_DIR}/${APP_NAME}-local-unsigned.pkg\"")));
     QVERIFY(source.contains(QStringLiteral("OUT_LOCAL_MAS_PKG=\"${DIST_DIR}/${APP_NAME}-appstore-local-unsigned.pkg\"")));
@@ -342,7 +343,7 @@ void tst_MacOSBuildWorkflowContract::buildScriptRunsLocalModeWithEmptyOptionalAr
 
     QDir temp(tempDir.path());
     QVERIFY(temp.mkpath(QStringLiteral("bin")));
-    QVERIFY(temp.mkpath(QStringLiteral("App/qml")));
+    QVERIFY(temp.mkpath(QStringLiteral("src/App/qml")));
     const QString updateManagerPrefix = temp.filePath(QStringLiteral("iiUpdateManager"));
     QVERIFY(temp.mkpath(QStringLiteral("iiUpdateManager/lib/cmake/iiUpdateManager")));
     QFile updateManagerConfig(
@@ -541,7 +542,7 @@ void tst_MacOSBuildWorkflowContract::buildScriptFailsClosedOnMissingNotaryProfil
 
     QDir temp(tempDir.path());
     QVERIFY(temp.mkpath(QStringLiteral("bin")));
-    QVERIFY(temp.mkpath(QStringLiteral("App/qml")));
+    QVERIFY(temp.mkpath(QStringLiteral("src/App/qml")));
     const QString updateManagerPrefix = temp.filePath(QStringLiteral("iiUpdateManager"));
     QVERIFY(temp.mkpath(QStringLiteral("iiUpdateManager/lib/cmake/iiUpdateManager")));
     QFile updateManagerConfig(

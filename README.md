@@ -115,3 +115,7 @@ SDK 소스는 `Workspace/SDK`, 설치본은 `~/.local/SDK/<패키지명>`을 사
 CMake 의존성 힌트와 실행 RPATH, `build.sh`의 라이선스·업데이트 라이브러리
 기본 prefix도 이 경로를 따른다. 설치 위치가 바뀌면 `build/`에서 CMake를
 재구성한 뒤 전체 빌드와 CTest를 실행한다.
+
+## Source layout
+
+Implementation files and their headers live together under `src/`. Existing feature and platform subdirectories retain their responsibilities. Build configuration, tests, documentation, resources, and maintenance scripts remain at the project root. Configure and build using the repository-local `build/` directory.

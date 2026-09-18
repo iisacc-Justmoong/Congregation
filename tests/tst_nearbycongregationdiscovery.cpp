@@ -247,8 +247,8 @@ void tst_NearbyCongregationDiscovery::servicesOnTheSameDeviceAreNotReported()
 
 void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheWindow()
 {
-    const QString mainPath = QFINDTESTDATA("../App/main.cpp");
-    QVERIFY2(!mainPath.isEmpty(), "App/main.cpp test data was not found");
+    const QString mainPath = QFINDTESTDATA("../src/App/main.cpp");
+    QVERIFY2(!mainPath.isEmpty(), "src/App/main.cpp test data was not found");
     QFile mainFile(mainPath);
     QVERIFY(mainFile.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString mainSource = QString::fromUtf8(mainFile.readAll());
@@ -270,7 +270,7 @@ void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheW
     QVERIFY(mainSource.contains(QStringLiteral("nearbyDiscovery->stop();")));
 
     const QString implementationPath =
-        QFINDTESTDATA("../App/models/network/nearbycongregationdiscovery.cpp");
+        QFINDTESTDATA("../src/App/models/network/nearbycongregationdiscovery.cpp");
     QVERIFY2(!implementationPath.isEmpty(), "nearby discovery implementation was not found");
     QFile implementationFile(implementationPath);
     QVERIFY(implementationFile.open(QIODevice::ReadOnly | QIODevice::Text));

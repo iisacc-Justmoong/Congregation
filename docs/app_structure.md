@@ -4,31 +4,31 @@ This document captures Congregation 1.0.0 after moving its native painting surfa
 
 ## Top-Level Layout
 
-- `CMakeLists.txt` (root) bootstraps Qt, LVRS, iiPaintEngine, iiSharedCanvas, iiUpdateManager, iiLicenseManager, packaging, and the `App/` subdirectory.
-- `App/` contains the application bundle sources.
-- `App/models/canvas/canvasdocumentviewmodel.*` stores LVRS-facing document state for brush color, brush size, active tool, and canvas dimensions.
-- `App/models/canvas/canvasviewmodelbridge.*` gates drawing mutations through the LVRS document view model and synchronizes canvas metadata.
-- `App/models/brush/paletteutils.*` provides palette ordering helpers exposed to QML.
-- `App/models/document/psdcompatibilitydocument.*` defines the internal Photoshop-style document/layer manifest used as the boundary for PSD import/export.
-- `App/models/document/psdimagereader.*` wraps `psd_sdk` so Congregation can read PSD merged image data without relying on Qt image plugins.
-- `App/models/document/psdimagewriter.*` wraps `psd_sdk` so Congregation can write layered PSD files with XMP metadata.
-- `App/models/document/recentcanvascontainer.*` owns the versioned, SHA-256-checked internal recent-session container codec.
-- `App/models/license/accountmanager.*` adapts `iiLicenseManager 0.2` account identity to the Preferences surface without exposing a product key to QML.
-- `App/models/license/licensemanager.*` owns the retained online Congregation product-license request, fail-closed runtime decision, credential lifecycle, and an explicit application enforcement mode. Congregation currently selects the disabled mode.
-- `App/models/license/licensecredentialstore.*` isolates secure credential persistence so the QtKeychain production adapter and in-memory test fake can be exchanged without changing validation policy.
-- `App/models/network/nearbycongregationdiscovery.*` owns anonymous local-network presence discovery and isolates its UDP socket, timers, interface membership, and peer expiry on a dedicated worker thread.
-- `App/models/network/localcanvassession.*` owns the explicit LAN canvas host/input-client protocol, participant state, bounded TCP framing and edit-command validation, and host-authoritative snapshot revisions.
-- `App/models/collaboration/memberprofilelistbuilder.*` creates the Members presentation list from the current local profile and active-canvas collaborator records. It de-duplicates an upstream `isMe` row, keeps one host first, assigns the exact role suffix, and preserves each removable collaborator's source record and index for session deletion.
-- `App/models/painting/drawingsurfaceitem.*` adapts Congregation's QML surface contract to `iiSharedCanvas::CanvasItem`, whose raster editing delegates to iiPaintEngine.
-- `App/models/preferences/applicationpreferences.*` owns non-sensitive General settings, the single app-local recent-canvas path, legacy external-path cleanup, and `QSettings` persistence.
-- `App/models/update/congregationupdatemanager.*` adapts the installed `iiUpdateManager 0.2` runtime to Congregation's credential and distribution-channel policies.
-- `App/qml/` contains the LVRS UI for the main window, preferences window, toolbar, and drawing surface.
+- `CMakeLists.txt` (root) bootstraps Qt, LVRS, iiPaintEngine, iiSharedCanvas, iiUpdateManager, iiLicenseManager, packaging, and the `src/App/` subdirectory.
+- `src/App/` contains the application bundle sources.
+- `src/App/models/canvas/canvasdocumentviewmodel.*` stores LVRS-facing document state for brush color, brush size, active tool, and canvas dimensions.
+- `src/App/models/canvas/canvasviewmodelbridge.*` gates drawing mutations through the LVRS document view model and synchronizes canvas metadata.
+- `src/App/models/brush/paletteutils.*` provides palette ordering helpers exposed to QML.
+- `src/App/models/document/psdcompatibilitydocument.*` defines the internal Photoshop-style document/layer manifest used as the boundary for PSD import/export.
+- `src/App/models/document/psdimagereader.*` wraps `psd_sdk` so Congregation can read PSD merged image data without relying on Qt image plugins.
+- `src/App/models/document/psdimagewriter.*` wraps `psd_sdk` so Congregation can write layered PSD files with XMP metadata.
+- `src/App/models/document/recentcanvascontainer.*` owns the versioned, SHA-256-checked internal recent-session container codec.
+- `src/App/models/license/accountmanager.*` adapts `iiLicenseManager 0.2` account identity to the Preferences surface without exposing a product key to QML.
+- `src/App/models/license/licensemanager.*` owns the retained online Congregation product-license request, fail-closed runtime decision, credential lifecycle, and an explicit application enforcement mode. Congregation currently selects the disabled mode.
+- `src/App/models/license/licensecredentialstore.*` isolates secure credential persistence so the QtKeychain production adapter and in-memory test fake can be exchanged without changing validation policy.
+- `src/App/models/network/nearbycongregationdiscovery.*` owns anonymous local-network presence discovery and isolates its UDP socket, timers, interface membership, and peer expiry on a dedicated worker thread.
+- `src/App/models/network/localcanvassession.*` owns the explicit LAN canvas host/input-client protocol, participant state, bounded TCP framing and edit-command validation, and host-authoritative snapshot revisions.
+- `src/App/models/collaboration/memberprofilelistbuilder.*` creates the Members presentation list from the current local profile and active-canvas collaborator records. It de-duplicates an upstream `isMe` row, keeps one host first, assigns the exact role suffix, and preserves each removable collaborator's source record and index for session deletion.
+- `src/App/models/painting/drawingsurfaceitem.*` adapts Congregation's QML surface contract to `iiSharedCanvas::CanvasItem`, whose raster editing delegates to iiPaintEngine.
+- `src/App/models/preferences/applicationpreferences.*` owns non-sensitive General settings, the single app-local recent-canvas path, legacy external-path cleanup, and `QSettings` persistence.
+- `src/App/models/update/congregationupdatemanager.*` adapts the installed `iiUpdateManager 0.2` runtime to Congregation's credential and distribution-channel policies.
+- `src/App/qml/` contains the LVRS UI for the main window, preferences window, toolbar, and drawing surface.
 - `tests/` contains Qt Test targets for the document view model, General settings persistence, iiLicenseManager account-identity boundary, nearby discovery, local canvas sessions, iiUpdateManager integration, iiPaintEngine drawing surface integration, and Windows, macOS, and Linux build/package contracts.
 
 ## Build System Overview
 
 1. The root `CMakeLists.txt` sets up Qt 6, LVRS, iiPaintEngine, iiSharedCanvas, iiUpdateManager 0.2, iiLicenseManager 0.2, `psd_sdk`, install paths, packaging metadata, and the `Congregation` executable target.
-2. `App/CMakeLists.txt` attaches the C++ sources and headers to the `Congregation` target.
+2. `src/App/CMakeLists.txt` attaches the C++ sources and headers to the `Congregation` target.
 3. `qt_add_qml_module` registers the `Congregation` QML module and exposes `Main.qml`, `PreferencesWindow.qml`, `PainterCanvasPage.qml`, `PresentationLaserPointer.qml`, `CanvasToolBar.qml`, `HslTriangleColorPicker.qml`, and `DrawingSurface.qml`.
 4. The executable links against Qt Core, Network, QML, Quick, Quick Controls 2, SVG, `iiSharedCanvas::iiSharedCanvas`, its iiPaintEngine dependency, `iiUpdateManager::iiUpdateManager`, `iiLicenseManager::iiLicenseManager`, and a static QtKeychain 0.17.0 on macOS/Windows, then LVRS configures runtime QML import handling. QtKeychain is pinned to commit `875f77d9f61bd97fd84cca47ce3bc71186dfbd09`, built without translations or its own tests, and uses no insecure fallback.
 5. On Windows, the `Congregation` target uses the GUI subsystem so it starts without a console window; its lifetime remains owned by the `QGuiApplication` event loop and top-level window. Its compiled resources provide the icon, file/product version, `asInvoker` manifest, Windows 10/11 compatibility, Per-Monitor V2 DPI awareness, and long-path awareness.
@@ -36,7 +36,7 @@ This document captures Congregation 1.0.0 after moving its native painting surfa
 7. Linux installs use the GNU `bin/lib/qml/plugins/share` layout, a `Terminal=false` desktop entry, relative ELF RPATH, and Qt's generated QML deployment script; macOS remains an app bundle and Windows remains a GUI-subsystem executable with a flat staged runtime.
 8. When `BUILD_TESTING=ON`, `tests/CMakeLists.txt` registers the active unit test targets, including Windows executable resource and PE contract checks on Windows plus static macOS and Linux packaging contracts on every host.
 
-## Runtime Entry Point (`App/main.cpp`)
+## Runtime Entry Point (`src/App/main.cpp`)
 
 - Starts a standard `QGuiApplication`/`QQmlApplicationEngine` entry point so Windows links only against LVRS's exported QML module surface instead of non-exported LVRS C++ runtime helpers.
 - Publishes CMake's `PROJECT_VERSION` compile definition as `QGuiApplication::applicationVersion`, keeping the runtime version on the same source as macOS plist and Windows package metadata.
@@ -54,7 +54,7 @@ This document captures Congregation 1.0.0 after moving its native painting surfa
 - Registers a shared `CanvasDocumentViewModel` in the LVRS `ViewModels` registry under `CanvasDocument` through the registry's `QObject` meta-object API.
 - Launches the `Congregation` QML module's `Main` component.
 
-## QML Module Layout (`App/qml/`)
+## QML Module Layout (`src/App/qml/`)
 
 ### `Main.qml`
 

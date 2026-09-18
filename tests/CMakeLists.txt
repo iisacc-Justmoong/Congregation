@@ -1,15 +1,15 @@
 add_executable(tests_canvasdocumentviewmodel
         tst_canvasdocumentviewmodel.cpp
-        ../App/models/canvas/canvasdocumentviewmodel.cpp
-        ../App/models/canvas/canvasdocumentviewmodel.h
-        ../App/models/brush/paletteutils.cpp
-        ../App/models/brush/paletteutils.h
+        ../src/App/models/canvas/canvasdocumentviewmodel.cpp
+        ../src/App/models/canvas/canvasdocumentviewmodel.h
+        ../src/App/models/brush/paletteutils.cpp
+        ../src/App/models/brush/paletteutils.h
 )
 
 target_include_directories(tests_canvasdocumentviewmodel PRIVATE
-        ${CMAKE_SOURCE_DIR}/App
-        ${CMAKE_SOURCE_DIR}/App/models/brush
-        ${CMAKE_SOURCE_DIR}/App/models/canvas
+        ${CMAKE_SOURCE_DIR}/src/App
+        ${CMAKE_SOURCE_DIR}/src/App/models/brush
+        ${CMAKE_SOURCE_DIR}/src/App/models/canvas
 )
 
 target_link_libraries(tests_canvasdocumentviewmodel PRIVATE
@@ -23,12 +23,12 @@ add_test(NAME tests_canvasdocumentviewmodel COMMAND tests_canvasdocumentviewmode
 
 add_executable(tests_psdcompatibilitydocument
         tst_psdcompatibilitydocument.cpp
-        ../App/models/document/psdcompatibilitydocument.cpp
-        ../App/models/document/psdcompatibilitydocument.h
+        ../src/App/models/document/psdcompatibilitydocument.cpp
+        ../src/App/models/document/psdcompatibilitydocument.h
 )
 
 target_include_directories(tests_psdcompatibilitydocument PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/document
+        ${CMAKE_SOURCE_DIR}/src/App/models/document
 )
 
 target_link_libraries(tests_psdcompatibilitydocument PRIVATE
@@ -66,12 +66,12 @@ add_test(NAME tests_mainqmlcontract COMMAND tests_mainqmlcontract)
 
 add_executable(tests_memberprofilelistbuilder
         tst_memberprofilelistbuilder.cpp
-        ../App/models/collaboration/memberprofilelistbuilder.cpp
-        ../App/models/collaboration/memberprofilelistbuilder.h
+        ../src/App/models/collaboration/memberprofilelistbuilder.cpp
+        ../src/App/models/collaboration/memberprofilelistbuilder.h
 )
 
 target_include_directories(tests_memberprofilelistbuilder PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/collaboration
+        ${CMAKE_SOURCE_DIR}/src/App/models/collaboration
 )
 
 target_link_libraries(tests_memberprofilelistbuilder PRIVATE
@@ -84,12 +84,12 @@ add_test(NAME tests_memberprofilelistbuilder COMMAND tests_memberprofilelistbuil
 
 add_executable(tests_profileimageprocessor
         tst_profileimageprocessor.cpp
-        ../App/models/profile/profileimageprocessor.cpp
-        ../App/models/profile/profileimageprocessor.h
+        ../src/App/models/profile/profileimageprocessor.cpp
+        ../src/App/models/profile/profileimageprocessor.h
 )
 
 target_include_directories(tests_profileimageprocessor PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/profile
+        ${CMAKE_SOURCE_DIR}/src/App/models/profile
 )
 
 target_link_libraries(tests_profileimageprocessor PRIVATE
@@ -103,12 +103,12 @@ add_test(NAME tests_profileimageprocessor COMMAND tests_profileimageprocessor)
 
 add_executable(tests_applicationpreferences
         tst_applicationpreferences.cpp
-        ../App/models/preferences/applicationpreferences.cpp
-        ../App/models/preferences/applicationpreferences.h
+        ../src/App/models/preferences/applicationpreferences.cpp
+        ../src/App/models/preferences/applicationpreferences.h
 )
 
 target_include_directories(tests_applicationpreferences PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/preferences
+        ${CMAKE_SOURCE_DIR}/src/App/models/preferences
 )
 
 target_link_libraries(tests_applicationpreferences PRIVATE
@@ -122,12 +122,12 @@ add_test(NAME tests_applicationpreferences COMMAND tests_applicationpreferences)
 
 add_executable(tests_nearbycongregationdiscovery
         tst_nearbycongregationdiscovery.cpp
-        ../App/models/network/nearbycongregationdiscovery.cpp
-        ../App/models/network/nearbycongregationdiscovery.h
+        ../src/App/models/network/nearbycongregationdiscovery.cpp
+        ../src/App/models/network/nearbycongregationdiscovery.h
 )
 
 target_include_directories(tests_nearbycongregationdiscovery PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/network
+        ${CMAKE_SOURCE_DIR}/src/App/models/network
 )
 
 target_link_libraries(tests_nearbycongregationdiscovery PRIVATE
@@ -141,17 +141,17 @@ add_test(NAME tests_nearbycongregationdiscovery COMMAND tests_nearbycongregation
 
 add_executable(tests_localcanvassession
         tst_localcanvassession.cpp
-        ../App/models/document/recentcanvascontainer.cpp
-        ../App/models/document/recentcanvascontainer.h
-        ../App/models/network/localcanvassession.cpp
-        ../App/models/network/localcanvassession.h
-        ../App/models/network/nearbycongregationdiscovery.cpp
-        ../App/models/network/nearbycongregationdiscovery.h
+        ../src/App/models/document/recentcanvascontainer.cpp
+        ../src/App/models/document/recentcanvascontainer.h
+        ../src/App/models/network/localcanvassession.cpp
+        ../src/App/models/network/localcanvassession.h
+        ../src/App/models/network/nearbycongregationdiscovery.cpp
+        ../src/App/models/network/nearbycongregationdiscovery.h
 )
 
 target_include_directories(tests_localcanvassession PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/document
-        ${CMAKE_SOURCE_DIR}/App/models/network
+        ${CMAKE_SOURCE_DIR}/src/App/models/document
+        ${CMAKE_SOURCE_DIR}/src/App/models/network
 )
 
 target_link_libraries(tests_localcanvassession PRIVATE
@@ -165,12 +165,12 @@ add_test(NAME tests_localcanvassession COMMAND tests_localcanvassession)
 
 add_executable(tests_temporarycamerainput
         tst_temporarycamerainput.cpp
-        ../App/models/input/temporarycamerainput.cpp
-        ../App/models/input/temporarycamerainput.h
+        ../src/App/models/input/temporarycamerainput.cpp
+        ../src/App/models/input/temporarycamerainput.h
 )
 
 target_include_directories(tests_temporarycamerainput PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/input
+        ${CMAKE_SOURCE_DIR}/src/App/models/input
 )
 
 target_link_libraries(tests_temporarycamerainput PRIVATE
@@ -184,16 +184,16 @@ add_test(NAME tests_temporarycamerainput COMMAND tests_temporarycamerainput)
 
 add_executable(tests_licensemanager
         tst_licensemanager.cpp
-        ../App/models/license/accountmanager.cpp
-        ../App/models/license/accountmanager.h
-        ../App/models/license/licensecredentialstore.cpp
-        ../App/models/license/licensecredentialstore.h
-        ../App/models/license/licensemanager.cpp
-        ../App/models/license/licensemanager.h
+        ../src/App/models/license/accountmanager.cpp
+        ../src/App/models/license/accountmanager.h
+        ../src/App/models/license/licensecredentialstore.cpp
+        ../src/App/models/license/licensecredentialstore.h
+        ../src/App/models/license/licensemanager.cpp
+        ../src/App/models/license/licensemanager.h
 )
 
 target_include_directories(tests_licensemanager PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/license
+        ${CMAKE_SOURCE_DIR}/src/App/models/license
 )
 
 target_link_libraries(tests_licensemanager PRIVATE
@@ -211,19 +211,19 @@ add_test(NAME tests_licensemanager COMMAND tests_licensemanager)
 
 add_executable(tests_congregationupdatemanager
         tst_congregationupdatemanager.cpp
-        ../App/models/license/licensecredentialstore.cpp
-        ../App/models/license/licensecredentialstore.h
-        ../App/models/license/licensemanager.cpp
-        ../App/models/license/licensemanager.h
-        ../App/models/update/congregationupdatecredentialprovider.cpp
-        ../App/models/update/congregationupdatecredentialprovider.h
-        ../App/models/update/congregationupdatemanager.cpp
-        ../App/models/update/congregationupdatemanager.h
+        ../src/App/models/license/licensecredentialstore.cpp
+        ../src/App/models/license/licensecredentialstore.h
+        ../src/App/models/license/licensemanager.cpp
+        ../src/App/models/license/licensemanager.h
+        ../src/App/models/update/congregationupdatecredentialprovider.cpp
+        ../src/App/models/update/congregationupdatecredentialprovider.h
+        ../src/App/models/update/congregationupdatemanager.cpp
+        ../src/App/models/update/congregationupdatemanager.h
 )
 
 target_include_directories(tests_congregationupdatemanager PRIVATE
-        ${CMAKE_SOURCE_DIR}/App/models/license
-        ${CMAKE_SOURCE_DIR}/App/models/update
+        ${CMAKE_SOURCE_DIR}/src/App/models/license
+        ${CMAKE_SOURCE_DIR}/src/App/models/update
 )
 
 target_link_libraries(tests_congregationupdatemanager PRIVATE
@@ -296,30 +296,30 @@ endif()
 
 add_executable(tests_drawingsurfaceitem
         tst_drawingsurfaceitem.cpp
-        ../App/models/brush/paletteutils.cpp
-        ../App/models/brush/paletteutils.h
-        ../App/models/canvas/canvasdocumentviewmodel.cpp
-        ../App/models/canvas/canvasdocumentviewmodel.h
-        ../App/models/canvas/canvasviewmodelbridge.cpp
-        ../App/models/canvas/canvasviewmodelbridge.h
-        ../App/models/document/psdcompatibilitydocument.cpp
-        ../App/models/document/psdcompatibilitydocument.h
-        ../App/models/document/psdimagereader.cpp
-        ../App/models/document/psdimagereader.h
-        ../App/models/document/psdimagewriter.cpp
-        ../App/models/document/psdimagewriter.h
-        ../App/models/document/recentcanvascontainer.cpp
-        ../App/models/document/recentcanvascontainer.h
-        ../App/models/painting/drawingsurfaceitem.cpp
-        ../App/models/painting/drawingsurfaceitem.h
+        ../src/App/models/brush/paletteutils.cpp
+        ../src/App/models/brush/paletteutils.h
+        ../src/App/models/canvas/canvasdocumentviewmodel.cpp
+        ../src/App/models/canvas/canvasdocumentviewmodel.h
+        ../src/App/models/canvas/canvasviewmodelbridge.cpp
+        ../src/App/models/canvas/canvasviewmodelbridge.h
+        ../src/App/models/document/psdcompatibilitydocument.cpp
+        ../src/App/models/document/psdcompatibilitydocument.h
+        ../src/App/models/document/psdimagereader.cpp
+        ../src/App/models/document/psdimagereader.h
+        ../src/App/models/document/psdimagewriter.cpp
+        ../src/App/models/document/psdimagewriter.h
+        ../src/App/models/document/recentcanvascontainer.cpp
+        ../src/App/models/document/recentcanvascontainer.h
+        ../src/App/models/painting/drawingsurfaceitem.cpp
+        ../src/App/models/painting/drawingsurfaceitem.h
 )
 
 target_include_directories(tests_drawingsurfaceitem PRIVATE
-        ${CMAKE_SOURCE_DIR}/App
-        ${CMAKE_SOURCE_DIR}/App/models/brush
-        ${CMAKE_SOURCE_DIR}/App/models/canvas
-        ${CMAKE_SOURCE_DIR}/App/models/document
-        ${CMAKE_SOURCE_DIR}/App/models/painting
+        ${CMAKE_SOURCE_DIR}/src/App
+        ${CMAKE_SOURCE_DIR}/src/App/models/brush
+        ${CMAKE_SOURCE_DIR}/src/App/models/canvas
+        ${CMAKE_SOURCE_DIR}/src/App/models/document
+        ${CMAKE_SOURCE_DIR}/src/App/models/painting
 )
 
 target_link_libraries(tests_drawingsurfaceitem PRIVATE
