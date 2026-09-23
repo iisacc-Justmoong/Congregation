@@ -1,3 +1,4 @@
+#include <iiAcountManager/GraphQL.h>
 #include "licensemanager.h"
 
 #include "licensecredentialstore.h"
@@ -18,7 +19,7 @@ constexpr int maximumResponseSize = 64 * 1024;
 
 const QString congregationProductId = QStringLiteral("congregation");
 const QUrl productionValidationEndpoint(
-    QStringLiteral("https://iisacc.com/api/account/license/validate"));
+    QStringLiteral("https://iisacc.com/graphql"));
 
 bool isValidEmail(const QString &email)
 {
@@ -404,7 +405,8 @@ void LicenseManager::startValidation(const QString &normalizedEmail,
     requestObject.insert(QStringLiteral("email"), normalizedEmail);
     requestObject.insert(QStringLiteral("licenseKey"), normalizedLicenseKey);
     requestObject.insert(QStringLiteral("productId"), congregationProductId);
-    QByteArray requestBody = QJsonDocument(requestObject).toJson(QJsonDocument::Compact);
+    QByteArray requestBody = iisacc::accounts::graphql::request(
+        QStringLiteral("mutation ValidateLicense($input: LicenseValidationInput!) { validateLicense(input: $input) { valid code productId checkedAt expiresAt } }"), requestObject);
 
     m_activeReply = m_networkAccessManager.post(request, requestBody);
     requestBody.fill('\0');
@@ -447,12 +449,13 @@ void LicenseManager::finishValidation()
         && responseBody.size() <= maximumResponseSize
         && hasJsonContentType(*reply)) {
         QJsonParseError parseError;
-        const QJsonDocument responseDocument = QJsonDocument::fromJson(responseBody, &parseError);
-        if (parseError.error == QJsonParseError::NoError && responseDocument.isObject()) {
+        const auto decoded = iisacc::accounts::graphql::decode(responseBody, "validateLicense", statusCode);
+        const QJsonDocument responseDocument = QJsonDocument::fromJson(decoded.body, &parseError);
+        if (decoded.valid && decoded.status == 200 && parseError.error == QJsonParseError::NoError && responseDocument.isObject()) {
             const QJsonObject responseObject = responseDocument.object();
             const QJsonValue validValue = responseObject.value(QStringLiteral("valid"));
             const QJsonValue responseProductId = responseObject.value(QStringLiteral("productId"));
-            const bool productMatches = !responseObject.contains(QStringLiteral("productId"))
+            const bool productMatches = responseProductId.isNull() || !responseObject.contains(QStringLiteral("productId"))
                 || (responseProductId.isString() && responseProductId.toString() == congregationProductId);
 
             if (validValue.isBool() && productMatches) {

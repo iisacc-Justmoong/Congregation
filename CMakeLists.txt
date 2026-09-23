@@ -150,6 +150,7 @@ find_package(iiPaintEngine CONFIG REQUIRED)
 find_package(iiFileProvider 0.5 CONFIG REQUIRED)
 find_package(iiSharedCanvas 0.10.1 EXACT CONFIG REQUIRED)
 find_package(iiUpdateManager 0.2 CONFIG REQUIRED)
+find_package(iiAcountManager 0.2.8 CONFIG REQUIRED)
 find_package(iiLicenseManager 0.2 CONFIG REQUIRED)
 
 get_filename_component(_congregation_iilicensemanager_prefix
@@ -170,6 +171,10 @@ if(APPLE OR WIN32)
             UPDATE_DISCONNECTED TRUE
     )
     function(congregation_add_qtkeychain)
+        # iiAcountManager may already provide its reviewed static keychain.
+        if(TARGET qt6keychain)
+            return()
+        endif()
         set(BUILD_WITH_QT5 OFF)
         set(BUILD_TEST_APPLICATION OFF)
         set(BUILD_QTQUICK_DEMO OFF)

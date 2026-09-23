@@ -1,7 +1,11 @@
 #include "licensecredentialstore.h"
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+#if __has_include(<qt6keychain/keychain.h>)
+#include <qt6keychain/keychain.h>
+#else
 #include <qtkeychain/keychain.h>
+#endif
 #endif
 
 #include <utility>
