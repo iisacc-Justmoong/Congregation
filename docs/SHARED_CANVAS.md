@@ -174,3 +174,10 @@ exporting or transmitting an unchanged document is not an edit. Repeated
 snapshots therefore retain identical bytes, revisions, and timestamps, including
 a late view resize. The resize/session regression checks both repeated export
 and the original document ledger.
+
+## Installed SDK baseline
+
+The application now requires iiSharedCanvas 0.11.0 exactly. Reconfigure and
+rebuild against that installed package after an SDK refresh; the macOS build
+contract test checks the pinned version, and canvas runtime tests validate
+the consumer adapter against the current document contract.

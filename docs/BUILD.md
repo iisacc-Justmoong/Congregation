@@ -25,7 +25,7 @@ Windows MSI starts a separate Congregation upgrade family with UpgradeCode `3143
 ## 1a. Automated macOS Build Script
 `./build.sh` defaults to the Developer ID distribution flow. It validates the Developer ID application and installer identities plus notarization credentials before configuring, builds in `build/`, runs `ctest --test-dir build --output-on-failure`, deploys the Qt runtime, signs the complete app tree with hardened runtime and a trusted timestamp, creates `dist/Congregation.pkg`, submits that package to Apple's notary service, staples the accepted ticket, and verifies the final package with `pkgutil`, `stapler`, and Gatekeeper. The canonical `dist/Congregation.pkg` path is published only by this signed and notarized flow.
 
-Use `./build.sh local` for local development validation. Local mode signs `dist/Congregation.app` with `LOCAL_APP_CERT`, the first valid `Apple Development` identity, or an ad-hoc signature, then creates the explicitly non-distributable `dist/Congregation-local-unsigned.pkg` and `dist/Congregation-appstore-local-unsigned.pkg`. It never overwrites `dist/Congregation.pkg` or `dist/Congregation-appstore.pkg`. The component-built local and App Store package gates require the requested identifier and version on the Distribution `product`; only the legacy Developer ID `pkgbuild --package` flow validates that identity on its component `pkg-ref`, so an unrelated component cannot stand in for the current product identity.
+Use `./build.sh local` for local development validation. Local mode signs `build/Congregation.app` with `LOCAL_APP_CERT`, the first valid `Apple Development` identity, or an ad-hoc signature, then creates the explicitly non-distributable `dist/Congregation-local-unsigned.pkg` and `dist/Congregation-appstore-local-unsigned.pkg`. It never overwrites `dist/Congregation.pkg` or `dist/Congregation-appstore.pkg`. The component-built local and App Store package gates require the requested identifier and version on the Distribution `product`; only the legacy Developer ID `pkgbuild --package` flow validates that identity on its component `pkg-ref`, so an unrelated component cannot stand in for the current product identity.
 
 The macOS workflow is incremental and preserves `build/`, including the disconnected `psd_sdk` and QtKeychain FetchContent checkouts. Use `./build.sh --clean` for a clean Developer ID distribution build, or `./build.sh --clean local` for clean local validation, only after changing toolchains or when recovering a stale cache. Local packages keep symbols with `macdeployqt -no-strip`; Developer ID, Mac App Store, and combined distribution modes omit `-no-strip` so release bundles are stripped by the deployment tool. `MACDEPLOYQT_NO_STRIP=0|1` remains an explicit override.
 
@@ -415,20 +415,20 @@ cmake --build build --target Congregation
 If you need a different bundle identifier, update `BUNDLE_ID` in `CMakeLists.txt` before configuring. Adjust the deployment target if you need to support newer or older macOS releases.
 
 ## 3. Stage the App Bundle
-The built app lives under `build/Congregation.app`. Copy it to a staging directory (for example, `dist/Congregation.app`) so you can safely run deployment tools without touching your build tree.
+The built app lives under `build/Congregation.app`. Copy it to a staging directory (for example, `build/Congregation.app`) so you can safely run deployment tools without touching your build tree.
 
 ## 4. Embed Qt Frameworks
 Run `macdeployqt` in App Store mode to embed the required Qt frameworks and QML plugins:
 ```bash
-macdeployqt "dist/Congregation.app" \
+macdeployqt "build/Congregation.app" \
   -appstore-compliant \
   -qmldir=src/App/qml \
   -always-overwrite
 ```
-Verify that all `.framework` bundles now sit inside `dist/Congregation.app/Contents/Frameworks` and that `qt.conf` exists in `Contents/Resources/`.
+Verify that all `.framework` bundles now sit inside `build/Congregation.app/Contents/Frameworks` and that `qt.conf` exists in `Contents/Resources/`.
 
 ## 5. Prepare Metadata
-Update the generated `Info.plist` (inside `dist/Congregation.app/Contents/`) with:
+Update the generated `Info.plist` (inside `build/Congregation.app/Contents/`) with:
 - `CFBundleIdentifier` matching your bundle ID.
 - `CFBundleShortVersionString` set to marketing version `1.0.0` and `CFBundleVersion` initialized to App Store build number `1` for the new bundle identifier.
 - `CFBundleIconFile` should resolve to the bundled `resources/Appicon.icns` file. Windows builds embed `resources/Appicon.ico` through the generated resource script.
@@ -442,19 +442,19 @@ Update the generated `Info.plist` (inside `dist/Congregation.app/Contents/`) wit
 codesign --force --options runtime \
   --entitlements packaging/macos/Congregation.entitlements \
   --sign "Apple Distribution: MUYEONG YUN (5U49ST9XZH)" \
-  "dist/Congregation.app"
+  "build/Congregation.app"
 ```
 Then validate the signature:
 ```bash
-codesign --verify --deep --strict "dist/Congregation.app"
-spctl --assess --type execute "dist/Congregation.app"
+codesign --verify --deep --strict "build/Congregation.app"
+spctl --assess --type execute "build/Congregation.app"
 ```
 If `spctl` warns about missing the hardened runtime, make sure `--options runtime` was passed.
 
 ## 8. Create the Installer Package
 ```bash
 productbuild \
-  --component "dist/Congregation.app" /Applications \
+  --component "build/Congregation.app" /Applications \
   --sign "Apple Installer: MUYEONG YUN (5U49ST9XZH)" \
   "dist/Congregation.pkg"
 ```
@@ -477,7 +477,7 @@ cmp resources/Appicon.icns /tmp/congregation-appstore-payload/com.iisacc.congreg
 
 If the `cmp` command succeeds, the upload package contains the current app icon. Update or refresh the App Store Connect app record icon separately if Transporter continues to show the old store listing icon before delivery.
 
-If Dock or Launchpad still shows the old icon after the installed bundle is correct, remove stale `/Applications/Congregation.app` Dock entries and let LaunchServices re-register the rebuilt app. A pinned Dock item can continue pointing at an old or removed bundle path even after the workspace `dist/Congregation.app` has the new icon.
+If Dock or Launchpad still shows the old icon after the installed bundle is correct, remove stale `/Applications/Congregation.app` Dock entries and let LaunchServices re-register the rebuilt app. A pinned Dock item can continue pointing at an old or removed bundle path even after the workspace `build/Congregation.app` has the new icon.
 
 ## 9. Upload to App Store Connect
 1. Open Transporter.
@@ -491,7 +491,7 @@ If Dock or Launchpad still shows the old icon after the installed bundle is corr
 - Submit for review.
 
 ## Troubleshooting Tips
-- Use `otool -L dist/Congregation.app/Contents/MacOS/Congregation` to ensure no absolute paths to your build tree remain.
+- Use `otool -L build/Congregation.app/Contents/MacOS/Congregation` to ensure no absolute paths to your build tree remain.
 - Leverage `plutil -p` to inspect `Info.plist` after `macdeployqt` runs.
 - If Transporter rejects the upload due to missing `LC_VERSION_MIN_MACOSX`, make sure `CMAKE_OSX_DEPLOYMENT_TARGET` is set at configure time.
 - Should you require notarization for outside-the-store distribution, rerun codesigning with the same entitlements and submit via `xcrun notarytool`; App Store submissions do not need separate notarization.

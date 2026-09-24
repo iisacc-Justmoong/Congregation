@@ -18,7 +18,7 @@ usage() {
 Usage: ./build.sh [--clean] [local|devid|mas|all]
 
 Modes:
-  local   Build, test, deploy Qt runtime, sign dist/Congregation.app for local use,
+  local   Build, test, deploy Qt runtime, sign build/Congregation.app for local use,
           and create unsigned local installer packages.
           Uses LOCAL_APP_CERT, the first valid Apple Development identity, or ad-hoc signing.
   devid   Build, test, create the Developer ID pkg, notarize it, and staple it. (default)
@@ -285,7 +285,7 @@ fi
 INSTALL_DIR="/Applications"
 
 # pkg 메타데이터
-APP_VERSION=""                # 비워 두면 dist/<App>.app의 Info.plist에서 CFBundleShortVersionString을 자동으로 읽는다.
+APP_VERSION=""                # 비워 두면 build/<App>.app의 Info.plist에서 CFBundleShortVersionString을 자동으로 읽는다.
 PKG_ID_DEVID="com.iisacc.app.congregation.pkg"
 PKG_ID_MAS="com.iisacc.congregation.painter"
 
@@ -325,7 +325,6 @@ OUT_DEVID_PKG="${DIST_DIR}/${APP_NAME}.pkg"
 OUT_MAS_PKG="${DIST_DIR}/${APP_NAME}-appstore.pkg"
 
 # 디버깅/보존 옵션
-KEEP_STAGED_APPS="0"          # 1이면 dist에 배포 준비된 .app 사본도 남긴다(추가 산출물)
 # =============================================================================
 
 set_notary_auth_args() {
@@ -533,37 +532,17 @@ if [[ "$RUN_TESTS" == "1" ]]; then
 fi
 
 # =============================================================================
-# 2) Locate .app and stage to dist as canonical name
+# 2) Use the canonical build app in place
 # =============================================================================
 
 say "=== locate app bundle ==="
-FOUND_APP=""
-CANDIDATES=(
-  "$BUILD_DIR/$BUILD_TYPE/$APP_NAME.app"
-  "$BUILD_DIR/$APP_NAME.app"
-  "$BUILD_DIR/bin/$APP_NAME.app"
-  "$BUILD_DIR/out/$APP_NAME.app"
-)
-
-for p in "${CANDIDATES[@]}"; do
-  if [[ -d "$p" ]]; then
-    FOUND_APP="$p"
-    break
-  fi
-done
-
-if [[ -z "$FOUND_APP" ]]; then
-  FOUND_APP="$(find "$BUILD_DIR" -maxdepth 4 -type d -name "${APP_NAME}.app" -print -quit || true)"
-fi
-
-[[ -n "$FOUND_APP" ]] || die "built app bundle not found. expected ${APP_NAME}.app under: $BUILD_DIR"
+FOUND_APP="$BUILD_DIR/$APP_NAME.app"
+[[ -d "$FOUND_APP" ]] || die "canonical app bundle not found: $FOUND_APP"
 say "built app: $FOUND_APP"
 require_nonempty_file "$FOUND_APP/Contents/MacOS/$APP_NAME"
 
-say "=== stage built app to dist ==="
-DIST_APP="${DIST_DIR}/${APP_NAME}.app"
-run rm -rf "$DIST_APP" || true
-run ditto --rsrc "$FOUND_APP" "$DIST_APP"
+say "=== prepare canonical build app ==="
+DIST_APP="$FOUND_APP"
 run xattr -rc "$DIST_APP" || true
 require_nonempty_file "$DIST_APP/Contents/MacOS/$APP_NAME"
 assert_app_icon_bundle "$DIST_APP"
@@ -589,7 +568,7 @@ say "APP_VERSION: $APP_VERSION (build $APP_BUNDLE_VERSION)"
 # 임시 작업 디렉터리(모드별 스테이징/서명/패키징은 여기서 수행)
 # =============================================================================
 
-WORKDIR="$(mktemp -d -t "pkg_all_${APP_NAME}_XXXXXXXX")"
+WORKDIR="$(mktemp -d "${BUILD_DIR}/package-XXXXXXXX")"
 cleanup() { rm -rf "$WORKDIR" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
@@ -842,10 +821,9 @@ set_distribution_channel() {
 prepare_app() {
   local mode="$1"
   local stage_dir="$2"
-  local out_app="${stage_dir}/${APP_NAME}.app"
-
-  run rm -rf "$out_app" || true
-  run ditto --rsrc "$DIST_APP" "$out_app"
+  local out_app="$DIST_APP"
+  # A previous channel may have embedded an App Store profile in this same app.
+  run rm -f "$out_app/Contents/embedded.provisionprofile"
   run xattr -rc "$out_app" || true
 
   local distribution_channel="direct"
@@ -1036,17 +1014,10 @@ build_signed_pkg() {
   run rm -rf "$payload_root" "$comp_plist" "$comp_pkg" "$unsigned_pkg" "$requirements_plist" "$out_pkg" || true
   run mkdir -p "$payload_root"
 
-  # payload_root에 .app을 직접 배치하고 install-location을 /Applications로 고정한다.
-  run ditto --rsrc "$app" "$payload_root/$(basename "$app")"
-
-  # component property list 생성 후, 번들 재배치(relocation)를 비활성화한다.
-  run xcrun pkgbuild --analyze --root "$payload_root" "$comp_plist"
-  run /usr/bin/plutil -replace BundleIsRelocatable -bool NO "$comp_plist"
-
+  # Package the sole canonical bundle directly, without a copied payload tree.
   run xcrun pkgbuild \
-    --root "$payload_root" \
+    --component "$app" \
     --install-location "$INSTALL_DIR" \
-    --component-plist "$comp_plist" \
     --identifier "$pkg_id" \
     --version "$APP_VERSION" \
     "$comp_pkg"
@@ -1195,9 +1166,7 @@ if mode_wants_local; then
   say "Local signing begins"
   sign_app_tree "$LOCAL_APP" "$LOCAL_SIGN_IDENTITY" local
 
-  say "Local deployed app staging begins"
-  run rm -rf "$DIST_APP" || true
-  run ditto --rsrc "$LOCAL_APP" "$DIST_APP"
+  say "Verify the canonical local app"
   run xattr -rc "$DIST_APP" || true
   require_nonempty_file "$DIST_APP/Contents/MacOS/$APP_NAME"
   assert_app_icon_bundle "$DIST_APP"
@@ -1256,19 +1225,7 @@ if mode_wants_mas; then
   require_nonempty_file "$OUT_MAS_PKG"
 fi
 
-# 필요 시 스테이징된 .app을 dist에 보존한다(추가 산출물)
-if [[ "$KEEP_STAGED_APPS" == "1" ]]; then
-  say "keeping staged apps in dist (extra outputs)"
-  run rm -rf "${DIST_DIR}/${APP_NAME}-devid.app" "${DIST_DIR}/${APP_NAME}-mas.app" || true
-  if mode_wants_devid; then
-    run ditto --rsrc "$DEVID_APP" "${DIST_DIR}/${APP_NAME}-devid.app"
-    run xattr -rc "${DIST_DIR}/${APP_NAME}-devid.app" || true
-  fi
-  if mode_wants_mas; then
-    run ditto --rsrc "$MAS_APP" "${DIST_DIR}/${APP_NAME}-mas.app"
-    run xattr -rc "${DIST_DIR}/${APP_NAME}-mas.app" || true
-  fi
-fi
+# Distribution variants are packaged sequentially from the same app.
 
 say "done"
 if mode_wants_devid; then say "$OUT_DEVID_PKG"; fi

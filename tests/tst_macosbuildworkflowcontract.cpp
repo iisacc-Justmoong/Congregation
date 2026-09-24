@@ -127,7 +127,7 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
     QVERIFY(source.contains(QStringLiteral(
         "MACOSX_PACKAGE_LOCATION \"Resources/legal/iiLicenseManager\"")));
     QVERIFY(source.contains(QStringLiteral("CONGREGATION_IILICENSEMANAGER_THIRD_PARTY_NOTICES")));
-    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.10.1 EXACT CONFIG REQUIRED)")));
+    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.11.0 EXACT CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("find_package(iiFileProvider 0.5 CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("iiSharedCanvas::iiSharedCanvas")));
 }
@@ -404,6 +404,7 @@ exit 0
 APP
 chmod +x "$build_dir/Congregation.app/Contents/MacOS/Congregation"
 printf 'fake icon\n' > "$build_dir/Congregation.app/Contents/Resources/Appicon.icns"
+printf 'stale appstore profile\n' > "$build_dir/Congregation.app/Contents/embedded.provisionprofile"
 cat > "$build_dir/Congregation.app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -515,13 +516,15 @@ esac
     QVERIFY2(process.exitCode() == 0, qPrintable(output));
     QVERIFY2(!output.contains(QStringLiteral("unbound variable")), qPrintable(output));
     QVERIFY2(output.contains(QStringLiteral("done")), qPrintable(output));
-    QVERIFY2(!QDir(temp.filePath(QStringLiteral("dist/Congregation.app/Contents/PlugIns/sqldrivers"))).exists(),
+    QVERIFY2(!QDir(temp.filePath(QStringLiteral("build/Congregation.app/Contents/PlugIns/sqldrivers"))).exists(),
              qPrintable(output));
     QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-local-unsigned.pkg"))), qPrintable(output));
     QVERIFY2(QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-appstore-local-unsigned.pkg"))), qPrintable(output));
     QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Congregation.pkg"))), qPrintable(output));
     QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("dist/Congregation-appstore.pkg"))), qPrintable(output));
-    QFile stagedInfoPlist(temp.filePath(QStringLiteral("dist/Congregation.app/Contents/Info.plist")));
+    QVERIFY2(!QDir(temp.filePath(QStringLiteral("dist/Congregation.app"))).exists(), qPrintable(output));
+    QVERIFY2(!QFile::exists(temp.filePath(QStringLiteral("build/Congregation.app/Contents/embedded.provisionprofile"))), qPrintable(output));
+    QFile stagedInfoPlist(temp.filePath(QStringLiteral("build/Congregation.app/Contents/Info.plist")));
     QVERIFY(stagedInfoPlist.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString stagedInfoSource = QString::fromUtf8(stagedInfoPlist.readAll());
     QVERIFY(stagedInfoSource.contains(QStringLiteral("IISACCDistributionChannel")));
