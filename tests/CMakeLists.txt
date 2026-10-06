@@ -284,6 +284,7 @@ if(WIN32)
     target_compile_definitions(tests_windowsbinarycontract PRIVATE
             CONGREGATION_EXECUTABLE_PATH="$<TARGET_FILE:Congregation>"
     )
+    target_compile_definitions(tests_windowsbinarycontract PRIVATE CONGREGATION_TEST_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
     target_link_libraries(tests_windowsbinarycontract PRIVATE
             Qt6::Core
             Qt6::Test

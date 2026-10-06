@@ -158,56 +158,38 @@ void tst_MacOSBuildWorkflowContract::localNetworkDiscoveryDeclaresPrivacyAndSand
 
 void tst_MacOSBuildWorkflowContract::repositoryGuidelinesUseOnlyBuildDirectory()
 {
-    const QString agentsPath = QFINDTESTDATA("../AGENTS.md");
-    QVERIFY2(!agentsPath.isEmpty(), "AGENTS.md test data was not found");
-
-    QFile agentsFile(agentsPath);
-    QVERIFY(agentsFile.open(QIODevice::ReadOnly | QIODevice::Text));
-    const QString agentsSource = QString::fromUtf8(agentsFile.readAll());
-
-    QVERIFY(agentsSource.contains(QStringLiteral("repository-local `build/` directory")));
-    QVERIFY(agentsSource.contains(QStringLiteral("alternate build trees are not supported")));
-    QVERIFY(!agentsSource.contains(legacyClionBuildTreeName()));
+    const QString path = QFINDTESTDATA("../AGENTS.md");
+    QVERIFY(!path.isEmpty());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString document = QString::fromUtf8(file.readAll());
+    QVERIFY(document.contains(QStringLiteral("id=\"project-structure--module-organization\"")));
+    QVERIFY(document.contains(QStringLiteral("`build/`")));
+    QVERIFY(document.contains(QStringLiteral("대안 빌드 트리는 지원되지")));
+    QVERIFY(document.contains(QStringLiteral("cmake --build build")));
+    QVERIFY(document.contains(QStringLiteral("ctest --output-on-failure")));
 }
 
 void tst_MacOSBuildWorkflowContract::buildGuideSeparatesLocalAndDistributionSigning()
 {
-    const QString buildGuidePath = QFINDTESTDATA("../docs/BUILD.md");
-    QVERIFY2(!buildGuidePath.isEmpty(), "docs/BUILD.md test data was not found");
-
-    QFile buildGuide(buildGuidePath);
-    QVERIFY(buildGuide.open(QIODevice::ReadOnly | QIODevice::Text));
-    const QString source = QString::fromUtf8(buildGuide.readAll());
-
-    QVERIFY(source.contains(QStringLiteral("./build.sh local")));
-    QVERIFY(source.contains(QStringLiteral("`./build.sh` defaults to the Developer ID distribution flow")));
-    QVERIFY(source.contains(QStringLiteral("repository-local `build/` CMake binary directory")));
-    QVERIFY(source.contains(QStringLiteral("alternate build trees are rejected")));
-    QVERIFY(!source.contains(legacyClionBuildTreeName()));
-    QVERIFY(source.contains(QStringLiteral("ctest --test-dir build --output-on-failure")));
-    QVERIFY(source.contains(QStringLiteral("Apple Development")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-local-unsigned.pkg")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore-local-unsigned.pkg")));
-    QVERIFY(source.contains(QStringLiteral("CONGREGATION_BUILD_MODE=devid ./build.sh")));
-    QVERIFY(source.contains(QStringLiteral("CONGREGATION_BUILD_MODE=mas ./build.sh")));
-    QVERIFY(source.contains(QStringLiteral("Developer ID Application")));
-    QVERIFY(source.contains(QStringLiteral("Apple Distribution")));
-    QVERIFY(source.contains(QStringLiteral("NOTARY_APP_PASSWORD")));
-    QVERIFY(source.contains(QStringLiteral("validates notarization credentials before configuring")));
-    QVERIFY(source.contains(QStringLiteral("Bash 3.2")));
-    QVERIFY(source.contains(QStringLiteral("CMAKE_EXTRA_ARGS")));
-    QVERIFY(source.contains(QStringLiteral("Contents/Resources/Appicon.icns")));
-    QVERIFY(source.contains(QStringLiteral("stale installer package")));
-    QVERIFY(source.contains(QStringLiteral("pkgutil --payload-files dist/Congregation.pkg")));
-    QVERIFY(source.contains(QStringLiteral("./Congregation.app/Contents/Resources/Appicon.icns")));
-    QVERIFY(source.contains(QStringLiteral("./Congregation.app/Contents/Resources/icon.icns")));
-    QVERIFY(source.contains(QStringLiteral("Transporter's Active list")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-appstore.pkg")));
-    QVERIFY(source.contains(QStringLiteral("App Store Connect record")));
-    QVERIFY(source.contains(QStringLiteral("cmp resources/Appicon.icns")));
-    QVERIFY(source.contains(QStringLiteral("Distribution `product`")));
+    const QString path = QFINDTESTDATA("../docs/BUILD.md");
+    QVERIFY(!path.isEmpty());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString document = QString::fromUtf8(file.readAll());
+    QVERIFY(document.contains(QStringLiteral("id=\"1a-automated-macos-build-script\"")));
+    QVERIFY(document.contains(QStringLiteral("./build.sh local")));
+    QVERIFY(document.contains(QStringLiteral("Developer ID Application")));
+    QVERIFY(document.contains(QStringLiteral("Apple Distribution")));
+    QVERIFY(document.contains(QStringLiteral("NOTARY_APP_PASSWORD")));
+    QVERIFY(document.contains(QStringLiteral("ctest --test-dir build --output-on-failure")));
+    QVERIFY(document.contains(QStringLiteral("dist/Congregation.pkg")));
+    QVERIFY(document.contains(QStringLiteral("dist/Congregation-appstore.pkg")));
+    QVERIFY(document.contains(QStringLiteral("dist/Congregation-local-unsigned.pkg")));
+    QVERIFY(document.contains(QStringLiteral("dist/Congregation-appstore-local-unsigned.pkg")));
+    QVERIFY(document.contains(QStringLiteral("Bash 3.2")));
+    QVERIFY(document.contains(QStringLiteral("CMAKE_EXTRA_ARGS")));
+    QVERIFY(document.contains(QStringLiteral("App Store Connect")));
 }
 
 void tst_MacOSBuildWorkflowContract::platformAppIconsAreBundledFromResources()

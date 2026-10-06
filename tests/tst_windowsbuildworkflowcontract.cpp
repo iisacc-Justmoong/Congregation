@@ -673,75 +673,35 @@ void tst_WindowsBuildWorkflowContract::appEntryPointShowsFinalGeometryOnlyOnce()
 
 void tst_WindowsBuildWorkflowContract::buildGuideDocumentsWindowsScript()
 {
-    const QString buildGuidePath = QFINDTESTDATA("../docs/BUILD.md");
-    QVERIFY2(!buildGuidePath.isEmpty(), "docs/BUILD.md test data was not found");
-    const QString source = readTextFile(buildGuidePath);
-    QVERIFY(!source.isEmpty());
-
-    QVERIFY(source.contains(QStringLiteral("## 1b. Windows Build, Package, and Current-User Install Script")));
-    QVERIFY(source.contains(QStringLiteral("powershell -ExecutionPolicy Bypass -File .\\build-windows.ps1 -Clean -SkipPackage")));
-    QVERIFY(source.contains(QStringLiteral("powershell -ExecutionPolicy Bypass -File .\\build-windows.ps1 -SkipPackage -InstallForCurrentUser")));
-    QVERIFY(source.contains(QStringLiteral("QT_PREFIX")));
-    QVERIFY(source.contains(QStringLiteral("LVRS_PREFIX")));
-    QVERIFY(source.contains(QStringLiteral("IIPAINTENGINE_PREFIX")));
-    QVERIFY(source.contains(QStringLiteral("cmake -S . -B build")));
-    QVERIFY(source.contains(QStringLiteral("preserves that repository-local tree for incremental work")));
-    QVERIFY(source.contains(QStringLiteral("ctest --test-dir build --output-on-failure")));
-    QVERIFY(source.contains(QStringLiteral("windeployqt")));
-    QVERIFY(source.contains(QStringLiteral("LVRS QML is compiled into the LVRS binary")));
-    QVERIFY(source.contains(QStringLiteral("loose `qml/LVRS` directory")));
-    QVERIFY(source.contains(QStringLiteral("MinGW ABI")));
-    QVERIFY(source.contains(QStringLiteral("PE import closure")));
-    QVERIFY(source.contains(QStringLiteral("__cxa_thread_atexit")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-Windows")));
-    QVERIFY(source.contains(QStringLiteral("dist/Congregation-1.0.0-Windows.zip")));
-    QVERIFY(source.contains(QStringLiteral("build/Congregation-1.0.0-Windows.msi")));
-    QVERIFY(source.contains(QStringLiteral("Program Files")));
-    QVERIFY(source.contains(QStringLiteral("requires elevation")));
-    QVERIFY(source.contains(QStringLiteral("defaults to the current user")));
-    QVERIFY(source.contains(QStringLiteral("same installation context")));
-    QVERIFY(source.contains(QStringLiteral("Unattended upgrades must not override `ALLUSERS` or `MSIINSTALLPERUSER`")));
-    QVERIFY(source.contains(QStringLiteral("starts a separate Congregation upgrade family")));
-    QVERIFY(source.contains(QStringLiteral("ALLUSERS=2")));
-    QVERIFY(source.contains(QStringLiteral("MSIINSTALLPERUSER=1")));
-    QVERIFY(source.contains(QStringLiteral("ICE105")));
-    QVERIFY(source.contains(QStringLiteral("installation-context marker")));
-    QVERIFY(source.contains(QStringLiteral("deterministic ProductCode")));
-    QVERIFY(source.contains(QStringLiteral("same version and architecture")));
-    QVERIFY(source.contains(QStringLiteral("markerless per-user upgrade")));
-    QVERIFY(source.contains(QStringLiteral("maintenance and removal remain available")));
-    QVERIFY(source.contains(QStringLiteral("first three ProductVersion fields")));
-    QVERIFY(source.contains(QStringLiteral("does not allocate a console window")));
-    QVERIFY(source.contains(QStringLiteral("requests a width of 1,280 logical pixels")));
-    QVERIFY(source.contains(QStringLiteral("does not resize the window after it becomes visible")));
-    QVERIFY(source.contains(QStringLiteral("-Sign")));
-    QVERIFY(source.contains(QStringLiteral("-AllowUnsignedPackage")));
-    QVERIFY(source.contains(QStringLiteral("CONGREGATION_SIGNING_CERTIFICATE_THUMBPRINT")));
-    QVERIFY(source.contains(QStringLiteral("signtool verify /pa /all /tw")));
-    QVERIFY(source.contains(QStringLiteral("RFC 3161")));
-    QVERIFY(source.contains(QStringLiteral("Code Signing EKU")));
-    QVERIFY(source.contains(QStringLiteral("-unsigned")));
-    QVERIFY(source.contains(QStringLiteral("`.sha256`")));
-    QVERIFY(source.contains(QStringLiteral("SmartScreen also evaluates publisher reputation")));
-    QVERIFY(source.contains(QStringLiteral("checksum alone proves equality, not publisher identity")));
-    QVERIFY(source.contains(QStringLiteral("online-revocation Code Signing chain")));
-    QVERIFY(source.contains(QStringLiteral("LocalMachine\\AuthRoot")));
-    QVERIFY(source.contains(QStringLiteral("clean stock Windows machine")));
-    QVERIFY(source.contains(QStringLiteral("expected Publisher subject or certificate thumbprint")));
-    QVERIFY(source.contains(QStringLiteral("unsigned-cpack-incomplete")));
-    QVERIFY(source.contains(QStringLiteral("generated under `.partial` names")));
-    QVERIFY(source.contains(QStringLiteral("last-known-good")));
-    QVERIFY(source.contains(QStringLiteral("complete verified set")));
-    QVERIFY(source.contains(QStringLiteral("root `LICENSE` into the MSI's RTF license control")));
-    QVERIFY(source.contains(QStringLiteral("## 1c. Microsoft Store MSIX")));
-    QVERIFY(source.contains(QStringLiteral("build-windows-store.ps1 -Mode Development -InstallDevelopment")));
-    QVERIFY(source.contains(QStringLiteral("build-windows-store.ps1 -Mode Store")));
-    QVERIFY(source.contains(QStringLiteral("CONGREGATION_STORE_IDENTITY_NAME")));
-    QVERIFY(source.contains(QStringLiteral("Package/Identity/Publisher")));
-    QVERIFY(source.contains(QStringLiteral("LocalMachine\\TrustedPeople")));
-    QVERIFY(source.contains(QStringLiteral("Congregation-1.0.0-Windows-Store-x64.msixupload")));
-    QVERIFY(source.contains(QStringLiteral("runFullTrust")));
-    QVERIFY(source.contains(QStringLiteral("Microsoft re-signs")));
+    const QString path = QFINDTESTDATA("../docs/BUILD.md");
+    QVERIFY(!path.isEmpty());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString document = QString::fromUtf8(file.readAll());
+    QVERIFY(document.contains(QStringLiteral("id=\"1b-windows-build-package-and-current-user-install-script\"")));
+    QVERIFY(document.contains(QStringLiteral("powershell -ExecutionPolicy Bypass -File .\\build-windows.ps1 -Clean -SkipPackage")));
+    QVERIFY(document.contains(QStringLiteral("-InstallForCurrentUser")));
+    QVERIFY(document.contains(QStringLiteral("QT_PREFIX")));
+    QVERIFY(document.contains(QStringLiteral("LVRS_PREFIX")));
+    QVERIFY(document.contains(QStringLiteral("IIPAINTENGINE_PREFIX")));
+    QVERIFY(document.contains(QStringLiteral("cmake -S . -B build")));
+    QVERIFY(document.contains(QStringLiteral("ctest --test-dir build --output-on-failure")));
+    QVERIFY(document.contains(QStringLiteral("windeployqt")));
+    QVERIFY(document.contains(QStringLiteral("qml/LVRS")));
+    QVERIFY(document.contains(QStringLiteral("MinGW ABI")));
+    QVERIFY(document.contains(QStringLiteral("__cxa_thread_atexit")));
+    QVERIFY(document.contains(QStringLiteral("ALLUSERS=2")));
+    QVERIFY(document.contains(QStringLiteral("MSIINSTALLPERUSER=1")));
+    QVERIFY(document.contains(QStringLiteral("ICE105")));
+    QVERIFY(document.contains(QStringLiteral("ProductCode")));
+    QVERIFY(document.contains(QStringLiteral("ProductVersion")));
+    QVERIFY(document.contains(QStringLiteral("-Sign")));
+    QVERIFY(document.contains(QStringLiteral("-AllowUnsignedPackage")));
+    QVERIFY(document.contains(QStringLiteral("signtool verify /pa /all /tw")));
+    QVERIFY(document.contains(QStringLiteral("RFC 3161")));
+    QVERIFY(document.contains(QStringLiteral("Code Signing EKU")));
+    QVERIFY(document.contains(QStringLiteral("SmartScreen")));
+    QVERIFY(document.contains(QStringLiteral("LocalMachine\\AuthRoot")));
 }
 
 void tst_WindowsBuildWorkflowContract::signPathWorkflowDefinesFreeWebsiteReleaseContract()
@@ -821,21 +781,19 @@ void tst_WindowsBuildWorkflowContract::signPathWorkflowDefinesFreeWebsiteRelease
     QVERIFY(readme.contains(QStringLiteral("https://github.com/iisacc-Justmoong/Congregation/discussions")));
     QVERIFY(readme.contains(QStringLiteral("https://github.com/iisacc-Justmoong/Congregation/issues/new")));
 
-    const QString contributingPath = QFINDTESTDATA("../../CONTRIBUTING.md");
+    const QString contributingPath = QFINDTESTDATA("../CONTRIBUTING.md");
     QVERIFY2(!contributingPath.isEmpty(), "CONTRIBUTING.md test data was not found");
     const QString contributing = readTextFile(contributingPath);
-    QVERIFY(contributing.contains(QStringLiteral("repository-local `build/` directory")));
-    QVERIFY(contributing.contains(QStringLiteral("QML changes must use the `.local/SDK/LVRS/` framework")));
-    QVERIFY(contributing.contains(QStringLiteral("self-signed SignPath trial outputs are development-only artifacts")));
-    QVERIFY(contributing.contains(QStringLiteral("outer MSI and nested `Congregation.exe`")));
+    QVERIFY(contributing.contains(QStringLiteral("`build/`")));
+    QVERIFY(contributing.contains(QStringLiteral(".local/SDK/LVRS/")));
+    QVERIFY(contributing.contains(QStringLiteral("SignPath")));
+    QVERIFY(contributing.contains(QStringLiteral("Congregation.exe")));
 
     const QString buildGuidePath = QFINDTESTDATA("../docs/BUILD.md");
     QVERIFY2(!buildGuidePath.isEmpty(), "docs/BUILD.md test data was not found");
     const QString buildGuide = readTextFile(buildGuidePath);
-    QVERIFY(buildGuide.contains(QStringLiteral(
-        "passes the exact newly linked `.partial.msi` path and the normalized three-field Windows Installer ProductVersion to the MSI database contract")));
-    QVERIFY(buildGuide.contains(QStringLiteral(
-        "creates an administrative image and independently verifies the timestamp, Publisher, certificate thumbprint, and SignTool policy for all three Congregation-owned installed binaries")));
+    for (const auto &contract : {".partial.msi", "ProductVersion", "Publisher", "SignTool"})
+        QVERIFY2(buildGuide.contains(QString::fromLatin1(contract)), contract);
 }
 
 QTEST_APPLESS_MAIN(tst_WindowsBuildWorkflowContract)

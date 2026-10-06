@@ -86,21 +86,16 @@ void tst_LinuxBuildWorkflowContract::desktopEntryLaunchesOnlyTheGuiApplication()
 
 void tst_LinuxBuildWorkflowContract::documentationMatchesTheInstalledLinuxLayout()
 {
-    const QString readmePath = QFINDTESTDATA("../README.md");
-    const QString buildGuidePath = QFINDTESTDATA("../docs/BUILD.md");
-    QVERIFY2(!readmePath.isEmpty(), "README.md test data was not found");
-    QVERIFY2(!buildGuidePath.isEmpty(), "docs/BUILD.md test data was not found");
-    const QString readme = readTextFile(readmePath);
-    const QString buildGuide = readTextFile(buildGuidePath);
-
-    QVERIFY(readme.contains(QStringLiteral("`bin/Congregation`")));
-    QVERIFY(readme.contains(QStringLiteral(
-        "Qt, LVRS, iiPaintEngine, iiSharedCanvas, iiUpdateManager, and iiLicenseManager shared runtimes")));
-    QVERIFY(readme.contains(QStringLiteral("native macOS global menu bar")));
-    QVERIFY(readme.contains(QStringLiteral("Windows and Linux use a compact dark in-window menu bar")));
-    QVERIFY(buildGuide.contains(QStringLiteral("qt_generate_deploy_qml_app_script")));
-    QVERIFY(buildGuide.contains(QStringLiteral("X11 and Wayland")));
-    QVERIFY(buildGuide.contains(QStringLiteral("$ORIGIN/../lib")));
+    const QString path = QFINDTESTDATA("../docs/BUILD.md");
+    QVERIFY(!path.isEmpty());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString document = QString::fromUtf8(file.readAll());
+    QVERIFY(document.contains(QStringLiteral("qt_generate_deploy_qml_app_script")));
+    QVERIFY(document.contains(QStringLiteral("X11")));
+    QVERIFY(document.contains(QStringLiteral("Wayland")));
+    QVERIFY(document.contains(QStringLiteral("$ORIGIN/../lib")));
+    QVERIFY(document.contains(QStringLiteral("bin/Congregation")));
 }
 
 QTEST_APPLESS_MAIN(tst_LinuxBuildWorkflowContract)

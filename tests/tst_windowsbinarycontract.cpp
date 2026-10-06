@@ -2,6 +2,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QScopeGuard>
 #include <QSet>
 #include <QSize>
@@ -184,7 +185,7 @@ void tst_WindowsBinaryContract::versionResourceMatchesProjectVersion()
                           &fixedInfoSize));
     QVERIFY(fixedInfo);
     QVERIFY(fixedInfoSize >= sizeof(VS_FIXEDFILEINFO));
-    QCOMPARE(HIWORD(fixedInfo->dwFileVersionMS), WORD(6));
+    QCOMPARE(HIWORD(fixedInfo->dwFileVersionMS), WORD(CONGREGATION_TEST_VERSION_MAJOR));
     QCOMPARE(LOWORD(fixedInfo->dwFileVersionMS), WORD(0));
     QCOMPARE(HIWORD(fixedInfo->dwFileVersionLS), WORD(0));
     QCOMPARE(LOWORD(fixedInfo->dwFileVersionLS), WORD(0));
@@ -204,6 +205,9 @@ void tst_WindowsBinaryContract::versionResourceMatchesProjectVersion()
 void tst_WindowsBinaryContract::launchWindowSizeStaysConstant()
 {
     QProcess process;
+    auto environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("QT_QPA_PLATFORM"), QStringLiteral("windows"));
+    process.setProcessEnvironment(environment);
     process.setProgram(executablePath());
     process.start();
     QVERIFY2(process.waitForStarted(5000), qPrintable(process.errorString()));
