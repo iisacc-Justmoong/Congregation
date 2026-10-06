@@ -109,12 +109,11 @@ ctest --test-dir build --output-on-failure
 - Palette is fixed to the built-in colors
 - Canvas dimensions are clamped to the supported raster size range when entered through the new-canvas modal
 
-### 로컬 SDK 경로
+<a id="로컬-sdk-경로"></a>
 
-SDK 소스는 `Workspace/SDK`, 설치본은 `~/.local/SDK/<패키지명>`을 사용한다.
-CMake 의존성 힌트와 실행 RPATH, `build.sh`의 라이선스·업데이트 라이브러리
-기본 prefix도 이 경로를 따른다. 설치 위치가 바뀌면 `build/`에서 CMake를
-재구성한 뒤 전체 빌드와 CTest를 실행한다.
+### Local SDK path
+
+The SDK source uses `Workspace/SDK`, the installer uses `~/.local/SDK/<package name>`. The CMake dependency hints and execution RPATH, `build.sh` license and update library default prefixes also follow this path. If the installation location changes, reconfigure CMake from `build/` and then run the full build and CTest.
 
 ## Source layout
 

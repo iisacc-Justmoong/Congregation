@@ -1,4 +1,6 @@
-# Changelog
+<a id="changelog"></a>
+
+# 변경 내역
 
 ## 1.0.0 — 2026-09-07
 
@@ -121,9 +123,11 @@
 - 컬러 피커가 있던 우측 끝에는 같은 크기와 반경의 원형 프로필 버튼을 추가하고, 프로필 원형에는 보더를 표시하지 않는다.
 - 프로필 버튼은 LVRS `user` 아이콘과 접근성 이름·툴팁만 제공하며 클릭 동작은 아직 연결하지 않는다.
 
-## 5.1 App Store build metadata
+<a id="51-app-store-build-metadata"></a>
 
-- App Store build number is now `50100`, which preserves the `5.1` marketing version while advancing beyond the previously uploaded build `20201` required by App Store Connect.
+## 5.1 App Store 빌드 메타데이터
+
+- App Store 빌드 번호는 이제 `50100`입니다. 이는 `5.1` 마케팅 버전을 유지하면서 App Store Connect에 필요한 이전에 업로드된 빌드 `20201` 이상으로 발전합니다.
 
 ## 2026-08-17
 
@@ -227,7 +231,9 @@
 
 ### 커밋 반영분
 
-#### `732ed9a` - Add menu bar func
+<a id="732ed9a---add-menu-bar-func"></a>
+
+#### `732ed9a` - 메뉴 표시줄 기능 추가
 
 - 브러시 압력 입력이 불투명도에 반영되는지 제어하는 `brushPressureControlsOpacity` 상태를 문서 모델, QML 툴바, 캔버스 표면, 브리지 계층에 연결했다.
 - 브러시 설정 패널에 `Pressure Opacity` 토글을 추가해 압력 기반 불투명도 동작을 사용자가 켜고 끌 수 있게 했다.
@@ -235,7 +241,9 @@
 - 테스트는 `tst_canvasdocumentviewmodel`, `tst_canvastoolbarqmlcontract`, `tst_drawingsurfaceitem`에 pressure opacity 상태, QML 계약, pressure 보존 시나리오를 추가했다.
 - README와 앱 구조 문서는 브러시 압력/불투명도 및 관련 UI 계약을 반영했다.
 
-#### `9388d2e` - Add func shortcut
+<a id="9388d2e---add-func-shortcut"></a>
+
+#### `9388d2e` - 기능 바로가기 추가
 
 - `Main.qml`이 메뉴 단축키의 단일 계약 소유자가 되도록 `shortcutNewCanvas`, `shortcutUndo`, `shortcutBrushTool`, `shortcutFitCanvasToWindow` 같은 named shortcut property를 추가했다.
 - File, Edit, Tools, Shape Kind, Window 메뉴 항목에 실제 `shortcut` 바인딩을 연결하고, 메뉴만으로 실행되던 일부 명령에는 `Shortcut` 항목을 추가해 표시 단축키와 실행 동작을 맞췄다.
@@ -243,7 +251,9 @@
 - 테스트는 `tst_mainqmlcontract`에서 모든 shortcut property, 메뉴 바인딩, Help 참조, application shortcut 존재 여부를 계약으로 고정했다.
 - README와 앱 구조 문서는 전역 메뉴 단축키 범위와 플랫폼별 Command/Ctrl 차이를 반영했다.
 
-#### `d6c65f8` - Add func shortcut
+<a id="d6c65f8---add-func-shortcut"></a>
+
+#### `d6c65f8` - 기능 바로가기 추가
 
 - 플랫폼 앱 아이콘 소스를 `resources/Appicon.icns`와 `resources/Appicon.ico`로 정리하고, macOS 번들과 Windows 리소스가 각각 해당 파일을 사용하도록 CMake 패키징 계약을 갱신했다.
 - macOS `Info.plist`의 `CFBundleIconFile`을 CMake 변수 기반으로 치환해 실제 번들 아이콘 파일명과 중복 계약이 생기지 않도록 했다.

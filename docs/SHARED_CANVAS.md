@@ -1,183 +1,63 @@
-# iiSharedCanvas integration
+<a id="iisharedcanvas-integration"></a>
 
-Congregation's `DrawingSurfaceItem` uses `iiSharedCanvas::CanvasItem` as its native
-canvas base. A document ViewModel connection creates one selected transparent
-raster layer, and the existing LVRS QML painting surface binds its brush,
-pressure curve, stabilizer, tool, input-state, and undo/redo properties to that
-item.
+# iiSharedCanvas 통합
 
-The new-canvas modal also exposes an LVRS `CheckBox` for an infinite canvas.
-That path creates iiSharedCanvas 1.1 `ChunkedRasterAsset` documents with a
-256-pixel chunk size and the entered width/height as the small initial allocated
-region. Pan and zoom camera movement maps the fixed viewport into world
-coordinates and requests any newly visible region from
-`ensureInfiniteCanvasRegion()`. Growth is rounded outwards to chunk boundaries;
-only painted chunks store pixels.
+Congregation 의 `DrawingSurfaceItem` 는 `iiSharedCanvas::CanvasItem` 를 네이티브 캔버스 기반으로 사용합니다. 문서 ViewModel 연결은 선택된 투명 래스터 레이어 하나를 생성하며, 기존 LVRS QML 페인팅 서페이스는 붓, 압력 곡선, 안정화 도구, 입력 상태, 및 취소/재실행 속성을 해당 항목에 바인딩합니다.
 
-The application discovers the installed `iiSharedCanvas` CMake package from
-`$HOME/.local/SDK/iiSharedCanvas`. The package is linked alongside the current
-installed iiPaintEngine; the removed legacy `CanvasAdapter` is no longer part of
-the Congregation source or build contract.
+새 캔버스 모달은 무한 캔버스용 LVRS `CheckBox` 를 노출합니다. 해당 경로는 iiSharedCanvas 1.1 `ChunkedRasterAsset` 문서와 256픽셀 덩어리 크기를 생성하며, 입력된 너비/높이를 작은 초기 할당 영역으로 사용합니다. 카메라 이동인 패닝과 줌은 고정 뷰포트 를 월드 좌표로 매핑하고 `ensureInfiniteCanvasRegion()` 에서 새로 표시된 영역을 요청합니다. 성장은 바깥쪽으로 덩어리 경계로 반올림되며, 페인팅된 덩어리만 픽셀을 저장합니다.
 
-The installed package version is `0.8.0` and CMake requires that exact version.
-Native layers are `BitmapLayer` or `VectorLayer` alternatives; application code
-reads common IDs and transforms through `iiSharedCanvas::layerProperties()`.
-Keyframed test documents store their layer references in `Document::frames` and
-use `KeyframedSource::frameIndices`. The existing transform and document reopen
-tests verify that editing and selected raster-layer restoration keep working
-with this typed layer contract.
+애플리케이션은 `$HOME/.local/SDK/iiSharedCanvas`에서 설치된 `iiSharedCanvas` CMake 패키지를 검색합니다. 패키지는 현재 설치된 iiPaintEngine와 함께 연결됩니다. 제거된 레거시 `CanvasAdapter`는 더 이상 Congregation 소스 또는 빌드 계약의 일부가 아닙니다.
 
-The integration test exercises these application-level gates:
+설치된 패키지 버전은 `0.8.0` 입니다. CMake 는 해당 정확한 버전을 요구합니다. 네이티브 레이어는 `BitmapLayer` 또는 `VectorLayer` 대안이며, 애플리케이션 코드는 공통 ID 와 변환을 `iiSharedCanvas::layerProperties()` 를 통해 읽습니다. 키프레임이 적용된 테스트 문서는 레이어 참조를 `Document::frames` 에 저장하고 `KeyframedSource::frameIndices` 를 사용합니다. 기존 변환 및 문서 재열기 테스트는 편집 및 선택된 래스터 -레이어 복원이 이 타입화된 레이어 계약과 함께 계속 작동하는지 확인합니다.
 
-- existing Congregation brush, eraser, fill, text, shape, raster import, PNG, PSD,
-  thumbnail, input-pressure, and undo/redo workflows;
-- one `DrawingSurfaceItem` rendering static raster, static native vector, and a
-  hold-keyframed raster layer together;
-- raster text, shape, and fill operations mutating only the selected raster
-  asset, including inverse mapping through its affine layer transform, without
-  flattening visible vector or sibling layers into that asset;
-- ordinary raster open replacing the prior mixed document even when both
-  documents have the same extent;
-- canonical `.iisc` save, validated decode, reopen, and raster export;
-- infinite-canvas creation, signed world-origin growth, camera anchoring,
-  sparse brush allocation, added-raster-layer synchronization, and native 1.1
-  save/reopen;
-- a fresh CMake configure selecting the installed iiPaintEngine and
-  iiSharedCanvas packages rather than the former build-local legacy prefix.
+통합 테스트는 다음과 같은 애플리케이션 수준 게이트를 실행합니다.
 
-`DrawingSurfaceItem::saveToFile()` and `openRaster()` accept `.iisc` for the
-native document owned by the item. Writes use `QSaveFile`; reads pass through
-the iiSharedCanvas checksum, allocation-limit, canonical-form, and document
-validation gates before replacing the current document.
+- 기존 Congregation 브러시, 지우개, 채우기, 텍스트, 도형, 래스터 가져오기, PNG, PSD, 썸네일, 입력 압력 및 실행 취소/다시 실행 워크플로우;
+- 하나의 `DrawingSurfaceItem` 렌더링 정적 래스터, 정적 네이티브 벡터, 그리고 하나의 보류 - 키프레임이 적용된 래스터 레이어를 함께;
+- 래스터 텍스트, 형태 및 채우기 작업은 선택된 래스터 자산만을 변형시키며, 아핀 레이어 변환을 통한 역매핑을 포함하고, 가시적인 벡터 또는 형제 레이어를 해당 자산에 평탄화하지 않습니다;
+- 일반 래스터는 이전 혼합 문서를 교체하며, 두 문서가 동일한 범위를 가지고 있더라도.
+- 정식 `.iisc` 저장, 검증된 디코드, 다시 열기 및 래스터 내보내기;
+- 무한 캔버스 생성, 서명된 세계 기원 성장, 카메라 앵커링, 희소 브러시 할당, 추가된 래스터 레이어 동기화, 그리고 네이티브 1.1 저장/재열;
+- 새로운 CMake 구성은 이전 빌드 로컬 레거시 프리픽스프리픽스 대신 설치된 iiPaintEngine 및 iiSharedCanvas 패키지를 선택합니다.
 
-The rendered mixed frame is the display and flat-export boundary only. Raster
-authoring starts from `CanvasItem::selectedRasterPixels()`, maps document-space
-coordinates through the selected layer's inverse affine transform, and commits
-with `replaceSelectedPixels()`. This keeps native vector, sibling raster, and
-other-frame content separate while editing. Opening an ordinary bitmap is an
-explicit new-document operation and therefore replaces, rather than partially
-mutates, any previously opened mixed document.
+`DrawingSurfaceItem::saveToFile()`와 `openRaster()`는 해당 항목이 소유한 네이티브 문서에 대해 `.iisc`를 받는다. 쓰기는 `QSaveFile`를 사용하며, 읽기는 현재 문서를 교체하기 전에 iiSharedCanvas 체크섬, 할당 제한, 정규 형식 및 문서 검증 절차를 통과한다.
 
-iiSharedCanvas display tiles now render asynchronously. Congregation's flat-file
-export and embedded raster-layer snapshot paths therefore render the current
-authoritative document synchronously with `renderFrameRegion()` instead of
-assuming `CanvasItem::framePixels()` is already populated. Display scheduling
-cannot make a just-saved file empty or stale.
+렌더된 혼합 프레임은 표시 및 플랫 내보내기 경계만입니다. 래스터 저작은 `CanvasItem::selectedRasterPixels()` 에서 시작하여 선택된 레이어의 역 아핀 변환을 통해 문서 공간 좌표를 맵핑하고 `replaceSelectedPixels()` 로 커밋합니다. 이는 편집 중 네이티브 벡터, 자매 래스터 및 기타 프레임 콘텐츠를 분리하여 유지합니다. 일반 비트맵 를 여는 것은 명시적인 새 문서 작업이므로 이전에 열린 혼합 문서를 부분적으로 변형하는 대신 완전히 대체합니다.
 
-When an infinite region grows left or above its prior origin, QML shifts
-session objects by the reported margin and expands every added raster-layer
-item to the same origin and extent. It adjusts the center-origin pan offset by
-the asymmetric growth, so a world point keeps its screen position during the
-structural resize. Existing finite-canvas behavior remains unchanged.
-Full-canvas raster-layer delegates bind their visual and pointer geometry
-directly to the base canvas surface rather than cached session dimensions, so
-every visibly allocated pixel remains drawable during asynchronous model
-updates and recent-session restoration.
+iiSharedCanvas 표시 타일들은 이제 비동기적으로 렌더됩니다. Congregation 의 플랫 파일 내보내기 및 내장 래스터 레이어 스냅샷 경로는 따라서 `renderFrameRegion()` 와 현재 공식 문서를 동기적으로 렌더하며 `CanvasItem::framePixels()` 가 이미 채워져 있다고 가정하지 않습니다. 표시 스케줄링은 저장된 파일을 비우거나 구식 상태로 만들 수 없습니다.
 
-The application open dialog includes `.iisc`, so a mixed raster/vector/timeline
-document can be selected and displayed by the Congregation canvas. The Save As
-dialog deliberately does not advertise `.iisc` yet: Congregation's existing QML
-session-layer stack must first be mapped into native assets so a normal layered
-editing session cannot appear to save while losing content.
+무한 영역이 이전 기점보다 왼쪽이나 위쪽으로 성장하면 QML 는 보고된 마진을 기준으로 세션 객체를 이동하고 추가된 모든 래스터 레이어 항목을 동일한 기점과 범위로 확장합니다. 그것은 비대칭 성장을 통해 중심 기점 패닝 오프셋을 조정하여 구조적 리사이즈 중 월드 포인트가 화면 위치를 유지하도록 합니다. 기존 유한 캔버스 동작은 변경되지 않습니다. 풀 캔버스 래스터 레이어 위임은 시각적 및 포인터 기하학을 캐시된 세션 차원 대신 기본 캔버스 표면과 직접 연결하므로 비동기 모델 업데이트 및 최근 세션 복원 중 모든 가시적으로 할당된 픽셀이 드래그 가능하게 유지됩니다.
 
-The existing `DrawingSurface.qml` still owns its image, text, shape, and extra
-raster-layer delegates as product-session objects. They continue to work and
-remain covered by the existing workflow tests, but they are not silently
-omitted or flattened into `.iisc`: the composite save overload fails closed
-when such objects are present. Mapping those session objects to native
-iiSharedCanvas assets is a separate product migration, not a prerequisite for
-using the mixed canvas base.
+응용 프로그램 열기 대화상자는 `.iisc` 를 포함하므로 래스터 /vector/timeline 문서가 선택되고 Congregation 캔버스에 표시될 수 있습니다. 저장하기 대화상자는 `.iisc` 를 명시적으로 광고하지 않습니다: Congregation 의 기존 QML 세션 계층 스택을 먼저 네이티브 자산으로 맵핑해야 하므로 일반적인 계층 편집 세션이 콘텐츠를 잃는 것으로 저장되는 것처럼 보일 수 없습니다.
 
-Recent canvas persistence is deliberately a separate application-session
-boundary rather than pretending those QML objects are already native `.iisc`
-assets. `recent-canvas.vrc` wraps the validated iiSharedCanvas document plus
-PNG bytes for inserted images and additional raster layers and JSON-safe
-text/shape/object metadata. It is limited to one owner-only file below
-`QStandardPaths::AppLocalDataLocation/canvas`, uses a versioned header and
-SHA-256 payload check, and replaces the previous snapshot through `QSaveFile`.
-The native snapshot extent is normalized to the live visual canvas size before
-encoding. The page schedules it 1.2 seconds after the latest session mutation
-and flushes a pending edit during normal window close. Decode and every embedded
-image are validated before the current native document is replaced. Valid PNGs
-are extracted only to one owner-only temporary directory held by the restored
-surface and are removed with that surface, so the `.vrc` remains the sole
-persistent recent-session artifact.
+기존 `DrawingSurface.qml` 는 여전히 이미지, 텍스트, 모양 및 추가 래스터 -레이어 대리자를 제품 세션 객체로 소유합니다. 이들은 계속 작동하며 기존 워크플로우 테스트에 의해 덮여 있지만 아무런 알림 없이 생략되거나 `.iisc` 로 평탄화되지 않습니다: 이러한 객체가 존재할 때 합성 저장 과부하 안전하게 거부한다 됩니다. 이러한 세션 객체를 네이티브 iiSharedCanvas 자산으로 매핑하는 것은 혼합 캔버스 기본을 사용하는 전제 조건이 아닌 별도의 제품 마이그레이션입니다.
 
-## Local-network canvas sessions
+최근 캔버스 지속성은 QML 객체들이 이미 네이티브 `.iisc` 자산인 것처럼 pretending 하는 것이 아니라 의도적으로 별도의 응용 프로그램 세션 경계입니다. `recent-canvas.vrc` 는 검증된 iiSharedCanvas 문서와 삽입된 이미지에 대한 PNG 바이트 및 추가 래스터 레이어와 JSON -안전한 텍스트/형상/객체 메타데이터를 감쌉니다. 그것은 `QStandardPaths::AppLocalDataLocation/canvas` 이하의 오너 전용 파일 하나로 제한되며 버전화된 헤더와 SHA-256 페이로드 검사를 사용하며 이전 스냅샷을 `QSaveFile` 를 통해 대체합니다. 네이티브 스냅샷 범위는 인코딩 전에 라이브 시각 캔버스 크기로 정규화됩니다. 페이지는 최신 세션 변형 후 1.2 초 후에 그것을 예약하고 정상적인 창 닫기 동안 대기 중인 편집을 플러시합니다. 해독 및 모든 내장 이미지는 현재 네이티브 문서가 대체되기 전에 검증됩니다. 유효한 PNG 는 복원된 표면이 유지하는 소유자 전용 임시 디렉토리에만 추출되어 해당 표면과 함께 제거되므로 `.vrc` 는 유일한 영구적인 최근 세션 아티팩트로 남습니다.
 
-Preferences → Members exposes explicit **Share canvas**, **Join nearby…**, and
-**Stop sharing/Leave canvas** actions. Its `+` menu can also invite a specifically
-selected nearby Congregation user who enabled **Allow inviting other users**. The
-anonymous heartbeat carries no profile or canvas bytes; it adds only an
-invitation-capability Boolean and the host's temporary TCP port while sharing is
-active. Selecting an invitee sends a bounded, target-session-addressed one-hop
-datagram with an invitation UUID, temporary endpoint, and normalized inviter
-profile name. It contains no profile image, account, device name, or document
-data. Duplicate invitation IDs are suppressed across network interfaces.
+<a id="local-network-canvas-sessions"></a>
 
-The recipient queues at most 16 invitations and shows the first through the
-toolbar Profile button's notification badge and LVRS context menu. **Accept**
-passes `true`, removes the invitation, and joins the advertised endpoint;
-**Decline** passes `false` and removes it without connecting. Disabling
-invitations clears the queue. Canvas profile lists and document data otherwise
-cross the network only after a client joins. This is direct, unencrypted LAN TCP
-with no Internet relay or shared secret, so the feature is intended for a
-trusted local network.
+## 로컬 네트워크 캔버스 세션
 
-Only the host transfers the same complete, SHA-256-checked `.vrc` bytes used by
-recent-session persistence. This includes the canonical iiSharedCanvas
-document, additional raster-layer and inserted-image PNGs, editable text/shape
-metadata, object ordering, and background presence. QML exports it in memory;
-no temporary session file is needed for transport.
+설정 → 구성원 은 명시적인 **캔버스 공유**, **근처에 참여…**, 및 **공유 중지/캔버스 나가기** 동작을 노출합니다. 그 `+` 메뉴는 또한 **다른 사용자 초대 허용**을 활성화한 특정 선택된 근처 Congregation 사용자를 초대할 수 있습니다. 익명 심박수는 프로필이나 캔버스 바이트를 포함하지 않으며 공유가 활성화된 동안 초대 가능 플래그와 호스트의 임시 TCP 포트를만 추가합니다. 초대 수취인을 선택하면 초대 UUID , 임시 엔드포인트, 및 정규화된 초대자 프로필 이름을 포함한 한계가 설정된 , 타겟 세션 주소 지정된 한 홉 데이터그램을 보냅니다. 그것은 프로필 이미지, 계정, 장치 이름, 또는 문서 데이터를 포함하지 않습니다. 중복 초대 ID 는 네트워크 인터페이스를 통해 억제됩니다.
 
-The joined surface is an input client for the host canvas, not a second document
-owner. It remains command-blocked until the first authoritative host state has
-finished its queued QML restore. Pointer/tablet strokes are then captured with
-their pressure samples and current brush style while iiSharedCanvas renders the
-same active stroke as a local-only live preview. Releasing the pointer cancels
-that preview back to the exact pre-stroke pixels and history before the bounded
-stroke command is sent to the host, so it never becomes a client-owned edit.
-Fill, text, shape, transform, canvas, layer, undo/redo, and validated
-raster/image actions follow the same semantic-command path without speculative
-document mutation. The client cannot publish a `.vrc` snapshot and does not
-store a remote session as its Recent canvas.
+수신자는 최대 16 초대를 대기열에 추가하고 도구 모음 프로파일 버튼의 알림 배지 및 LVRS 컨텍스트 메뉴를 표시합니다. **수락** 은 `true` 를 통과하여 초대를 제거하고 광고된 엔드포인트에 참여하며, **거절** 은 `false` 를 통과하여 연결 없이 제거합니다. 초대를 비활성화하면 대기열이 지워집니다. 캔버스 프로필 목록 및 문서 데이터는 클라이언트가 참여할 때까지 네트워크를 통해만 교차합니다. 이는 인터넷 중계 또는 공유 비밀 없이 직접적인 LAN TCP 이며, 따라서 이 기능은 신뢰할 수 있는 로컬 네트워크를 위해 의도되었습니다.
 
-The host validates each command, applies it to the actual host
-`DrawingSurface`, and only then exports and broadcasts an authoritative `.vrc`
-state with the next monotonically increasing revision. A zero-interval queued
-publication lets newly created QML raster-layer surfaces exist before export
-and coalesces commands processed in the same event cycle. The host's own local
-edits retain the 350 ms publication debounce. Other devices therefore receive
-a participant stroke only after release, while its originating device sees the
-non-committing preview during input. Clients always restore host states,
-including the state produced from their own input.
+호스트는 최근 세션 지속성에 의해 사용된 동일한 완전한 SHA-256 -확인된 `.vrc` 바이트만 전송합니다. 이는 정통 iiSharedCanvas 문서, 추가 래스터 -레이어 및 삽입된 이미지 PNG, 편집 가능한 텍스트/형상 메타데이터, 객체 순서 및 배경 존재를 포함합니다. QML 는 이를 메모리에서 내보냅니다; 전송을 위해 임시 세션 파일이 필요하지 않습니다.
 
-This is not an object-level CRDT. Commands are serialized in arrival order by
-the host canvas; overlapping absolute transforms therefore resolve to the last
-host-applied command. Host snapshots remain the sole canonical state and repair
-any stale participant view.
+결합된 표면은 호스트 캔버스의 입력 클라이언트이며, 두 번째 문서 소유자가 아닙니다. 그것은 첫 번째 권위 있는 호스트 상태가 대기 중인 QML 복원을 완료할 때까지 명령에 의해 차단됩니다. 포인터/태블릿 스트로크는 iiSharedCanvas 가 로컬 전용 라이브 미리보기로 동일한 활성 스트로크를 렌더링하는 동안 압력 샘플과 현재 브러시 스타일로 포착됩니다. 포인터를 해제하면 한계가 설정된 스트로크 명령이 호스트로 전송되기 전에 정확한 프리 스트로크 픽셀과 히스토리로 미리보기를 취소하므로, 그것은 결코 클라이언트 소유 편집이 되지 않습니다. 채우기, 텍스트, 형상, 변환, 캔버스, 레이어, 취소/다시 실행 및 검증된 래스터 /이미지 작업은 추측성 문서 변형 없이 동일한 의미 명령 경로를 따릅니다. 클라이언트는 `.vrc` 스냅샷을 게시할 수 없으며 최근 캔버스로서 원격 세션을 저장하지 않습니다.
 
-Protocol frames are versioned and size bounded, non-LAN IPv4 addresses are
-rejected, and connection or incomplete-handshake attempts time out after eight
-seconds. Peer/session UUIDs and profile names are validated, duplicate peers
-are rejected, and hosts accept at most 16 remote participants. The host
-can remove a participant, and stopping sharing disconnects all clients while
-withdrawing the discovery port.
+호스트는 각 명령을 검증하여 실제 호스트 `DrawingSurface`에 적용한 후에만, 다음 단조 증가 리비전의 기준 `.vrc` 상태를 내보내고 브로드캐스트한다. 간격 0의 대기열 게시를 통해 새로 생성한 QML 래스터 레이어 표면이 내보내기 전에 존재하도록 하고, 같은 이벤트 주기에 처리한 명령을 합친다. 호스트 자신의 로컬 편집은 350ms 게시 디바운스를 유지한다. 따라서 다른 기기는 입력을 놓은 뒤에만 참가자의 획을 받지만 입력을 시작한 기기는 입력 중 커밋하지 않는 프리뷰를 본다. 클라이언트는 자신의 입력으로 생성한 상태를 포함하여 항상 호스트 상태를 복원한다.
 
-Large-document memory budgets, partial host-state deltas, encrypted/authenticated
-LAN sessions, object-level concurrent merge, and physical multi-device package
-validation remain product-hardening gates.
+이것은 객체 수준 CRDT가 아닙니다. 명령은 호스트 캔버스에 의해 도착 순서대로 직렬화됩니다. 따라서 절대 변환이 겹치면 마지막 호스트 적용 명령이 해결됩니다. 호스트 스냅샷은 유일한 표준 상태로 유지되며 오래된 참가자 보기를 복구합니다.
 
-Session export normalizes the extent of a document copy to the visible canvas
-size. It preserves the source authorship ledger after that normalization, since
-exporting or transmitting an unchanged document is not an edit. Repeated
-snapshots therefore retain identical bytes, revisions, and timestamps, including
-a late view resize. The resize/session regression checks both repeated export
-and the original document ledger.
+프로토콜 프레임은 버전화되고 한계가 설정된 한계가 설정되며, LAN IPv4 주소는 거부되고, 연결 또는 불완전한 핸드셰이크 시도는 8 초 후에 시간 초과됩니다. 피어/세션 UUID 와 프로필 이름은 검증되며, 중복 피어는 거부되고, 호스트는 최대 16 개의 원격 참가자를 허용합니다. 호스트는 참가자를 제거할 수 있으며, 공유를 중지하면 모든 클라이언트가 연결이 끊어지고 발견 포트가 회수됩니다.
 
-## Installed SDK baseline
+대용량 문서 메모리 예산, 부분적인 호스트 상태 델타, 암호화/인증된 LAN 세션, 객체 수준 동시 병합 및 물리적 다중 장치 패키지 검증은 여전히 제품 강화 관문으로 남아 있습니다.
 
-The application now requires iiSharedCanvas 0.11.0 exactly. Reconfigure and
-rebuild against that installed package after an SDK refresh; the macOS build
-contract test checks the pinned version, and canvas runtime tests validate
-the consumer adapter against the current document contract.
+세션 내보내기는 문서 복사 범위를 가시 캔버스 크기로 정규화합니다. 이 정규화 후 소스 저작권 장부를 보존하며, 변경되지 않은 문서를 내보내거나 전송하는 것은 편집이 아니기 때문입니다. 반복 스냅샷은 따라서 동일한 바이트, 버전 및 타임스탬프를 유지하며, 이는 늦은 뷰 리사이즈를 포함합니다. 리사이즈/세션 회귀 는 반복 내보내기 및 원래 문서 장부를 모두 확인합니다.
+
+<a id="installed-sdk-baseline"></a>
+
+## SDK 기본 설치됨
+
+애플리케이션은 이제 iiSharedCanvas 0.11.0 를 정확히 요구합니다. 설치된 패키지에 대해 SDK 를 새로고침한 후 다시 구성하고 재빌드하며, macOS 빌드 계약 테스트는 고정된 버전을 확인하고, 캔버스 런타임 테스트는 현재 문서 계약에 대해 소비자 어댑터를 검증합니다.

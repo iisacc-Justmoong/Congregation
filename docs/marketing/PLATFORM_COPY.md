@@ -1,132 +1,100 @@
-# Congregation external-platform launch kit
+<a id="congregation-external-platform-launch-kit"></a>
 
-This document contains factual, reusable English copy for Congregation listings on
-platforms other than iisacc.com. It must not be changed to claim that a signed
-Windows installer is publicly available until a Microsoft Store listing or a
-publicly trusted Authenticode-signed release has been verified.
+# Congregation 외부 플랫폼 출시 키트
 
-## Canonical facts
+이 문서는 iisacc .com 을 제외한 플랫폼의 Congregation 목록에 대한 사실적이고 재사용 가능한 영어 복사본을 포함하며, Microsoft Store 목록 또는 공개적으로 신뢰할 수 있는 Authenticode 서명 릴리스가 확인될 때까지 서명된 Windows 설치자가 공개적으로 사용 가능하다고 주장하도록 변경되어서는 안 됩니다.
 
-- Product: Congregation 1.0.0
-- Current source release: 1.0.0
-- Category: raster drawing, digital paper, handwriting, note-taking
-- Platforms: Windows, macOS, and Linux source/build support
-- License: GNU AGPLv3
-- Distribution: version 1.0.0 source release under GNU AGPLv3; a commercial Congregation listing and signed installers are separate rollout steps
-- Privacy: account email and license key are used only for online license validation and a user-requested update grant; opening Preferences may explicitly read the stored email for an email-only fixed display. There is no telemetry, analytics, advertising, cloud document upload, remote polling, or automatic/background update check. When the user-controlled nearby-discovery setting is enabled, Congregation exchanges an ephemeral anonymous presence heartbeat only within the current LAN; it includes no profile, account, device name, or document data, only an invitation-capability Boolean and a temporary TCP port while the user explicitly shares a canvas. Selecting an opted-in nearby user from Members sends that target a one-hop invitation containing the inviter's profile name and temporary canvas endpoint. After acceptance or an explicit join, participants send bounded edit commands to the host-owned canvas and only the host returns complete authoritative canvas snapshots directly over the LAN without an Internet relay
-- Public project URL: https://github.com/iisacc-Justmoong/Congregation
-- Source release URL:
-  https://github.com/iisacc-Justmoong/Congregation/releases/tag/v1.0.0
-- Feedback URL:
-  https://github.com/iisacc-Justmoong/Congregation/discussions
-- Windows testing URL:
-  https://github.com/iisacc-Justmoong/Congregation/issues/new
+<a id="canonical-facts"></a>
 
-## Tagline
+## 정식 사실
 
-Private, local-first digital paper for focused drawing.
+- 제품: Congregation 1.0.0
+- 현재 소스 릴리스: 1.0.0
+- 카테고리: 래스터 드로잉, 디지털 페이퍼, 필기, 메모 작성
+- 플랫폼: Windows, macOS 및 Linux 소스/빌드 지원
+- 라이센스: GNU AGPLv3
+- 배포: GNU AGPLv3의 버전 1.0.0 소스 릴리스; 상업용 Congregation 목록과 서명된 설치 프로그램은 별도의 롤아웃 단계입니다.
+- 개인정보: 계정 이메일 및 라이선스 키는 온라인 라이선스 검증과 사용자 요청된 업데이트 승인에만 사용되며, 설정을 여는 경우 저장된 이메일을 이메일 전용 고정 디스플레이를 위해 명시적으로 읽을 수 있습니다. 텔레메트리, 분석, 광고, 클라우드 문서 업로드, 원격 폴링 또는 자동/배경 업데이트 확인이 없습니다. 사용자 제어 가능한 근접 발견 설정이 활성화되면, Congregation 는 현재 LAN 내에만 일시적인 익명 존재 심박을 교환하며, 프로필, 계정, 장치 이름 또는 문서 데이터는 포함하지 않고, 사용자가 캔버스를 명시적으로 공유하는 동안 초대 가능 플래그와 임시 TCP 포트를 포함합니다. 멤버에서 옵트인된 근접 사용자를 선택하면 해당 타겟에 초대자의 프로필 이름과 임시 캔버스 엔드포인트를 포함하는 한 홉 초대를 보냅니다. 수락 후 또는 명시적인 참여 후, 참여자들은 호스트 소유 캔버스에 한계가 설정된 편집 명령을 보내며, 호스트는 인터넷 릴레이 없이 LAN 를 통해 직접 완전한 권한 있는 캔버스 스냅샷만 반환합니다.
+- 공개 프로젝트 URL: https://github.com/iisacc-Justmoong/Congregation
+- 소스 릴리스 URL : https://github.com/iisacc-Justmoong/Congregation/releases/tag/v1.0.0
+- 피드백 URL : https://github.com/iisacc-Justmoong/Congregation/discussions
+- Windows 테스트 URL : https://github.com/iisacc-Justmoong/Congregation/issues/new
 
-## Short description
+<a id="tagline"></a>
 
-Congregation is a local-first raster drawing app for focused drawing, handwriting,
-layered editing, and PSD-compatible workflows. A purchased iisacc account
-license unlocks the canvas through online verification, while documents remain
-local with no telemetry, advertising, remote polling, or automatic update
-checks. An optional anonymous one-hop local-network heartbeat detects other
-nearby Congregation devices without sending profile, account, device-name, or
-document data. Users can explicitly share or join a canvas, or invite a
-specifically selected opted-in nearby user. Only that explicit invitation adds
-the inviter's profile name and endpoint; accepted sessions transfer profile
-names and bounded edit commands to the host-owned canvas; only the host returns
-authoritative canvas snapshots directly to participating LAN devices, without a
-cloud relay.
+## 태그라인
 
-## Directory summary
+집중적인 그리기를 위한 비공개 로컬 우선 디지털 종이입니다.
 
-Congregation 1.0.0 is a Qt 6 desktop raster editor for drawing, handwriting, layered
-canvas work, and PSD-compatible import and export. Its local-first design keeps
-documents on the user's device; the app sends account-license credentials only
-for activation and a user-requested update, with no telemetry, advertising, or
-automatic update checks. Its user-controlled one-hop LAN presence heartbeat is
-anonymous and contains no profile, account, device-name, or document data, only
-an invitation-capability Boolean and a temporary port while canvas sharing is
-active. A specifically targeted invitation adds the inviter's profile name only
-after a Members `+` selection; canvas and participant data move only after
-acceptance or explicit share/join actions and remain direct between participating
-LAN devices.
-The source is available under GNU AGPLv3.
-A publicly trusted Windows package is in preparation.
+<a id="short-description"></a>
 
-## Product Hunt description
+## 간단한 설명
 
-Congregation is a local-first raster drawing app for handwriting, layered artwork,
-and PSD-compatible workflows. A purchased license is checked online while
-documents stay on the device with no telemetry or ads. AGPLv3 source is
-available now; an optional anonymous one-hop LAN beacon can detect another nearby
-Congregation device, and a signed Windows release is in preparation.
+Congregation 는 집중적인 그리기, 필기, 레이어 편집 및 PSD 호환 워크플로우를 위한 로컬 우선 래스터 그리기 앱입니다. 구매된 iisacc 계정 라이선스는 온라인 검증을 통해 캔버스를 잠금 해제하며, 문서는 텔레메트리, 광고, 원격 폴링 또는 자동 업데이트 확인 없이 로컬로 유지됩니다. 선택 가능한 익명 한 홉 로컬 네트워크 심박은 프로필, 계정, 장치 이름 또는 문서 데이터를 전송하지 않고 다른 근접 Congregation 장치를 감지합니다. 사용자는 캔버스를 명시적으로 공유하거나 참여하거나, 특정 선택된 옵트인된 근접 사용자를 초대할 수 있습니다. 명시적인 초대만 초대자의 프로필 이름과 엔드포인트를 추가하며, 승인된 세션은 프로필 이름과 한계가 설정된 편집 명령을 호스트 소유 캔버스에 전달하고, 호스트만이 참여하는 LAN 장치에 직접 권한 있는 캔버스 스냅샷을 클라우드 릴레이 없이 반환합니다.
 
-## First launch comment
+<a id="directory-summary"></a>
 
-I built Congregation because a drawing surface should feel like paper, not a
-service. It is a native Qt 6 desktop application with pressure-aware brushes,
-layers, shapes, text, image import, and PSD-compatible workflows. Documents
-stay local. Congregation uses the purchaser's iisacc account email and license key
-only for activation or a user-requested update, and has no telemetry, advertising, or automatic update checks.
-Nearby Congregation discovery is confined to an anonymous one-hop LAN heartbeat and
-contains no profile, account, device-name, or document data, only an invitation
-capability and a temporary port while canvas sharing is active. Selecting an
-opted-in nearby user can send that target the inviter's profile name and endpoint;
-accepted or explicitly joined devices send profile names and bounded edit commands
-to the host-owned canvas; only the host returns authoritative snapshots directly
-over that LAN, without a cloud relay.
+## 디렉토리 요약
 
-Version 1.0.0 is available as complete AGPLv3 source. We are currently
-preparing the publicly trusted Windows distribution and would especially value
-feedback from artists, pen-tablet users, Qt developers, and Windows testers.
+Congregation 1.0.0은 드로잉·필기·레이어 캔버스 작업·PSD 호환 가져오기/내보내기를 위한 Qt 6 데스크톱 래스터 편집기이다. 로컬 우선 설계로 문서를 사용자 기기에 유지한다. 앱은 활성화와 사용자가 요청한 업데이트에만 계정/라이선스 자격 증명을 전송하며, 텔레메트리·광고·자동 업데이트 확인은 없다. 사용자가 제어하는 한 홉 LAN 존재 확인 heartbeat는 익명이며, 프로필·계정·기기 이름·문서 데이터 없이 캔버스 공유 중 초대 기능 불리언과 임시 포트만 포함한다. 특정 대상을 지정한 초대는 Members에서 `+`를 선택한 뒤에만 초대자의 프로필 이름을 추가한다. 캔버스와 참가자 데이터는 수락하거나 명시적으로 공유/참여한 뒤에만 이동하며, 참여하는 LAN 기기 사이에서 직접 전송한다. 소스는 GNU AGPLv3로 제공한다. 공적으로 신뢰받는 Windows 패키지는 준비 중이다.
 
-## Suggested tags
+<a id="product-hunt-description"></a>
 
-- Drawing
-- Digital Art
-- Handwriting
-- Note-taking
-- Open Source
-- Privacy
-- Raster Graphics
+## 제품 헌트 설명
+
+Congregation 는 필기, 레이어 예술 작품, 그리고 PSD 호환성 워크플로우를 위한 로컬 퍼스트 래스터 그림 앱이며, 구매한 라이선스는 온라인에서 확인되고 문서는 장치에 유지되며 텔레메트리나 광고는 없습니다. AGPLv3 소스는 현재 이용 가능하며, 선택적인 익명 원 홉 LAN 비콘은 근처의 다른 Congregation 장치를 감지할 수 있고, 서명된 Windows 릴리스는 준비 중입니다.
+
+<a id="first-launch-comment"></a>
+
+## 첫 출시 코멘트
+
+나는 그림 표면이 서비스처럼 느껴지는 것이 아니라 종이처럼 느껴져야 한다고 생각했기 때문에 Congregation 를 만들었습니다. Qt 6 네이티브 데스크톱 애플리케이션으로 압력 인식 브러시, 레이어, 도형, 텍스트, 이미지 가져오기 및 PSD 호환 워크플로우를 제공합니다. 문서는 로컬에 유지됩니다. Congregation 는 구매자의 iisacc 계정 이메일과 라이선스 키만 활성화 또는 사용자 요청 업데이트에 사용되며, 원격 감지, 광고 또는 자동 업데이트 확인은 없습니다. 근처 Congregation 발견은 익명 단 홉 LAN 심박에 국한되며, 프로필, 계정, 기기 이름 또는 문서 데이터는 포함되지 않고 캔버스 공유가 활성화된 경우에만 초대 기능과 임시 포트만 포함됩니다. 선택된 옵트인 근처 사용자는 해당 타겟에게 초대자의 프로필 이름과 엔드포인트를 보낼 수 있으며, 수락되거나 명시적으로 참여된 기기는 프로필 이름과 한계가 설정된 편집 명령을 호스트 소유 캔버스에 전송하고, 오직 호스트만이 해당 LAN 를 통해 직접 권한 있는 스냅샷을 반환하며 클라우드 릴레이 없이 수행됩니다.
+
+버전 1.0.0는 완전한 AGPLv3 소스로 제공됩니다. 우리는 현재 공개적으로 신뢰할 수 있는 Windows 배포판을 준비하고 있으며 특히 아티스트, 펜 태블릿 사용자, Qt 개발자 및 Windows 테스터의 피드백을 소중히 여깁니다.
+
+<a id="suggested-tags"></a>
+
+## 추천 태그
+
+- 그리기
+- 디지털 아트
+- 필기
+- 메모 작성
+- 오픈 소스
+- 개인 정보 보호
+- 래스터 그래픽
 - Qt
 - Windows
 
-## Suggested alternatives
+<a id="suggested-alternatives"></a>
 
-When a platform requests comparable products, use only products that share the
-same primary workflow:
+## 제안된 대안
 
-- Krita
+플랫폼에서 유사한 제품을 요청할 경우 동일한 기본 워크플로우를 공유하는 제품만 사용하십시오.
+
+- 크리타
 - MyPaint
-- Microsoft Paint
-- Paint.NET
-- Sketchbook
+- 마이크로소프트 그림판
+- 페인트.NET
+- 스케치북
 
-Do not describe Congregation as a complete replacement for these products. Present
-it as a focused, local-first alternative.
+Congregation를 이러한 제품의 완전한 대체품으로 설명하지 마십시오. 집중적이고 지역 우선적인 대안으로 제시하세요.
 
-## Asset inventory
+<a id="asset-inventory"></a>
 
-- `congregation-windows-editor.png`: verified screenshot of the running Windows
-  application, suitable as the primary gallery image.
-- `congregation-sample-artwork.png`: generated demonstration artwork opened in the
-  application screenshot. Use it only as a secondary example image and never
-  present it as application UI.
+## 자산 재고
 
-## Availability wording
+- `congregation-windows-editor.png` : 실행 중인 Windows 애플리케이션의 검증된 스크린샷이며, 기본 갤러리 이미지로 적합합니다.
+- `congregation-sample-artwork.png` : 애플리케이션 스크린샷에 열린 생성된 데모 예술품입니다. 이를 보조 예시 이미지로만 사용하고 애플리케이션 UI 로 제시하지 마십시오.
 
-Use this sentence until a trusted installer is public:
+<a id="availability-wording"></a>
 
-> Complete source is available now. A publicly trusted Windows installer is
-> in preparation and development-only self-signed packages are not
-> distributed.
+## 가용성 문구
 
-After a trusted release is verified, replace the sentence with a direct
-platform download link and the exact verified publisher identity. Do not
-promise that Microsoft Defender SmartScreen will never warn because reputation
-is evaluated separately from Authenticode validity.
+신뢰할 수 있는 설치 프로그램이 공개될 때까지 다음 문장을 사용하세요.
+
+> 이제 전체 소스를 사용할 수 있습니다. 공개적으로 신뢰할 수 있는 Windows 설치 프로그램은 다음과 같습니다.
+> 준비 및 개발 중에는 자체 서명된 패키지만 사용할 수 없습니다.
+> 배포.
+
+신뢰할 수 있는 릴리스가 확인되면 문장을 직접 플랫폼 다운로드 링크와 확인된 정확한 게시자 ID로 바꿉니다. 평판은 Authenticode 유효성과 별도로 평가되므로 Microsoft Defender SmartScreen가 경고하지 않을 것이라고 약속하지 마십시오.

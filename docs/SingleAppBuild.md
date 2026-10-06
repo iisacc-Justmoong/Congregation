@@ -1,6 +1,5 @@
-# Single app build contract
+<a id="single-app-build-contract"></a>
 
-The product uses the [workspace single-app policy](../../build-policy/README.md).
-Only the canonical application bundle is generated beneath `build/`. Tests and
-helpers are ordinary executables; runtime deployment and packaging work in place.
-See the policy for canonical paths, platform switching and verification commands.
+# 단일 앱 빌드 계약
+
+제품은 [워크스페이스 단일 앱 정책](../../build-policy/README.md)를 사용합니다. `build/` 아래에 오직 정통 애플리케이션 번들이 생성됩니다. 테스트와 헬퍼는 일반 실행 파일이며, 런타임 배포 및 패키징은 원위치로 작동합니다. 정통 경로, 플랫폼 전환 및 검증 명령에 대한 정책을 참조하십시오.
