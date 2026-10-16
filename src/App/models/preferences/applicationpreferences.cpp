@@ -1,7 +1,6 @@
+#include <iiFileProviderDevice.h>
 #include "applicationpreferences.h"
 #include <iiFileProvider.h>
-
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QSettings>
@@ -23,7 +22,7 @@ QString defaultStorageDirectory()
         applicationData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     }
     return applicationData.isEmpty() ? QString{}
-                                     : QDir(applicationData).filePath(QStringLiteral("canvas"));
+                                     : iiFileProvider::Directory(applicationData).filePath(QStringLiteral("canvas"));
 }
 } // namespace
 
@@ -51,7 +50,7 @@ ApplicationPreferences::ApplicationPreferences(QSettings *settings,
     : QObject(parent)
     , m_settings(settings)
     , m_storageDirectory(storageDirectory.isEmpty() ? QString{}
-                                                    : QDir::cleanPath(storageDirectory))
+                                                    : iiFileProvider::Directory::cleanPath(storageDirectory))
 {
     Q_ASSERT(m_settings);
     load();
@@ -169,7 +168,7 @@ void ApplicationPreferences::load()
     }
 
     if (!m_storageDirectory.isEmpty()) {
-        QDir().mkpath(m_storageDirectory);
+        iiFileProvider::Directory().mkpath(m_storageDirectory);
         QFile::setPermissions(m_storageDirectory,
                               QFileDevice::ReadOwner | QFileDevice::WriteOwner
                                   | QFileDevice::ExeOwner);
@@ -197,5 +196,5 @@ QString ApplicationPreferences::recentCanvasStoragePath() const
 {
     return m_storageDirectory.isEmpty()
                ? QString{}
-               : QDir(m_storageDirectory).filePath(QLatin1String(recentCanvasFileName));
+               : iiFileProvider::Directory(m_storageDirectory).filePath(QLatin1String(recentCanvasFileName));
 }

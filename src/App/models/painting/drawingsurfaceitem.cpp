@@ -1,3 +1,4 @@
+#include <iiFileProviderDevice.h>
 #include "drawingsurfaceitem.h"
 
 #include "../canvas/canvasviewmodelbridge.h"
@@ -15,7 +16,6 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QEvent>
-#include <QFile>
 #include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
@@ -40,12 +40,9 @@
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSize>
-#include <QSaveFile>
 #include <QSet>
 #include <QStandardPaths>
 #include <QTabletEvent>
-#include <QTemporaryDir>
-#include <QTemporaryFile>
 #include <QTextDocument>
 #include <QTextBlock>
 #include <QTextFragment>
@@ -257,7 +254,7 @@ QString writableCacheFilePath(const QString& subdirectoryName, const QString& fi
     }
     const QDir cacheDir(cacheDirectoryPath);
 
-    QTemporaryFile file(cacheDir.filePath(fileTemplate));
+    iiFileProvider::TemporaryFile file(cacheDir.filePath(fileTemplate));
     file.setAutoRemove(false);
     if (!file.open())
     {
@@ -360,7 +357,7 @@ QString cachedPngSourceForImage(const QString& subdirectoryName, const QImage& i
         }
     }
 
-    QSaveFile cacheFile(imagePath);
+    iiFileProvider::SaveFile cacheFile(imagePath);
     if (!cacheFile.open(QIODevice::WriteOnly))
     {
         return {};
@@ -381,7 +378,7 @@ QString cachedPngSourceForImage(const QString& subdirectoryName, const QImage& i
     const QImage writtenImage = writtenImageReader.read();
     if (writtenImage.isNull() || writtenImage.size() != image.size())
     {
-        QFile::remove(imagePath);
+        iiFileProvider::FileDevice::remove(imagePath);
         return {};
     }
     return QUrl::fromLocalFile(imagePath).toString();
@@ -482,16 +479,16 @@ QString extractedRecentCanvasAssetSource(const QString& directoryPath, int objec
     const QString imagePath = QDir(directoryPath)
                                   .filePath(kindName + QLatin1Char('-') +
                                             QString::number(objectId) + QStringLiteral(".png"));
-    QSaveFile imageFile(imagePath);
+    iiFileProvider::SaveFile imageFile(imagePath);
     imageFile.setDirectWriteFallback(false);
     if (!imageFile.open(QIODevice::WriteOnly) || imageFile.write(pngData) != pngData.size() ||
         !imageFile.commit())
     {
         return {};
     }
-    if (!QFile::setPermissions(imagePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+    if (!iiFileProvider::FileDevice::setPermissions(imagePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
     {
-        QFile::remove(imagePath);
+        iiFileProvider::FileDevice::remove(imagePath);
         return {};
     }
     return QUrl::fromLocalFile(imagePath).toString();
@@ -2110,7 +2107,7 @@ bool DrawingSurfaceItem::saveRecentCanvas(const QString& fileUrl, const QVariant
     {
         iiFileProvider::File::createDirectories(QFileInfo(filePath).absolutePath());
         iiFileProvider::File::write(filePath, bytes);
-        if (!QFile::setPermissions(filePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+        if (!iiFileProvider::FileDevice::setPermissions(filePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
         {
             iiFileProvider::File::remove(filePath);
             return false;
@@ -2189,13 +2186,13 @@ QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
         dataTarget->insert(asset.objectId, asset.pngData);
     }
 
-    std::unique_ptr<QTemporaryDir> extractionDirectory;
+    std::unique_ptr<iiFileProvider::TemporaryDirectory> extractionDirectory;
     if (!decodedContainer.container.embeddedAssets.isEmpty())
     {
-        extractionDirectory = std::make_unique<QTemporaryDir>(
+        extractionDirectory = std::make_unique<iiFileProvider::TemporaryDirectory>(
             QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-recent-canvas-XXXXXX")));
         if (!extractionDirectory->isValid() ||
-            !QFile::setPermissions(extractionDirectory->path(), QFileDevice::ReadOwner |
+            !iiFileProvider::FileDevice::setPermissions(extractionDirectory->path(), QFileDevice::ReadOwner |
                                                                     QFileDevice::WriteOwner |
                                                                     QFileDevice::ExeOwner))
         {
@@ -2312,7 +2309,7 @@ QString DrawingSurfaceItem::cacheRasterSnapshotSource()
     }
     if (!image.save(snapshotPath, "PNG"))
     {
-        QFile::remove(snapshotPath);
+        iiFileProvider::FileDevice::remove(snapshotPath);
         return {};
     }
     return QUrl::fromLocalFile(snapshotPath).toString();
@@ -2349,7 +2346,7 @@ QString DrawingSurfaceItem::cacheGrabbedThumbnailSource(QObject* grabResult)
 
     if (!result->saveToFile(thumbnailPath))
     {
-        QFile::remove(thumbnailPath);
+        iiFileProvider::FileDevice::remove(thumbnailPath);
         return {};
     }
     return QUrl::fromLocalFile(thumbnailPath).toString();

@@ -1,3 +1,4 @@
+#include <iiFileProviderDevice.h>
 #include "profileimageprocessor.h"
 
 #include <QColorSpace>
@@ -6,8 +7,6 @@
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
-#include <QTemporaryFile>
-
 #include <algorithm>
 
 ProfileImageProcessor::ProfileImageProcessor(QObject *parent)
@@ -69,7 +68,7 @@ bool ProfileImageProcessor::processProfileImage(const QUrl &sourceUrl)
     painter.drawImage(QPoint(0, 0), sourceImage, sourceRect);
     painter.end();
 
-    auto processedImageFile = std::make_unique<QTemporaryFile>(
+    auto processedImageFile = std::make_unique<iiFileProvider::TemporaryFile>(
         QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-profile-image-XXXXXX.png")));
     if (!processedImageFile->open()) {
         setErrorString(processedImageFile->errorString());

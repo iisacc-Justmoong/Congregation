@@ -1,3 +1,4 @@
+#include <iiFileProviderDevice.h>
 #pragma once
 
 #include <QObject>
@@ -5,9 +6,6 @@
 #include <QUrl>
 
 #include <memory>
-
-class QTemporaryFile;
-
 class ProfileImageProcessor final : public QObject
 {
     Q_OBJECT
@@ -34,5 +32,5 @@ private:
 
     QUrl m_imageSource;
     QString m_errorString;
-    std::unique_ptr<QTemporaryFile> m_processedImageFile;
+    std::unique_ptr<iiFileProvider::TemporaryFile> m_processedImageFile;
 };

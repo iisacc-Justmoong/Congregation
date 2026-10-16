@@ -1,3 +1,4 @@
+#include <iiFileProviderDevice.h>
 #pragma once
 
 #include <QColor>
@@ -16,7 +17,6 @@ class QEvent;
 class QMouseEvent;
 class QNetworkAccessManager;
 class QObject;
-class QTemporaryDir;
 class QUrl;
 
 class DrawingSurfaceItem : public iiSharedCanvas::CanvasItem
@@ -156,7 +156,7 @@ class DrawingSurfaceItem : public iiSharedCanvas::CanvasItem
 
     CanvasViewModelBridge* m_viewModelBridge = nullptr;
     QNetworkAccessManager* m_networkAccessManager = nullptr;
-    std::unique_ptr<QTemporaryDir> m_recentCanvasExtractionDirectory;
+    std::unique_ptr<iiFileProvider::TemporaryDirectory> m_recentCanvasExtractionDirectory;
     QString m_viewId;
     QString m_backgroundSource;
     bool m_hasBackground = false;

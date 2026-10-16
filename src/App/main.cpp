@@ -1,7 +1,7 @@
+#include <iiFileProviderDevice.h>
 #include <QDir>
 #include <QDateTime>
 #include <QElapsedTimer>
-#include <QFile>
 #include <QGuiApplication>
 #include <QMetaObject>
 #include <QMutex>
@@ -61,9 +61,9 @@ QMutex &startupLogMutex()
     return mutex;
 }
 
-QFile &startupLogFile()
+iiFileProvider::FileDevice &startupLogFile()
 {
-    static QFile logFile(startupLogPath());
+    static iiFileProvider::FileDevice logFile(startupLogPath());
     return logFile;
 }
 
@@ -76,7 +76,7 @@ bool startupTraceEnabled()
 void appendStartupLog(const QString &level, const QString &message, bool flushImmediately = false)
 {
     QMutexLocker locker(&startupLogMutex());
-    QFile &logFile = startupLogFile();
+    iiFileProvider::FileDevice &logFile = startupLogFile();
     if (logFile.fileName().isEmpty()) {
         return;
     }
