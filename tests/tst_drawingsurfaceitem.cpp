@@ -8,6 +8,8 @@
 #include <QGuiApplication>
 #include <QHostAddress>
 #include <QImage>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLineF>
 #include <QLockFile>
 #include <QMap>
@@ -31,8 +33,11 @@
 
 #include <iiSharedCanvas.h>
 #include <iiFileProvider.h>
+#include <iiFileProviderPresentation.h>
+#include <iiFileProviderCompatibility.h>
 
 #include <cstdint>
+#include <chrono>
 #include <vector>
 
 #include "canvasdocumentviewmodel.h"
@@ -3536,11 +3541,11 @@ void tst_DrawingSurfaceItem::rendersSharedRasterVectorTimelineDocument()
     };
     rectangle.fill = SolidPaint{0xffffcc00U};
     mixed.assets.emplace_back(VectorAsset{"vector", {4, 4}, {std::move(rectangle)}});
-    mixed.layers.emplace_back(BitmapLayer{
+    mixed.layers.emplace_back(StaticBitmapLayer{
         {"background-layer", "Background", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"background"},
     });
-    mixed.layers.emplace_back(BitmapLayer{
+    mixed.layers.emplace_back(DynamicBitmapLayer{
         {"motion-layer", "Motion", true, 1.0, {}, RasterBlendMode::SourceOver},
         KeyframedSource{{0, 1}},
     });
@@ -3548,7 +3553,7 @@ void tst_DrawingSurfaceItem::rendersSharedRasterVectorTimelineDocument()
         {0, {{"motion-layer", "motion-0"}}},
         {1, {{"motion-layer", "motion-1"}}},
     };
-    mixed.layers.emplace_back(VectorLayer{
+    mixed.layers.emplace_back(StaticVectorLayer{
         {"vector-layer", "Vector", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"vector"},
     });
@@ -3591,11 +3596,11 @@ void tst_DrawingSurfaceItem::rasterToolsPreserveMixedSharedCanvasLayers()
     };
     rectangle.fill = SolidPaint{0xffff3366U};
     mixed.assets.emplace_back(VectorAsset{"vector", {32, 32}, {std::move(rectangle)}});
-    mixed.layers.emplace_back(BitmapLayer{
+    mixed.layers.emplace_back(StaticBitmapLayer{
         {"paint-layer", "Paint", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"paint"},
     });
-    mixed.layers.emplace_back(VectorLayer{
+    mixed.layers.emplace_back(StaticVectorLayer{
         {"vector-layer", "Vector", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"vector"},
     });
@@ -3639,7 +3644,7 @@ void tst_DrawingSurfaceItem::rasterToolsRespectSelectedLayerTransform()
     AffineTransform layerTransform;
     layerTransform.translationX = 10.0;
     layerTransform.translationY = 5.0;
-    transformed.layers.emplace_back(BitmapLayer{
+    transformed.layers.emplace_back(StaticBitmapLayer{
         {"paint-layer", "Paint", true, 1.0, layerTransform, RasterBlendMode::SourceOver},
         StaticSource{"paint"},
     });
@@ -3684,11 +3689,11 @@ void tst_DrawingSurfaceItem::openingRasterReplacesMixedSharedCanvasDocument()
     };
     rectangle.fill = SolidPaint{0xffff3366U};
     mixed.assets.emplace_back(VectorAsset{"vector", {16, 16}, {std::move(rectangle)}});
-    mixed.layers.emplace_back(BitmapLayer{
+    mixed.layers.emplace_back(StaticBitmapLayer{
         {"paint-layer", "Paint", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"paint"},
     });
-    mixed.layers.emplace_back(VectorLayer{
+    mixed.layers.emplace_back(StaticVectorLayer{
         {"vector-layer", "Vector", true, 1.0, {}, RasterBlendMode::SourceOver},
         StaticSource{"vector"},
     });
@@ -3740,6 +3745,14 @@ void tst_DrawingSurfaceItem::roundTripsNativeSharedCanvasDocument()
 
     const QByteArray bytes = iiFileProvider::File::read(nativePath);
     {
+        iiFileProvider::native::FileWriteLock nativeWriter(
+            std::filesystem::path(nativePath.toStdU16String()));
+        QLockFile legacyWriter(nativePath + QStringLiteral(".iisacc-lock"));
+        QVERIFY(!legacyWriter.tryLock(0));
+        QVERIFY(!legacyWriter.removeStaleLockFile());
+        QCOMPARE(iiFileProvider::File::read(nativePath), bytes);
+    }
+    {
         QLockFile competingWriter(nativePath + QStringLiteral(".iisacc-lock"));
         QVERIFY(competingWriter.tryLock(0));
         QVERIFY(!item.saveToFile(nativePath));
@@ -3761,7 +3774,7 @@ void tst_DrawingSurfaceItem::roundTripsNativeSharedCanvasDocument()
     QVERIFY(opened.document());
     QVERIFY(!opened.document()->layers.empty());
     const auto& openedLayer = opened.document()->layers.front();
-    QVERIFY(std::holds_alternative<iiSharedCanvas::BitmapLayer>(openedLayer));
+    QVERIFY(std::holds_alternative<iiSharedCanvas::StaticBitmapLayer>(openedLayer));
     QCOMPARE(opened.selectedLayerId(),
              QString::fromStdString(iiSharedCanvas::layerProperties(openedLayer).id));
     QVERIFY(opened.selectedRasterPixels());
@@ -3886,9 +3899,27 @@ void tst_DrawingSurfaceItem::roundTripsRecentCanvasContainerWithEditableObjects(
     QVERIFY(latestSnapshot.open(QIODevice::ReadOnly));
     const QByteArray latestSnapshotBytes = latestSnapshot.readAll();
     QVERIFY(latestSnapshotBytes != firstSnapshotBytes);
-    QCOMPARE(
-        QDir(recentDirectory).entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot).size(),
-        1);
+    // FileProvider retains its published preview and directory namespace guard.
+    // Neither is a second canvas or an abandoned transaction file.
+    QVERIFY(iiFileProvider::native::Presentation::waitForIdle(std::chrono::seconds(5)));
+    auto retainedFiles = QDir(recentDirectory).entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    const std::filesystem::path nativeRecentPath(recentPath.toStdU16String());
+    const auto companionPath = iiFileProvider::native::Presentation::companionPath(nativeRecentPath);
+    const auto companionName = QString::fromStdU16String(companionPath.filename().u16string());
+    if (retainedFiles.contains(companionName))
+    {
+        QFile companion(QString::fromStdU16String(companionPath.u16string()));
+        QVERIFY(companion.open(QIODevice::ReadOnly));
+        QJsonParseError parseError;
+        const auto manifest = QJsonDocument::fromJson(companion.readAll(), &parseError);
+        QCOMPARE(parseError.error, QJsonParseError::NoError);
+        QCOMPARE(manifest.object().value(QStringLiteral("format")).toString(),
+                 QStringLiteral("iiFileProvider.Presentation"));
+        QCOMPARE(manifest.object().value(QStringLiteral("schema")).toInt(), 1);
+        retainedFiles.removeOne(companionName);
+    }
+    retainedFiles.removeOne(QStringLiteral(".iisacc-temporary.lock"));
+    QCOMPARE(retainedFiles, QStringList{QStringLiteral("recent-canvas.vrc")});
 
     QString extractionDirectory;
     {
@@ -3901,7 +3932,7 @@ void tst_DrawingSurfaceItem::roundTripsRecentCanvasContainerWithEditableObjects(
         QVERIFY(opened.document());
         QVERIFY(!opened.document()->layers.empty());
         const auto& openedLayer = opened.document()->layers.front();
-        QVERIFY(std::holds_alternative<iiSharedCanvas::BitmapLayer>(openedLayer));
+        QVERIFY(std::holds_alternative<iiSharedCanvas::StaticBitmapLayer>(openedLayer));
         QCOMPARE(opened.selectedLayerId(),
                  QString::fromStdString(iiSharedCanvas::layerProperties(openedLayer).id));
         QVERIFY(opened.selectedRasterPixels());

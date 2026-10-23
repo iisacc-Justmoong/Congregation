@@ -1,17 +1,23 @@
 #pragma once
 
 #include <QByteArray>
-#include <QHash>
+#include <memory>
 #include <QObject>
-#include <QPointer>
+
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
 
 class NearbyCongregationDiscovery;
-class QTcpServer;
-class QTcpSocket;
-class QTimer;
+class QtEngineHost;
+namespace ii::runtime
+{
+class EventLoop;
+}
+namespace congregation
+{
+class CanvasSession;
+}
 
 class LocalCanvasSession final : public QObject
 {
@@ -89,64 +95,8 @@ class LocalCanvasSession final : public QObject
     void editCommandReceived(const QVariantMap& command, const QString& originPeerId);
 
   private:
-    enum class SessionState
-    {
-        Idle,
-        Hosting,
-        Joining,
-        Connected,
-    };
-
-    struct HostPeer
-    {
-        QByteArray receiveBuffer;
-        QString peerId;
-        QString profileName;
-        bool accepted = false;
-    };
-
-    void setState(SessionState state);
-    void setErrorString(const QString& errorString);
-    void clearParticipants();
-    void rebuildHostParticipantProfiles();
-    void broadcastParticipantProfiles();
-    void applyClientParticipantProfiles(const QByteArray& payload);
-    void receiveCanvasInvitation(const QVariantMap& invitation);
-    void handleHostNewConnection();
-    void handleHostReadyRead(QTcpSocket* socket);
-    void handleHostDisconnected(QTcpSocket* socket);
-    void handleClientConnected();
-    void handleClientReadyRead();
-    void handleClientDisconnected();
-    void handleClientError();
-    void processHostFrame(QTcpSocket* socket, quint8 type, const QByteArray& payload);
-    void processClientFrame(quint8 type, const QByteArray& payload);
-    void acceptSnapshot(const QByteArray& snapshot, const QString& originPeerId);
-    void sendLatestSnapshot(QTcpSocket* socket) const;
-    void disconnectHostPeer(QTcpSocket* socket, const QString& code, const QString& message);
-    void resetTransport();
-
-    [[nodiscard]] bool validSnapshot(const QByteArray& snapshot) const;
-    [[nodiscard]] QByteArray participantPayload() const;
-
     NearbyCongregationDiscovery* m_discovery = nullptr;
-    QTcpServer* m_server = nullptr;
-    QPointer<QTcpSocket> m_clientSocket;
-    QTimer* m_connectTimer = nullptr;
-    QHash<QTcpSocket*, HostPeer> m_hostPeers;
-    QByteArray m_clientReceiveBuffer;
-    QByteArray m_latestSnapshot;
-    QVariantList m_participantProfiles;
-    QVariantList m_pendingInvitations;
-    QString m_ownSessionId;
-    QString m_sessionId;
-    QString m_peerId;
-    QString m_localProfileName;
-    QString m_hostPeerId;
-    QString m_errorString;
-    QString m_latestOriginPeerId;
-    SessionState m_state = SessionState::Idle;
-    quint64 m_revision = 0;
-    bool m_stopping = false;
-    bool m_invitationsAllowed = false;
+    std::unique_ptr<ii::runtime::EventLoop> m_events;
+    std::unique_ptr<QtEngineHost> m_host;
+    std::unique_ptr<congregation::CanvasSession> m_backend;
 };

@@ -1,3 +1,26 @@
+add_executable(tests_qtenginehost
+        tst_qtenginehost.cpp
+        ../src/App/host/qtenginehost.cpp
+        ../src/App/host/qtenginehost.h)
+target_include_directories(tests_qtenginehost PRIVATE "${CMAKE_SOURCE_DIR}/src/App/host")
+target_link_libraries(tests_qtenginehost PRIVATE Congregation::Engine Qt6::Core Qt6::Test)
+congregation_configure_local_runtime_paths(tests_qtenginehost)
+add_test(NAME tests_qtenginehost COMMAND tests_qtenginehost)
+
+add_executable(tests_lvrsresources tst_lvrsresources.cpp)
+target_link_libraries(tests_lvrsresources PRIVATE Qt6::Core Qt6::Test LVRS::LVRS)
+target_compile_definitions(tests_lvrsresources PRIVATE
+        CONGREGATION_LVRS_SOURCE_RESOURCES="${LVRS_QML_MODULE_PATH}/resources")
+congregation_configure_local_runtime_paths(tests_lvrsresources)
+add_test(NAME tests_lvrsresources COMMAND tests_lvrsresources)
+
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/engine-smoke")
+add_test(NAME tests_applicationengine_smoke
+        COMMAND $<TARGET_FILE:Congregation> --engine-smoke-test "${CMAKE_BINARY_DIR}/engine-smoke")
+set_tests_properties(tests_applicationengine_smoke PROPERTIES
+        TIMEOUT 90 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen;CONGREGATION_STARTUP_LOG=${CMAKE_BINARY_DIR}/engine-smoke/startup.log"
+        FAIL_REGULAR_EXPRESSION "AppleKeychainInterface is implemented in both")
+
 add_executable(tests_canvasdocumentviewmodel
         tst_canvasdocumentviewmodel.cpp
         ../src/App/models/canvas/canvasdocumentviewmodel.cpp
@@ -13,6 +36,7 @@ target_include_directories(tests_canvasdocumentviewmodel PRIVATE
 )
 
 target_link_libraries(tests_canvasdocumentviewmodel PRIVATE
+        Congregation::Engine
         Qt6::Core
         Qt6::Gui
         Qt6::Test
@@ -121,6 +145,8 @@ congregation_configure_local_runtime_paths(tests_applicationpreferences)
 add_test(NAME tests_applicationpreferences COMMAND tests_applicationpreferences)
 
 add_executable(tests_nearbycongregationdiscovery
+        ../src/App/host/qtenginehost.cpp
+        ../src/App/host/qtenginehost.h
         tst_nearbycongregationdiscovery.cpp
         ../src/App/models/network/nearbycongregationdiscovery.cpp
         ../src/App/models/network/nearbycongregationdiscovery.h
@@ -131,6 +157,7 @@ target_include_directories(tests_nearbycongregationdiscovery PRIVATE
 )
 
 target_link_libraries(tests_nearbycongregationdiscovery PRIVATE
+        Congregation::Engine
         Qt6::Core
         Qt6::Network
         Qt6::Test
@@ -140,6 +167,8 @@ congregation_configure_local_runtime_paths(tests_nearbycongregationdiscovery)
 add_test(NAME tests_nearbycongregationdiscovery COMMAND tests_nearbycongregationdiscovery)
 
 add_executable(tests_localcanvassession
+        ../src/App/host/qtenginehost.cpp
+        ../src/App/host/qtenginehost.h
         tst_localcanvassession.cpp
         ../src/App/models/document/recentcanvascontainer.cpp
         ../src/App/models/document/recentcanvascontainer.h
@@ -155,6 +184,7 @@ target_include_directories(tests_localcanvassession PRIVATE
 )
 
 target_link_libraries(tests_localcanvassession PRIVATE
+        Congregation::Engine
         Qt6::Core
         Qt6::Network
         Qt6::Test
@@ -200,11 +230,8 @@ target_link_libraries(tests_licensemanager PRIVATE
         Qt6::Core
         Qt6::Network
         Qt6::Test
-        iiLicenseManager::iiLicenseManager
+        iiLicenseManager::Native
 )
-if(APPLE OR WIN32)
-    target_link_libraries(tests_licensemanager PRIVATE qt6keychain)
-endif()
 congregation_configure_local_runtime_paths(tests_licensemanager)
 
 add_test(NAME tests_licensemanager COMMAND tests_licensemanager)
@@ -227,15 +254,12 @@ target_include_directories(tests_congregationupdatemanager PRIVATE
 )
 
 target_link_libraries(tests_congregationupdatemanager PRIVATE
-        iiAcountManager::iiAcountManager
+        iiAcountManager::Native
         Qt6::Core
         Qt6::Network
         Qt6::Test
-        iiUpdateManager::iiUpdateManager
+        iiUpdateManager::Native
 )
-if(APPLE OR WIN32)
-    target_link_libraries(tests_congregationupdatemanager PRIVATE qt6keychain)
-endif()
 congregation_configure_local_runtime_paths(tests_congregationupdatemanager)
 
 add_test(NAME tests_congregationupdatemanager COMMAND tests_congregationupdatemanager)
@@ -325,6 +349,7 @@ target_include_directories(tests_drawingsurfaceitem PRIVATE
 )
 
 target_link_libraries(tests_drawingsurfaceitem PRIVATE
+        Congregation::Engine
         Qt6::Core
         Qt6::Gui
         Qt6::Qml
@@ -363,6 +388,7 @@ set(_congregation_test_environment
 )
 
 set_tests_properties(
+        tests_qtenginehost
         tests_canvasdocumentviewmodel
         tests_psdcompatibilitydocument
         tests_canvastoolbarqmlcontract
@@ -502,6 +528,7 @@ endif()
 
 if(WIN32)
     set_tests_properties(
+            tests_qtenginehost
             tests_canvasdocumentviewmodel
             tests_psdcompatibilitydocument
             tests_canvastoolbarqmlcontract
@@ -525,7 +552,7 @@ if(WIN32)
             tests_drawingsurfaceitem
             PROPERTIES
             ENVIRONMENT_MODIFICATION
-        "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSharedCanvas::iiSharedCanvas>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiFileProvider::iiFileProvider>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiUpdateManager::iiUpdateManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiLicenseManager::iiLicenseManager>;PATH=path_list_prepend:$<TARGET_FILE_DIR:LVRS::LVRS>"
+        "PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSDKCore::iiSDKCore>;PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSharedCanvas::iiSharedCanvas>;PATH=path_list_prepend:$<TARGET_FILE_DIR:iiFileProvider::iiFileProvider>;PATH=path_list_prepend:$<TARGET_FILE_DIR:LVRS::LVRS>"
     )
 endif()
 
@@ -534,3 +561,14 @@ set_property(
         APPEND PROPERTY ENVIRONMENT_MODIFICATION
         "QT_QPA_PLATFORM=set:offscreen"
 )
+
+# QML adapters exercise the same Qt-free backend as the standalone consumer.
+get_property(_congregation_test_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_target IN LISTS _congregation_test_targets)
+    if(_target MATCHES "^tests_")
+        target_link_libraries(${_target} PRIVATE Congregation::Engine)
+    endif()
+endforeach()
+foreach(_target tests_licensemanager tests_congregationupdatemanager tests_drawingsurfaceitem)
+    target_sources(${_target} PRIVATE "${CMAKE_SOURCE_DIR}/src/App/host/qtenginehost.cpp")
+endforeach()

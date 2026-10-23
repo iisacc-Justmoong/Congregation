@@ -1,0 +1,51 @@
+<script>
+import vm congregation.ui.EditorBackend
+</script>
+<Window title="Preferences" width={480} height={360} minimumWidth={480} minimumHeight={360}>
+  <div id="preferences-root" style="height: 360px; display: flex; flex-direction: column; gap: 20px; padding: 24px; align-items: stretch; flex: 1">
+    <div style="display: flex; flex-direction: row; align-items: center">
+      <Spacer/>
+      <LabelSegmentedControl spacing={2} horizontalPadding={2} verticalPadding={2}>
+        <LabelButton id="general-tab" text="General" height={28} horizontalPadding={12} tone={.borderless} onClick={vm.general_tab}/>
+        <LabelButton id="profile-tab" text="Profile" height={28} horizontalPadding={12} tone={.borderless} onClick={vm.profile_tab}/>
+        <LabelButton id="members-tab" text="Members" height={28} horizontalPadding={12} tone={.borderless} onClick={vm.members_tab}/>
+      </LabelSegmentedControl>
+      <Spacer/>
+    </div>
+    <div id="general-pane" visible={vm.general_visible} style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; flex: 1">
+      <Label text="Account" fontSize={12} color="#a4a5a6"/>
+      <Label text={vm.account_email} fontSize={13}/>
+      <Label text="Startup" fontSize={12} color="#a4a5a6"/>
+      <div style="display: flex; flex-direction: row; gap: 16px"><RadioButton text="New canvas" checked={vm.start_new} onToggled={vm.set_start_new}/><RadioButton text="Recent canvas" checked={vm.start_recent} onToggled={vm.set_start_recent}/></div>
+      <CheckBox text="Discover nearby Congregation users" checked={vm.discover} onToggled={vm.set_discover}/>
+      <Spacer/>
+      <Label text={vm.update_status} fontSize={12}/>
+      <div style="display: flex; flex-direction: row; gap: 8px"><Button id="restore-purchases" text="Restore purchases" tone={.default} height={28} onClick={vm.restore_license}/><Spacer/><Button id="check-update" text="Check for updates" height={28} onClick={vm.check_update}/></div>
+    </div>
+    <div id="profile-pane" visible={vm.profile_visible} style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; flex: 1">
+      <Label text="User image" fontSize={12} color="#a4a5a6"/>
+      <EventListener id="profile-image" width={64} height={64} onInput={vm.profile_input}/>
+      <Label text="Username" fontSize={12} color="#a4a5a6"/>
+      <InputField text={vm.display_name} placeholder="Username" width={432} onEdited={vm.set_name}/>
+      <CheckBox text="Allow inviting other users" checked={vm.can_invite} onToggled={vm.set_can_invite}/>
+      <Spacer/>
+    </div>
+    <div id="members-pane" visible={vm.members_visible} style="display: flex; flex-direction: column; gap: 8px; align-items: stretch; flex: 1">
+      <Label text={vm.status} fontSize={12}/>
+      <div style="display: flex; flex-direction: row; gap: 6px"><Button id="host-session" text="Share canvas" tone={.default} height={28} onClick={vm.host_session}/><Button id="join-session" text="Join nearby…" tone={.default} height={28} onClick={vm.join_session}/><Button id="leave-session" text="Leave" tone={.default} height={28} onClick={vm.leave_session}/></div>
+      <div style="display: flex; flex-direction: row; gap: 0px; flex: 1; align-items: stretch"><Spacer/><List id="members" model={vm.members} width={237} height={160} editable={false} reorderable={false} rowHeight={20} backgroundColor="#242625" selectionColor="#24324d" selectionRadius={0} onSelectionChanged={vm.select_member}/><Spacer/></div>
+      <div style="display: flex; flex-direction: row; gap: 4px"><IconButton accessibilityName="Copy invitation" iconName="add" tone={.borderless} height={20} onClick={vm.invite}/><IconButton accessibilityName="Remove member" iconName="remove" tone={.borderless} height={20} onClick={vm.remove_member}/><Spacer/><Button text="Accept" tone={.borderless} height={20} onClick={vm.accept_invite}/><Button text="Decline" tone={.borderless} height={20} onClick={vm.reject_invite}/></div>
+    </div>
+    <Popover id="join-popup" width={344} height={132} padding={12} surfaceColor="#242625">
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: stretch">
+        <Label text="Join canvas" fontSize={13} fontWeight={600}/>
+        <InputField id="session-address" text={vm.session_address} placeholder="Session invitation or host address" width={320} height={28} onEdited={vm.set_address}/>
+        <Button text="Join" height={28} onClick={vm.join_submit}/>
+      </div>
+    </Popover>
+    <ContextMenu id="avatar-menu" targetId="profile-image" itemWidth={190}>
+      <MenuItem keyVisible={false} showChevron={false} label="Select profile image…" onClick={vm.choose_profile}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Delete profile image" onClick={vm.clear_profile}/>
+    </ContextMenu>
+  </div>
+</Window>

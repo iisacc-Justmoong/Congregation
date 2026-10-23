@@ -1,4 +1,6 @@
-#include <iiFileProviderDevice.h>
+#include <iiFileProviderNative.h>
+#include <iiNetwork/Network.h>
+#include <vector>
 #pragma once
 
 #include <QColor>
@@ -15,7 +17,7 @@
 class CanvasViewModelBridge;
 class QEvent;
 class QMouseEvent;
-class QNetworkAccessManager;
+class QtEngineHost;
 class QObject;
 class QUrl;
 
@@ -155,8 +157,10 @@ class DrawingSurfaceItem : public iiSharedCanvas::CanvasItem
                                Qt::MouseButton button, Qt::MouseButtons buttons) const;
 
     CanvasViewModelBridge* m_viewModelBridge = nullptr;
-    QNetworkAccessManager* m_networkAccessManager = nullptr;
-    std::unique_ptr<iiFileProvider::TemporaryDirectory> m_recentCanvasExtractionDirectory;
+    std::unique_ptr<ii::runtime::EventLoop> m_events;
+    std::unique_ptr<QtEngineHost> m_host;
+    std::vector<std::unique_ptr<ii::network::Http>> m_downloads;
+    std::unique_ptr<iiFileProvider::native::TemporaryDirectory> m_recentCanvasExtractionDirectory;
     QString m_viewId;
     QString m_backgroundSource;
     bool m_hasBackground = false;

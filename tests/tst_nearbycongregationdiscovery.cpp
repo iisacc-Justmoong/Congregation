@@ -219,6 +219,14 @@ void tst_NearbyCongregationDiscovery::twoBackgroundServicesDiscoverAndForgetEach
     QTRY_COMPARE_WITH_TIMEOUT(first.nearbyDeviceCount(), 0, 5000);
     QTRY_COMPARE_WITH_TIMEOUT(first.availableInvitationTargets().size(), 0, 5000);
     QVERIFY(!first.anotherCongregationUserDetected());
+
+    // A new Core host connection must not resurrect retired periodic callbacks.
+    second.start();
+    QTRY_VERIFY_WITH_TIMEOUT(second.running(), 5000);
+    QTRY_COMPARE_WITH_TIMEOUT(first.nearbyDeviceCount(), 1, 5000);
+    QTRY_COMPARE_WITH_TIMEOUT(first.availableInvitationTargets().size(), 1, 5000);
+    second.stop();
+    QTRY_COMPARE_WITH_TIMEOUT(first.nearbyDeviceCount(), 0, 5000);
 }
 
 void tst_NearbyCongregationDiscovery::servicesOnTheSameDeviceAreNotReported()
@@ -261,7 +269,7 @@ void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheW
         QStringLiteral("&ApplicationPreferences::discoverNearbyCongregationUsersChanged")));
     const qsizetype showIndex = mainSource.indexOf(QStringLiteral("showLaunchWindow(engine);"));
     const qsizetype startIndex = mainSource.indexOf(QStringLiteral(
-        "QTimer::singleShot(0, nearbyDiscovery, [applicationPreferences, nearbyDiscovery]()"));
+        "applicationEngine.start([applicationPreferences, nearbyDiscovery]()"));
     QVERIFY(showIndex >= 0);
     QVERIFY(startIndex > showIndex);
     QVERIFY(mainSource.contains(
@@ -275,12 +283,16 @@ void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheW
     QFile implementationFile(implementationPath);
     QVERIFY(implementationFile.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString implementationSource = QString::fromUtf8(implementationFile.readAll());
-    QVERIFY(implementationSource.contains(QStringLiteral("moveToThread(&m_workerThread)")));
-    QVERIFY(implementationSource.contains(
-        QStringLiteral("Q_ASSERT(QThread::currentThread() == thread())")));
-    QVERIFY(implementationSource.contains(
-        QStringLiteral("QMetaObject::invokeMethod(m_worker, &NearbyCongregationDiscoveryWorker::start, "
-                       "Qt::QueuedConnection)")));
+    QVERIFY(implementationSource.contains(QStringLiteral("Engine/NearbyDiscovery.h")));
+    QVERIFY(implementationSource.contains(QStringLiteral("QtEngineHost")));
+    QVERIFY(!implementationSource.contains(QStringLiteral("QUdpSocket")));
+    QVERIFY(!implementationSource.contains(QStringLiteral("QThread")));
+    QFile backend(QFINDTESTDATA("../src/Engine/NearbyDiscovery.cpp"));
+    QVERIFY(backend.open(QIODevice::ReadOnly));
+    const auto nativeSource=backend.readAll();
+    QVERIFY(nativeSource.contains("loop_.every"));
+    QVERIFY(nativeSource.contains("heartbeat_.cancel()"));
+    QVERIFY(!nativeSource.contains("#include <Q"));
 }
 
 QTEST_GUILESS_MAIN(tst_NearbyCongregationDiscovery)

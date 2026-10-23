@@ -30,7 +30,7 @@ void tst_ApplicationPreferences::defaultsToNewCanvasAndNearbyDiscovery()
                        QSettings::IniFormat);
     const QString storageDirectory = directory.filePath(QStringLiteral("AppData/canvas"));
 
-    ApplicationPreferences preferences(&settings, storageDirectory);
+    ApplicationPreferences preferences(settings.fileName(), storageDirectory);
 
     QVERIFY(!preferences.startWithRecentCanvas());
     QVERIFY(preferences.discoverNearbyCongregationUsers());
@@ -48,7 +48,7 @@ void tst_ApplicationPreferences::generalChoicesPersistAcrossInstances()
 
     {
         QSettings settings(settingsPath, QSettings::IniFormat);
-        ApplicationPreferences preferences(&settings);
+        ApplicationPreferences preferences(settings.fileName());
         QSignalSpy startupSpy(&preferences,
                               &ApplicationPreferences::startWithRecentCanvasChanged);
         QSignalSpy discoverySpy(
@@ -70,7 +70,7 @@ void tst_ApplicationPreferences::generalChoicesPersistAcrossInstances()
     }
 
     QSettings restoredSettings(settingsPath, QSettings::IniFormat);
-    ApplicationPreferences restored(&restoredSettings);
+    ApplicationPreferences restored(restoredSettings.fileName());
     QVERIFY(restored.startWithRecentCanvas());
     QVERIFY(!restored.discoverNearbyCongregationUsers());
 }
@@ -89,7 +89,7 @@ void tst_ApplicationPreferences::internalContainerBecomesTheOnlyRecentCanvas()
 
     const QString settingsPath = directory.filePath(QStringLiteral("preferences.ini"));
     QSettings settings(settingsPath, QSettings::IniFormat);
-    ApplicationPreferences preferences(&settings, storageDirectory);
+    ApplicationPreferences preferences(settings.fileName(), storageDirectory);
     QSignalSpy recentCanvasSpy(&preferences,
                                &ApplicationPreferences::recentCanvasUrlChanged);
 
@@ -101,7 +101,7 @@ void tst_ApplicationPreferences::internalContainerBecomesTheOnlyRecentCanvas()
 
     settings.sync();
     QSettings restoredSettings(settingsPath, QSettings::IniFormat);
-    ApplicationPreferences restored(&restoredSettings, storageDirectory);
+    ApplicationPreferences restored(restoredSettings.fileName(), storageDirectory);
     QCOMPARE(restored.recentCanvasUrl(), preferences.recentCanvasUrl());
 }
 
@@ -120,14 +120,14 @@ void tst_ApplicationPreferences::missingInternalContainerIsDiscardedOnReload()
 
     {
         QSettings settings(settingsPath, QSettings::IniFormat);
-        ApplicationPreferences preferences(&settings, storageDirectory);
+        ApplicationPreferences preferences(settings.fileName(), storageDirectory);
         QVERIFY(preferences.recordRecentCanvas(QUrl::fromLocalFile(canvasPath)));
         settings.sync();
     }
     QVERIFY(QFile::remove(canvasPath));
 
     QSettings restoredSettings(settingsPath, QSettings::IniFormat);
-    ApplicationPreferences restored(&restoredSettings, storageDirectory);
+    ApplicationPreferences restored(restoredSettings.fileName(), storageDirectory);
     QVERIFY(restored.recentCanvasUrl().isEmpty());
 }
 
@@ -138,7 +138,7 @@ void tst_ApplicationPreferences::externalCanvasPathCannotBecomeRecentCanvas()
     QSettings settings(directory.filePath(QStringLiteral("preferences.ini")),
                        QSettings::IniFormat);
     const QString storageDirectory = directory.filePath(QStringLiteral("AppData/canvas"));
-    ApplicationPreferences preferences(&settings, storageDirectory);
+    ApplicationPreferences preferences(settings.fileName(), storageDirectory);
 
     const QString externalCanvasPath = directory.filePath(QStringLiteral("external.iisc"));
     QFile externalCanvas(externalCanvasPath);
@@ -160,7 +160,7 @@ void tst_ApplicationPreferences::clearingRecentCanvasDeletesTheInternalContainer
     QVERIFY(directory.isValid());
     QSettings settings(directory.filePath(QStringLiteral("preferences.ini")), QSettings::IniFormat);
     const QString storageDirectory = directory.filePath(QStringLiteral("AppData/canvas"));
-    ApplicationPreferences preferences(&settings, storageDirectory);
+    ApplicationPreferences preferences(settings.fileName(), storageDirectory);
     const QString canvasPath = preferences.recentCanvasStorageUrl().toLocalFile();
 
     QVERIFY(QDir().mkpath(storageDirectory));

@@ -363,8 +363,10 @@ void tst_MainQmlContract::manualUpdateFlowIsExplicitLvrsModalAndCredentialOpaque
         mainSource.contains(QStringLiteral("visible: CongregationUpdateManager.selfUpdateSupported")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("GetCurrentPackageFullName")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("APPMODEL_ERROR_NO_PACKAGE")));
-    QVERIFY(updateManagerSource.contains(QStringLiteral("_MASReceipt/receipt")));
-    QVERIFY(updateManagerSource.contains(QStringLiteral("IISACCDistributionChannel")));
+    QVERIFY(updateManagerSource.contains(QStringLiteral("mac_self_update")));
+
+    // Receipt and distribution-channel behavior is exercised through the native
+    // delegate by tst_CongregationUpdateManager's installation-policy fixtures.
     QVERIFY(updateManagerSource.contains(QStringLiteral("Congregation will not quit automatically")));
     QVERIFY(updateManagerSource.contains(QStringLiteral("platform safety policy")));
     QVERIFY(!updateManagerSource.contains(QStringLiteral("platform signature")));
@@ -965,8 +967,8 @@ void tst_MainQmlContract::applicationProvidesProfilePreferencesWindow()
     QVERIFY(appEntrySource.contains(
         QStringLiteral("setContextProperty(\"CongregationAccountManager\", accountManager)")));
     QVERIFY(
-        cmakeSource.contains(QStringLiteral("find_package(iiLicenseManager 0.2 CONFIG REQUIRED)")));
-    QVERIFY(cmakeSource.contains(QStringLiteral("iiLicenseManager::iiLicenseManager")));
+        cmakeSource.contains(QStringLiteral("iiLicenseManager/Native")));
+    QVERIFY(cmakeSource.contains(QStringLiteral("iiLicenseManager/Native")));
     QVERIFY(mainSource.contains(QStringLiteral(
         "startWithRecentCanvas: CongregationApplicationPreferences.startWithRecentCanvas")));
     QVERIFY(mainSource.contains(QStringLiteral(

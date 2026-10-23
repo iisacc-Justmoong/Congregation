@@ -113,21 +113,17 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
                                            "    list(APPEND _congregation_local_dependency_runtime_candidates")));
     QVERIFY(!source.contains(QStringLiteral("if(UNIX)\n"
                                             "    list(APPEND _congregation_local_dependency_runtime_candidates")));
-    QVERIFY(source.contains(QStringLiteral("GIT_TAG 875f77d9f61bd97fd84cca47ce3bc71186dfbd09")));
-    QVERIFY(source.contains(QStringLiteral("set(BUILD_TRANSLATIONS OFF)")));
-    QVERIFY(source.contains(QStringLiteral("set(BUILD_SHARED_LIBS OFF)")));
-    QVERIFY(source.contains(QStringLiteral("set(BUILD_TESTING OFF)")));
-    QVERIFY(source.contains(QStringLiteral("set(USE_CREDENTIAL_STORE ON)")));
-    QVERIFY(source.contains(QStringLiteral("target_link_libraries(Congregation PRIVATE qt6keychain)")));
-    QVERIFY(source.contains(QStringLiteral("MACOSX_PACKAGE_LOCATION \"Resources/legal/QtKeychain\"")));
-    QVERIFY(source.contains(QStringLiteral("find_package(iiUpdateManager 0.2 CONFIG REQUIRED)")));
-    QVERIFY(source.contains(QStringLiteral("iiUpdateManager::iiUpdateManager")));
-    QVERIFY(source.contains(QStringLiteral("find_package(iiLicenseManager 0.2 CONFIG REQUIRED)")));
-    QVERIFY(source.contains(QStringLiteral("iiLicenseManager::iiLicenseManager")));
+    QVERIFY(source.contains(QStringLiteral("iiAcountManager/Native")));
+    QVERIFY(source.contains(QStringLiteral("iiLicenseManager/Native")));
+    QVERIFY(source.contains(QStringLiteral("iiUpdateManager/Native")));
+    QVERIFY(source.contains(QStringLiteral("VerifyNativeEngine.cmake")));
+    QVERIFY(!source.contains(QStringLiteral("FetchContent_Declare(qtkeychain")));
+    QVERIFY(!source.contains(QStringLiteral("iiLicenseManager::iiLicenseManager")));
+    QVERIFY(!source.contains(QStringLiteral("iiUpdateManager::iiUpdateManager")));
     QVERIFY(source.contains(QStringLiteral(
         "MACOSX_PACKAGE_LOCATION \"Resources/legal/iiLicenseManager\"")));
     QVERIFY(source.contains(QStringLiteral("CONGREGATION_IILICENSEMANAGER_THIRD_PARTY_NOTICES")));
-    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.11.0 EXACT CONFIG REQUIRED)")));
+    QVERIFY(source.contains(QStringLiteral("find_package(iiSharedCanvas 0.31.1 CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("find_package(iiFileProvider 0.5 CONFIG REQUIRED)")));
     QVERIFY(source.contains(QStringLiteral("iiSharedCanvas::iiSharedCanvas")));
 }
@@ -269,14 +265,10 @@ void tst_MacOSBuildWorkflowContract::buildScriptUsesIncrementalBuildsAndStripsDi
     QVERIFY(source.contains(QStringLiteral("remove_absolute_macho_rpaths()")));
     QVERIFY(source.contains(QStringLiteral("/usr/bin/install_name_tool -delete_rpath")));
     QVERIFY(source.contains(QStringLiteral("assert_portable_macho_links()")));
-    QVERIFY(source.contains(QStringLiteral("assert_update_manager_runtime()")));
-    QVERIFY(source.contains(QStringLiteral("libiiUpdateManager*.dylib")));
-    QVERIFY(source.contains(QStringLiteral("assert_update_manager_runtime \"$out_app\"")));
-    QVERIFY(source.contains(QStringLiteral("package payload is missing the iiUpdateManager runtime")));
-    QVERIFY(source.contains(QStringLiteral("assert_license_manager_runtime()")));
-    QVERIFY(source.contains(QStringLiteral("libiiLicenseManager*.dylib")));
-    QVERIFY(source.contains(QStringLiteral("assert_license_manager_runtime \"$out_app\"")));
-    QVERIFY(source.contains(QStringLiteral("package payload is missing the iiLicenseManager runtime")));
+    QVERIFY(source.contains(QStringLiteral("assert_native_engine_runtime()")));
+    QVERIFY(source.contains(QStringLiteral("assert_native_engine_runtime \"$out_app\"")));
+    QVERIFY(source.contains(QStringLiteral("for library in iiSDKCore iiFileProviderNative")));
+    QVERIFY(source.contains(QStringLiteral("legacy Qt backend SDK")));
     QVERIFY(source.contains(QStringLiteral("IISACCDistributionChannel")));
     QVERIFY(source.contains(QStringLiteral("distribution_channel=\"direct\"")));
     QVERIFY(source.contains(QStringLiteral("distribution_channel=\"appstore\"")));
@@ -453,8 +445,8 @@ case "${1:-}" in
     --payload-files)
         printf './Congregation.app/Contents/MacOS/Congregation\n'
         printf './Congregation.app/Contents/Resources/Appicon.icns\n'
-        printf './Congregation.app/Contents/Frameworks/libiiUpdateManager.0.dylib\n'
-        printf './Congregation.app/Contents/Frameworks/libiiLicenseManager.0.dylib\n'
+        printf './Congregation.app/Contents/Frameworks/libiiSDKCore.0.dylib\n'
+        printf './Congregation.app/Contents/Frameworks/libiiFileProviderNative.0.dylib\n'
         ;;
     --expand)
         mkdir -p "${3:-}"
@@ -484,6 +476,14 @@ esac
     environment.insert(QStringLiteral("PATH"), binDir + QStringLiteral(":") + environment.value(QStringLiteral("PATH")));
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
     environment.insert(QStringLiteral("CONGREGATION_BUILD_MODE"), QStringLiteral("local"));
+    const auto nativeSdkRoot=temp.filePath(QStringLiteral("native-sdk"));
+    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAcountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
+        QVERIFY(temp.mkpath(QStringLiteral("native-sdk/")+module));
+        QFile nativeConfig(nativeSdkRoot+QLatin1Char('/')+module+QStringLiteral("/CMakeLists.txt"));
+        QVERIFY(nativeConfig.open(QIODevice::WriteOnly));
+        QVERIFY(nativeConfig.write("# fixture native SDK\n")>0);
+    }
+    environment.insert(QStringLiteral("CONGREGATION_SDK_SOURCE_ROOT"),nativeSdkRoot);
     environment.insert(QStringLiteral("IIUPDATEMANAGER_PREFIX"), updateManagerPrefix);
     environment.insert(QStringLiteral("IILICENSEMANAGER_PREFIX"), licenseManagerPrefix);
     process.setProcessEnvironment(environment);
@@ -616,6 +616,14 @@ exit 1
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("PATH"), binDir + QStringLiteral(":") + environment.value(QStringLiteral("PATH")));
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
+    const auto nativeSdkRoot=temp.filePath(QStringLiteral("native-sdk"));
+    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAcountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
+        QVERIFY(temp.mkpath(QStringLiteral("native-sdk/")+module));
+        QFile nativeConfig(nativeSdkRoot+QLatin1Char('/')+module+QStringLiteral("/CMakeLists.txt"));
+        QVERIFY(nativeConfig.open(QIODevice::WriteOnly));
+        QVERIFY(nativeConfig.write("# fixture native SDK\n")>0);
+    }
+    environment.insert(QStringLiteral("CONGREGATION_SDK_SOURCE_ROOT"),nativeSdkRoot);
     environment.insert(QStringLiteral("IIUPDATEMANAGER_PREFIX"), updateManagerPrefix);
     environment.insert(QStringLiteral("IILICENSEMANAGER_PREFIX"), licenseManagerPrefix);
     environment.remove(QStringLiteral("CONGREGATION_BUILD_MODE"));

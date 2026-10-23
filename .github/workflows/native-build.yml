@@ -1,0 +1,39 @@
+name: Native iiSDK build
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: Self-hosted runner with a native iiSDK kit and desktop session
+        required: true
+        type: choice
+        default: iisdk-native-macos
+        options:
+          - iisdk-native-macos
+          - iisdk-native-windows
+          - iisdk-native-linux
+      sdk_prefix:
+        description: Absolute path of the installed native iiSDK kit on the runner
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: [self-hosted, '${{ inputs.runner_label }}']
+    timeout-minutes: 60
+    env:
+      CONGREGATION_SDK_PREFIX: ${{ inputs.sdk_prefix }}
+    steps:
+      - name: Check out Congregation
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Build and test native Windows application
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build-windows.ps1 -SdkPrefix $env:CONGREGATION_SDK_PREFIX
+      - name: Build and test native macOS or Linux application
+        if: runner.os != 'Windows'
+        shell: bash
+        run: ./build.sh local

@@ -2,14 +2,11 @@
 
 #include "congregationupdatecredentialprovider.h"
 
-#include <iiUpdateManager/UpdateManager.h>
+#include <iiUpdateManager/NativeUpdateManager.h>
+#include "../../host/qtenginehost.h"
+#include "../../host/nativepaths.h"
 
 #include <QCoreApplication>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QVersionNumber>
-#include <QXmlStreamReader>
 
 #include <algorithm>
 #include <optional>
@@ -23,63 +20,13 @@
 #include <appmodel.h>
 #endif
 
-using iisacc::updates::UpdateManager;
+using iisacc::updates::native::UpdateManager;
 
 namespace
 {
-struct DistributionChannelMarker
-{
-    bool present = false;
-    QString value;
-};
-
 QString canonicalUpdateProtocolVersion(QString version)
 {
-    qsizetype suffixIndex = 0;
-    const QVersionNumber parsed = QVersionNumber::fromString(version, &suffixIndex);
-    if (!parsed.isNull()
-        && suffixIndex == version.size()
-        && parsed.segmentCount() == 2
-        && parsed.toString() == version) {
-        version.append(QStringLiteral(".0"));
-    }
-    return version;
-}
-
-DistributionChannelMarker readDistributionChannelMarker(const QString &infoPlistPath)
-{
-    QFile infoPlist(infoPlistPath);
-    if (!infoPlist.open(QIODevice::ReadOnly)) {
-        return {};
-    }
-
-    const QByteArray contents = infoPlist.readAll();
-    DistributionChannelMarker marker;
-    marker.present = contents.contains("IISACCDistributionChannel");
-
-    QXmlStreamReader xml(contents);
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (!xml.isStartElement() || xml.name() != QStringLiteral("key")) {
-            continue;
-        }
-        if (xml.readElementText() != QStringLiteral("IISACCDistributionChannel")) {
-            continue;
-        }
-
-        marker.present = true;
-        while (!xml.atEnd()) {
-            xml.readNext();
-            if (!xml.isStartElement()) {
-                continue;
-            }
-            if (xml.name() == QStringLiteral("string")) {
-                marker.value = xml.readElementText();
-            }
-            return marker;
-        }
-    }
-    return marker;
+    return QString::fromStdString(iisacc::updates::native::protocol_version(version.toStdString()));
 }
 
 bool selfUpdateSupportedForCurrentInstall()
@@ -98,7 +45,8 @@ bool selfUpdateSupportedForCurrentInstall()
 
 QString updateFailureMessage(UpdateManager::UpdateError error)
 {
-    switch (error) {
+    switch (error)
+    {
     case UpdateManager::UpdateError::CredentialUnavailable:
         return QStringLiteral("Sign in with a valid Congregation license before updating.");
     case UpdateManager::UpdateError::InvalidCredentials:
@@ -124,7 +72,8 @@ QString updateFailureMessage(UpdateManager::UpdateError error)
     case UpdateManager::UpdateError::DownloadHttpStatus:
     case UpdateManager::UpdateError::DownloadRedirectRejected:
     case UpdateManager::UpdateError::DownloadInvalidResponse:
-        return QStringLiteral("The update could not be downloaded. Check your connection and try again.");
+        return QStringLiteral(
+            "The update could not be downloaded. Check your connection and try again.");
     case UpdateManager::UpdateError::ResponseTooLarge:
     case UpdateManager::UpdateError::FileWrite:
         return QStringLiteral("Congregation could not safely save the downloaded installer.");
@@ -138,11 +87,13 @@ QString updateFailureMessage(UpdateManager::UpdateError error)
 
 QString checkFailureMessage(UpdateManager::Error error)
 {
-    switch (error) {
+    switch (error)
+    {
     case UpdateManager::Error::Network:
     case UpdateManager::Error::Timeout:
     case UpdateManager::Error::HttpStatus:
-        return QStringLiteral("Congregation could not reach the update service. Check your connection and try again.");
+        return QStringLiteral("Congregation could not reach the update service. Check your "
+                              "connection and try again.");
     case UpdateManager::Error::RedirectRejected:
     case UpdateManager::Error::ResponseTooLarge:
     case UpdateManager::Error::InvalidManifest:
@@ -152,40 +103,34 @@ QString checkFailureMessage(UpdateManager::Error error)
     }
     return QStringLiteral("Congregation could not check for updates.");
 }
-}
+} // namespace
 
-CongregationUpdateManager::CongregationUpdateManager(LicenseManager *licenseManager, QObject *parent)
-    : QObject(parent)
-    , m_selfUpdateSupported(selfUpdateSupportedForCurrentInstall())
-    , m_credentialProvider(std::make_unique<CongregationUpdateCredentialProvider>(licenseManager))
-    , m_backend(std::make_unique<UpdateManager>(
-          QStringLiteral("congregation"),
-          canonicalUpdateProtocolVersion(QCoreApplication::applicationVersion())))
+CongregationUpdateManager::CongregationUpdateManager(LicenseManager* licenseManager,
+                                                     QObject* parent)
+    : CongregationUpdateManager(licenseManager, QCoreApplication::applicationVersion(), QUrl{},
+                                QUrl{}, selfUpdateSupportedForCurrentInstall(), parent)
+{
+}
+CongregationUpdateManager::CongregationUpdateManager(LicenseManager* licenseManager,
+                                                     QString version, QUrl manifest, QUrl grant,
+                                                     bool supported, QObject* parent)
+    : QObject(parent), m_events(std::make_unique<ii::runtime::EventLoop>()),
+      m_host(std::make_unique<QtEngineHost>(*m_events)), m_selfUpdateSupported(supported),
+      m_credentialProvider(std::make_unique<CongregationUpdateCredentialProvider>(licenseManager)),
+      m_backend(std::make_unique<UpdateManager>(
+          *m_events, "congregation", canonicalUpdateProtocolVersion(version).toStdString(),
+          manifest.toString(QUrl::FullyEncoded).toStdString(),
+          grant.toString(QUrl::FullyEncoded).toStdString()))
 {
     m_backend->setCredentialProvider(m_credentialProvider.get());
     connectBackend();
 }
 
-CongregationUpdateManager::CongregationUpdateManager(LicenseManager *licenseManager,
-                                           QString currentVersion,
-                                           QUrl manifestUrl,
-                                           QUrl grantUrl,
-                                           bool selfUpdateSupported,
-                                           QObject *parent)
-    : QObject(parent)
-    , m_selfUpdateSupported(selfUpdateSupported)
-    , m_credentialProvider(std::make_unique<CongregationUpdateCredentialProvider>(licenseManager))
-    , m_backend(std::make_unique<UpdateManager>(
-          QStringLiteral("congregation"),
-          canonicalUpdateProtocolVersion(std::move(currentVersion)),
-          std::move(manifestUrl),
-          std::move(grantUrl)))
+CongregationUpdateManager::~CongregationUpdateManager()
 {
-    m_backend->setCredentialProvider(m_credentialProvider.get());
-    connectBackend();
+    m_backend.reset();
+    m_host.reset();
 }
-
-CongregationUpdateManager::~CongregationUpdateManager() = default;
 
 CongregationUpdateManager::State CongregationUpdateManager::state() const noexcept
 {
@@ -218,36 +163,17 @@ bool CongregationUpdateManager::selfUpdateSupported() const noexcept
 }
 
 bool CongregationUpdateManager::selfUpdateSupportedForMacApplicationDirectory(
-    const QString &applicationDirectory)
+    const QString& applicationDirectory)
 {
-    QDir executableDirectory(applicationDirectory);
-    if (executableDirectory.dirName() != QStringLiteral("MacOS")
-        || !executableDirectory.cdUp()
-        || executableDirectory.dirName() != QStringLiteral("Contents")) {
-        return true;
-    }
-
-    const QFileInfo receipt(
-        executableDirectory.filePath(QStringLiteral("_MASReceipt/receipt")));
-    if (receipt.isFile() && receipt.size() > 0) {
-        return false;
-    }
-
-    const DistributionChannelMarker marker = readDistributionChannelMarker(
-        executableDirectory.filePath(QStringLiteral("Info.plist")));
-    if (!marker.present) {
-        return true;
-    }
-    return marker.value == QStringLiteral("direct");
+    return iisacc::updates::native::mac_self_update(
+        congregation::presentation::nativePath(applicationDirectory));
 }
 
 bool CongregationUpdateManager::busy() const noexcept
 {
-    return m_state == State::Checking
-        || m_state == State::Authorizing
-        || m_state == State::Downloading
-        || m_state == State::Verifying
-        || m_state == State::LaunchingInstaller;
+    return m_state == State::Checking || m_state == State::Authorizing ||
+           m_state == State::Downloading || m_state == State::Verifying ||
+           m_state == State::LaunchingInstaller;
 }
 
 bool CongregationUpdateManager::canUpdate() const noexcept
@@ -257,16 +183,15 @@ bool CongregationUpdateManager::canUpdate() const noexcept
 
 bool CongregationUpdateManager::canCancel() const noexcept
 {
-    return m_selfUpdateSupported
-        && (m_state == State::Authorizing
-        || m_state == State::Downloading
-        || m_state == State::Verifying
-        || m_state == State::LaunchingInstaller);
+    return m_selfUpdateSupported &&
+           (m_state == State::Authorizing || m_state == State::Downloading ||
+            m_state == State::Verifying || m_state == State::LaunchingInstaller);
 }
 
 bool CongregationUpdateManager::checkForUpdates()
 {
-    if (!m_selfUpdateSupported) {
+    if (!m_selfUpdateSupported)
+    {
         return rejectStoreManagedSelfUpdate();
     }
     setProgress(0.0);
@@ -275,10 +200,12 @@ bool CongregationUpdateManager::checkForUpdates()
 
 bool CongregationUpdateManager::updateNow()
 {
-    if (!m_selfUpdateSupported) {
+    if (!m_selfUpdateSupported)
+    {
         return rejectStoreManagedSelfUpdate();
     }
-    if (!canUpdate()) {
+    if (!canUpdate())
+    {
         return false;
     }
     setProgress(0.0);
@@ -287,10 +214,12 @@ bool CongregationUpdateManager::updateNow()
 
 bool CongregationUpdateManager::cancelUpdate()
 {
-    if (!m_selfUpdateSupported) {
+    if (!m_selfUpdateSupported)
+    {
         return false;
     }
-    if (!canCancel()) {
+    if (!canCancel())
+    {
         return false;
     }
     return m_backend->cancelUpdate();
@@ -298,74 +227,70 @@ bool CongregationUpdateManager::cancelUpdate()
 
 void CongregationUpdateManager::connectBackend()
 {
-    connect(m_backend.get(), &UpdateManager::checkStarted, this, [this]() {
+    m_backend->checkStarted = [this]
+    {
         setState(State::Checking);
         setPresentation(QStringLiteral("Checking for updates…"),
                         QStringLiteral("Congregation contacts iisacc only for this manual check."));
-    });
-    connect(m_backend.get(), &UpdateManager::updateAvailable, this,
-            [this](const QString &version, const QUrl &) {
-                setLatestVersion(version);
-                setState(State::UpdateAvailable);
-                setPresentation(QStringLiteral("Congregation %1 is available").arg(version),
-                                QStringLiteral("Choose Update now to authorize, download, verify, and open the installer."));
-            });
-    connect(m_backend.get(), &UpdateManager::upToDate, this,
-            [this](const QString &version) {
-                setLatestVersion(version);
-                setState(State::UpToDate);
-                setPresentation(QStringLiteral("Congregation is up to date"),
-                                QStringLiteral("You already have the newest available version."));
-            });
-    connect(m_backend.get(), &UpdateManager::checkFailed, this,
-            [this](UpdateManager::Error error, const QString &) {
-                setState(State::Failed);
-                setPresentation(QStringLiteral("Unable to check for updates"),
-                                checkFailureMessage(error));
-            });
-    connect(m_backend.get(), &UpdateManager::stateChanged,
-            this, &CongregationUpdateManager::applyBackendState);
-    connect(m_backend.get(), &UpdateManager::downloadProgress, this,
-            [this](qint64 bytesReceived, qint64 totalBytes) {
-                const double ratio = totalBytes > 0
-                    ? std::clamp(static_cast<double>(bytesReceived)
-                                     / static_cast<double>(totalBytes),
-                                 0.0,
-                                 1.0)
-                    : 0.0;
-                setProgress(ratio);
-                const int percent = static_cast<int>(ratio * 100.0);
-                setPresentation(QStringLiteral("Downloading Congregation %1").arg(m_latestVersion),
-                                totalBytes > 0
-                                    ? QStringLiteral("Download progress: %1%").arg(percent)
-                                    : QStringLiteral("Downloading the verified installer…"));
-            });
-    connect(m_backend.get(), &UpdateManager::installerLaunched, this,
-            [this](const QString &version) {
-                setLatestVersion(version);
-                setProgress(1.0);
-                setState(State::InstallerLaunched);
-                setPresentation(
-                    QStringLiteral("Installer opened"),
-                    QStringLiteral("Save your work before closing Congregation. Congregation will not quit automatically; follow the installer instructions and close the app only when you are ready."));
-            });
-    connect(m_backend.get(), &UpdateManager::updateFailed, this,
-            [this](UpdateManager::UpdateError error, const QString &) {
-                if (error == UpdateManager::UpdateError::Cancelled) {
-                    setState(State::UpdateAvailable);
-                    setPresentation(QStringLiteral("Update cancelled"),
-                                    updateFailureMessage(error));
-                    return;
-                }
-                setState(State::Failed);
-                setPresentation(QStringLiteral("Unable to update Congregation"),
-                                updateFailureMessage(error));
-            });
+    };
+    m_backend->updateAvailable = [this](std::string version, std::string)
+    {
+        auto text = QString::fromStdString(version);
+        setLatestVersion(text);
+        setState(State::UpdateAvailable);
+        setPresentation(
+            QStringLiteral("Congregation %1 is available").arg(text),
+            QStringLiteral(
+                "Choose Update now to authorize, download, verify, and open the installer."));
+    };
+    m_backend->upToDate = [this](std::string version)
+    {
+        setLatestVersion(QString::fromStdString(version));
+        setState(State::UpToDate);
+        setPresentation(QStringLiteral("Congregation is up to date"),
+                        QStringLiteral("You already have the newest available version."));
+    };
+    m_backend->checkFailed = [this](UpdateManager::Error error, std::string)
+    {
+        setState(State::Failed);
+        setPresentation(QStringLiteral("Unable to check for updates"), checkFailureMessage(error));
+    };
+    m_backend->stateChanged = [this] { applyBackendState(); };
+    m_backend->downloadProgress = [this](std::int64_t received, std::int64_t total)
+    {
+        double ratio =
+            total > 0 ? std::clamp(static_cast<double>(received) / total, 0.0, 1.0) : 0.0;
+        setProgress(ratio);
+        setPresentation(
+            QStringLiteral("Downloading Congregation %1").arg(m_latestVersion),
+            QStringLiteral("Download progress: %1%").arg(static_cast<int>(ratio * 100)));
+    };
+    m_backend->installerLaunched = [this](std::string version)
+    {
+        setLatestVersion(QString::fromStdString(version));
+        setProgress(1);
+        setState(State::InstallerLaunched);
+        setPresentation(
+            QStringLiteral("Installer opened"),
+            QStringLiteral("Save your work before closing Congregation. "
+                           "Congregation will not quit automatically; follow the installer "
+                           "instructions and close the app only when you are ready."));
+    };
+    m_backend->updateFailed = [this](UpdateManager::UpdateError error, std::string)
+    {
+        setState(error == UpdateManager::UpdateError::Cancelled ? State::UpdateAvailable
+                                                                : State::Failed);
+        setPresentation(error == UpdateManager::UpdateError::Cancelled
+                            ? QStringLiteral("Update cancelled")
+                            : QStringLiteral("Unable to update Congregation"),
+                        updateFailureMessage(error));
+    };
 }
 
 void CongregationUpdateManager::applyBackendState()
 {
-    switch (m_backend->state()) {
+    switch (m_backend->state())
+    {
     case UpdateManager::State::Idle:
         break;
     case UpdateManager::State::Checking:
@@ -376,8 +301,9 @@ void CongregationUpdateManager::applyBackendState()
         break;
     case UpdateManager::State::Authorizing:
         setState(State::Authorizing);
-        setPresentation(QStringLiteral("Authorizing update…"),
-                        QStringLiteral("Congregation is securely authorizing this one update request."));
+        setPresentation(
+            QStringLiteral("Authorizing update…"),
+            QStringLiteral("Congregation is securely authorizing this one update request."));
         break;
     case UpdateManager::State::Downloading:
         setState(State::Downloading);
@@ -387,7 +313,8 @@ void CongregationUpdateManager::applyBackendState()
     case UpdateManager::State::Verifying:
         setState(State::Verifying);
         setPresentation(QStringLiteral("Verifying installer…"),
-                        QStringLiteral("Congregation is checking the package against the current platform safety policy."));
+                        QStringLiteral("Congregation is checking the package against the current "
+                                       "platform safety policy."));
         break;
     case UpdateManager::State::LaunchingInstaller:
         setState(State::LaunchingInstaller);
@@ -404,7 +331,8 @@ void CongregationUpdateManager::applyBackendState()
 
 void CongregationUpdateManager::setState(State state)
 {
-    if (m_state == state) {
+    if (m_state == state)
+    {
         return;
     }
     m_state = state;
@@ -414,7 +342,8 @@ void CongregationUpdateManager::setState(State state)
 void CongregationUpdateManager::setProgress(double progress)
 {
     const double boundedProgress = std::clamp(progress, 0.0, 1.0);
-    if (qFuzzyCompare(m_progress, boundedProgress)) {
+    if (qFuzzyCompare(m_progress, boundedProgress))
+    {
         return;
     }
     m_progress = boundedProgress;
@@ -423,7 +352,8 @@ void CongregationUpdateManager::setProgress(double progress)
 
 void CongregationUpdateManager::setPresentation(QString title, QString message)
 {
-    if (m_title == title && m_message == message) {
+    if (m_title == title && m_message == message)
+    {
         return;
     }
     m_title = std::move(title);
@@ -433,7 +363,8 @@ void CongregationUpdateManager::setPresentation(QString title, QString message)
 
 void CongregationUpdateManager::setLatestVersion(QString version)
 {
-    if (m_latestVersion == version) {
+    if (m_latestVersion == version)
+    {
         return;
     }
     m_latestVersion = std::move(version);
@@ -446,6 +377,7 @@ bool CongregationUpdateManager::rejectStoreManagedSelfUpdate()
     setState(State::Failed);
     setPresentation(
         QStringLiteral("Updates are managed by your app store"),
-        QStringLiteral("Use the store that installed Congregation to check for and install updates."));
+        QStringLiteral(
+            "Use the store that installed Congregation to check for and install updates."));
     return false;
 }

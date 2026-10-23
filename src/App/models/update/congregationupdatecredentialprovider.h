@@ -1,22 +1,24 @@
 #pragma once
 
-#include <iiUpdateManager/UpdateCredentialProvider.h>
+#include <iiUpdateManager/NativeUpdateManager.h>
 
 #include <QPointer>
+#include <QObject>
 
 class LicenseManager;
 
 class CongregationUpdateCredentialProvider final
-    : public iisacc::updates::UpdateCredentialProvider
+    : public QObject,
+      public iisacc::updates::native::UpdateCredentialProvider
 {
-public:
-    explicit CongregationUpdateCredentialProvider(LicenseManager *licenseManager,
-                                             QObject *parent = nullptr);
+  public:
+    explicit CongregationUpdateCredentialProvider(LicenseManager* licenseManager,
+                                                  QObject* parent = nullptr);
 
     void requestCredentials(Completion completion) override;
     void cancel() noexcept override;
 
-private:
+  private:
     QPointer<LicenseManager> m_licenseManager;
     quint64 m_requestGeneration = 0;
 };

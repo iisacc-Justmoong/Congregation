@@ -21,6 +21,9 @@ endif()
 
 target_sources(Congregation PRIVATE
         main.cpp
+        host/qtenginehost.cpp
+        host/qtenginehost.h
+        host/enginevalues.h
         metatypes_dummy.cpp
         metatypes_dummy.h
         models/brush/paletteutils.cpp
@@ -63,6 +66,8 @@ target_sources(Congregation PRIVATE
         models/update/congregationupdatemanager.h
         resources.qrc
 )
+
+target_link_libraries(Congregation PRIVATE Congregation::Engine)
 
 target_include_directories(Congregation PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}

@@ -2,7 +2,8 @@
 #include "licensemanager.h"
 #include "licensecredentialstore.h"
 
-#include <iiLicenseManager/LicenseClient.h>
+#include <iiLicenseManager/NativeLicenseClient.h>
+#include "../src/App/host/qtenginehost.h"
 
 #include <QDir>
 #include <QFile>
@@ -296,15 +297,17 @@ void tst_LicenseManager::accountEmailComesFromIiLicenseManagerActivation()
                                1000,
                                &store,
                                LicenseManager::EnforcementMode::Disabled);
-    const QList<iisacc::licensing::TrustedLicenseKey> trustedKeys{{
-        QStringLiteral("test-2026"),
+    const std::vector<iisacc::licensing::native::TrustedLicenseKey> trustedKeys{{
+        "test-2026",
         QByteArray::fromBase64(testAccountPublicKey,
                                QByteArray::Base64UrlEncoding
-                                   | QByteArray::AbortOnBase64DecodingErrors),
+                                   | QByteArray::AbortOnBase64DecodingErrors).toStdString(),
     }};
-    iisacc::licensing::LicenseClient accountLicense(QStringLiteral("congregation"),
-                                                    server.endpoint(),
-                                                    licenseStorage.path(),
+    ii::runtime::EventLoop accountEvents;
+    QtEngineHost accountHost(accountEvents);
+    iisacc::licensing::native::LicenseClient accountLicense(accountEvents,"congregation",
+                                                    server.endpoint().toString().toStdString(),
+                                                    std::filesystem::path(licenseStorage.path().toStdString()),
                                                     trustedKeys);
     AccountManager account(&credentials, &accountLicense);
 
@@ -321,14 +324,14 @@ void tst_LicenseManager::accountEmailComesFromIiLicenseManagerActivation()
     QVERIFY(!account.accountEmailLoading());
     QCOMPARE(emailSpy.size(), 1);
     QCOMPARE(loadingSpy.size(), 2);
-    QCOMPARE(accountLicense.accountEmail(), QStringLiteral("verified@example.com"));
+    QCOMPARE(QString::fromStdString(accountLicense.accountEmail()), QStringLiteral("verified@example.com"));
     QCOMPARE(server.connectionCount(), 1);
 
     SingleResponseServer offlineTrap(httpResponse(503, QByteArrayLiteral("{}")));
     QVERIFY(offlineTrap.listen(QHostAddress::LocalHost));
-    iisacc::licensing::LicenseClient restartedLicense(QStringLiteral("congregation"),
-                                                      offlineTrap.endpoint(),
-                                                      licenseStorage.path(),
+    iisacc::licensing::native::LicenseClient restartedLicense(accountEvents,"congregation",
+                                                      offlineTrap.endpoint().toString().toStdString(),
+                                                      std::filesystem::path(licenseStorage.path().toStdString()),
                                                       trustedKeys);
     AccountManager restartedAccount(&credentials, &restartedLicense);
     restartedAccount.refresh();

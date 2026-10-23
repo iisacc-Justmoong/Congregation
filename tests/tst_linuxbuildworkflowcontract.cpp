@@ -37,8 +37,8 @@ void tst_LinuxBuildWorkflowContract::cmakeBuildsDeployableLinuxArchive()
     QVERIFY(source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/LVRS/platforms/linux/lib")));
     QVERIFY(source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/iiPaintEngine/platforms/linux/lib")));
     QVERIFY(source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/iiSharedCanvas/lib")));
-    QVERIFY(source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/iiUpdateManager/lib")));
-    QVERIFY(source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/iiLicenseManager/lib")));
+    QVERIFY(source.contains(QStringLiteral("iiUpdateManager/Native")));
+    QVERIFY(source.contains(QStringLiteral("iiLicenseManager/Native")));
     QVERIFY(!source.contains(QStringLiteral("$ENV{HOME}/.local/SDK/LVRS/platforms/macos\"\n"
                                              "        \"$ENV{HOME}/.local/SDK/LVRS")));
 

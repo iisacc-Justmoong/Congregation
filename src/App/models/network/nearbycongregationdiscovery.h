@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QHostAddress>
+#include <memory>
 #include <QObject>
 #include <QString>
-#include <QThread>
+
 #include <QVariantList>
 #include <QVariantMap>
 
@@ -45,7 +45,15 @@ class NearbyCongregationProtocol final
     [[nodiscard]] static constexpr qsizetype maximumDatagramSize() noexcept { return 512; }
 };
 
-class NearbyCongregationDiscoveryWorker;
+namespace congregation
+{
+class NearbyDiscovery;
+}
+class QtEngineHost;
+namespace ii::runtime
+{
+class EventLoop;
+}
 
 class NearbyCongregationDiscovery final : public QObject
 {
@@ -66,7 +74,7 @@ class NearbyCongregationDiscovery final : public QObject
   public:
     struct Configuration
     {
-        QHostAddress multicastGroup{QStringLiteral("239.255.86.67")};
+        QString multicastGroup{QStringLiteral("239.255.86.67")};
         quint16 port = 52683;
         int heartbeatIntervalMs = 4000;
         int peerTimeoutMs = 14000;
@@ -110,15 +118,17 @@ class NearbyCongregationDiscovery final : public QObject
     void canvasInvitationReceived(const QVariantMap& invitation);
 
   private:
+    void refresh();
     void applyRunning(bool running);
     void applyNearbyDeviceCount(int nearbyDeviceCount);
     void applyAvailableCanvasSessions(const QVariantList& sessions);
     void applyAvailableInvitationTargets(const QVariantList& targets);
     void applyErrorString(const QString& errorString);
 
-    QThread m_workerThread;
+    std::unique_ptr<ii::runtime::EventLoop> m_events;
+    std::unique_ptr<QtEngineHost> m_host;
+    std::unique_ptr<congregation::NearbyDiscovery> m_backend;
     QString m_sessionId;
-    NearbyCongregationDiscoveryWorker* m_worker = nullptr;
     bool m_running = false;
     int m_nearbyDeviceCount = 0;
     quint16 m_hostedCanvasPort = 0;

@@ -1,8 +1,8 @@
-#include <iiFileProviderDevice.h>
+#include "../../host/nativefiles.h"
 #include "profileimageprocessor.h"
 
 #include <QColorSpace>
-#include <QDir>
+
 #include <QImage>
 #include <QImageReader>
 #include <QPainter>
@@ -68,24 +68,12 @@ bool ProfileImageProcessor::processProfileImage(const QUrl &sourceUrl)
     painter.drawImage(QPoint(0, 0), sourceImage, sourceRect);
     painter.end();
 
-    auto processedImageFile = std::make_unique<iiFileProvider::TemporaryFile>(
-        QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-profile-image-XXXXXX.png")));
-    if (!processedImageFile->open()) {
-        setErrorString(processedImageFile->errorString());
-        return false;
-    }
-    if (!circularImage.save(processedImageFile.get(), "PNG")) {
-        setErrorString(tr("The circular profile image could not be encoded."));
-        return false;
-    }
-    if (!processedImageFile->flush()) {
-        setErrorString(processedImageFile->errorString());
-        return false;
-    }
-
-    const QUrl processedImageSource = QUrl::fromLocalFile(processedImageFile->fileName());
-    processedImageFile->close();
-    m_processedImageFile = std::move(processedImageFile);
+    std::unique_ptr<iiFileProvider::native::TemporaryDirectory> directory;
+    try{directory=std::make_unique<iiFileProvider::native::TemporaryDirectory>(congregation::application_cache()/"profile-images");}catch(const std::exception&){setErrorString(tr("The profile image could not be saved."));return false;}
+    const auto path=congregation::presentation::pathText(directory->path()/"profile.png");
+    if(!congregation::presentation::saveImage(path,circularImage)){setErrorString(tr("The circular profile image could not be encoded."));return false;}
+    const auto processedImageSource=QUrl::fromLocalFile(path);
+    m_processedImageFile=std::move(directory);
     setErrorString({});
     setImageSource(processedImageSource);
     return true;

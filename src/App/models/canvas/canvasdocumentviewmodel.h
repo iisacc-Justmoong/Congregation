@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QColor>
 #include <QVariantList>
+#include <Engine/CanvasDocument.h>
+#include <memory>
 
 class PaletteUtils;
 
@@ -29,6 +31,8 @@ class CanvasDocumentViewModel : public QObject
 
 public:
     explicit CanvasDocumentViewModel(PaletteUtils *paletteUtils, QObject *parent = nullptr);
+    explicit CanvasDocumentViewModel(congregation::CanvasDocument &document,
+                                     QObject *parent = nullptr);
 
     static constexpr qreal maximumAntialiasingBrushHardness()
     {
@@ -90,22 +94,8 @@ signals:
     void canvasHeightChanged();
 
 private:
-    QVariantList buildDefaultPalette(PaletteUtils *paletteUtils) const;
+    void apply(congregation::CanvasQuery query);
+    std::unique_ptr<congregation::CanvasDocument> m_ownedDocument;
+    congregation::CanvasDocument *m_document;
     QVariantList m_palette;
-    QColor m_brushColor;
-    qreal m_brushSize = 2.0;
-    qreal m_brushFlow = 1.0;
-    qreal m_brushOpacity = 1.0;
-    qreal m_brushHardness = maximumAntialiasingBrushHardness();
-    qreal m_brushSpacing = 0.0;
-    qreal m_brushSpacingRatio = 0.0;
-    qreal m_pressureCurveMinimum = 0.0;
-    qreal m_pressureCurveCenter = 0.5;
-    qreal m_pressureCurveMaximum = 1.0;
-    bool m_brushPressureControlsOpacity = true;
-    qreal m_stabilizerStrength = 0.0;
-    QString m_toolMode = QStringLiteral("brush");
-    QString m_shapeKind = QStringLiteral("rectangle");
-    int m_canvasWidth = 1;
-    int m_canvasHeight = 1;
 };

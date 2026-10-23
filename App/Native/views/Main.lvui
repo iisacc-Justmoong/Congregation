@@ -1,0 +1,140 @@
+<script>
+import vm congregation.ui.EditorBackend
+</script>
+<ApplicationWindow title="Congregation" width={1400} height={858} minimumWidth={900} minimumHeight={620}>
+  <div id="root" style="height: 858px; display: flex; flex-direction: column; gap: 0px; align-items: stretch; flex: 1">
+    <div visible={vm.needs_license} style="display: flex; flex-direction: column; align-items: center; flex: 1">
+    <Spacer/>
+    <AppCard id="activation" width={540} height={340}>
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: stretch">
+      <Label text="Activate Congregation" fontSize={24} fontWeight={600}/>
+      <Label text="Verify this copy before opening the canvas." fontSize={13}/>
+      <div style="display: flex; flex-direction: row; gap: 12px"><Label text="Product" fontSize={12}/><Spacer/><Label text="Congregation" fontSize={13}/></div>
+      <Label text="Use the verified email and license key in your private dashboard." fontSize={12}/>
+      <InputField id="license-email" text={vm.email} placeholder="Verified account email" width={460} onEdited={vm.set_email}/>
+      <InputField id="license-key" text={vm.license_key} placeholder="IIL… license key" password={true} width={460} onEdited={vm.set_license_key}/>
+      <Label text={vm.status} fontSize={12}/>
+      <Button id="activate" text="Activate" enabled={vm.can_activate} on:click={vm.activate}/>
+      </div>
+    </AppCard>
+    <Spacer/>
+    </div>
+    <div id="workspace" visible={vm.licensed} style="display: flex; flex-direction: column; gap: 0px; align-items: stretch; flex: 1">
+      <div id="toolbar" visible={vm.chrome_visible} style="display: flex; flex-direction: row; height: 40px; gap: 0px; align-items: center">
+        <div style="width: 2px"/>
+        <IconButton id="new" accessibilityName="New canvas" icon={vm.add_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.new_document}/>
+        <IconButton id="open" accessibilityName="Open" icon={vm.open_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.open}/>
+        <IconButton id="save" accessibilityName="Save" icon={vm.save_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.save}/>
+        <div style="width: 8px"/>
+        <IconButton id="pan" accessibilityName="Pan · H" icon={vm.pan_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.pan}/>
+        <IconButton id="select" accessibilityName="Move · V" icon={vm.move_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.select}/>
+        <IconButton id="zoom-tool" accessibilityName="Zoom · Z" icon={vm.zoom_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.zoom_tool}/>
+        <IconButton id="brush" accessibilityName="Brush · B" icon={vm.brush_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.brush}/>
+        <IconButton id="eraser" accessibilityName="Eraser · E" icon={vm.eraser_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.eraser}/>
+        <IconButton id="shape" accessibilityName="Shapes" icon={vm.shape_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.open_shapes}/>
+        <EventListener id="shape-arrow" width={12} height={28} onInput={vm.shape_arrow_input}/>
+        <IconButton id="fill" accessibilityName="Fill" icon={vm.fill_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.fill}/>
+        <IconButton id="text" accessibilityName="Text · T" icon={vm.text_icon} tone={.borderless} iconSize={16} height={28} horizontalPadding={1} cornerRadius={4} onClick={vm.text}/>
+        <div style="width: 12px"/>
+        <div id="tool-divider" style="width: 1px; height: 28px"/>
+        <div style="width: 12px"/>
+        <EventListener id="brush-preview" width={28} height={28}/>
+        <div style="width: 10px"/>
+        <IconButton id="size-minus" accessibilityName="Decrease brush size" icon={vm.minus_icon} tone={.borderless} height={28} horizontalPadding={1} onClick={vm.size_minus}/>
+        <div style="width: 19px"/>
+        <Slider id="brush-size" from={1} to={48} value={vm.brush_size} width={160} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_brush_size}/>
+        <div style="width: 5px"/>
+        <IconButton id="size-plus" accessibilityName="Increase brush size" icon={vm.plus_icon} tone={.borderless} height={28} horizontalPadding={1} onClick={vm.size_plus}/>
+        <Spacer/>
+        <ColorPickerButton id="brush-color" model={vm.color} buttonSize={28} accessibilityName="Brush color" showHueRing={false} circular={true} borderOpacity={0.15} onClick={vm.open_color}/>
+        <div style="width: 10px"/>
+      </div>
+      <div style="display: flex; flex-direction: row; gap: 0px; align-items: stretch; flex: 1">
+        <div id="sidebar" visible={vm.chrome_visible} style="display: flex; flex-direction: column; gap: 0px; align-items: stretch; width: 260px">
+          <div style="height: 20px"/>
+          <Hierarchy id="layers" model={vm.layers} width={260} height={720} rowHeight={20} fontSize={11} flex={1} backgroundColor="#242625" selectionColor="#24324d" textColor="#ced0d6" selectionRadius={0} onSelectionChanged={vm.select_layer} onItemRenamed={vm.rename_layer} onItemMoved={vm.move_layer}/>
+          <div visible={vm.layer_controls} style="display: flex; flex-direction: row; gap: 4px; height: 28px; padding: 4px; align-items: center">
+            <IconButton id="add-layer" accessibilityName="Add layer" iconName="add" tone={.borderless} height={20} horizontalPadding={2} on:click={vm.add_layer}/>
+            <IconButton id="delete-layer" accessibilityName="Delete layer" iconName="remove" tone={.borderless} height={20} horizontalPadding={2} on:click={vm.delete_layer}/>
+          </div>
+        </div>
+        <EventListener id="canvas" width={1140} height={818} flex={1} onInput={vm.canvas_input} onResized={vm.canvas_resize}/>
+      </div>
+    </div>
+    <ContextMenu id="shape-menu" targetId="shape" itemWidth={180}>
+      <MenuItem keyVisible={false} showChevron={false} id="rectangle" label="Rectangle" iconName="rectangle" onClick={vm.rectangle}/>
+      <MenuItem keyVisible={false} showChevron={false} id="ellipse" label="Ellipse" iconName="ellipse" onClick={vm.ellipse}/>
+      <MenuItem keyVisible={false} showChevron={false} id="triangle" label="Triangle" iconName="triangle" onClick={vm.triangle}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Diamond" iconName="diamond" onClick={vm.diamond}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Star" iconName="star" onClick={vm.star}/>
+      <MenuItem keyVisible={false} showChevron={false} iconName="rectangle" label="Rectangle bubble" onClick={vm.rectanglebubble}/>
+      <MenuItem keyVisible={false} showChevron={false} iconName="ellipse" label="Ellipse bubble" onClick={vm.ellipsebubble}/>
+    </ContextMenu>
+    <ContextMenu id="color-actions" targetId="brush-color" itemWidth={200}>
+      <MenuItem keyVisible={false} showChevron={false} label="Brush color…" onClick={vm.open_color}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Preferences…" onClick={vm.preferences}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Presentation" onClick={vm.presentation}/>
+    </ContextMenu>
+    <ContextMenu id="layer-menu" targetId="layers" itemWidth={180}>
+      <MenuItem keyVisible={false} showChevron={false} label="Add layer" onClick={vm.add_layer}/>
+      <MenuItem keyVisible={false} showChevron={false} id="duplicate-layer" label="Duplicate layer" onClick={vm.duplicate_layer}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Delete layer" onClick={vm.delete_layer}/>
+      <MenuItem keyVisible={false} showChevron={false} label="Show / hide layer" onClick={vm.toggle_layer_visibility}/>
+      <MenuDivider/>
+      <MenuItem keyVisible={false} showChevron={false} label="Place image…" onClick={vm.image}/>
+    </ContextMenu>
+    <Popover id="color-popup" width={320} height={320} padding={20} surfaceColor="#242625" cornerRadius={8}>
+      <ColorPickerSurface id="color-editor" model={vm.color} field={.wheel} width={280} height={280}/>
+    </Popover>
+    <Popover id="status-notice" width={420} height={98} padding={12} focus={false} clip={true} surfaceColor="#242625" accessibilityName="Canvas error">
+      <div style="display: flex; flex-direction: row; gap: 8px; align-items: center"><Label text={vm.status} fontSize={12} flex={1}/><LabelButton text="×" tone={.borderless} height={22} horizontalPadding={4} accessibilityName="Dismiss message" onClick={vm.close_notice}/></div>
+    </Popover>
+    <Popover id="text-popup" width={320} height={118} padding={12} surfaceColor="#242625" cornerRadius={8}>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <Label text="Text" fontSize={13} fontWeight={600}/>
+        <InputField id="text-value" multiline={true} height={64} text={vm.text_value} placeholder="Text to place" width={296} onEdited={vm.set_text}/>
+      </div>
+    </Popover>
+    <Popover id="brush-popup" width={340} height={574} padding={12} clip={true} surfaceColor="#242625" cornerRadius={8}>
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: stretch">
+        <Label text="Brush" fontSize={13} fontWeight={700}/>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Size" fontSize={12}/><Spacer/><Label text={vm.size_label} fontSize={12}/></div>
+          <Slider from={1} to={48} value={vm.brush_size} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_brush_size}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Flow" fontSize={12}/><Spacer/><Label text={vm.flow_label} fontSize={12}/></div>
+          <Slider from={0} to={1} value={vm.flow} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_flow}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Opacity" fontSize={12}/><Spacer/><Label text={vm.opacity_label} fontSize={12}/></div>
+          <Slider from={0} to={1} value={vm.opacity} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_opacity}/>
+        </div>
+        <div style="display: flex; flex-direction: row; align-items: center"><Label text="Pressure Opacity" fontSize={12} flex={1}/><ToggleSwitch checked={vm.pressure_enabled} onToggled={vm.set_pressure_enabled}/></div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Hardness" fontSize={12}/><Spacer/><Label text={vm.hardness_label} fontSize={12}/></div>
+          <Slider from={0.01} to={1} value={vm.hardness} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_hardness}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Spacing" fontSize={12}/><Spacer/><Label text={vm.spacing_label} fontSize={12}/></div>
+          <Slider from={0} to={64} value={vm.spacing_pixels} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_spacing_pixels}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Spacing Ratio" fontSize={12}/><Spacer/><Label text={vm.spacing_ratio_label} fontSize={12}/></div>
+          <Slider from={0} to={1} value={vm.spacing} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_spacing}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Stabilizer" fontSize={12}/><Spacer/><Label text={vm.stabilizer_label} fontSize={12}/></div>
+          <Slider from={0} to={1} value={vm.stabilizer} width={316} height={12} thumbDiameter={12} trackHeight={4} rangeInset={6} onMoved={vm.set_stabilizer}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch">
+          <Label text="Pressure Curve" fontSize={12}/>
+          <EventListener id="pressure-curve" width={316} height={92} onInput={vm.pressure_curve_input}/>
+          <div style="display: flex; flex-direction: row"><Label text="Pressure Minimum" fontSize={11}/><Spacer/><Label text={vm.pressure_min_label} fontSize={11}/></div>
+          <div style="display: flex; flex-direction: row"><Label text="Pressure Center" fontSize={11}/><Spacer/><Label text={vm.pressure_mid_label} fontSize={11}/></div>
+          <div style="display: flex; flex-direction: row"><Label text="Pressure Maximum" fontSize={11}/><Spacer/><Label text={vm.pressure_max_label} fontSize={11}/></div>
+        </div>
+      </div>
+    </Popover>
+  </div>
+</ApplicationWindow>

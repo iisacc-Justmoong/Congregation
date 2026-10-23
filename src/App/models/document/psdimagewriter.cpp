@@ -13,114 +13,21 @@
 #include <PsdMallocAllocator.h>
 
 #include <QByteArray>
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QScopeGuard>
 #include <QtGlobal>
 
 #include <limits>
+#include <Engine/PsdFile.h>
+#include <Engine/ScopeExit.h>
+#include <Engine/DocumentMetadata.h>
+#include "../../host/structuredvalues.h"
+#include "../../host/nativepaths.h"
 
 namespace {
 
 constexpr int maximumPsdSdkLayerNameBytes = 31;
 constexpr int maximumPsdSdkLayerCount = 128;
 
-class QFilePsdWriteFile final : public psd::File
-{
-public:
-    QFilePsdWriteFile(psd::Allocator *allocator, const QString &filePath)
-        : psd::File(allocator)
-        , m_file(filePath)
-    {
-        m_file.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    }
 
-    [[nodiscard]] bool isOpen() const
-    {
-        return m_file.isOpen();
-    }
-
-    [[nodiscard]] bool hasWriteError() const
-    {
-        return m_writeError;
-    }
-
-    [[nodiscard]] qint64 size() const
-    {
-        return m_file.size();
-    }
-
-private:
-    struct WriteResult {
-        bool ok = false;
-    };
-
-    bool DoOpenRead(const wchar_t *) override
-    {
-        return false;
-    }
-
-    bool DoOpenWrite(const wchar_t *filename) override
-    {
-        if (m_file.isOpen()) {
-            return true;
-        }
-        m_file.setFileName(QString::fromWCharArray(filename));
-        return m_file.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    }
-
-    bool DoClose() override
-    {
-        m_file.close();
-        return true;
-    }
-
-    psd::File::ReadOperation DoRead(void *, uint32_t, uint64_t) override
-    {
-        return nullptr;
-    }
-
-    bool DoWaitForRead(psd::File::ReadOperation &) override
-    {
-        return false;
-    }
-
-    psd::File::WriteOperation DoWrite(const void *buffer, uint32_t count, uint64_t position) override
-    {
-        auto *result = new WriteResult;
-        if (!m_file.isOpen()
-                || position > static_cast<uint64_t>(std::numeric_limits<qint64>::max())
-                || count > static_cast<uint32_t>(std::numeric_limits<qint64>::max())) {
-            m_writeError = true;
-            return result;
-        }
-
-        const qint64 byteCount = static_cast<qint64>(count);
-        result->ok = m_file.seek(static_cast<qint64>(position))
-            && m_file.write(static_cast<const char *>(buffer), byteCount) == byteCount;
-        m_writeError = m_writeError || !result->ok;
-        return result;
-    }
-
-    bool DoWaitForWrite(psd::File::WriteOperation &operation) override
-    {
-        auto *result = static_cast<WriteResult *>(operation);
-        const bool ok = result && result->ok;
-        delete result;
-        operation = nullptr;
-        return ok;
-    }
-
-    uint64_t DoGetSize() const override
-    {
-        return m_file.isOpen() ? static_cast<uint64_t>(m_file.size()) : 0;
-    }
-
-    QFile m_file;
-    bool m_writeError = false;
-};
 
 struct PlanarRgba8 {
     QByteArray red;
@@ -203,7 +110,7 @@ struct PlanarRgba8 {
 
 [[nodiscard]] QByteArray compactManifestJson(const QVariantMap &manifest)
 {
-    return QJsonDocument(QJsonObject::fromVariantMap(manifest)).toJson(QJsonDocument::Compact);
+    return QByteArray::fromStdString(congregation::json(congregation::presentation::fromVariant(manifest)));
 }
 
 void addCongregationMetadata(psd::ExportDocument *document,
@@ -211,7 +118,7 @@ void addCongregationMetadata(psd::ExportDocument *document,
                         const QVariantMap &manifest,
                         int layerCount)
 {
-    const QByteArray encodedManifest = compactManifestJson(manifest).toBase64();
+    const QByteArray encodedManifest = QByteArray::fromStdString(congregation::base64(compactManifestJson(manifest).toStdString()));
     const QByteArray layerCountValue = QByteArray::number(layerCount);
 
     psd::AddMetaData(document, allocator, "CongregationApplication", "Congregation");
@@ -285,7 +192,7 @@ bool addLayer(psd::ExportDocument *document,
 
 bool PsdImageWriter::canWritePath(const QString &filePath)
 {
-    return QFileInfo(filePath).suffix().compare(QStringLiteral("psd"), Qt::CaseInsensitive) == 0;
+    return congregation::lower(congregation::presentation::nativePath(filePath).extension().string()) == ".psd";
 }
 
 bool PsdImageWriter::writeLayeredImage(const QString &filePath,
@@ -312,7 +219,7 @@ bool PsdImageWriter::writeLayeredImage(const QString &filePath,
     }
 
     psd::MallocAllocator allocator;
-    QFilePsdWriteFile file(&allocator, filePath);
+    congregation::PsdFile file(&allocator, congregation::presentation::nativePath(filePath), true);
     if (!file.isOpen()) {
         return false;
     }
@@ -325,7 +232,7 @@ bool PsdImageWriter::writeLayeredImage(const QString &filePath,
     if (!document) {
         return false;
     }
-    const auto destroyDocument = qScopeGuard([&] {
+    const auto destroyDocument = congregation::ScopeExit([&] {
         psd::DestroyExportDocument(document, &allocator);
     });
 

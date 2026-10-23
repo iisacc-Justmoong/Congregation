@@ -198,6 +198,8 @@ void tst_WindowsBuildWorkflowContract::windowsBuildScriptDefinesRunnablePackageC
     QVERIFY(source.contains(QStringLiteral("Invoke-Native $CTest @(\"--test-dir\", $BuildDir, \"--output-on-failure\"")));
     QVERIFY(source.contains(QStringLiteral("\"--qmldir\", (Join-Path $RepositoryRoot \"App\\qml\")")));
     QVERIFY(source.contains(QStringLiteral("Copy-DependencyRuntimeFiles -Name \"LVRS\"")));
+    QVERIFY(source.contains(QStringLiteral("Copy-DependencyRuntimeFiles -Name \"iiSDKCore\"")));
+    QVERIFY(source.contains(QStringLiteral("$IiSDKCorePrefix = $env:IISDKCORE_PREFIX")));
     QVERIFY(source.contains(QStringLiteral("Copy-DependencyRuntimeFiles -Name \"iiPaintEngine\"")));
     QVERIFY(!source.contains(QStringLiteral("Copy-DependencyQmlImports -Name \"LVRS\"")));
     QVERIFY(!source.contains(QStringLiteral("Remove-QmlResourcePreferDirectives -ModuleName \"LVRS\"")));
@@ -549,6 +551,9 @@ void tst_WindowsBuildWorkflowContract::cmakeHasWindowsInstallAndPackageRules()
     QVERIFY(source.contains(QStringLiteral("$<TARGET_FILE:iiPaintEngine::iiPaintEngine>")));
     QVERIFY(source.contains(QStringLiteral("$<TARGET_FILE_DIR:Congregation>")));
     QVERIFY(source.contains(QStringLiteral("Copying Windows runtime DLLs next to Congregation.exe")));
+    QVERIFY(source.contains(QStringLiteral("set_tests_properties(tests_applicationengine tests_nativebackends PROPERTIES ENVIRONMENT_MODIFICATION")));
+    QVERIFY(source.contains(QStringLiteral("PATH=path_list_prepend:$<TARGET_FILE_DIR:iiSDKCore::iiSDKCore>")));
+    QVERIFY(source.contains(QStringLiteral("PATH=path_list_prepend:$<TARGET_FILE_DIR:iiFileProvider::Native>")));
     QVERIFY(source.contains(QStringLiteral("if(APPLE)\n    # productbuild")));
     QVERIFY(source.contains(QStringLiteral("set(CPACK_GENERATOR \"productbuild\")")));
     QVERIFY(source.contains(QStringLiteral("set_source_files_properties(\"${psd_sdk_SOURCE_DIR}/src/Psd/Psdminiz.c\" PROPERTIES LANGUAGE CXX)")));
@@ -615,14 +620,14 @@ void tst_WindowsBuildWorkflowContract::appEntryPointAvoidsNonExportedLvrsRuntime
     QVERIFY(!source.contains(QStringLiteral("qInstallMessageHandler(")));
     QVERIFY(source.contains(QStringLiteral("bool startupTraceEnabled()")));
     QVERIFY(source.contains(QStringLiteral("CONGREGATION_STARTUP_TRACE")));
-    QVERIFY(source.contains(QStringLiteral("QFile &startupLogFile()")));
-    QVERIFY(source.contains(QStringLiteral("QMutexLocker")));
-    QCOMPARE(source.count(QStringLiteral("logFile.open(")), 1);
+    QVERIFY(source.contains(QStringLiteral("ii::io::Result<ii::io::Channel>& startupLogFile()")));
+    QVERIFY(source.contains(QStringLiteral("std::lock_guard locker(startupLogMutex())")));
+    QVERIFY(source.contains(QStringLiteral("iiFileProvider::core::open_file")));
     QVERIFY(source.contains(QStringLiteral("Congregation-startup.log")));
-    QVERIFY(source.contains(QStringLiteral("QDir::tempPath()")));
-    QVERIFY(source.contains(QStringLiteral("qgetenv(\"TEMP\")")));
+    QVERIFY(source.contains(QStringLiteral("std::filesystem::temp_directory_path()")));
+    QVERIFY(source.contains(QStringLiteral("CONGREGATION_STARTUP_LOG")));
     QVERIFY(source.contains(QStringLiteral("Congregation startup initialized")));
-    QVERIFY(source.contains(QStringLiteral("QElapsedTimer launchTimer")));
+    QVERIFY(source.contains(QStringLiteral("std::chrono::steady_clock::now()")));
     QVERIFY(source.contains(QStringLiteral("void qml_register_types_LVRS();")));
     QVERIFY(source.contains(QStringLiteral("qml_register_types_LVRS();")));
     QVERIFY(!source.contains(QStringLiteral("SetWindowPos(")));
@@ -665,10 +670,11 @@ void tst_WindowsBuildWorkflowContract::appEntryPointShowsFinalGeometryOnlyOnce()
 
     const qsizetype loadIndex = source.indexOf(QStringLiteral("engine.loadFromModule(QStringLiteral(\"Congregation\"), QStringLiteral(\"Main\"));"));
     const qsizetype showIndex = source.indexOf(QStringLiteral("showLaunchWindow(engine);"));
-    const qsizetype eventLoopIndex = source.indexOf(QStringLiteral("return app.exec();"));
+    const qsizetype eventLoopIndex = source.indexOf(QStringLiteral("const int result = app.exec();"));
     QVERIFY(loadIndex >= 0);
     QVERIFY(showIndex > loadIndex);
     QVERIFY(eventLoopIndex > showIndex);
+    QVERIFY(source.indexOf(QStringLiteral("applicationEngine.stop();")) > eventLoopIndex);
 }
 
 void tst_WindowsBuildWorkflowContract::buildGuideDocumentsWindowsScript()

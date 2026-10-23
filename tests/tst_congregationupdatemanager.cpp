@@ -3,7 +3,7 @@
 #include "congregationupdatecredentialprovider.h"
 #include "congregationupdatemanager.h"
 
-#include <iiUpdateManager/UpdateCredentialProvider.h>
+#include <iiUpdateManager/NativeUpdateManager.h>
 
 #include <QDir>
 #include <QFile>
@@ -193,12 +193,12 @@ void tst_CongregationUpdateManager::credentialProviderReadsTheExistingStoreOnlyW
 
     bool completed = false;
     provider.requestCredentials(
-        [&completed](std::optional<iisacc::updates::UpdateCredentials> credentials,
-                     const QString &error) {
-            QVERIFY2(error.isEmpty(), qPrintable(error));
+        [&completed](std::optional<iisacc::updates::native::UpdateCredentials> credentials,
+                     const std::string &error) {
+            QVERIFY2(error.empty(), error.c_str());
             QVERIFY(credentials.has_value());
-            QCOMPARE(credentials->email(), QStringLiteral("verified@example.com"));
-            QCOMPARE(credentials->licenseKey(), validLicenseKey.toUtf8());
+            QCOMPARE(QString::fromStdString(credentials->email), QStringLiteral("verified@example.com"));
+            QCOMPARE(QByteArray::fromStdString(credentials->licenseKey), validLicenseKey.toUtf8());
             completed = true;
         });
 
@@ -219,11 +219,11 @@ void tst_CongregationUpdateManager::credentialProviderDistinguishesInvalidStored
     CongregationUpdateCredentialProvider provider(&licenseManager);
     bool completed = false;
     provider.requestCredentials(
-        [&completed](std::optional<iisacc::updates::UpdateCredentials> credentials,
-                     const QString &error) {
+        [&completed](std::optional<iisacc::updates::native::UpdateCredentials> credentials,
+                     const std::string &error) {
             QVERIFY(credentials.has_value());
-            QVERIFY(!credentials->isValid());
-            QVERIFY(!error.isEmpty());
+            QVERIFY(credentials->email.empty() && credentials->licenseKey.empty());
+            QVERIFY(!error.empty());
             completed = true;
         });
 
@@ -245,7 +245,7 @@ void tst_CongregationUpdateManager::credentialProviderCancellationSuppressesLate
     CongregationUpdateCredentialProvider provider(&licenseManager);
     bool completed = false;
     provider.requestCredentials(
-        [&completed](std::optional<iisacc::updates::UpdateCredentials>, const QString &) {
+        [&completed](std::optional<iisacc::updates::native::UpdateCredentials>, const std::string &) {
             completed = true;
         });
     QCOMPARE(store.readCount, 2);

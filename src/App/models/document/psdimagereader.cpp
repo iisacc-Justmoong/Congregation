@@ -17,100 +17,20 @@
 #include <PsdParseLayerMaskSection.h>
 #include <PsdPlanarImage.h>
 
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QScopeGuard>
-#include <QXmlStreamReader>
 #include <QtGlobal>
 
 #include <limits>
+#include <Engine/PsdFile.h>
+#include <Engine/ScopeExit.h>
+#include <Engine/DocumentMetadata.h>
+#include "../../host/structuredvalues.h"
+#include "../../host/nativepaths.h"
 
 namespace {
 
 constexpr unsigned int channelNotFound = std::numeric_limits<unsigned int>::max();
 
-class QFilePsdFile final : public psd::File
-{
-public:
-    QFilePsdFile(psd::Allocator *allocator, const QString &filePath)
-        : psd::File(allocator)
-        , m_file(filePath)
-    {
-        m_file.open(QIODevice::ReadOnly);
-    }
 
-    [[nodiscard]] bool isOpen() const
-    {
-        return m_file.isOpen();
-    }
-
-private:
-    struct ReadResult {
-        bool ok = false;
-    };
-
-    bool DoOpenRead(const wchar_t *filename) override
-    {
-        if (m_file.isOpen()) {
-            return true;
-        }
-        m_file.setFileName(QString::fromWCharArray(filename));
-        return m_file.open(QIODevice::ReadOnly);
-    }
-
-    bool DoOpenWrite(const wchar_t *) override
-    {
-        return false;
-    }
-
-    bool DoClose() override
-    {
-        m_file.close();
-        return true;
-    }
-
-    psd::File::ReadOperation DoRead(void *buffer, uint32_t count, uint64_t position) override
-    {
-        auto *result = new ReadResult;
-        if (!m_file.isOpen()
-                || position > static_cast<uint64_t>(std::numeric_limits<qint64>::max())
-                || count > static_cast<uint32_t>(std::numeric_limits<qint64>::max())) {
-            return result;
-        }
-
-        result->ok = m_file.seek(static_cast<qint64>(position))
-            && m_file.read(static_cast<char *>(buffer), static_cast<qint64>(count)) == static_cast<qint64>(count);
-        return result;
-    }
-
-    bool DoWaitForRead(psd::File::ReadOperation &operation) override
-    {
-        auto *result = static_cast<ReadResult *>(operation);
-        const bool ok = result && result->ok;
-        delete result;
-        operation = nullptr;
-        return ok;
-    }
-
-    psd::File::WriteOperation DoWrite(const void *, uint32_t, uint64_t) override
-    {
-        return nullptr;
-    }
-
-    bool DoWaitForWrite(psd::File::WriteOperation &) override
-    {
-        return false;
-    }
-
-    uint64_t DoGetSize() const override
-    {
-        return m_file.isOpen() ? static_cast<uint64_t>(m_file.size()) : 0;
-    }
-
-    QFile m_file;
-};
 
 [[nodiscard]] bool isSupportedMergedDocument(const psd::Document &document, const psd::ImageDataSection &imageData)
 {
@@ -261,14 +181,7 @@ private:
 
 [[nodiscard]] QString xmpElementText(const QString &xmpMetadata, const QString &elementName)
 {
-    QXmlStreamReader reader(xmpMetadata);
-    while (!reader.atEnd()) {
-        reader.readNext();
-        if (reader.isStartElement() && reader.name() == elementName) {
-            return reader.readElementText().trimmed();
-        }
-    }
-    return {};
+    return QString::fromStdString(congregation::xmp_text(xmpMetadata.toStdString(),elementName.toStdString()));
 }
 
 [[nodiscard]] QVariantMap congregationManifestFromXmp(const QString &xmpMetadata)
@@ -278,18 +191,19 @@ private:
         return {};
     }
 
-    const QByteArray manifestData = QByteArray::fromBase64(encodedManifest.toLatin1());
-    const QJsonDocument manifestDocument = QJsonDocument::fromJson(manifestData);
-    return manifestDocument.isObject() ? manifestDocument.object().toVariantMap() : QVariantMap();
+    auto bytes=congregation::unbase64(encodedManifest.toStdString());
+    if(!bytes)return {};
+    auto manifest=congregation::parse_json(*bytes);
+    return manifest?congregation::presentation::toVariant(*manifest).toMap():QVariantMap{};
 }
 
 void readImageResources(const psd::Document *document,
-                        QFilePsdFile *file,
+                        congregation::PsdFile *file,
                         psd::Allocator *allocator,
                         PsdImportedDocument *imported)
 {
     psd::ImageResourcesSection *imageResources = psd::ParseImageResourcesSection(document, file, allocator);
-    const auto destroyImageResources = qScopeGuard([&] {
+    const auto destroyImageResources = congregation::ScopeExit([&] {
         psd::DestroyImageResourcesSection(imageResources, allocator);
     });
     if (!imageResources) {
@@ -304,12 +218,12 @@ void readImageResources(const psd::Document *document,
 }
 
 void readLayerMaskSection(const psd::Document *document,
-                          QFilePsdFile *file,
+                          congregation::PsdFile *file,
                           psd::Allocator *allocator,
                           PsdImportedDocument *imported)
 {
     psd::LayerMaskSection *layerMaskSection = psd::ParseLayerMaskSection(document, file, allocator);
-    const auto destroyLayerMask = qScopeGuard([&] {
+    const auto destroyLayerMask = congregation::ScopeExit([&] {
         psd::DestroyLayerMaskSection(layerMaskSection, allocator);
     });
     if (!layerMaskSection || layerMaskSection->layerCount == 0) {
@@ -341,7 +255,7 @@ void readLayerMaskSection(const psd::Document *document,
 
 bool PsdImageReader::canReadPath(const QString &filePath)
 {
-    return QFileInfo(filePath).suffix().compare(QStringLiteral("psd"), Qt::CaseInsensitive) == 0;
+    return congregation::lower(congregation::presentation::nativePath(filePath).extension().string()) == ".psd";
 }
 
 QImage PsdImageReader::readMergedImage(const QString &filePath)
@@ -351,13 +265,13 @@ QImage PsdImageReader::readMergedImage(const QString &filePath)
     }
 
     psd::MallocAllocator allocator;
-    QFilePsdFile file(&allocator, filePath);
+    congregation::PsdFile file(&allocator, congregation::presentation::nativePath(filePath));
     if (!file.isOpen()) {
         return {};
     }
 
     psd::Document *document = psd::CreateDocument(&file, &allocator);
-    const auto destroyDocument = qScopeGuard([&] {
+    const auto destroyDocument = congregation::ScopeExit([&] {
         psd::DestroyDocument(document, &allocator);
     });
     if (!document || document->imageDataSection.length == 0) {
@@ -365,7 +279,7 @@ QImage PsdImageReader::readMergedImage(const QString &filePath)
     }
 
     psd::ImageDataSection *imageData = psd::ParseImageDataSection(document, &file, &allocator);
-    const auto destroyImageData = qScopeGuard([&] {
+    const auto destroyImageData = congregation::ScopeExit([&] {
         psd::DestroyImageDataSection(imageData, &allocator);
     });
     if (!imageData) {
@@ -383,13 +297,13 @@ PsdImportedDocument PsdImageReader::readDocument(const QString &filePath)
     }
 
     psd::MallocAllocator allocator;
-    QFilePsdFile file(&allocator, filePath);
+    congregation::PsdFile file(&allocator, congregation::presentation::nativePath(filePath));
     if (!file.isOpen()) {
         return imported;
     }
 
     psd::Document *document = psd::CreateDocument(&file, &allocator);
-    const auto destroyDocument = qScopeGuard([&] {
+    const auto destroyDocument = congregation::ScopeExit([&] {
         psd::DestroyDocument(document, &allocator);
     });
     if (!document) {
@@ -411,7 +325,7 @@ PsdImportedDocument PsdImageReader::readDocument(const QString &filePath)
 
     if (document->imageDataSection.length > 0) {
         psd::ImageDataSection *imageData = psd::ParseImageDataSection(document, &file, &allocator);
-        const auto destroyImageData = qScopeGuard([&] {
+        const auto destroyImageData = congregation::ScopeExit([&] {
             psd::DestroyImageDataSection(imageData, &allocator);
         });
         if (imageData) {

@@ -1,5 +1,6 @@
 #include <QSignalSpy>
 #include <QtTest>
+#include <limits>
 
 #include "canvasdocumentviewmodel.h"
 #include "paletteutils.h"
@@ -15,6 +16,9 @@ private slots:
     void acceptsOnlySupportedTools();
     void acceptsOnlySupportedShapeKinds();
     void keepsCanvasDimensionsPositive();
+    void adaptsTheApplicationEngineDocument();
+    void rejectsNonFiniteBrushValuesWithoutNotifyingQml();
+    void paletteAdapterPreservesColorsAndOrdering();
 };
 
 void tst_CanvasDocumentViewModel::exposesDefaultDocumentState()
@@ -201,6 +205,54 @@ void tst_CanvasDocumentViewModel::keepsCanvasDimensionsPositive()
     viewModel.setCanvasHeight(-4);
     QCOMPARE(viewModel.canvasWidth(), 1);
     QCOMPARE(viewModel.canvasHeight(), 1);
+}
+
+void tst_CanvasDocumentViewModel::adaptsTheApplicationEngineDocument()
+{
+    congregation::CanvasDocument document;
+    QVERIFY(document.queries().send(congregation::SetReal{congregation::RealProperty::brushSize, 12}));
+    CanvasDocumentViewModel viewModel(document);
+    QCOMPARE(viewModel.brushSize(), 12.0);
+    QSignalSpy sizeSpy(&viewModel, &CanvasDocumentViewModel::brushSizeChanged);
+    viewModel.setBrushSize(16);
+    QCOMPARE(document.snapshot().brushSize, 16.0);
+    QCOMPARE(sizeSpy.size(), 1);
+    const auto revision = document.snapshot().revision;
+    viewModel.setBrushSize(16);
+    QCOMPARE(sizeSpy.size(), 1);
+    QCOMPARE(document.snapshot().revision, revision);
+    viewModel.setShapeKind(QString::fromUtf8("\xe2\x80\x83TRIAGLE\xe2\x80\x83"));
+    QCOMPARE(viewModel.shapeKind(), QStringLiteral("triangle"));
+}
+
+void tst_CanvasDocumentViewModel::rejectsNonFiniteBrushValuesWithoutNotifyingQml()
+{
+    congregation::CanvasDocument document;
+    CanvasDocumentViewModel viewModel(document);
+    QSignalSpy flowSpy(&viewModel, &CanvasDocumentViewModel::brushFlowChanged);
+    viewModel.setBrushFlow(std::numeric_limits<double>::quiet_NaN());
+    viewModel.setBrushFlow(std::numeric_limits<double>::infinity());
+    QCOMPARE(viewModel.brushFlow(), 1.0);
+    QCOMPARE(flowSpy.size(), 0);
+    QCOMPARE(document.snapshot().revision, std::uint64_t(0));
+}
+
+void tst_CanvasDocumentViewModel::paletteAdapterPreservesColorsAndOrdering()
+{
+    PaletteUtils adapter;
+    auto entry = [](const QString &name, const QVariant &color) {
+        return QVariantMap{{QStringLiteral("name"), name}, {QStringLiteral("color"), color}};
+    };
+    const auto ordered = adapter.buildDefaultPalette(
+        {entry(QStringLiteral("white"), QStringLiteral("#ffffff")),
+         entry(QStringLiteral("red"), QColor(Qt::red)),
+         entry(QStringLiteral("black"), QColor(Qt::black))},
+        {entry(QStringLiteral("duplicate"), QStringLiteral("#FF0000")),
+         entry(QStringLiteral("invalid"), QStringLiteral("invalid"))});
+    QCOMPARE(ordered.size(), 3);
+    QCOMPARE(ordered[0].toMap().value(QStringLiteral("name")).toString(), QStringLiteral("black"));
+    QCOMPARE(ordered[1].toMap().value(QStringLiteral("color")).value<QColor>(), QColor(Qt::red));
+    QCOMPARE(ordered[2].toMap().value(QStringLiteral("name")).toString(), QStringLiteral("white"));
 }
 
 QTEST_APPLESS_MAIN(tst_CanvasDocumentViewModel)

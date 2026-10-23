@@ -1,4 +1,5 @@
-#include <iiFileProviderDevice.h>
+#include "../../host/nativefiles.h"
+#include "../../host/qtenginehost.h"
 #include "drawingsurfaceitem.h"
 
 #include "../canvas/canvasviewmodelbridge.h"
@@ -6,17 +7,14 @@
 #include "../document/psdimagereader.h"
 #include "../document/psdimagewriter.h"
 #include "../document/recentcanvascontainer.h"
-#include <iiFileProvider.h>
+
 
 #include <QAbstractTextDocumentLayout>
 #include <QByteArray>
 #include <QBuffer>
 #include <QClipboard>
 #include <QCoreApplication>
-#include <QCryptographicHash>
-#include <QDir>
 #include <QEvent>
-#include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
 #include <QHash>
@@ -26,9 +24,6 @@
 #include <QList>
 #include <QMimeData>
 #include <QMouseEvent>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QObject>
 #include <QPainter>
 #include <QPainterPath>
@@ -38,10 +33,8 @@
 #include <QPointingDevice>
 #include <QQuickItemGrabResult>
 #include <QRectF>
-#include <QRegularExpression>
 #include <QSize>
 #include <QSet>
-#include <QStandardPaths>
 #include <QTabletEvent>
 #include <QTextDocument>
 #include <QTextBlock>
@@ -61,6 +54,7 @@
 #include <optional>
 #include <span>
 
+using namespace congregation::presentation;
 namespace
 {
 
@@ -168,28 +162,11 @@ QString cachedPsdPreviewSource(const QString& fileUrl, const QImage& image)
         return localFileSource(fileUrl);
     }
 
-    QFileInfo fileInfo(filePath);
-    const QByteArray key =
-        (filePath + QStringLiteral("|") + QString::number(fileInfo.size()) + QStringLiteral("|") +
-         QString::number(fileInfo.lastModified().toMSecsSinceEpoch()))
-            .toUtf8();
-    const QString digest =
-        QString::fromLatin1(QCryptographicHash::hash(key, QCryptographicHash::Sha256).toHex());
-    const QString cacheRoot =
-        QStandardPaths::writableLocation(QStandardPaths::CacheLocation).isEmpty()
-            ? QDir::tempPath()
-            : QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    QDir cacheDir(cacheRoot + QStringLiteral("/psd-previews"));
-    if (!cacheDir.exists())
-    {
-        cacheDir.mkpath(QStringLiteral("."));
-    }
-
-    const QString previewPath = cacheDir.filePath(digest + QStringLiteral(".png"));
-    if (!QFileInfo::exists(previewPath))
-    {
-        image.save(previewPath, "PNG");
-    }
+    const auto key=(filePath+QStringLiteral("|")+QString::number(fileSize(filePath))+QStringLiteral("|")+QString::number(modifiedMilliseconds(filePath))).toStdString();
+    const auto directory=congregation::application_cache()/"psd-previews";
+    try {iiFileProvider::native::File::createDirectories(directory);}catch(const std::exception&){return {};}
+    const auto previewPath=pathText(directory/(iiFileProvider::native::sha256(key)+".png"));
+    if(!exists(previewPath)&&!saveImage(previewPath,image))return {};
     return QUrl::fromLocalFile(previewPath).toString();
 }
 
@@ -233,16 +210,8 @@ QImage opaqueCanvasBackgroundImage(const QImage& rasterImage)
 
 QString writableCacheDirectoryPath(const QString& subdirectoryName)
 {
-    const QString cacheRoot =
-        QStandardPaths::writableLocation(QStandardPaths::CacheLocation).isEmpty()
-            ? QDir::tempPath()
-            : QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    QDir cacheDir(cacheRoot + QLatin1Char('/') + subdirectoryName);
-    if (!cacheDir.exists() && !cacheDir.mkpath(QStringLiteral(".")))
-    {
-        return {};
-    }
-    return cacheDir.absolutePath();
+    try {auto path=congregation::application_cache()/nativePath(subdirectoryName);iiFileProvider::native::File::createDirectories(path);return pathText(path);}catch(const std::exception&){return {};}
+
 }
 
 QString writableCacheFilePath(const QString& subdirectoryName, const QString& fileTemplate)
@@ -252,18 +221,10 @@ QString writableCacheFilePath(const QString& subdirectoryName, const QString& fi
     {
         return {};
     }
-    const QDir cacheDir(cacheDirectoryPath);
+    auto name=fileTemplate;name.replace(QStringLiteral("XXXXXX"),QString::fromStdString(congregation::uuid()));
+    auto path=nativePath(cacheDirectoryPath)/nativePath(name);
+    try {iiFileProvider::native::File::create(path,std::string_view{});return pathText(path);}catch(const std::exception&){return {};}
 
-    iiFileProvider::TemporaryFile file(cacheDir.filePath(fileTemplate));
-    file.setAutoRemove(false);
-    if (!file.open())
-    {
-        return {};
-    }
-
-    const QString filePath = file.fileName();
-    file.close();
-    return filePath;
 }
 
 QSize boundedThumbnailMaximumSize(qreal maximumWidth, qreal maximumHeight)
@@ -338,16 +299,14 @@ QString cachedPngSourceForImage(const QString& subdirectoryName, const QImage& i
     cacheKey.append(reinterpret_cast<const char*>(image.constBits()), image.sizeInBytes());
 
     const QString digest =
-        QString::fromLatin1(QCryptographicHash::hash(cacheKey, QCryptographicHash::Sha256).toHex());
+        QString::fromStdString(iiFileProvider::native::sha256(cacheKey.toStdString()));
     const QString cacheDirectoryPath = writableCacheDirectoryPath(subdirectoryName);
     if (cacheDirectoryPath.isEmpty())
     {
         return {};
     }
-    const QDir cacheDir(cacheDirectoryPath);
-    const QString imagePath = cacheDir.filePath(digest + QStringLiteral(".png"));
-    const QFileInfo cachedImageInfo(imagePath);
-    if (cachedImageInfo.isFile() && !cachedImageInfo.isSymLink())
+    const QString imagePath=pathText(nativePath(cacheDirectoryPath)/nativePath(digest+QStringLiteral(".png")));
+    if(regularFile(imagePath)&&!symbolicLink(imagePath))
     {
         QImageReader cachedImageReader(imagePath);
         const QImage cachedImage = cachedImageReader.read();
@@ -357,28 +316,13 @@ QString cachedPngSourceForImage(const QString& subdirectoryName, const QImage& i
         }
     }
 
-    iiFileProvider::SaveFile cacheFile(imagePath);
-    if (!cacheFile.open(QIODevice::WriteOnly))
-    {
-        return {};
-    }
-
-    QImageWriter imageWriter(&cacheFile, "PNG");
-    if (!imageWriter.write(image))
-    {
-        cacheFile.cancelWriting();
-        return {};
-    }
-    if (!cacheFile.commit())
-    {
-        return {};
-    }
+    if(!saveImage(imagePath,image))return {};
 
     QImageReader writtenImageReader(imagePath);
     const QImage writtenImage = writtenImageReader.read();
     if (writtenImage.isNull() || writtenImage.size() != image.size())
     {
-        iiFileProvider::FileDevice::remove(imagePath);
+        removeFile(imagePath);
         return {};
     }
     return QUrl::fromLocalFile(imagePath).toString();
@@ -400,8 +344,7 @@ QImage firstLocalClipboardImage(const QList<QUrl>& urls)
             continue;
         }
 
-        const QFileInfo fileInfo(url.toLocalFile());
-        if (!fileInfo.isFile() || !fileInfo.isReadable())
+        if (!regularFile(url.toLocalFile()))
         {
             continue;
         }
@@ -476,21 +419,8 @@ QString extractedRecentCanvasAssetSource(const QString& directoryPath, int objec
 
     const QString kindName =
         kind == RecentCanvasAssetKind::Image ? QStringLiteral("image") : QStringLiteral("layer");
-    const QString imagePath = QDir(directoryPath)
-                                  .filePath(kindName + QLatin1Char('-') +
-                                            QString::number(objectId) + QStringLiteral(".png"));
-    iiFileProvider::SaveFile imageFile(imagePath);
-    imageFile.setDirectWriteFallback(false);
-    if (!imageFile.open(QIODevice::WriteOnly) || imageFile.write(pngData) != pngData.size() ||
-        !imageFile.commit())
-    {
-        return {};
-    }
-    if (!iiFileProvider::FileDevice::setPermissions(imagePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
-    {
-        iiFileProvider::FileDevice::remove(imagePath);
-        return {};
-    }
+    const auto imagePath=pathText(nativePath(directoryPath)/nativePath(kindName+QLatin1Char('-')+QString::number(objectId)+QStringLiteral(".png")));
+    try {writeFile(imagePath,pngData);if(!ownerOnly(imagePath)){removeFile(imagePath);return {};}}catch(const std::exception&){return {};}
     return QUrl::fromLocalFile(imagePath).toString();
 }
 
@@ -665,9 +595,11 @@ QByteArray encodedImageFromDataUrl(const QUrl& url)
     const QByteArray payload = encodedUrl.mid(commaIndex + 1);
     if (metadata.contains(";base64"))
     {
-        return QByteArray::fromBase64(payload, QByteArray::AbortOnBase64DecodingErrors);
+        auto decoded=congregation::unbase64(payload.toStdString());
+        return decoded?QByteArray::fromStdString(*decoded):QByteArray{};
     }
-    return QByteArray::fromPercentEncoding(payload);
+    auto decoded=congregation::percent_decode(payload.toStdString());
+    return decoded?QByteArray::fromStdString(*decoded):QByteArray{};
 }
 
 QList<QUrl> imageUrlsFromHtml(const QString& html)
@@ -703,10 +635,11 @@ QList<QUrl> imageUrlsFromHtml(const QString& html)
 
 QUrl imageUrlFromText(const QString& text)
 {
-    const QString firstLine =
-        text.split(QRegularExpression(QStringLiteral("[\\r\\n\\t]")), Qt::SkipEmptyParts)
-            .value(0)
-            .trimmed();
+    const auto bytes=text.toStdString();
+    const auto begin=bytes.find_first_not_of("\r\n\t");
+    if(begin==std::string::npos)return {};
+    const auto end=bytes.find_first_of("\r\n\t",begin);
+    const auto firstLine=QString::fromStdString(congregation::trim(bytes.substr(begin,end==std::string::npos?end:end-begin)));
     if (firstLine.isEmpty())
     {
         return {};
@@ -737,7 +670,7 @@ QString suggestedImageName(const QUrl& sourceUrl)
     }
 
     const QString decodedPath = QUrl::fromPercentEncoding(sourceUrl.path().toUtf8());
-    return QFileInfo(decodedPath).fileName();
+    return pathText(nativePath(decodedPath).filename());
 }
 
 QVariantMap cachedInsertedImageObject(const QImage& image, const QUrl& originalSource,
@@ -822,8 +755,7 @@ QVariantMap imageObjectForLocalDrop(const QUrl& url, qreal maximumObjectWidth,
     }
 
     const QString filePath = url.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (!fileInfo.isFile() || !fileInfo.isReadable())
+    if (!regularFile(filePath))
     {
         return imageImportResult(QStringLiteral("decode-failed"));
     }
@@ -1294,6 +1226,7 @@ DrawingSurfaceItem::DrawingSurfaceItem(QQuickItem* parent)
 
 DrawingSurfaceItem::~DrawingSurfaceItem()
 {
+    m_downloads.clear();m_host.reset();
     delete m_viewModelBridge;
 }
 
@@ -1587,8 +1520,7 @@ bool DrawingSurfaceItem::canImportDroppedImage(QObject* dropEvent) const
         }
 
         const QString filePath = url.toLocalFile();
-        const QFileInfo fileInfo(filePath);
-        return fileInfo.isFile() && fileInfo.isReadable() &&
+        return regularFile(filePath) &&
                (PsdImageReader::canReadPath(filePath) ||
                 !QImageReader::imageFormat(filePath).isEmpty());
     };
@@ -1737,63 +1669,20 @@ void DrawingSurfaceItem::requestRemoteDroppedImage(const QUrl& url, qreal maximu
         return;
     }
 
-    if (!m_networkAccessManager)
-    {
-        m_networkAccessManager = new QNetworkAccessManager(this);
-    }
-
-    QNetworkRequest request(url);
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                         QNetworkRequest::NoLessSafeRedirectPolicy);
-    request.setMaximumRedirectsAllowed(5);
-    request.setTransferTimeout(remoteImageDownloadTimeoutMs);
-    const QString version = QCoreApplication::applicationVersion().isEmpty()
-                                ? QStringLiteral("development")
-                                : QCoreApplication::applicationVersion();
-    request.setRawHeader("User-Agent", QStringLiteral("Congregation/%1").arg(version).toUtf8());
-
-    QNetworkReply* reply = m_networkAccessManager->get(request);
-    const auto downloadTooLarge = std::make_shared<bool>(false);
-    connect(reply, &QNetworkReply::downloadProgress, reply,
-            [reply, downloadTooLarge](qint64 receivedBytes, qint64 totalBytes)
-            {
-                if (receivedBytes > maximumRemoteImageDownloadBytes ||
-                    totalBytes > maximumRemoteImageDownloadBytes)
-                {
-                    *downloadTooLarge = true;
-                    reply->abort();
-                }
-            });
-    connect(reply, &QNetworkReply::finished, this,
-            [this, reply, downloadTooLarge, url, maximumObjectWidth, maximumObjectHeight, dropX,
-             dropY]()
-            {
-                const QNetworkReply::NetworkError networkError = reply->error();
-                const QByteArray encodedData = reply->readAll();
-                reply->deleteLater();
-
-                if (*downloadTooLarge || encodedData.size() > maximumRemoteImageDownloadBytes)
-                {
-                    emit droppedImageFailed(QStringLiteral("download-too-large"));
-                    return;
-                }
-                if (networkError != QNetworkReply::NoError)
-                {
-                    emit droppedImageFailed(QStringLiteral("download-failed"));
-                    return;
-                }
-
-                const QVariantMap object = imageObjectForEncodedData(
-                    encodedData, url, maximumObjectWidth, maximumObjectHeight);
-                const QString status = object.value(QStringLiteral("status")).toString();
-                if (status != QStringLiteral("ready"))
-                {
-                    emit droppedImageFailed(status.isEmpty() ? QStringLiteral("decode-failed")
-                                                             : status);
-                    return;
-                }
-                emit droppedImageReady(object, dropX, dropY);
-            });
+    if(!m_events){m_events=std::make_unique<ii::runtime::EventLoop>();m_host=std::make_unique<QtEngineHost>(*m_events);}
+    std::erase_if(m_downloads,[](const auto& download){return !download->busy();});
+    if(m_downloads.size()>=16){emit droppedImageFailed(QStringLiteral("download-failed"));return;}
+    auto download=std::make_unique<ii::network::Http>(*m_events);
+    ii::network::HttpRequest request;request.url=url.toString(QUrl::FullyEncoded).toStdString();request.follow_redirects=true;request.maximum_bytes=maximumRemoteImageDownloadBytes;request.timeout=std::chrono::milliseconds(remoteImageDownloadTimeoutMs);request.headers={{"User-Agent","Congregation/"+QCoreApplication::applicationVersion().toStdString()}};
+    if(!download->start(std::move(request),[this,url,maximumObjectWidth,maximumObjectHeight,dropX,dropY](auto response){
+        if(response.too_large){emit droppedImageFailed(QStringLiteral("download-too-large"));return;}
+        if(!response.error.empty()||response.status<200||response.status>=300){emit droppedImageFailed(QStringLiteral("download-failed"));return;}
+        auto object=imageObjectForEncodedData(QByteArray::fromStdString(response.body),url,maximumObjectWidth,maximumObjectHeight);
+        auto status=object.value(QStringLiteral("status")).toString();
+        if(status!=QStringLiteral("ready")){emit droppedImageFailed(status.isEmpty()?QStringLiteral("decode-failed"):status);return;}
+        emit droppedImageReady(object,dropX,dropY);
+    })){emit droppedImageFailed(QStringLiteral("download-failed"));return;}
+    m_downloads.push_back(std::move(download));
 }
 
 QVariantMap DrawingSurfaceItem::psdImportDocument(const QString& fileUrl) const
@@ -2105,15 +1994,15 @@ bool DrawingSurfaceItem::saveRecentCanvas(const QString& fileUrl, const QVariant
     }
     try
     {
-        iiFileProvider::File::createDirectories(QFileInfo(filePath).absolutePath());
-        iiFileProvider::File::write(filePath, bytes);
-        if (!iiFileProvider::FileDevice::setPermissions(filePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+        iiFileProvider::native::File::createDirectories(nativePath(filePath).parent_path());
+        writeFile(filePath,bytes);
+        if (!ownerOnly(filePath))
         {
-            iiFileProvider::File::remove(filePath);
+            removeFile(filePath);
             return false;
         }
     }
-    catch (const iiFileProvider::FileError&)
+    catch (const iiFileProvider::native::FileError&)
     {
         return false;
     }
@@ -2127,10 +2016,10 @@ QVariantMap DrawingSurfaceItem::openRecentCanvas(const QString& fileUrl)
 
     try
     {
-        return importCanvasSession(iiFileProvider::File::read(
+        return importCanvasSession(readFile(
             localFilePath(fileUrl), RecentCanvasMaximumContainerBytes));
     }
-    catch (const iiFileProvider::FileError&)
+    catch (const iiFileProvider::native::FileError&)
     {
         return result;
     }
@@ -2186,18 +2075,9 @@ QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
         dataTarget->insert(asset.objectId, asset.pngData);
     }
 
-    std::unique_ptr<iiFileProvider::TemporaryDirectory> extractionDirectory;
-    if (!decodedContainer.container.embeddedAssets.isEmpty())
-    {
-        extractionDirectory = std::make_unique<iiFileProvider::TemporaryDirectory>(
-            QDir(QDir::tempPath()).filePath(QStringLiteral("Congregation-recent-canvas-XXXXXX")));
-        if (!extractionDirectory->isValid() ||
-            !iiFileProvider::FileDevice::setPermissions(extractionDirectory->path(), QFileDevice::ReadOwner |
-                                                                    QFileDevice::WriteOwner |
-                                                                    QFileDevice::ExeOwner))
-        {
-            return result;
-        }
+    std::unique_ptr<iiFileProvider::native::TemporaryDirectory> extractionDirectory;
+    if(!decodedContainer.container.embeddedAssets.isEmpty()){
+        try{extractionDirectory=std::make_unique<iiFileProvider::native::TemporaryDirectory>(congregation::application_cache()/"recent-canvas-assets");}catch(const std::exception&){return result;}
     }
 
     QVariantList restoredObjects;
@@ -2223,7 +2103,7 @@ QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
         {
             const QImage image = imageAssets.value(objectId);
             const QString source = extractedRecentCanvasAssetSource(
-                extractionDirectory ? extractionDirectory->path() : QString{}, objectId,
+                extractionDirectory ? pathText(extractionDirectory->path()) : QString{}, objectId,
                 RecentCanvasAssetKind::Image, imageAssetData.value(objectId));
             if (image.isNull() || source.isEmpty())
             {
@@ -2237,7 +2117,7 @@ QVariantMap DrawingSurfaceItem::importCanvasSession(const QByteArray& bytes)
         {
             const QImage image = rasterLayerAssets.value(objectId);
             const QString source = extractedRecentCanvasAssetSource(
-                extractionDirectory ? extractionDirectory->path() : QString{}, objectId,
+                extractionDirectory ? pathText(extractionDirectory->path()) : QString{}, objectId,
                 RecentCanvasAssetKind::RasterLayer, rasterLayerAssetData.value(objectId));
             if (image.isNull() || source.isEmpty())
             {
@@ -2309,7 +2189,7 @@ QString DrawingSurfaceItem::cacheRasterSnapshotSource()
     }
     if (!image.save(snapshotPath, "PNG"))
     {
-        iiFileProvider::FileDevice::remove(snapshotPath);
+        removeFile(snapshotPath);
         return {};
     }
     return QUrl::fromLocalFile(snapshotPath).toString();
@@ -2346,7 +2226,7 @@ QString DrawingSurfaceItem::cacheGrabbedThumbnailSource(QObject* grabResult)
 
     if (!result->saveToFile(thumbnailPath))
     {
-        iiFileProvider::FileDevice::remove(thumbnailPath);
+        removeFile(thumbnailPath);
         return {};
     }
     return QUrl::fromLocalFile(thumbnailPath).toString();
@@ -3214,9 +3094,9 @@ bool DrawingSurfaceItem::openSharedCanvasDocument(const QString& fileUrl)
     {
         const auto maximumBytes = static_cast<qint64>(std::min<std::uint64_t>(
             limits.maximumContainerBytes, std::numeric_limits<qsizetype>::max() - 1));
-        bytes = iiFileProvider::File::read(localFilePath(fileUrl), maximumBytes);
+        bytes = readFile(localFilePath(fileUrl), maximumBytes);
     }
-    catch (const iiFileProvider::FileError&)
+    catch (const iiFileProvider::native::FileError&)
     {
         return false;
     }
@@ -3280,13 +3160,13 @@ bool DrawingSurfaceItem::saveSharedCanvasDocument(const QString& fileUrl)
 
     try
     {
-        iiFileProvider::File::write(
+        writeFile(
             localFilePath(fileUrl),
             QByteArray::fromRawData(reinterpret_cast<const char*>(encoded.bytes.data()),
                                    static_cast<qsizetype>(encoded.bytes.size())));
         return true;
     }
-    catch (const iiFileProvider::FileError&)
+    catch (const iiFileProvider::native::FileError&)
     {
         return false;
     }

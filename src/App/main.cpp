@@ -1,15 +1,14 @@
-#include <iiFileProviderDevice.h>
-#include <QDir>
-#include <QDateTime>
-#include <QElapsedTimer>
+#include <iiFileProviderCoreIO.h>
+#include <iiFileProviderNative.h>
+#include "host/nativefiles.h"
+#include <cstdlib>
+#include <charconv>
+#include <set>
 #include <QGuiApplication>
 #include <QMetaObject>
-#include <QMutex>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QSet>
 #include <QStringList>
-#include <QTimer>
 #include <QUrl>
 #include <QVariant>
 #include <QWindow>
@@ -19,6 +18,10 @@
 #include <qqml.h>
 
 #include <iiSharedCanvas.h>
+#include <Engine/ApplicationEngine.h>
+#include "host/qtenginehost.h"
+#include <chrono>
+#include <mutex>
 
 #include "models/canvas/canvasdocumentviewmodel.h"
 #include "models/collaboration/memberprofilelistbuilder.h"
@@ -39,62 +42,38 @@ namespace {
 
 constexpr int initialLaunchWindowWidth = 1280;
 
-QString startupLogPath()
-{
-    static const QString path = []() {
-        QString logDirectory = QDir::tempPath();
-        if (logDirectory.isEmpty()) {
-            logDirectory = QString::fromLocal8Bit(qgetenv("TEMP"));
-        }
-        if (logDirectory.isEmpty()) {
-            return QString{};
-        }
-
-        return QDir(logDirectory).filePath(QStringLiteral("Congregation-startup.log"));
+std::mutex& startupLogMutex(){static std::mutex mutex;return mutex;}
+ii::io::Result<ii::io::Channel>& startupLogFile(){
+    static auto file=[](){
+        const auto* configured=std::getenv("CONGREGATION_STARTUP_LOG");
+        auto path=configured?std::filesystem::path(configured):std::filesystem::temp_directory_path()/"Congregation-startup.log";
+        return iiFileProvider::core::open_file(path,{ii::io::Access::write,ii::io::Creation::open_or_create});
     }();
-    return path;
-}
-
-QMutex &startupLogMutex()
-{
-    static QMutex mutex;
-    return mutex;
-}
-
-iiFileProvider::FileDevice &startupLogFile()
-{
-    static iiFileProvider::FileDevice logFile(startupLogPath());
-    return logFile;
+    return file;
 }
 
 bool startupTraceEnabled()
 {
-    static const bool enabled = qEnvironmentVariableIntValue("CONGREGATION_STARTUP_TRACE") > 0;
+    static const bool enabled = [] {
+        const auto* raw = std::getenv("CONGREGATION_STARTUP_TRACE");
+        if (!raw) return false;
+        const auto input = congregation::trim(raw);
+        int value = 0;
+        const auto parsed = std::from_chars(input.data(), input.data() + input.size(), value);
+        return parsed.ec == std::errc{} && parsed.ptr == input.data() + input.size() && value > 0;
+    }();
     return enabled;
 }
 
 void appendStartupLog(const QString &level, const QString &message, bool flushImmediately = false)
 {
-    QMutexLocker locker(&startupLogMutex());
-    iiFileProvider::FileDevice &logFile = startupLogFile();
-    if (logFile.fileName().isEmpty()) {
-        return;
-    }
-
-    if (!logFile.isOpen()
-        && !logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        return;
-    }
-
-    const QByteArray entry = QStringLiteral("%1 %2: %3\n")
-                                 .arg(QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs),
-                                      level,
-                                      message)
-                                 .toUtf8();
-    logFile.write(entry);
-    if (flushImmediately) {
-        logFile.flush();
-    }
+    std::lock_guard locker(startupLogMutex());
+    auto& file=startupLogFile();if(!file)return;
+    const auto entry=iiFileProvider::native::utcNow()+" "+level.toStdString()+": "+message.toStdString()+"\n";
+    if(!file->seek(0,ii::io::SeekOrigin::end))return;
+    auto bytes=std::span(reinterpret_cast<const std::byte*>(entry.data()),entry.size());
+    while(!bytes.empty()){auto written=file->write(bytes);if(!written||!*written)return;bytes=bytes.subspan(*written);}
+    if(flushImmediately)(void)file->flush();
 }
 
 void traceStartup(const QString &message, bool flushImmediately = false)
@@ -109,9 +88,9 @@ QStringList collectCandidateImportPaths()
     QStringList candidateImportPaths;
 
     const QString bundledQmlPath = QCoreApplication::applicationDirPath() + QStringLiteral("/qml");
-    const bool hasBundledLvrs = QDir(bundledQmlPath + QStringLiteral("/LVRS")).exists();
+    const bool hasBundledLvrs = congregation::presentation::exists(bundledQmlPath + QStringLiteral("/LVRS"));
 
-    const QString craftRoot = QString::fromLocal8Bit(qgetenv("CRAFTROOT"));
+    const QString craftRoot = QString::fromLocal8Bit(std::getenv("CRAFTROOT"));
     if (!craftRoot.isEmpty()) {
         candidateImportPaths << QStringList{
             craftRoot + QStringLiteral("/qml"),
@@ -119,7 +98,7 @@ QStringList collectCandidateImportPaths()
         };
     }
 
-    const QString lvrsHostPrefix = QString::fromLocal8Bit(qgetenv("LVRS_HOST_PREFIX"));
+    const QString lvrsHostPrefix = QString::fromLocal8Bit(std::getenv("LVRS_HOST_PREFIX"));
     if (!hasBundledLvrs && !lvrsHostPrefix.isEmpty()) {
         candidateImportPaths << (lvrsHostPrefix + QStringLiteral("/lib/qt6/qml"));
     }
@@ -134,20 +113,20 @@ void configureEngineImports(QQmlApplicationEngine &engine)
 {
     const QStringList candidateImportPaths = collectCandidateImportPaths();
 
-    QSet<QString> dedupedImportPaths;
+    std::set<QString> dedupedImportPaths;
     for (const QString &importPath : candidateImportPaths) {
         if (importPath.isEmpty() || dedupedImportPaths.contains(importPath)) {
             continue;
         }
 
         dedupedImportPaths.insert(importPath);
-        if (QDir(importPath).exists()) {
+        if (congregation::presentation::exists(importPath)) {
             engine.addImportPath(importPath);
         }
     }
 }
 
-void registerViewModels(QQmlApplicationEngine &engine, PaletteUtils *paletteUtils)
+void registerViewModels(QQmlApplicationEngine &engine, congregation::CanvasDocument &document)
 {
     QObject *registry = engine.singletonInstance<QObject *>(QStringLiteral("LVRS"),
                                                             QStringLiteral("ViewModels"));
@@ -155,7 +134,7 @@ void registerViewModels(QQmlApplicationEngine &engine, PaletteUtils *paletteUtil
         return;
     }
 
-    auto *documentViewModel = new CanvasDocumentViewModel(paletteUtils, registry);
+    auto *documentViewModel = new CanvasDocumentViewModel(document, registry);
     QMetaObject::invokeMethod(registry,
                               "set",
                               Q_ARG(QString, QStringLiteral("CanvasDocument")),
@@ -222,9 +201,12 @@ void showLaunchWindow(QQmlApplicationEngine &engine)
 
 int main(int argc, char *argv[])
 {
-    QElapsedTimer launchTimer;
-    launchTimer.start();
-    startupLogPath();
+    const auto launchStart = std::chrono::steady_clock::now();
+    const auto launchElapsed = [&] {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - launchStart).count();
+    };
+    startupLogFile();
 
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("Congregation"));
@@ -232,12 +214,26 @@ int main(int argc, char *argv[])
     QGuiApplication::setOrganizationName(QStringLiteral("iisacc"));
     QGuiApplication::setOrganizationDomain(QStringLiteral("iisacc.com"));
     QQuickStyle::setStyle(QStringLiteral("Basic"));
-    traceStartup(QStringLiteral("Congregation startup initialized in %1 ms").arg(launchTimer.elapsed()));
+    traceStartup(QStringLiteral("Congregation startup initialized in %1 ms").arg(launchElapsed()));
+
+    const int smokeArgument = app.arguments().indexOf(QStringLiteral("--engine-smoke-test"));
+    const QString smokeDirectory = smokeArgument >= 0 ? app.arguments().value(smokeArgument + 1) : QString{};
+    if (smokeArgument >= 0) {
+        if(smokeDirectory.isEmpty()||!congregation::presentation::exists(smokeDirectory)){qCritical("--engine-smoke-test requires an existing isolated test directory");return 2;}
+        const auto path=congregation::presentation::nativePath(smokeDirectory)/"preferences.ini";
+        iiFileProvider::native::File::write(path,"[%General]\nstartWithRecentCanvas=false\ndiscoverNearbyCongregationUsers=false\n");
+    }
 
     qml_register_types_LVRS();
     iiSharedCanvas::registerIiSharedCanvasQmlTypes();
-    traceStartup(QStringLiteral("LVRS QML types registered in %1 ms").arg(launchTimer.elapsed()));
+    traceStartup(QStringLiteral("LVRS QML types registered in %1 ms").arg(launchElapsed()));
 
+    congregation::ApplicationEngine applicationEngine;
+    QtEngineHost coreHost(applicationEngine.events());
+    QObject::connect(&coreHost, &QtEngineHost::dispatchFailed, &app, [&](const QString &message) {
+        appendStartupLog(QStringLiteral("critical"), message, true);
+        QCoreApplication::exit(1);
+    });
     QQmlApplicationEngine engine;
     configureEngineImports(engine);
     qmlRegisterType<DrawingSurfaceItem>("Congregation", 1, 0, "DrawingSurfaceItem");
@@ -253,7 +249,9 @@ int main(int argc, char *argv[])
     auto *memberProfileListBuilder = new MemberProfileListBuilder(&engine);
     engine.rootContext()->setContextProperty("CongregationMemberProfileListBuilder",
                                              memberProfileListBuilder);
-    auto *applicationPreferences = new ApplicationPreferences(&engine);
+    auto *applicationPreferences = smokeArgument >= 0
+        ? new ApplicationPreferences(smokeDirectory + QStringLiteral("/preferences.ini"), smokeDirectory + QStringLiteral("/canvas"), &engine)
+        : new ApplicationPreferences(&engine);
     engine.rootContext()->setContextProperty("CongregationApplicationPreferences",
                                              applicationPreferences);
     auto *licenseManager =
@@ -277,7 +275,7 @@ int main(int argc, char *argv[])
                          }
                          nearbyDiscovery->stop();
                      });
-    registerViewModels(engine, paletteUtils);
+    registerViewModels(engine, applicationEngine.document());
 
     QObject::connect(&engine,
                      &QQmlApplicationEngine::objectCreationFailed,
@@ -290,20 +288,42 @@ int main(int argc, char *argv[])
                          QCoreApplication::exit(-1);
                      },
                      Qt::QueuedConnection);
-    traceStartup(QStringLiteral("Loading Congregation.Main at %1 ms").arg(launchTimer.elapsed()));
+    traceStartup(QStringLiteral("Loading Congregation.Main at %1 ms").arg(launchElapsed()));
     engine.loadFromModule(QStringLiteral("Congregation"), QStringLiteral("Main"));
     traceStartup(QStringLiteral("Loaded Congregation.Main with %1 root object(s) in %2 ms")
                      .arg(engine.rootObjects().size())
-                     .arg(launchTimer.elapsed()));
+                     .arg(launchElapsed()));
     showLaunchWindow(engine);
-    QTimer::singleShot(0, nearbyDiscovery, [applicationPreferences, nearbyDiscovery]() {
+    const auto started = applicationEngine.start([applicationPreferences, nearbyDiscovery]() {
         if (applicationPreferences->discoverNearbyCongregationUsers()) {
             nearbyDiscovery->start();
         }
     });
     traceStartup(QStringLiteral("Launch window shown at its final geometry in %1 ms")
-                     .arg(launchTimer.elapsed()),
+                     .arg(launchElapsed()),
                  true);
 
-    return app.exec();
+    if (!started) {
+        appendStartupLog(QStringLiteral("critical"), QStringLiteral("Core startup admission failed"), true);
+        return 1;
+    }
+    if (smokeArgument >= 0) {
+        const auto smoke = applicationEngine.tasks().at(
+            applicationEngine.events(), ii::runtime::Clock::now() + std::chrono::milliseconds(500), [&] {
+                const auto roots = engine.rootObjects();
+                const auto *window = roots.isEmpty() ? nullptr : qobject_cast<QWindow *>(roots.first());
+                const auto state = applicationEngine.document().snapshot();
+                const bool valid = window && window->isVisible() && state.canvasWidth > 0
+                                   && state.canvasHeight > 0 && applicationEngine.events().stats().executed > 0;
+                qInfo("iiSDKCore engine smoke: %s", valid ? "PASS" : "FAIL");
+                QCoreApplication::exit(valid ? 0 : 2);
+            });
+        if (!smoke) {
+            qCritical("Core smoke deadline admission failed");
+            return 2;
+        }
+    }
+    const int result = app.exec();
+    applicationEngine.stop();
+    return result;
 }

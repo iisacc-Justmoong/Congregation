@@ -1,4 +1,4 @@
-#include <iiFileProviderDevice.h>
+#include <iiFileProviderNative.h>
 #pragma once
 
 #include <QObject>
@@ -32,5 +32,5 @@ private:
 
     QUrl m_imageSource;
     QString m_errorString;
-    std::unique_ptr<iiFileProvider::TemporaryFile> m_processedImageFile;
+    std::unique_ptr<iiFileProvider::native::TemporaryDirectory> m_processedImageFile;
 };

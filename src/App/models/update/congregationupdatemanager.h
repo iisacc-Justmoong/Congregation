@@ -7,9 +7,15 @@
 #include <memory>
 
 class LicenseManager;
+class QtEngineHost;
+namespace ii::runtime
+{
+class EventLoop;
+}
 class CongregationUpdateCredentialProvider;
 
-namespace iisacc::updates {
+namespace iisacc::updates::native
+{
 class UpdateManager;
 }
 
@@ -26,7 +32,7 @@ class CongregationUpdateManager final : public QObject
     Q_PROPERTY(bool canUpdate READ canUpdate NOTIFY stateChanged)
     Q_PROPERTY(bool canCancel READ canCancel NOTIFY stateChanged)
 
-public:
+  public:
     enum class State
     {
         Idle,
@@ -42,14 +48,10 @@ public:
     };
     Q_ENUM(State)
 
-    explicit CongregationUpdateManager(LicenseManager *licenseManager,
-                                  QObject *parent = nullptr);
-    CongregationUpdateManager(LicenseManager *licenseManager,
-                         QString currentVersion,
-                         QUrl manifestUrl,
-                         QUrl grantUrl,
-                         bool selfUpdateSupported,
-                         QObject *parent = nullptr);
+    explicit CongregationUpdateManager(LicenseManager* licenseManager, QObject* parent = nullptr);
+    CongregationUpdateManager(LicenseManager* licenseManager, QString currentVersion,
+                              QUrl manifestUrl, QUrl grantUrl, bool selfUpdateSupported,
+                              QObject* parent = nullptr);
     ~CongregationUpdateManager() override;
 
     [[nodiscard]] State state() const noexcept;
@@ -66,15 +68,15 @@ public:
     Q_INVOKABLE bool updateNow();
     Q_INVOKABLE bool cancelUpdate();
 
-    [[nodiscard]] static bool selfUpdateSupportedForMacApplicationDirectory(
-        const QString &applicationDirectory);
+    [[nodiscard]] static bool
+    selfUpdateSupportedForMacApplicationDirectory(const QString& applicationDirectory);
 
-signals:
+  signals:
     void stateChanged();
     void progressChanged();
     void presentationChanged();
 
-private:
+  private:
     void connectBackend();
     void applyBackendState();
     void setState(State state);
@@ -83,9 +85,11 @@ private:
     void setLatestVersion(QString version);
     bool rejectStoreManagedSelfUpdate();
 
+    std::unique_ptr<ii::runtime::EventLoop> m_events;
+    std::unique_ptr<QtEngineHost> m_host;
     bool m_selfUpdateSupported = true;
     std::unique_ptr<CongregationUpdateCredentialProvider> m_credentialProvider;
-    std::unique_ptr<iisacc::updates::UpdateManager> m_backend;
+    std::unique_ptr<iisacc::updates::native::UpdateManager> m_backend;
     State m_state = State::Idle;
     double m_progress = 0.0;
     QString m_title;
