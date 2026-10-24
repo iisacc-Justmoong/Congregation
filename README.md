@@ -32,6 +32,8 @@ On Windows, use `build-windows.ps1 -SdkPrefix <native-kit>`. The source requires
 
 See [the build guide](docs/BUILD.md), [native runtime contracts](docs/NATIVE_RUNTIME.md), and [migration verification](docs/NATIVE_VERIFICATION.md).
 
+For a macOS installer, run `cmake --build build --target CongregationInstaller` after building and testing. It signs the canonical native app and creates `build/Congregation.pkg` for `/Applications/Congregation.app`, with a checksum and payload verification report. See [installer signing and notarization](docs/MACOS_INSTALLER.md); a signed package is ready for public distribution only after notarization and Gatekeeper validation pass.
+
 ## Test
 
 ```sh

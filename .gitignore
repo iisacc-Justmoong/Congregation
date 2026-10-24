@@ -104,6 +104,9 @@ resources/UIIcons/.DS_Store
 /packaging/macos/*
 !/packaging/macos/Info.plist
 !/packaging/macos/Congregation.entitlements
+!/packaging/macos/create_installer.py
+!/packaging/macos/xcode_notarization.py
+!/packaging/macos/installer_support.py
 !/packaging/macos/Congregation.xcassets/
 !/packaging/linux/
 !/packaging/linux/com.iisacc.congregation.painter.desktop

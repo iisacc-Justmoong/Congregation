@@ -29,6 +29,8 @@ ctest --test-dir build --output-on-failure
 
 빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. Qt, 선택 키트 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.
 
+직접 배포용 `Congregation.pkg`의 Developer ID 서명·설치 대상·페이로드 검증과 공증 절차는 [MACOS_INSTALLER.md](MACOS_INSTALLER.md)를 따른다. `CongregationInstaller` 타깃은 정식 앱에서 직접 패키지를 생성한다.
+
 ## 검사 계약
 
 - `Congregation.engine`: Core 루프 소유·차용, 작업 수명, 읽기와 변경의 구분이다.
@@ -38,6 +40,8 @@ ctest --test-dir build --output-on-failure
 - macOS의 `Congregation.bundle_relocation`: 정식 앱을 `build/` 안의 임시 위치로 **이동**하여 빈 작업 디렉터리에서 두 렌더러를 실행한다. 동적 로딩 목록이 시스템 또는 옮긴 번들 안에만 있는지 검사하고 `finally`에서 정식 경로로 복원한다. 임시 `.app` 복사본을 남기지 않는다. macOS의 `/System/Volumes/Preboot/Cryptexes/OS/usr/lib/`와 그 시스템 프레임워크 경로는 운영체제 라이브러리로 인정한다. SDK·Homebrew 등 임의 경로는 이 예외에 포함하지 않는다.
 
 검사 파일과 임시 디렉터리는 `build/native-tests` 및 `build/standalone-relocation-*` 안에서만 생성한다. 로더 경로 덮어쓰기를 제거한다. 네이티브 UI 검사는 그래픽 세션이 있는 macOS 사용자 환경에서 수행한다. 검사 로그와 최소 OS·의존성·재배치 결과는 `build/`에 남긴다. 확정된 수행 결과는 [NATIVE_VERIFICATION.md](NATIVE_VERIFICATION.md)에 기록한다.
+
+Developer ID hardened runtime으로 서명한 앱의 재배치 검사도 지원한다. 이 경우 제한될 수 있는 dyld 환경변수 진단에 의존하지 않고, 실행 중 `lsof` Mach-O 파일 매핑에서 앱과 모든 번들 dylib를 확인한다. 외부 경로와 관측되지 않은 필수 이미지는 실패이다.
 
 수동 실행은 다음과 같다.
 

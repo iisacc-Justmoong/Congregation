@@ -1,6 +1,16 @@
 # Congregation Qt 독립 실행 검증
 
-검증일은 2026-10-23이며 현재 arm64 macOS 그래픽 세션에서 수행했다. Windows·Linux는 사용자의 지시에 따라 소스 구현 범위이다. 최신 결과는 아래 Vincent UI 복원 후 최종 검증이다. 선행 Qt 독립화 단계의 재실행·로그는 `build/native-verification.json`에, 이번 UI 변경의 최종 결과는 `build/vincent-ui-verification.json`에 보존한다.
+Qt 독립화·UI 검증일은 2026-10-23이며 arm64 macOS 그래픽 세션에서 수행했다. Windows·Linux는 사용자의 지시에 따라 소스 구현 범위이다. 직접 배포용 PKG의 최신 검증은 아래 2026-10-24 설치 패키지 항목을 따른다. 선행 Qt 독립화 단계의 재실행·로그는 `build/native-verification.json`에, UI 변경 결과는 `build/vincent-ui-verification.json`에 보존한다.
+
+## macOS 설치 패키지 · 2026-10-24
+
+`build/Congregation.pkg`는 현재 Qt 없는 네이티브 앱을 `/Applications/Congregation.app`에 설치한다. 버전 1.0.0 / 빌드 1, arm64, 최소 macOS 12.0 조건이다. Developer ID Application·Installer 서명, hardened runtime과 신뢰 타임스탬프를 적용했다. Xcode 로그인 계정으로 최종 PKG의 공증 티켓을 받아 부착했으며 Gatekeeper install 평가에서 `accepted / Notarized Developer ID`를 확인했다.
+
+제품 검사 12개 항목의 통과를 확인했다. `build/native-installer-release-tests.log`에서 기능·UI 등 11개 항목이 통과했고, hardened runtime에 맞춰 수정한 설치 계약·재배치 검사 2개는 `build/native-installer-runtime-final-tests.log`의 마지막 재실행에서 통과했다. 설치 계약에는 10개의 세부 회귀 검사가 있다. 한 번의 전체 일괄 실행이 모두 성공한 기록으로 표현하지 않는다.
+
+초기 재배치 검사는 배포용 보안 서명에서 제한되는 dyld 진단 출력에 의존했다. 이후 실행 중 실제 Mach-O 파일 매핑을 관측하도록 수정했다. OS의 임시·보호된 상태 데이터를 코드와 구분하며, 모든 필수 번들 이미지와 외부 SDK 유입 여부는 엄격하게 검사한다. 마지막 실행은 Metal·Vulkan에서 각각 번들 이미지 5개와 외부 SDK·Qt 이미지 0개를 확인했다.
+
+최종 PKG의 일반 파일 38개는 서명된 정식 앱과 SHA-256이 일치하며, 재배치 후 정식 앱 복원과 `build/`의 `.app` 디렉터리 1개를 확인했다. 서명·티켓·설치 메타데이터·체크섬·검사별 출처는 `build/installer/verification.json`, 요약은 `build/installer/release-summary.json`이다. 재생성 절차와 공증 방식은 [MACOS_INSTALLER.md](MACOS_INSTALLER.md)를 따른다.
 
 ## 제품과 설치 키트
 

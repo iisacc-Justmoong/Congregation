@@ -7,12 +7,86 @@ import re
 import signal
 import subprocess
 import tempfile
+import time
+
+MACHO = {bytes.fromhex(value) for value in
+         ("feedface", "feedfacf", "cefaedfe", "cffaedfe", "cafebabe", "bebafeca", "cafebabf", "bfbafeca")}
 
 
 def system_image(path):
     return path.startswith(("/System/Library/", "/usr/lib/",
         "/System/Volumes/Preboot/Cryptexes/OS/usr/lib/",
         "/System/Volumes/Preboot/Cryptexes/OS/System/Library/"))
+
+
+def images_from_lsof(output):
+    images = set()
+    for line in output.splitlines():
+        if not line.startswith("n/"):
+            continue
+        path = line[1:]
+        if system_image(path):
+            images.add(path)
+            continue
+        try:
+            with Path(path).open("rb") as stream:
+                if stream.read(4) in MACHO:
+                    images.add(path)
+        except FileNotFoundError:
+            # lsof also lists transient mapped data (for example logd's plist
+            # cache), which can be unlinked before inspection. Required code
+            # images are still checked explicitly by audit_images.
+            continue
+        except PermissionError as error:
+            # OS daemons pass read-only mappings of protected state files into
+            # clients (analyticsd's events.allowlist is one example). These are
+            # data, not loadable libraries. Never exempt an SDK/Homebrew path or
+            # a library-shaped file; required app images remain mandatory.
+            if path.startswith(("/private/var/db/", "/private/var/folders/")) and not any(
+                    marker in path for marker in (".dylib", ".framework/", ".bundle/", ".so")):
+                continue
+            raise RuntimeError("Cannot inspect mapped code: " + path) from error
+        except OSError as error:
+            raise RuntimeError("Cannot inspect mapped file: " + path) from error
+    return sorted(images)
+
+
+def audit_images(images, bundle, expected):
+    resolved = {Path(path).resolve() for path in images}
+    missing = [str(path) for path in expected if path.resolve() not in resolved]
+    if missing:
+        raise RuntimeError("Missing loaded-image evidence: " + repr(missing))
+    escaped = [path for path in images if not system_image(path)
+               and not Path(path).resolve().is_relative_to(bundle.resolve())]
+    if escaped or any("Qt" in path for path in images):
+        raise RuntimeError("Runtime dependency escaped the bundle: " + repr(escaped))
+
+
+def observe_process(command, working, environment):
+    """Read actual mappings without a debugging entitlement or DYLD opt-out."""
+    process = subprocess.Popen(command, cwd=working, env=environment,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    images, deadline = set(), time.monotonic() + 300
+    try:
+        while True:
+            try:
+                stdout, stderr = process.communicate(timeout=.25)
+                break
+            except subprocess.TimeoutExpired:
+                if time.monotonic() > deadline:
+                    raise RuntimeError("Native runtime verification timed out")
+                mapped = subprocess.run(["/usr/sbin/lsof", "-n", "-P", "-a", "-p", str(process.pid),
+                                         "-d", "txt", "-Fn"], capture_output=True, text=True, timeout=10)
+                if mapped.returncode == 0:
+                    images.update(images_from_lsof(mapped.stdout))
+        # Ad-hoc builds can also emit this; hardened distribution builds ignore
+        # DYLD_PRINT_LIBRARIES. Live Mach-O mappings remain the required proof.
+        images.update(re.findall(r"^dyld\[\d+\]: <[^>]+> (.+)$", stderr, re.MULTILINE))
+        return process.returncode, stdout, stderr, sorted(images)
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.communicate()
 
 
 def interrupted(number, frame):
@@ -46,20 +120,15 @@ def main():
             subprocess.run(["codesign", "--verify", "--deep", "--strict", str(moved)], check=True)
             executable = moved / "Contents/MacOS/Congregation"
             for renderer in ("native", "vulkan"):
-                result = subprocess.run([str(executable), "--self-test", str(data), "--renderer", renderer],
-                                        cwd=working, env=environment, capture_output=True, text=True, timeout=300)
+                status, stdout, stderr, images = observe_process(
+                    [str(executable), "--self-test", str(data), "--renderer", renderer], working, environment)
                 log = build / ("congregation-relocated-" + renderer + ".log")
-                log.write_text(result.stdout + result.stderr)
-                if result.returncode or "CONGREGATION_NATIVE_OK" not in result.stdout:
+                log.write_text(stdout + stderr)
+                if status or "CONGREGATION_NATIVE_OK" not in stdout:
                     raise RuntimeError("Relocated " + renderer + " failed; see " + str(log))
-                images = re.findall(r"^dyld\[\d+\]: <[^>]+> (.+)$", result.stderr, re.MULTILINE)
-                if not images or not any(str(executable) == path for path in images):
-                    raise RuntimeError("Missing loaded-image evidence for " + renderer)
-                escaped = [path for path in images if not system_image(path)
-                           and not Path(path).resolve().is_relative_to(moved)]
-                if escaped or any("Qt" in path for path in images):
-                    raise RuntimeError("Runtime dependency escaped the bundle: " + repr(escaped))
-                report["renderers"].append({"renderer": renderer, "exit_code": result.returncode,
+                audit_images(images, moved, [executable, *(moved / "Contents/Frameworks").glob("*.dylib")])
+                report["renderers"].append({"renderer": renderer, "exit_code": status,
+                    "image_evidence": "live Mach-O mappings (lsof) and available dyld diagnostics",
                     "log": str(log), "bundle_images": [str(Path(path).relative_to(moved))
                         for path in images if Path(path).is_relative_to(moved)], "external_images": []})
         finally:

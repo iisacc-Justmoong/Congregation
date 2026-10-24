@@ -67,6 +67,10 @@ if(CONGREGATION_BUILD_GUI)
     if(APPLE)
         set_target_properties(Congregation PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/NativeInfo.plist.in" BUILD_RPATH "@executable_path/../Frameworks;${CONGREGATION_SDK_PREFIX}/lib")
         add_custom_command(TARGET Congregation POST_BUILD COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/cmake/package_native_macos.py" --bundle "$<TARGET_BUNDLE_DIR:Congregation>" --prefix "${CONGREGATION_SDK_PREFIX}" VERBATIM)
+        add_custom_target(CongregationInstaller
+            COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_SOURCE_DIR}/packaging/macos/create_installer.py" --xcode
+            DEPENDS Congregation WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" USES_TERMINAL
+            COMMENT "Sign the native application and create build/Congregation.pkg")
     endif()
 endif()
 include(cmake/VerifyNativeEngine.cmake)
@@ -89,6 +93,10 @@ if(BUILD_TESTING)
     target_include_directories(tests_editorlayout PRIVATE App)
     target_link_libraries(tests_editorlayout PRIVATE iiGUI::iiGUI)
     add_test(NAME Congregation.editor_layout COMMAND tests_editorlayout)
+    if(APPLE)
+        add_test(NAME Congregation.native_installer_contract COMMAND "${Python3_EXECUTABLE}" -B
+            "${CMAKE_SOURCE_DIR}/tests/test_native_installer.py" "${CMAKE_BINARY_DIR}")
+    endif()
     if(CONGREGATION_BUILD_GUI)
         foreach(renderer native vulkan)
             set(_renderer_argument "${renderer}")
