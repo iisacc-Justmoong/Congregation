@@ -1,0 +1,556 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" version="1.1">
+  <title>Congregation — full-bleed app icon, 1024 × 1024</title>
+  <desc>Editable geometric reconstruction of the supplied reference. Square opaque background; no outer border or corner mask. Every visible element is a vector path or gradient.</desc>
+  <defs>
+    <linearGradient id="Obsidian" gradientUnits="userSpaceOnUse" x1="73" y1="66" x2="1181" y2="1174">
+      <stop offset="0" stop-color="#111010" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#090909" stop-opacity="1" />
+      <stop offset="0.7" stop-color="#0c0b0b" stop-opacity="1" />
+      <stop offset="1" stop-color="#100e0e" stop-opacity="1" />
+    </linearGradient>
+    <radialGradient id="Ambient-TopLeft" gradientUnits="userSpaceOnUse" cx="119" cy="168" r="350">
+      <stop offset="0" stop-color="#49130e" stop-opacity="0.24" />
+      <stop offset="1" stop-color="#49130e" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="Ambient-TopRight" gradientUnits="userSpaceOnUse" cx="1147" cy="162" r="350">
+      <stop offset="0" stop-color="#49130e" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#49130e" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="Ambient-BottomLeft" gradientUnits="userSpaceOnUse" cx="126" cy="1080" r="360">
+      <stop offset="0" stop-color="#48120d" stop-opacity="0.25" />
+      <stop offset="1" stop-color="#48120d" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="Ambient-BottomRight" gradientUnits="userSpaceOnUse" cx="1140" cy="1090" r="380">
+      <stop offset="0" stop-color="#4c160f" stop-opacity="0.27" />
+      <stop offset="1" stop-color="#4c160f" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="Graphite-Far" gradientUnits="userSpaceOnUse" x1="180" y1="100" x2="580" y2="550">
+      <stop offset="0" stop-color="#29292a" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#252526" stop-opacity="1" />
+      <stop offset="1" stop-color="#1b1b1c" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Axis-Horizontal" gradientUnits="userSpaceOnUse" x1="73" y1="620" x2="1181" y2="620">
+      <stop offset="0" stop-color="#ff5b19" stop-opacity="1" />
+      <stop offset="0.17" stop-color="#ff200a" stop-opacity="1" />
+      <stop offset="0.3" stop-color="#a7160c" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff6521" stop-opacity="1" />
+      <stop offset="0.7" stop-color="#ad130b" stop-opacity="1" />
+      <stop offset="0.84" stop-color="#ff1908" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff461b" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Axis-Vertical" gradientUnits="userSpaceOnUse" x1="627" y1="66" x2="627" y2="1174">
+      <stop offset="0" stop-color="#ff7539" stop-opacity="1" />
+      <stop offset="0.12" stop-color="#ff441b" stop-opacity="1" />
+      <stop offset="0.3" stop-color="#d42c10" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff6b24" stop-opacity="1" />
+      <stop offset="0.73" stop-color="#e83813" stop-opacity="1" />
+      <stop offset="0.9" stop-color="#ff441e" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2816" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="North-Node-Light" gradientUnits="userSpaceOnUse" x1="608" y1="134" x2="646" y2="172">
+      <stop offset="0" stop-color="#ff5027" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#ff321b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ed240d" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="South-Node-Light" gradientUnits="userSpaceOnUse" x1="608" y1="1055" x2="646" y2="1093">
+      <stop offset="0" stop-color="#ff5027" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#ff321b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ed240d" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Node-Light" gradientUnits="userSpaceOnUse" x1="135" y1="602" x2="170" y2="637">
+      <stop offset="0" stop-color="#ff5027" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#ff321b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ed240d" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Node-Light" gradientUnits="userSpaceOnUse" x1="1084" y1="602" x2="1119" y2="637">
+      <stop offset="0" stop-color="#ff5027" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#ff321b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ed240d" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Secondary-West" gradientUnits="userSpaceOnUse" x1="240" y1="260" x2="335" y2="355">
+      <stop offset="0" stop-color="#171718" stop-opacity="1" />
+      <stop offset="1" stop-color="#202021" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Secondary-West" gradientUnits="userSpaceOnUse" x1="215" y1="881" x2="336" y2="999">
+      <stop offset="0" stop-color="#202021" stop-opacity="1" />
+      <stop offset="1" stop-color="#161617" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Upper-Signal" gradientUnits="userSpaceOnUse" x1="300" y1="313" x2="328" y2="341">
+      <stop offset="0" stop-color="#ff3f1e" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff2c16" stop-opacity="1" />
+      <stop offset="1" stop-color="#f62510" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Lower-Signal" gradientUnits="userSpaceOnUse" x1="300" y1="895" x2="328" y2="923">
+      <stop offset="0" stop-color="#ff3f1e" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff2c16" stop-opacity="1" />
+      <stop offset="1" stop-color="#f62510" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Body-West" gradientUnits="userSpaceOnUse" x1="356" y1="199" x2="505" y2="487">
+      <stop offset="0" stop-color="#171718" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#262627" stop-opacity="1" />
+      <stop offset="1" stop-color="#303031" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Vertical-West" gradientUnits="userSpaceOnUse" x1="356" y1="300" x2="446" y2="442">
+      <stop offset="0" stop-color="#1b1b1c" stop-opacity="1" />
+      <stop offset="1" stop-color="#303031" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Tail-West" gradientUnits="userSpaceOnUse" x1="510" y1="301" x2="548" y2="400">
+      <stop offset="0" stop-color="#262627" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#3c3c3d" stop-opacity="1" />
+      <stop offset="1" stop-color="#242425" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Upper-West" gradientUnits="userSpaceOnUse" x1="460" y1="198" x2="460" y2="291">
+      <stop offset="0" stop-color="#b1b0b3" stop-opacity="1" />
+      <stop offset="0.38" stop-color="#9b999c" stop-opacity="1" />
+      <stop offset="0.39" stop-color="#828184" stop-opacity="1" />
+      <stop offset="1" stop-color="#818083" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Top-Bevel-West" gradientUnits="userSpaceOnUse" x1="356" y1="198" x2="570" y2="233">
+      <stop offset="0" stop-color="#b7b7b9" stop-opacity="1" />
+      <stop offset="1" stop-color="#a4a2a5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Ember-West" gradientUnits="userSpaceOnUse" x1="558" y1="198" x2="558" y2="379">
+      <stop offset="0" stop-color="#ff9559" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff683c" stop-opacity="1" />
+      <stop offset="0.51" stop-color="#ff3e20" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff3318" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Lightning-West" gradientUnits="userSpaceOnUse" x1="460" y1="305" x2="430" y2="487">
+      <stop offset="0" stop-color="#0a0605" stop-opacity="1" />
+      <stop offset="0.25" stop-color="#57100a" stop-opacity="1" />
+      <stop offset="0.44" stop-color="#ff461e" stop-opacity="1" />
+      <stop offset="0.76" stop-color="#ff350c" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff1605" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Body-West" gradientUnits="userSpaceOnUse" x1="193" y1="367" x2="382" y2="586">
+      <stop offset="0" stop-color="#242425" stop-opacity="1" />
+      <stop offset="0.64" stop-color="#2a2a2b" stop-opacity="1" />
+      <stop offset="1" stop-color="#1b1b1c" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Upper-Elbow-West" gradientUnits="userSpaceOnUse" x1="225" y1="367" x2="399" y2="562">
+      <stop offset="0" stop-color="#929194" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#89888b" stop-opacity="1" />
+      <stop offset="0.78" stop-color="#8d8c8e" stop-opacity="1" />
+      <stop offset="1" stop-color="#969597" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Ember-West" gradientUnits="userSpaceOnUse" x1="273" y1="480" x2="411" y2="560">
+      <stop offset="0" stop-color="#ff6b46" stop-opacity="1" />
+      <stop offset="0.3" stop-color="#ff6141" stop-opacity="1" />
+      <stop offset="0.65" stop-color="#af7d74" stop-opacity="1" />
+      <stop offset="1" stop-color="#979698" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Rim-West" gradientUnits="userSpaceOnUse" x1="273" y1="556" x2="411" y2="556">
+      <stop offset="0" stop-color="#ff7853" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#af8580" stop-opacity="1" />
+      <stop offset="1" stop-color="#a2a1a3" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Body-West" gradientUnits="userSpaceOnUse" x1="193" y1="655" x2="336" y2="872">
+      <stop offset="0" stop-color="#272728" stop-opacity="1" />
+      <stop offset="1" stop-color="#222223" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-Elbow-West" gradientUnits="userSpaceOnUse" x1="273" y1="670" x2="273" y2="872">
+      <stop offset="0" stop-color="#89888b" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#8e8d90" stop-opacity="1" />
+      <stop offset="1" stop-color="#a6a5a7" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Ember-West" gradientUnits="userSpaceOnUse" x1="273" y1="670" x2="290" y2="793">
+      <stop offset="0" stop-color="#ffb15d" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff8d52" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff5d30" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Rim-West" gradientUnits="userSpaceOnUse" x1="273" y1="675" x2="402" y2="675">
+      <stop offset="0" stop-color="#ffb266" stop-opacity="1" />
+      <stop offset="0.25" stop-color="#c9ad9e" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#afadaf" stop-opacity="1" />
+      <stop offset="1" stop-color="#a3a2a5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Body-West" gradientUnits="userSpaceOnUse" x1="356" y1="755" x2="540" y2="1036">
+      <stop offset="0" stop-color="#222223" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#2e2e30" stop-opacity="1" />
+      <stop offset="1" stop-color="#29292b" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Vertical-West" gradientUnits="userSpaceOnUse" x1="356" y1="780" x2="446" y2="990">
+      <stop offset="0" stop-color="#222223" stop-opacity="1" />
+      <stop offset="1" stop-color="#363638" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Tail-West" gradientUnits="userSpaceOnUse" x1="503" y1="814" x2="548" y2="947">
+      <stop offset="0" stop-color="#484849" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#373738" stop-opacity="1" />
+      <stop offset="1" stop-color="#242425" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-West" gradientUnits="userSpaceOnUse" x1="455" y1="947" x2="455" y2="1036">
+      <stop offset="0" stop-color="#8f8d90" stop-opacity="1" />
+      <stop offset="0.62" stop-color="#838184" stop-opacity="1" />
+      <stop offset="0.63" stop-color="#a2a0a3" stop-opacity="1" />
+      <stop offset="1" stop-color="#b3b2b5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-Bevel-West" gradientUnits="userSpaceOnUse" x1="356" y1="1035" x2="570" y2="1003">
+      <stop offset="0" stop-color="#b7b7b9" stop-opacity="1" />
+      <stop offset="1" stop-color="#a6a4a7" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Ember-West" gradientUnits="userSpaceOnUse" x1="558" y1="859" x2="558" y2="1036">
+      <stop offset="0" stop-color="#ff3017" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff5430" stop-opacity="1" />
+      <stop offset="0.51" stop-color="#ff914b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ffa64a" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Lightning-West" gradientUnits="userSpaceOnUse" x1="430" y1="752" x2="460" y2="930">
+      <stop offset="0" stop-color="#ff1607" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#ff3f10" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff3e13" stop-opacity="1" />
+      <stop offset="0.8" stop-color="#61110a" stop-opacity="1" />
+      <stop offset="1" stop-color="#090606" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Secondary-East" gradientUnits="userSpaceOnUse" x1="240" y1="260" x2="335" y2="355">
+      <stop offset="0" stop-color="#171718" stop-opacity="1" />
+      <stop offset="1" stop-color="#202021" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Secondary-East" gradientUnits="userSpaceOnUse" x1="215" y1="881" x2="336" y2="999">
+      <stop offset="0" stop-color="#202021" stop-opacity="1" />
+      <stop offset="1" stop-color="#161617" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Upper-Signal" gradientUnits="userSpaceOnUse" x1="300" y1="313" x2="328" y2="341">
+      <stop offset="0" stop-color="#ff3f1e" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff2c16" stop-opacity="1" />
+      <stop offset="1" stop-color="#f62510" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Lower-Signal" gradientUnits="userSpaceOnUse" x1="300" y1="895" x2="328" y2="923">
+      <stop offset="0" stop-color="#ff3f1e" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff2c16" stop-opacity="1" />
+      <stop offset="1" stop-color="#f62510" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Body-East" gradientUnits="userSpaceOnUse" x1="356" y1="199" x2="505" y2="487">
+      <stop offset="0" stop-color="#171718" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#262627" stop-opacity="1" />
+      <stop offset="1" stop-color="#303031" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Vertical-East" gradientUnits="userSpaceOnUse" x1="356" y1="300" x2="446" y2="442">
+      <stop offset="0" stop-color="#1b1b1c" stop-opacity="1" />
+      <stop offset="1" stop-color="#303031" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Tail-East" gradientUnits="userSpaceOnUse" x1="510" y1="301" x2="548" y2="400">
+      <stop offset="0" stop-color="#262627" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#3c3c3d" stop-opacity="1" />
+      <stop offset="1" stop-color="#242425" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Upper-East" gradientUnits="userSpaceOnUse" x1="460" y1="198" x2="460" y2="291">
+      <stop offset="0" stop-color="#b1b0b3" stop-opacity="1" />
+      <stop offset="0.38" stop-color="#9b999c" stop-opacity="1" />
+      <stop offset="0.39" stop-color="#828184" stop-opacity="1" />
+      <stop offset="1" stop-color="#818083" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Top-Bevel-East" gradientUnits="userSpaceOnUse" x1="356" y1="198" x2="570" y2="233">
+      <stop offset="0" stop-color="#b7b7b9" stop-opacity="1" />
+      <stop offset="1" stop-color="#a4a2a5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Ember-East" gradientUnits="userSpaceOnUse" x1="558" y1="198" x2="558" y2="379">
+      <stop offset="0" stop-color="#ff9559" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff683c" stop-opacity="1" />
+      <stop offset="0.51" stop-color="#ff3e20" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff3318" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Lightning-East" gradientUnits="userSpaceOnUse" x1="460" y1="305" x2="430" y2="487">
+      <stop offset="0" stop-color="#0a0605" stop-opacity="1" />
+      <stop offset="0.25" stop-color="#57100a" stop-opacity="1" />
+      <stop offset="0.44" stop-color="#ff461e" stop-opacity="1" />
+      <stop offset="0.76" stop-color="#ff350c" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff1605" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Body-East" gradientUnits="userSpaceOnUse" x1="193" y1="367" x2="382" y2="586">
+      <stop offset="0" stop-color="#242425" stop-opacity="1" />
+      <stop offset="0.64" stop-color="#2a2a2b" stop-opacity="1" />
+      <stop offset="1" stop-color="#1b1b1c" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Upper-Elbow-East" gradientUnits="userSpaceOnUse" x1="225" y1="367" x2="399" y2="562">
+      <stop offset="0" stop-color="#929194" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#89888b" stop-opacity="1" />
+      <stop offset="0.78" stop-color="#8d8c8e" stop-opacity="1" />
+      <stop offset="1" stop-color="#969597" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Ember-East" gradientUnits="userSpaceOnUse" x1="273" y1="480" x2="411" y2="560">
+      <stop offset="0" stop-color="#ff6b46" stop-opacity="1" />
+      <stop offset="0.3" stop-color="#ff6141" stop-opacity="1" />
+      <stop offset="0.65" stop-color="#af7d74" stop-opacity="1" />
+      <stop offset="1" stop-color="#979698" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Upper-Elbow-Rim-East" gradientUnits="userSpaceOnUse" x1="273" y1="556" x2="411" y2="556">
+      <stop offset="0" stop-color="#ff7853" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#af8580" stop-opacity="1" />
+      <stop offset="1" stop-color="#a2a1a3" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Body-East" gradientUnits="userSpaceOnUse" x1="193" y1="655" x2="336" y2="872">
+      <stop offset="0" stop-color="#272728" stop-opacity="1" />
+      <stop offset="1" stop-color="#222223" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-Elbow-East" gradientUnits="userSpaceOnUse" x1="273" y1="670" x2="273" y2="872">
+      <stop offset="0" stop-color="#89888b" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#8e8d90" stop-opacity="1" />
+      <stop offset="1" stop-color="#a6a5a7" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Ember-East" gradientUnits="userSpaceOnUse" x1="273" y1="670" x2="290" y2="793">
+      <stop offset="0" stop-color="#ffb15d" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff8d52" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff5d30" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Elbow-Rim-East" gradientUnits="userSpaceOnUse" x1="273" y1="675" x2="402" y2="675">
+      <stop offset="0" stop-color="#ffb266" stop-opacity="1" />
+      <stop offset="0.25" stop-color="#c9ad9e" stop-opacity="1" />
+      <stop offset="0.55" stop-color="#afadaf" stop-opacity="1" />
+      <stop offset="1" stop-color="#a3a2a5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Body-East" gradientUnits="userSpaceOnUse" x1="356" y1="755" x2="540" y2="1036">
+      <stop offset="0" stop-color="#222223" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#2e2e30" stop-opacity="1" />
+      <stop offset="1" stop-color="#29292b" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Vertical-East" gradientUnits="userSpaceOnUse" x1="356" y1="780" x2="446" y2="990">
+      <stop offset="0" stop-color="#222223" stop-opacity="1" />
+      <stop offset="1" stop-color="#363638" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Tail-East" gradientUnits="userSpaceOnUse" x1="503" y1="814" x2="548" y2="947">
+      <stop offset="0" stop-color="#484849" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#373738" stop-opacity="1" />
+      <stop offset="1" stop-color="#242425" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-East" gradientUnits="userSpaceOnUse" x1="455" y1="947" x2="455" y2="1036">
+      <stop offset="0" stop-color="#8f8d90" stop-opacity="1" />
+      <stop offset="0.62" stop-color="#838184" stop-opacity="1" />
+      <stop offset="0.63" stop-color="#a2a0a3" stop-opacity="1" />
+      <stop offset="1" stop-color="#b3b2b5" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Silver-Lower-Bevel-East" gradientUnits="userSpaceOnUse" x1="356" y1="1035" x2="570" y2="1003">
+      <stop offset="0" stop-color="#b7b7b9" stop-opacity="1" />
+      <stop offset="1" stop-color="#a6a4a7" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Ember-East" gradientUnits="userSpaceOnUse" x1="558" y1="859" x2="558" y2="1036">
+      <stop offset="0" stop-color="#ff3017" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff5430" stop-opacity="1" />
+      <stop offset="0.51" stop-color="#ff914b" stop-opacity="1" />
+      <stop offset="1" stop-color="#ffa64a" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Lower-Lightning-East" gradientUnits="userSpaceOnUse" x1="430" y1="752" x2="460" y2="930">
+      <stop offset="0" stop-color="#ff1607" stop-opacity="1" />
+      <stop offset="0.4" stop-color="#ff3f10" stop-opacity="1" />
+      <stop offset="0.6" stop-color="#ff3e13" stop-opacity="1" />
+      <stop offset="0.8" stop-color="#61110a" stop-opacity="1" />
+      <stop offset="1" stop-color="#090606" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Diamond-North" gradientUnits="userSpaceOnUse" x1="600" y1="398" x2="523" y2="511">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Diamond-Upper" gradientUnits="userSpaceOnUse" x1="494" y1="502" x2="441" y2="600">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Diamond-Lower" gradientUnits="userSpaceOnUse" x1="419" y1="648" x2="494" y2="689">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="West-Diamond-South" gradientUnits="userSpaceOnUse" x1="523" y1="726" x2="600" y2="841">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Diamond-North" gradientUnits="userSpaceOnUse" x1="600" y1="398" x2="523" y2="511">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Diamond-Upper" gradientUnits="userSpaceOnUse" x1="494" y1="502" x2="441" y2="600">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Diamond-Lower" gradientUnits="userSpaceOnUse" x1="419" y1="648" x2="494" y2="689">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="East-Diamond-South" gradientUnits="userSpaceOnUse" x1="523" y1="726" x2="600" y2="841">
+      <stop offset="0" stop-color="#313133" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#39393b" stop-opacity="1" />
+      <stop offset="1" stop-color="#242426" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Diamond-Outline" gradientUnits="userSpaceOnUse" x1="365" y1="620" x2="889" y2="620">
+      <stop offset="0" stop-color="#ff783c" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff4b22" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2616" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Node-North" gradientUnits="userSpaceOnUse" x1="600" y1="373" x2="654" y2="427">
+      <stop offset="0" stop-color="#ff3317" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#ff5a22" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2e11" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Node-South" gradientUnits="userSpaceOnUse" x1="600" y1="809" x2="654" y2="863">
+      <stop offset="0" stop-color="#ff3317" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#ff5a22" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2e11" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Node-West" gradientUnits="userSpaceOnUse" x1="389" y1="592" x2="445" y2="648">
+      <stop offset="0" stop-color="#ff3317" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#ff5a22" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2e11" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Node-East" gradientUnits="userSpaceOnUse" x1="809" y1="592" x2="865" y2="648">
+      <stop offset="0" stop-color="#ff3317" stop-opacity="1" />
+      <stop offset="0.45" stop-color="#ff5a22" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff2e11" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Orange-Frame" gradientUnits="userSpaceOnUse" x1="525" y1="515" x2="728" y2="718">
+      <stop offset="0" stop-color="#ffab30" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff8421" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff5914" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Warm-Face" gradientUnits="userSpaceOnUse" x1="539" y1="529" x2="627" y2="665">
+      <stop offset="0" stop-color="#ff8326" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff5326" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="Core-Hot-Face" gradientUnits="userSpaceOnUse" x1="714" y1="529" x2="626" y2="717">
+      <stop offset="0" stop-color="#ff1a10" stop-opacity="1" />
+      <stop offset="0.5" stop-color="#ff2911" stop-opacity="1" />
+      <stop offset="1" stop-color="#ff4710" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+  <g id="Congregation-Artwork" transform="matrix(0.924187725632 0 0 0.924187725632 -67.465703971119 -60.996389891697)">
+    <g id="01-Background-Square-No-Border">
+      <rect x="73" y="66" width="1108" height="1108" fill="url(#Obsidian)" id="Full-Bleed-Background" />
+      <rect x="73" y="66" width="1108" height="1108" fill="url(#Ambient-TopLeft)" />
+      <rect x="73" y="66" width="1108" height="1108" fill="url(#Ambient-TopRight)" />
+      <rect x="73" y="66" width="1108" height="1108" fill="url(#Ambient-BottomLeft)" />
+      <rect x="73" y="66" width="1108" height="1108" fill="url(#Ambient-BottomRight)" />
+    </g>
+    <g id="02-Graphite-Understructure">
+      <path d="M 454 199 L 563 97 L 570 97 L 570 199 Z" fill="url(#Graphite-Far)" id="North-West-Fin" />
+      <path d="M 684 97 L 695 97 L 803 199 L 684 199 Z" fill="url(#Graphite-Far)" id="North-East-Fin" />
+      <path d="M 454 1035 L 562 1141 L 570 1141 L 570 1035 Z" fill="url(#Graphite-Far)" id="South-West-Fin" />
+      <path d="M 684 1035 L 684 1141 L 695 1141 L 803 1035 Z" fill="url(#Graphite-Far)" id="South-East-Fin" />
+      <path d="M 73 554 L 177 451 L 177 554 Z" fill="url(#Graphite-Far)" id="West-North-Fin" />
+      <path d="M 1077 451 L 1181 554 L 1077 554 Z" fill="url(#Graphite-Far)" id="East-North-Fin" />
+      <path d="M 86 687 L 177 687 L 177 783 L 86 693 Z" fill="url(#Graphite-Far)" id="West-South-Fin" />
+      <path d="M 1077 687 L 1167 687 L 1167 693 L 1077 783 Z" fill="url(#Graphite-Far)" id="East-South-Fin" />
+    </g>
+    <g id="03-Cardinal-Connections">
+      <rect x="73" y="617" width="1108" height="6" fill="url(#Axis-Horizontal)" id="Horizontal-Axis" />
+      <rect x="624" y="66" width="6" height="1108" fill="url(#Axis-Vertical)" id="Vertical-Axis" />
+      <rect x="610" y="136" width="38" height="38" fill="#170704" id="North-Node-Shadow" />
+      <rect x="608" y="134" width="38" height="38" fill="url(#North-Node-Light)" id="North-Square-Node" />
+      <rect x="610" y="1057" width="38" height="38" fill="#170704" id="South-Node-Shadow" />
+      <rect x="608" y="1055" width="38" height="38" fill="url(#South-Node-Light)" id="South-Square-Node" />
+      <rect x="137" y="604" width="35" height="35" fill="#170704" id="West-Node-Shadow" />
+      <rect x="135" y="602" width="35" height="35" fill="url(#West-Node-Light)" id="West-Square-Node" />
+      <rect x="1086" y="604" width="35" height="35" fill="#170704" id="East-Node-Shadow" />
+      <rect x="1084" y="602" width="35" height="35" fill="url(#East-Node-Light)" id="East-Square-Node" />
+    </g>
+    <g id="04-Metallic-Interlocking-Arms">
+      <g id="West-Structure">
+        <rect x="209" y="195" width="365" height="391" fill="#050505" id="West-Upper-Black-Channel" />
+        <rect x="209" y="655" width="365" height="380" fill="#050505" id="West-Lower-Black-Channel" />
+        <path d="M 215 355 L 336 234 L 336 355 Z" fill="url(#Upper-Secondary-West)" id="West-Upper-Secondary-Triangle" />
+        <path d="M 215 881 L 336 881 L 336 999 Z" fill="url(#Lower-Secondary-West)" id="West-Lower-Secondary-Triangle" />
+        <rect x="300" y="313" width="28" height="28" fill="url(#West-Upper-Signal)" id="West-Upper-Signal-Square" />
+        <rect x="300" y="895" width="28" height="28" fill="url(#West-Lower-Signal)" id="West-Lower-Signal-Square" />
+        <path d="M 356 199 L 573 198 L 573 353 L 503 423 L 503 291 L 446 291 L 446 487 L 356 487 Z" fill="url(#Upper-Body-West)" id="West-Upper-Bracket-Body" />
+        <path d="M 356 199 L 446 291 L 446 487 L 356 487 Z" fill="url(#Upper-Vertical-West)" id="West-Upper-Dark-Face" />
+        <path d="M 503 291 L 548 290 L 548 379 L 503 423 Z" fill="url(#Upper-Tail-West)" id="West-Upper-Inner-Facet" />
+        <path d="M 503 328 L 541 291 L 548 291 L 548 347 L 503 391 Z" fill="#424243" opacity=".54" id="West-Upper-Inner-Highlight" />
+        <path d="M 356 199 L 573 198 L 573 290 L 446 291 Z" fill="url(#Silver-Upper-West)" id="West-Silver-Upper-Cap" />
+        <path d="M 356 199 L 573 198 L 573 233 L 390 234 Z" fill="url(#Silver-Top-Bevel-West)" id="West-Silver-Upper-Bevel" />
+        <path d="M 548 198 L 573 198 L 573 353 L 548 379 Z" fill="url(#Upper-Ember-West)" id="West-Upper-Orange-Face" />
+        <path d="M 476 305 L 482 305 L 482 424 L 417 487 L 369 487 L 476 380 Z" fill="url(#Upper-Lightning-West)" id="West-Upper-Inner-Lightning" />
+        <path d="M 193 367 L 336 367 L 336 510 L 411 510 L 411 562 L 378 586 L 193 586 Z" fill="url(#Upper-Elbow-Body-West)" id="West-Upper-Elbow-Body" />
+        <path d="M 193 367 L 336 367 L 336 510 L 411 510 L 411 562 L 273 562 L 273 447 Z" fill="url(#Silver-Upper-Elbow-West)" id="West-Silver-Upper-Elbow" />
+        <path d="M 273 447 L 290 469 L 290 550 L 411 551 L 411 562 L 273 562 Z" fill="url(#Upper-Elbow-Ember-West)" id="West-Upper-Elbow-Bevel" />
+        <path d="M 290 550 L 397 550 L 411 562 L 273 562 Z" fill="url(#Upper-Elbow-Rim-West)" id="West-Upper-Elbow-Lower-Bevel" />
+        <path d="M 193 655 L 378 655 L 402 670 L 402 731 L 336 731 L 336 872 L 193 872 Z" fill="url(#Lower-Elbow-Body-West)" id="West-Lower-Elbow-Body" />
+        <path d="M 273 670 L 402 670 L 402 731 L 336 731 L 336 872 L 193 872 L 273 792 Z" fill="url(#Silver-Lower-Elbow-West)" id="West-Silver-Lower-Elbow" />
+        <path d="M 273 670 L 290 670 L 290 773 L 273 793 Z" fill="url(#Lower-Elbow-Ember-West)" id="West-Lower-Elbow-Orange-Bevel" />
+        <path d="M 273 670 L 402 670 L 402 685 L 290 685 Z" fill="url(#Lower-Elbow-Rim-West)" id="West-Lower-Elbow-Top-Bevel" />
+        <path d="M 356 752 L 446 817 L 446 947 L 503 947 L 503 814 L 573 884 L 573 1036 L 356 1035 Z" fill="url(#Lower-Body-West)" id="West-Lower-Bracket-Body" />
+        <path d="M 356 752 L 446 817 L 446 947 L 356 1035 Z" fill="url(#Lower-Vertical-West)" id="West-Lower-Dark-Face" />
+        <path d="M 503 814 L 548 859 L 548 947 L 503 908 Z" fill="url(#Lower-Tail-West)" id="West-Lower-Inner-Facet" />
+        <path d="M 503 867 L 548 910 L 548 947 L 503 908 Z" fill="#444445" opacity=".5" id="West-Lower-Inner-Highlight" />
+        <path d="M 356 1035 L 446 947 L 573 947 L 573 1036 Z" fill="url(#Silver-Lower-West)" id="West-Silver-Lower-Cap" />
+        <path d="M 389 1003 L 573 1003 L 573 1036 L 356 1035 Z" fill="url(#Silver-Lower-Bevel-West)" id="West-Silver-Lower-Bevel" />
+        <path d="M 548 859 L 573 884 L 573 1036 L 548 1036 Z" fill="url(#Lower-Ember-West)" id="West-Lower-Orange-Face" />
+        <path d="M 369 752 L 417 752 L 482 816 L 482 930 L 476 930 L 476 860 Z" fill="url(#Lower-Lightning-West)" id="West-Lower-Inner-Lightning" />
+      </g>
+      <g id="East-Structure" transform="translate(1254 0) scale(-1 1)">
+        <rect x="209" y="195" width="365" height="391" fill="#050505" id="East-Upper-Black-Channel" />
+        <rect x="209" y="655" width="365" height="380" fill="#050505" id="East-Lower-Black-Channel" />
+        <path d="M 215 355 L 336 234 L 336 355 Z" fill="url(#Upper-Secondary-East)" id="East-Upper-Secondary-Triangle" />
+        <path d="M 215 881 L 336 881 L 336 999 Z" fill="url(#Lower-Secondary-East)" id="East-Lower-Secondary-Triangle" />
+        <rect x="300" y="313" width="28" height="28" fill="url(#East-Upper-Signal)" id="East-Upper-Signal-Square" />
+        <rect x="300" y="895" width="28" height="28" fill="url(#East-Lower-Signal)" id="East-Lower-Signal-Square" />
+        <path d="M 356 199 L 573 198 L 573 353 L 503 423 L 503 291 L 446 291 L 446 487 L 356 487 Z" fill="url(#Upper-Body-East)" id="East-Upper-Bracket-Body" />
+        <path d="M 356 199 L 446 291 L 446 487 L 356 487 Z" fill="url(#Upper-Vertical-East)" id="East-Upper-Dark-Face" />
+        <path d="M 503 291 L 548 290 L 548 379 L 503 423 Z" fill="url(#Upper-Tail-East)" id="East-Upper-Inner-Facet" />
+        <path d="M 503 328 L 541 291 L 548 291 L 548 347 L 503 391 Z" fill="#424243" opacity=".54" id="East-Upper-Inner-Highlight" />
+        <path d="M 356 199 L 573 198 L 573 290 L 446 291 Z" fill="url(#Silver-Upper-East)" id="East-Silver-Upper-Cap" />
+        <path d="M 356 199 L 573 198 L 573 233 L 390 234 Z" fill="url(#Silver-Top-Bevel-East)" id="East-Silver-Upper-Bevel" />
+        <path d="M 548 198 L 573 198 L 573 353 L 548 379 Z" fill="url(#Upper-Ember-East)" id="East-Upper-Orange-Face" />
+        <path d="M 476 305 L 482 305 L 482 424 L 417 487 L 369 487 L 476 380 Z" fill="url(#Upper-Lightning-East)" id="East-Upper-Inner-Lightning" />
+        <path d="M 193 367 L 336 367 L 336 510 L 411 510 L 411 562 L 378 586 L 193 586 Z" fill="url(#Upper-Elbow-Body-East)" id="East-Upper-Elbow-Body" />
+        <path d="M 193 367 L 336 367 L 336 510 L 411 510 L 411 562 L 273 562 L 273 447 Z" fill="url(#Silver-Upper-Elbow-East)" id="East-Silver-Upper-Elbow" />
+        <path d="M 273 447 L 290 469 L 290 550 L 411 551 L 411 562 L 273 562 Z" fill="url(#Upper-Elbow-Ember-East)" id="East-Upper-Elbow-Bevel" />
+        <path d="M 290 550 L 397 550 L 411 562 L 273 562 Z" fill="url(#Upper-Elbow-Rim-East)" id="East-Upper-Elbow-Lower-Bevel" />
+        <path d="M 193 655 L 378 655 L 402 670 L 402 731 L 336 731 L 336 872 L 193 872 Z" fill="url(#Lower-Elbow-Body-East)" id="East-Lower-Elbow-Body" />
+        <path d="M 273 670 L 402 670 L 402 731 L 336 731 L 336 872 L 193 872 L 273 792 Z" fill="url(#Silver-Lower-Elbow-East)" id="East-Silver-Lower-Elbow" />
+        <path d="M 273 670 L 290 670 L 290 773 L 273 793 Z" fill="url(#Lower-Elbow-Ember-East)" id="East-Lower-Elbow-Orange-Bevel" />
+        <path d="M 273 670 L 402 670 L 402 685 L 290 685 Z" fill="url(#Lower-Elbow-Rim-East)" id="East-Lower-Elbow-Top-Bevel" />
+        <path d="M 356 752 L 446 817 L 446 947 L 503 947 L 503 814 L 573 884 L 573 1036 L 356 1035 Z" fill="url(#Lower-Body-East)" id="East-Lower-Bracket-Body" />
+        <path d="M 356 752 L 446 817 L 446 947 L 356 1035 Z" fill="url(#Lower-Vertical-East)" id="East-Lower-Dark-Face" />
+        <path d="M 503 814 L 548 859 L 548 947 L 503 908 Z" fill="url(#Lower-Tail-East)" id="East-Lower-Inner-Facet" />
+        <path d="M 503 867 L 548 910 L 548 947 L 503 908 Z" fill="#444445" opacity=".5" id="East-Lower-Inner-Highlight" />
+        <path d="M 356 1035 L 446 947 L 573 947 L 573 1036 Z" fill="url(#Silver-Lower-East)" id="East-Silver-Lower-Cap" />
+        <path d="M 389 1003 L 573 1003 L 573 1036 L 356 1035 Z" fill="url(#Silver-Lower-Bevel-East)" id="East-Silver-Lower-Bevel" />
+        <path d="M 548 859 L 573 884 L 573 1036 L 548 1036 Z" fill="url(#Lower-Ember-East)" id="East-Lower-Orange-Face" />
+        <path d="M 369 752 L 417 752 L 482 816 L 482 930 L 476 930 L 476 860 Z" fill="url(#Lower-Lightning-East)" id="East-Lower-Inner-Lightning" />
+      </g>
+    </g>
+    <g id="05-Diagonal-Graphite-Returns">
+      <g id="West-Diagonal-Returns">
+        <path d="M 411 511 L 481 448 L 481 477 L 411 547 Z" fill="#252526" id="West-Upper-Outer" />
+        <path d="M 478 512 L 494 496 L 494 547 L 478 563 Z" fill="#3b3b3d" id="West-Upper-Inner" />
+        <path d="M 411 729 L 481 799 L 481 769 L 411 699 Z" fill="#202021" id="West-Lower-Outer" />
+        <path d="M 478 677 L 494 693 L 494 736 L 478 720 Z" fill="#3b3b3d" id="West-Lower-Inner" />
+      </g>
+      <g id="East-Diagonal-Returns" transform="translate(1254 0) scale(-1 1)">
+        <path d="M 411 511 L 481 448 L 481 477 L 411 547 Z" fill="#252526" id="East-Upper-Outer" />
+        <path d="M 478 512 L 494 496 L 494 547 L 478 563 Z" fill="#3b3b3d" id="East-Upper-Inner" />
+        <path d="M 411 729 L 481 799 L 481 769 L 411 699 Z" fill="#202021" id="East-Lower-Outer" />
+        <path d="M 478 677 L 494 693 L 494 736 L 478 720 Z" fill="#3b3b3d" id="East-Lower-Inner" />
+      </g>
+    </g>
+    <g id="06-Central-Diamond-Assembly">
+      <path d="M 627 353 L 889 620 L 627 885 L 365 620 Z" fill="#080808" id="Diamond-Background" />
+      <g id="West-Diamond-Metal">
+        <path d="M 600 398 L 624 422 L 523 511 L 523 472 Z" fill="url(#West-Diamond-North)" id="West-Diamond-North-Facet" />
+        <path d="M 494 502 L 494 547 L 441 600 L 419 591 Z" fill="url(#West-Diamond-Upper)" id="West-Diamond-Upper-Facet" />
+        <path d="M 419 648 L 441 636 L 494 689 L 494 734 Z" fill="url(#West-Diamond-Lower)" id="West-Diamond-Lower-Facet" />
+        <path d="M 523 726 L 523 766 L 600 841 L 624 817 Z" fill="url(#West-Diamond-South)" id="West-Diamond-South-Facet" />
+      </g>
+      <g id="East-Diamond-Metal" transform="translate(1254 0) scale(-1 1)">
+        <path d="M 600 398 L 624 422 L 523 511 L 523 472 Z" fill="url(#East-Diamond-North)" id="East-Diamond-North-Facet" />
+        <path d="M 494 502 L 494 547 L 441 600 L 419 591 Z" fill="url(#East-Diamond-Upper)" id="East-Diamond-Upper-Facet" />
+        <path d="M 419 648 L 441 636 L 494 689 L 494 734 Z" fill="url(#East-Diamond-Lower)" id="East-Diamond-Lower-Facet" />
+        <path d="M 523 726 L 523 766 L 600 841 L 624 817 Z" fill="url(#East-Diamond-South)" id="East-Diamond-South-Facet" />
+      </g>
+      <rect x="441" y="618" width="372" height="4" fill="#ff5b22" id="Core-Horizontal-Link" />
+      <rect x="625" y="422" width="4" height="390" fill="#ff6526" id="Core-Vertical-Link" />
+      <path d="M 627 353 L 889 620 L 627 885 L 365 620 Z" fill="none" stroke="url(#Diamond-Outline)" stroke-width="2.6" stroke-linejoin="miter" id="Diamond-Hairline" />
+      <path d="M 627 373 L 654 400 L 627 427 L 600 400 Z" fill="url(#Core-Node-North)" id="North-Diamond-Node" />
+      <path d="M 627 809 L 654 836 L 627 863 L 600 836 Z" fill="url(#Core-Node-South)" id="South-Diamond-Node" />
+      <path d="M 417 592 L 445 620 L 417 648 L 389 620 Z" fill="url(#Core-Node-West)" id="West-Diamond-Node" />
+      <path d="M 837 592 L 865 620 L 837 648 L 809 620 Z" fill="url(#Core-Node-East)" id="East-Diamond-Node" />
+      <rect x="525" y="515" width="203" height="203" fill="url(#Core-Orange-Frame)" id="Core-Square-Frame" />
+      <rect x="526" y="516" width="201" height="3" fill="#ffaf35" opacity=".45" id="Core-Frame-Top-Highlight" />
+      <path d="M 539 529 L 714 529 L 539 704 Z" fill="url(#Core-Warm-Face)" id="Core-Warm-Triangle" />
+      <path d="M 714 529 L 714 704 L 539 704 Z" fill="url(#Core-Hot-Face)" id="Core-Hot-Triangle" />
+    </g>
+  </g>
+</svg>

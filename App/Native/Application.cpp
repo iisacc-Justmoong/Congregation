@@ -3,9 +3,10 @@
 #include "EditorBackend.h"
 #include "EditorLayout.h"
 #include "EditorIcons.h"
-#include "MainView.generated.h"
+#include "MainWindow.h"
+#include "Style.h"
 #include "PreferencesView.generated.h"
-#include "CanvasSetupView.generated.h"
+#include "CanvasSetupWindow.h"
 #include <Engine/ApplicationEngine.h>
 #include <Engine/Preferences.h>
 #include <Engine/LicenseService.h>
@@ -28,9 +29,9 @@
 namespace congregation::native
 {
 using namespace iiSharedCanvas;
-using MainView = lvui_generated::MainView;
+using MainView = MainWindow;
 using PreferencesView = lvui_generated::PreferencesView;
-using CanvasSetupView = lvui_generated::CanvasSetupView;
+using CanvasSetupView = CanvasSetupWindow;
 using ui::Action;
 namespace
 {
@@ -127,7 +128,7 @@ struct State final : std::enable_shared_from_this<State>
     CanvasView canvas;
     std::shared_ptr<ii::gui::Host> host, preferences_host, setup_host;
     std::shared_ptr<CanvasSetupView> setup_view;
-    ui::EditorBackend* setup = nullptr;
+    CanvasSetupModel* setup = nullptr;
     std::shared_ptr<const ii::gui::RasterImage> avatar;
     std::shared_ptr<MainView> view = std::make_shared<MainView>();
     std::shared_ptr<PreferencesView> preferences_view;
@@ -150,6 +151,9 @@ struct State final : std::enable_shared_from_this<State>
     NearbyDiscovery discovery;
     CanvasSession session;
     ii::runtime::TaskToken deadline, notice_deadline;
+    std::shared_ptr<ToolSettings> tool_settings = std::make_shared<ToolSettings>();
+    std::shared_ptr<TimelineModel> timeline_model = std::make_shared<TimelineModel>();
+    ii::core::ObservableSubscription timeline_subscription;
     std::function<void()> after_setup, after_preferences;
     State(ii::runtime::Application& application, bool self_test, std::filesystem::path data)
         : app(application), test(self_test), directory(std::move(data)), engine(app.event_loop()),
@@ -166,6 +170,16 @@ struct State final : std::enable_shared_from_this<State>
           discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
     {
         check(artwork.create(test ? 128 : 1024, test ? 96 : 768), artwork.error());
+        const auto program = std::filesystem::absolute(native_path(app.arguments().front()));
+#ifdef __APPLE__
+        view->set_assets(program.parent_path().parent_path() / "Resources" / "figma");
+#else
+        view->set_assets(program.parent_path() / "resources");
+#endif
+        std::error_code ec;
+        if (std::filesystem::is_regular_file(directory / "tools.ini", ec))
+            (void) tool_settings->restore(
+                iiFileProvider::native::File::read(directory / "tools.ini", 8192));
     }
     void status(std::string value)
     {
@@ -181,8 +195,11 @@ struct State final : std::enable_shared_from_this<State>
             status(artwork.error().empty() ? "The operation could not be completed" : artwork.error());
             if(view&&host) {
                 auto mount=view->widgets();auto anchor=mount.find("canvas");auto notice=mount.find("status-notice");
-                if(anchor&&notice) {
-                    good(notice->open_for(*anchor,16,std::max(0.f,take(anchor->snapshot()).bounds.height-108)));
+                if (anchor && notice)
+                {
+                    good(notice->open_for(
+                        *anchor, Metric::space16,
+                        std::max(0.f, take(anchor->snapshot()).bounds.height - Metric::size108)));
                     (void)notice_deadline.cancel();
                     const auto weak=weak_from_this();
                     auto scheduled=host->executor().after(std::chrono::seconds(5),[weak]{if(auto p=weak.lock())if(auto widget=p->view->widgets().find("status-notice"))(void)widget->close_popup();});
@@ -195,6 +212,11 @@ struct State final : std::enable_shared_from_this<State>
     }
     void refresh()
     {
+        const auto& timing = artwork.document().timeline;
+        const auto rate = std::max(1, int(std::round(double(timing.frameRate.numerator) /
+                                                     std::max(1u, timing.frameRate.denominator))));
+        timeline_model->set_rate(rate);
+        timeline_model->set_duration(double(timing.frameCount) / rate);
         std::vector<lvrs::ListRowData> rows;
         for (auto it = artwork.document().layers.rbegin(); it != artwork.document().layers.rend();
              ++it)
@@ -212,9 +234,14 @@ struct State final : std::enable_shared_from_this<State>
         if (secondary)
             secondary->title.set(title);
         canvas.refresh();
+        view->refresh_document(artwork.document(), artwork.selected());
         if (main)
-            main->zoom.set(ii::core::format_decimal(std::round(canvas.viewport().scale * 100)) +
-                           "%");
+            main->document_info.set(std::to_string(artwork.document().extent.width) + " × " +
+                                    std::to_string(artwork.document().extent.height) +
+                                    " · RGB / 8-bit · sRGB");
+        if (main)
+            main->zoom.set(
+                ii::core::format_decimal(std::round(canvas.viewport().scale * 1000) / 10) + "%");
     }
     void changed()
     {
@@ -243,6 +270,16 @@ struct State final : std::enable_shared_from_this<State>
         backend.layers = layers;
         backend.members = members;
         backend.color = color;
+        backend.parameters = tool_settings;
+        backend.timeline = timeline_model;
+        backend.sync_parameter_fields();
+        if (!auxiliary)
+        {
+            std::error_code ec;
+            if (std::filesystem::is_regular_file(directory / "asset-library.path", ec))
+                backend.asset_root.set(
+                    iiFileProvider::native::File::read(directory / "asset-library.path", 8192));
+        }
         backend.licensed.set(test || license.licensed);
         backend.needs_license.set(!test && !license.licensed);
         backend.start_recent.set(preferences.start_recent);
@@ -264,6 +301,45 @@ struct State final : std::enable_shared_from_this<State>
             backend.pressure_max.set(main->pressure_max.get());
         }
         const auto weak = weak_from_this();
+        backend.tool_selected = [weak](std::string name)
+        {
+            if (auto p = weak.lock())
+                p->select_native_tool(std::move(name));
+        };
+        backend.asset_inserted = [weak](std::filesystem::path path)
+        {
+            if (auto p = weak.lock())
+            {
+                p->result(p->artwork.import_image(path));
+                p->refresh();
+            }
+        };
+        backend.builtin_asset_inserted = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+                p->insert_builtin_asset(key);
+        };
+        backend.layer_opacity_changed = [weak](std::string key, double value)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.opacity(std::move(key), value));
+        };
+        backend.layer_mode_changed = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.cycle_blend(std::move(key)));
+        };
+        backend.frame_rate_changed = [weak](int rate)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.timing(
+                    rate, int(std::round(p->timeline_model->state.get().duration * rate))));
+        };
+        backend.command = [weak](std::string name)
+        {
+            if (auto p = weak.lock())
+                p->workspace_command(std::move(name));
+        };
         backend.perform = [weak](Action action)
         {
             if (auto p = weak.lock())
@@ -403,6 +479,168 @@ struct State final : std::enable_shared_from_this<State>
             }
         };
     }
+    void save_tool_preferences()
+    {
+        iiFileProvider::native::StagedFile stage(directory / "tools.ini");
+        iiFileProvider::native::File::write(stage.path(), tool_settings->serialize());
+        const auto published = stage.publish();
+        if (!published.succeeded)
+            throw std::runtime_error(published.message);
+    }
+    void choose_asset_library()
+    {
+        const auto weak = weak_from_this();
+        good(host->choose_file({.mode = ii::gui::FileDialogMode::directory,
+                                .title = "Choose Society Asset Library folder"},
+                               [weak](auto selected)
+                               {
+                                   if (auto p = weak.lock())
+                                   {
+                                       if (!selected)
+                                       {
+                                           p->status(selected.error().message);
+                                           return;
+                                       }
+                                       if (selected->canceled || selected->paths.empty())
+                                           return;
+                                       const auto path = selected->paths.front();
+                                       p->main->asset_root.set(path);
+                                       iiFileProvider::native::File::write(
+                                           p->directory / "asset-library.path", path);
+                                       p->status("Society Asset Library folder connected");
+                                   }
+                               }));
+    }
+    void select_native_tool(std::string name)
+    {
+        const std::map<std::string, Action, std::less<>> actions{
+            {"brush", Action::brush},
+            {"pencil", Action::brush},
+            {"dry-brush", Action::brush},
+            {"airbrush", Action::brush},
+            {"mixer-brush", Action::brush},
+            {"bristle-brush", Action::brush},
+            {"smudge", Action::brush},
+            {"eraser", Action::eraser},
+            {"paint-bucket", Action::fill},
+            {"rectangle", Action::rectangle},
+            {"ellipse", Action::ellipse},
+            {"area-text", Action::text},
+            {"move", Action::select},
+            {"direct-select", Action::select},
+            {"hand", Action::pan},
+            {"imagezoomIn", Action::zoom_tool},
+            {"color-picker", Action::eyedropper}};
+        if (name == "rulers")
+        {
+            main->rulers_visible.set(!main->rulers_visible.get());
+            return;
+        }
+        if (auto item = actions.find(name); item != actions.end())
+        {
+            act(item->second);
+            main->selected_tool.set(std::move(name));
+            apply_brush(*main);
+        }
+        else
+            status("The " + name + " tool is not available in this document editor yet");
+    }
+    void insert_builtin_asset(const std::string& key)
+    {
+        using P = ToolParameter;
+        if (key == "oil")
+        {
+            main->parameters->reset();
+            main->preset.set("Textured oil · Normal");
+            main->sync_parameter_fields();
+            apply_brush(*main);
+            return;
+        }
+        if (key == "graphite")
+        {
+            main->parameters->reset();
+            main->set_parameter(P::size, 24);
+            main->set_parameter(P::hardness, 100);
+            main->set_parameter(P::wetness, 0);
+            main->preset.set("Graphite pencil · Normal");
+            return;
+        }
+        if (key == "palette")
+        {
+            good(color->set_color({.94, .36, .22, 1}));
+            status("Warm dusk palette selected");
+            return;
+        }
+        if (key == "guide")
+        {
+            main->grid_visible.set(true);
+            canvas.grid = true;
+            canvas.refresh(false);
+            status("Perspective guide selected");
+            return;
+        }
+        if (key == "linen" || key == "paper")
+        {
+            auto pixels = makeRasterLayer(2048, 2048, 0);
+            std::uint32_t seed = 1;
+            for (int y = 0; y < 2048; ++y)
+                for (int x = 0; x < 2048; ++x)
+                {
+                    seed = seed * 1664525u + 1013904223u;
+                    const auto noise = (seed >> 24) % 18;
+                    const unsigned shade = key == "linen"
+                                               ? 210 + ((x % 4 == 0 || y % 4 == 0) ? 10 : 0) + noise
+                                               : 226 + noise;
+                    pixels.pixels[std::size_t(y) * 2048 + x] =
+                        0xff000000u | (shade << 16) | (shade << 8) | shade;
+                }
+            result(artwork.import_pixels(std::move(pixels),
+                                         key == "linen" ? "Linen grain" : "Paper fibers", 0, 0));
+        }
+    }
+    void workspace_command(std::string name)
+    {
+        if (name == "rulers")
+        {
+            main->rulers_visible.set(!main->rulers_visible.get());
+            return;
+        }
+        if (name == "grid")
+            main->grid_visible.set(!main->grid_visible.get());
+        if (name == "grid" || name == "update-view")
+        {
+            canvas.grid = main->grid_visible.get();
+            canvas.refresh(false);
+            return;
+        }
+        if (name == "reset-view")
+        {
+            canvas.fit();
+            refresh();
+            return;
+        }
+        if (name == "symmetry-paint")
+        {
+            auto& symmetry = canvas.settings.engineState->rasterizer.symmetry;
+            symmetry.mode = symmetry.mode == BrushSymmetryMode::None ? BrushSymmetryMode::Vertical
+                                                                     : BrushSymmetryMode::None;
+            symmetry.center = {double(artwork.document().extent.width) / 2,
+                               double(artwork.document().extent.height) / 2};
+            status(symmetry.mode == BrushSymmetryMode::None ? "Symmetry off" : "Vertical symmetry");
+            return;
+        }
+        const std::map<std::string, LayerTransform, std::less<>> transforms{
+            {"flip-horizontal", LayerTransform::flip_horizontal},
+            {"flip-vertical", LayerTransform::flip_vertical},
+            {"rotate-left", LayerTransform::rotate_left},
+            {"rotate-right", LayerTransform::rotate_right}};
+        if (const auto found = transforms.find(name); found != transforms.end())
+        {
+            result(artwork.transform(found->second));
+            return;
+        }
+        status("The " + name + " command requires an editable compatible layer");
+    }
     void apply_brush(ui::EditorBackend& backend)
     {
         backend.size_label.set(ii::core::format_decimal(std::round(backend.brush_size.get()))+" px");
@@ -415,17 +653,26 @@ struct State final : std::enable_shared_from_this<State>
         backend.pressure_mid_label.set(ii::core::format_decimal(std::round(backend.pressure_mid.get()*100))+"%");
         backend.pressure_max_label.set(ii::core::format_decimal(std::round(backend.pressure_max.get()*100))+"%");
         backend.stabilizer_label.set(ii::core::format_decimal(std::round(backend.stabilizer.get()*100))+"%");
+        using P = ToolParameter;
+        backend.parameters->set(P::size, backend.brush_size.get());
+        backend.parameters->set(P::opacity, backend.opacity.get() * 100);
+        backend.parameters->set(P::flow, backend.flow.get() * 100);
+        backend.parameters->set(P::hardness, backend.hardness.get() * 100);
+        backend.parameters->set(P::spacing, backend.spacing.get() * 100);
+        backend.parameters->set(P::stabilization, backend.stabilizer.get() * 100);
+        canvas.settings = backend.parameters->brush();
+        canvas.brush_size = backend.brush_size.get();
+        canvas.opacity = backend.opacity.get();
         canvas.settings.spacing=backend.spacing_pixels.get();
         paint_tools();
         canvas.settings.flow = backend.flow.get();
         canvas.settings.hardness = backend.hardness.get();
         canvas.settings.spacingRatio = backend.spacing.get();
         canvas.settings.pressureToOpacityEnabled = backend.pressure_enabled.get();
-        BrushState engine;
-        engine.rasterizer.smoothingEnabled = backend.stabilizer.get() > 0;
+        BrushState engine = *canvas.settings.engineState;
+        engine.rasterizer.smoothingEnabled =
+            backend.stabilizer.get() > 0 || backend.parameters->value(P::post) > 0;
         engine.rasterizer.smoothing = backend.stabilizer.get();
-        engine.dynamics.pressureToSize = 1;
-        engine.dynamics.pressureToFlow = 1;
         engine.dynamics.pressureToOpacity = 0;
         auto& response = engine.dynamics.opacityResponse;
         response.enabled = backend.pressure_enabled.get();
@@ -433,6 +680,13 @@ struct State final : std::enable_shared_from_this<State>
                              std::clamp(backend.pressure_mid.get(), 0., 1.),
                              std::clamp(backend.pressure_max.get(), 0., 1.)};
         canvas.settings.engineState = std::move(engine);
+        const auto selected = backend.selected_tool.get();
+        auto& material = canvas.settings.engineState->material;
+        material.simulation.enabled = selected == "mixer-brush" || selected == "smudge";
+        material.simulation.model =
+            selected == "smudge" ? BrushSimulationModel::Smudge : BrushSimulationModel::Mixer;
+        material.bristle.enabled = selected == "bristle-brush";
+        canvas.settings.engineState->rasterizer.airbrushEnabled = selected == "airbrush";
         if (main && &backend != main)
         {
             main->spacing_pixels.set(backend.spacing_pixels.get());
@@ -497,9 +751,9 @@ struct State final : std::enable_shared_from_this<State>
         auto widget = take(preferences_view->widgets().find("profile-image"));
         ii::gui::WidgetDrawing drawing;
         if (avatar)
-            drawing.images.push_back({{0, 0, 64, 64}, avatar});
+            drawing.images.push_back({{0, 0, Metric::size64, Metric::size64}, avatar});
         else if(auto icon=lvrs::Icons::image("user"))
-            drawing.images.push_back({{10,10,44,44},*icon});
+            drawing.images.push_back({{Metric::space10,Metric::space10,Metric::size44,Metric::size44},*icon});
         good(widget.set_drawing(std::move(drawing)));
     }
     void set_avatar(const std::filesystem::path& path)
@@ -551,6 +805,7 @@ struct State final : std::enable_shared_from_this<State>
         setup_view = std::make_shared<CanvasSetupView>();
         auto options = CanvasSetupView::options();
         options.renderer = renderer;
+        options.event_loop = &app.event_loop();
         setup_host = std::make_shared<ii::gui::Host>(options);
         const auto weak = weak_from_this();
         good(setup_host->show(
@@ -564,14 +819,17 @@ struct State final : std::enable_shared_from_this<State>
                                                        {
                                                            p->setup = &scope.backend_0;
                                                            scope.backend_0.status.set("");
-                                                           scope.backend_0.perform =
-                                                               [weak](Action action)
+                                                           scope.backend_0.create_requested = [weak]
                                                            {
                                                                if (auto p = weak.lock())
-                                                                   p->act(action);
+                                                                   p->act(Action::create_canvas);
+                                                           };
+                                                           scope.backend_0.close_requested = [weak]
+                                                           {
+                                                               if (auto p = weak.lock())
+                                                                   p->act(Action::cancel_canvas);
                                                            };
                                                        }));
-                            editor::panel(take(p->setup_view->widgets().find("setup-root")),editor::workspace);
                             if (p->test && p->after_setup)
                             {
                                 auto call = std::exchange(p->after_setup, {});
@@ -580,7 +838,6 @@ struct State final : std::enable_shared_from_this<State>
                             }
                         }
                     },
-                    .resized = [weak](ii::gui::Size size) { if(auto p=weak.lock();p&&p->setup_view) if(auto root=p->setup_view->widgets().find("setup-root"))good(root->set_extent(size)); },
                     .closed =
                         [weak]
                     {
@@ -622,7 +879,7 @@ struct State final : std::enable_shared_from_this<State>
                 }
             });
         good(color->observe(color_port));
-        good(color->set_color({.1, .1, .1, 1}));
+        good(color->set_color({.36, .18, 1, 1}));
         canvas.color_picked = [weak](std::uint32_t value)
         {
             if (auto p = weak.lock())
@@ -636,23 +893,16 @@ struct State final : std::enable_shared_from_this<State>
             }
         };
         const auto mounted=view->widgets();
-        editor::panel(take(mounted.find("root")),editor::workspace);
-        editor::panel(take(mounted.find("toolbar")),editor::toolbar);
-        editor::panel(take(mounted.find("sidebar")),editor::sidebar);
-        editor::panel(take(mounted.find("tool-divider")),{1,1,1,.12});
-        auto sidebar=take(mounted.find("sidebar"));
-        good(sidebar.set_input_handler([weak,sidebar](const ii::gui::WidgetInput& e)->ii::core::Result<bool>{
-            if(auto p=weak.lock();p&&p->main) {
-                if(e.kind==ii::gui::WidgetInputKind::pointer_move)
-                    {const auto r=take(sidebar.snapshot()).bounds;p->main->layer_controls.set(e.y>=r.y+r.height-28);}
-                else if(e.kind==ii::gui::WidgetInputKind::pointer_leave)p->main->layer_controls.set(false);
-            }
-            return false;
-        }));
-        ii::gui::WidgetDrawing arrow;
-        for(auto xy:{std::pair{4.f,12.f},{5.f,13.f},{6.f,12.f}})
-            arrow.panels.push_back({{xy.first,xy.second,1,1},editor::linear({.8,.81,.84,1}),editor::linear({.8,.81,.84,1})});
-        good(take(mounted.find("shape-arrow")).set_drawing(std::move(arrow)));
+        good(take(mounted.find("shape")).set_context_menu(take(mounted.find("shape-menu"))));
+        good(take(mounted.find("brush-color"))
+                 .set_context_menu(take(mounted.find("color-actions"))));
+        good(take(mounted.find("layers")).set_context_menu(take(mounted.find("layer-menu"))));
+        timeline_subscription = timeline_model->state.observe(
+            [weak](const TimelinePosition& value, std::uint64_t)
+            {
+                if (auto p = weak.lock())
+                    p->canvas.set_frame(value.frame);
+            });
         canvas.attach(take(mounted.find("canvas")));
         refresh();
         good(take(view->widgets().find("root"))
@@ -870,6 +1120,7 @@ struct State final : std::enable_shared_from_this<State>
         }
         auto options = PreferencesView::options();
         options.renderer = renderer;
+        options.event_loop = &app.event_loop();
         preferences_host = std::make_shared<ii::gui::Host>(options);
         preferences_view = std::make_shared<PreferencesView>();
         auto weak = weak_from_this();
@@ -1113,8 +1364,39 @@ struct State final : std::enable_shared_from_this<State>
             status("Activate a Congregation license to edit this canvas");
             return;
         }
+        const std::map<Action, const char*> active_tools{{Action::brush, "brush"},
+                                                         {Action::eraser, "eraser"},
+                                                         {Action::fill, "paint-bucket"},
+                                                         {Action::select, "move"},
+                                                         {Action::pan, "hand"},
+                                                         {Action::zoom_tool, "imagezoomIn"},
+                                                         {Action::eyedropper, "color-picker"},
+                                                         {Action::text, "area-text"},
+                                                         {Action::rectangle, "rectangle"},
+                                                         {Action::ellipse, "ellipse"},
+                                                         {Action::triangle, "polygon"}};
+        if (main)
+            if (const auto tool = active_tools.find(action); tool != active_tools.end())
+            {
+                main->selected_tool.set(tool->second);
+                apply_brush(*main);
+            }
         switch (action)
         {
+        case Action::save_tool_settings:
+            save_tool_preferences();
+            status("Tool settings saved");
+            break;
+        case Action::choose_asset_library:
+            choose_asset_library();
+            break;
+        case Action::open_asset_library:
+        {
+            auto opened = ii::gui::open_external_url("society://storage/asset-library");
+            if (!opened)
+                status("Choose the Society Asset Library folder to browse local assets");
+            break;
+        }
         case Action::close_notice:
             (void)notice_deadline.cancel();
             good(take(view->widgets().find("status-notice")).close_popup());break;
@@ -1134,12 +1416,15 @@ struct State final : std::enable_shared_from_this<State>
             preference_tab(action);break;
         case Action::open_avatar:
             if(preferences_view) {
-                auto mount=preferences_view->widgets();auto anchor=take(mount.find("profile-image"));
-                good(take(mount.find("avatar-menu")).open_for(anchor,0,64));
+                auto mount = preferences_view->widgets();
+                auto anchor = take(mount.find("profile-image"));
+                good(take(mount.find("avatar-menu")).open_for(anchor, 0, Metric::size64));
             }
             break;
         case Action::size_minus: main->set_brush_size(std::max(1.,main->brush_size.get()-1));break;
-        case Action::size_plus: main->set_brush_size(std::min(48.,main->brush_size.get()+1));break;
+        case Action::size_plus:
+            main->set_brush_size(std::min(1024., main->brush_size.get() + 1));
+            break;
         case Action::open_shapes: popup("shape-menu","shape");break;
         case Action::zoom_tool: canvas.tool="zoom";break;
         case Action::presentation:
@@ -1179,19 +1464,9 @@ struct State final : std::enable_shared_from_this<State>
         {
             if (!setup)
                 break;
-            auto dimension = [](const std::string& text)
-            {
-                int value = 0;
-                auto parsed = std::from_chars(text.data(), text.data() + text.size(), value);
-                return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size() ? value
-                                                                                           : 0;
-            };
-            if (!artwork.create(dimension(setup->new_width.get()),
-                                dimension(setup->new_height.get()), setup->infinite.get()))
-            {
-                setup->status.set(artwork.error());
-                break;
-            }
+            const auto definition = setup->specification();
+            if (!definition) { setup->creation_error(definition.error()); break; }
+            if (!artwork.create(*definition)) { setup->creation_error(artwork.error()); break; }
             canvas.fit();
             good(setup_host->request_close());
             break;
@@ -1272,7 +1547,7 @@ struct State final : std::enable_shared_from_this<State>
             result(artwork.remove_layer());
             break;
         case Action::brush:
-            if(canvas.tool=="brush")popup("brush-popup","brush");
+            main->option_tab.set(0);
             canvas.tool = "brush";
             break;
         case Action::eraser:
@@ -1453,12 +1728,12 @@ struct State final : std::enable_shared_from_this<State>
         }
         if (main)
         {
-            main->title.set(artwork.source().empty() ? "Untitled"
+            main->title.set(artwork.source().empty() ? (artwork.creation() ? artwork.creation()->name : "Untitled")
                                                      : path_text(artwork.source().filename()));
             main->tool.set(canvas.tool);
             paint_tools();
-            main->zoom.set(ii::core::format_decimal(std::round(canvas.viewport().scale * 100)) +
-                           "%");
+            main->zoom.set(
+                ii::core::format_decimal(std::round(canvas.viewport().scale * 1000) / 10) + "%");
         }
     }
     void popup(std::string_view id,std::string_view anchor_id)
@@ -1473,16 +1748,6 @@ struct State final : std::enable_shared_from_this<State>
         if(auto curve=mount.find("pressure-curve"))editor::pressure_curve(*curve,main->pressure_min.get(),main->pressure_mid.get(),main->pressure_max.get());
         if(auto preview=mount.find("brush-preview"))
             editor::brush_preview(*preview,main->brush_size.get(),take(color->state()).color);
-        for(auto [id,tool]:{std::pair{"pan","pan"},{"select","select"},{"zoom-tool","zoom"},{"brush","brush"},{"eraser","eraser"},{"fill","fill"},{"text","text"}})
-            if(auto widget=mount.find(id))editor::tool_button(*widget,canvas.tool==tool);
-        if(auto widget=mount.find("shape")) {
-            const bool selected=canvas.tool=="line"||canvas.tool=="rectangle"||canvas.tool=="ellipse"||canvas.tool=="triangle"||canvas.tool=="diamond"||canvas.tool=="star"||canvas.tool=="rectanglebubble"||canvas.tool=="ellipsebubble";
-            editor::tool_button(*widget,selected);
-            if(selected) {
-                const auto icon=canvas.tool=="rectanglebubble"?"rectangle":canvas.tool=="ellipsebubble"?"ellipse":canvas.tool=="line"?"showCode":canvas.tool.c_str();
-                good(widget->set_button_icon(editor::icon(icon),icon));
-            }
-        }
     }
     void preference_tab(Action action)
     {
@@ -1504,7 +1769,9 @@ struct State final : std::enable_shared_from_this<State>
     }
     void reference_capture()
     {
-        check(test&&!reference_image.empty(),"Reference capture must use isolated self-test storage");
+        check(test && !reference_image.empty(),
+              "Reference capture requires isolated self-test storage");
+        good(host->set_content_size({1999, 1080}));
         const auto bytes=iiFileProvider::native::File::read(reference_image,64*1024*1024);
         auto decoded=take(ii::image::decode({reinterpret_cast<const std::uint8_t*>(bytes.data()),bytes.size()}));
         auto image=take(ii::image::to_srgb(decoded));
@@ -1514,68 +1781,173 @@ struct State final : std::enable_shared_from_this<State>
             pixels.pixels[i]=(std::uint32_t(c[3])<<24)|(std::uint32_t(c[0])<<16)|(std::uint32_t(c[1])<<8)|c[2];
         }
         check(artwork.create(image.width,image.height),artwork.error());
-        check(artwork.rename(artwork.selected(),"Background"),artwork.error());
-        check(artwork.import_pixels(std::move(pixels),"Layer 1",0,0),artwork.error());
-        canvas.fit();refresh();paint_tools();
-        auto mount=view->widgets();
-        const auto canvas_bounds=take(take(mount.find("canvas")).snapshot()).bounds;
-        const auto toolbar_bounds=take(take(mount.find("toolbar")).snapshot()).bounds;
-        capture(*host,"editor.png");
-        iiFileProvider::native::File::create(directory/"layout.json", "{\"canvasX\":"+std::to_string(canvas_bounds.x)+",\"canvasY\":"+std::to_string(canvas_bounds.y)+",\"canvasWidth\":"+std::to_string(canvas_bounds.width)+",\"canvasHeight\":"+std::to_string(canvas_bounds.height)+",\"toolbarHeight\":"+std::to_string(toolbar_bounds.height)+",\"paperX\":"+std::to_string(canvas.viewport().x)+",\"paperY\":"+std::to_string(canvas.viewport().y)+",\"scale\":"+std::to_string(canvas.viewport().scale)+"}\n");
-        check(canvas_bounds.x==editor::sidebar_width&&toolbar_bounds.height==editor::toolbar_height,"Vincent editor chrome geometry changed");
-        for(auto id:{"new","open","save","pan","select","zoom-tool","brush","eraser","shape","fill","text"}) {
-            const auto button=take(take(mount.find(id)).snapshot());
-            check(button.text.empty()&&!button.accessibility_name.empty()&&button.bounds.width==18,"Vincent toolbar requires compact named icon buttons");
-        }
-        check(take(take(mount.find("brush-size")).snapshot()).bounds.width==160,"Vincent size slider width changed");
-        const auto revision=artwork.revision();
-        good(mount.dispatch_input({.kind=ii::gui::WidgetInputKind::pointer_move,.x=8,.y=850}));
-        check(main->layer_controls.get(),"Layer footer did not appear on hover");
-        good(mount.dispatch_input({.kind=ii::gui::WidgetInputKind::pointer_move,.x=270,.y=50}));
-        check(!main->layer_controls.get(),"Layer footer did not hide after leaving");
-        popup("brush-popup","brush");capture(*host,"brush.png");
-        const auto curve=take(take(mount.find("pressure-curve")).snapshot()).bounds;
-        good(mount.dispatch_input({.kind=ii::gui::WidgetInputKind::pointer_down,.x=curve.x+curve.width/2,.y=curve.y+46,.buttons=1}));
-        good(mount.dispatch_input({.kind=ii::gui::WidgetInputKind::pointer_move,.x=curve.x+curve.width/2,.y=curve.y+6,.buttons=1}));
-        good(mount.dispatch_input({.kind=ii::gui::WidgetInputKind::pointer_up,.x=curve.x+curve.width/2,.y=curve.y+6}));
-        check(main->pressure_mid.get()==1&&artwork.revision()==revision,"Pressure graph editing failed: midpoint="+std::to_string(main->pressure_mid.get())+" revision="+std::to_string(artwork.revision())+" expected="+std::to_string(revision));
-        main->set_pressure_mid(.5);
-        good(take(mount.find("brush-popup")).close_popup());
-        popup("color-popup","brush-color");capture(*host,"color.png");good(take(mount.find("color-popup")).close_popup());
-        popup("shape-menu","shape");capture(*host,"shapes.png");
-        good(take(mount.find("ellipse")).activate());
-        check(take(take(mount.find("shape")).snapshot()).icon_name=="ellipse"&&artwork.revision()==revision,"Shape selection did not replace its toolbar icon");
-        act(Action::brush);
-        good(take(mount.find("shape-menu")).close_popup());
-        auto weak=weak_from_this();
-        after_preferences=[weak,revision] {
-            if(auto p=weak.lock()) {
-                const auto root=take(take(p->preferences_view->widgets().find("preferences-root")).snapshot()).bounds;
-                check(root.width==480&&root.height==360,"Preferences must fill the 480×360 client area");
-                p->capture(*p->preferences_host,"preferences-general.png");
-                p->preference_tab(Action::profile_tab);p->capture(*p->preferences_host,"preferences-profile.png");
-                p->preference_tab(Action::members_tab);p->capture(*p->preferences_host,"preferences-members.png");
-                check(p->artwork.revision()==revision,"UI presentation changed document data");
-                good(p->preferences_host->request_close());
-                p->after_setup=[weak,revision] {
-                    if(auto p=weak.lock()) {
-                        p->capture(*p->setup_host,"new-canvas.png");
-                        good(p->setup_host->request_close());
-                        p->main->licensed.set(false);p->main->needs_license.set(true);
-                        p->capture(*p->host,"activation.png");
-                        auto mount=p->view->widgets();
-                        const auto email=take(take(mount.find("license-email")).snapshot()).bounds;
-                        const auto key=take(take(mount.find("license-key")).snapshot()).bounds;
-                        check(key.y>=email.y+email.height,"Activation fields overlap");
-                        check(p->artwork.revision()==revision,"Auxiliary UI changed document data");
-                        std::cout<<"CONGREGATION_VINCENT_UI_OK toolbar=40 sidebar=260 preferences=480x360 qt=false captures="<<path_text(p->directory)<<'\n';
-                        good(p->app.quit());
-                    }
-                };
-                p->open_setup();
+        check(artwork.import_pixels(std::move(pixels), "Base painting", 0, 0), artwork.error());
+        auto document = artwork.document();
+        const auto image_id = staticLayerSource(document.layers.back())->assetId;
+        document.assets.emplace_back(RasterAsset{"reference-empty", makeRasterLayer(1, 1, 0)});
+        document.layers.clear();
+        const std::array<const char*, 10> names{
+            "Painting",      "Highlights", "Color strokes", "Linework", "Shadows",
+            "Base painting", "Sky wash",   "Color balance", "Camera",   "Audio"};
+        for (std::size_t index = names.size(); index-- > 0;)
+        {
+            LayerProperties properties{"reference-" + std::to_string(index), names[index]};
+            if (index == 1)
+            {
+                properties.opacity = .72;
+                properties.blendMode = RasterBlendMode::Screen;
             }
-        };
-        open_preferences();
+            if (index == 4)
+            {
+                properties.opacity = .68;
+                properties.blendMode = RasterBlendMode::Multiply;
+            }
+            document.layers.emplace_back(StaticBitmapLayer{
+                std::move(properties), StaticSource{index == 5 ? image_id : "reference-empty"}});
+        }
+        document.timeline = {{24, 1}, 48};
+        check(artwork.replace(std::move(document)), artwork.error());
+        check(artwork.select("reference-2"), artwork.error());
+        timeline_model->set_rate(24);
+        timeline_model->set_duration(2);
+        timeline_model->scrub(1);
+        canvas.fit();
+        refresh();
+        auto mount=view->widgets();
+        const auto bounds = [&](std::string_view id)
+        { return take(take(mount.find(id)).snapshot()).bounds; };
+        const auto canvas_bounds = bounds("canvas"), toolbar_bounds = bounds("toolbar");
+        check(canvas_bounds.x == 306 && canvas_bounds.y == 46 && canvas_bounds.width == 1341 &&
+                  canvas_bounds.height == 692,
+              "Figma canvas geometry differs from the authored composition");
+        check(toolbar_bounds.height == 28 && bounds("sidebar").width == 224 &&
+                  bounds("tool-rail").width == 54 && bounds("inspector").width == 352 &&
+                  bounds("timeline").height == 296,
+              "Figma fixed panel geometry changed");
+        capture(*host, "editor-initial.png");
+        iiFileProvider::native::File::create(directory/"layout.json", "{\"canvasX\":"+std::to_string(canvas_bounds.x)+",\"canvasY\":"+std::to_string(canvas_bounds.y)+",\"canvasWidth\":"+std::to_string(canvas_bounds.width)+",\"canvasHeight\":"+std::to_string(canvas_bounds.height)+",\"toolbarHeight\":"+std::to_string(toolbar_bounds.height)+",\"paperX\":"+std::to_string(canvas.viewport().x)+",\"paperY\":"+std::to_string(canvas.viewport().y)+",\"scale\":"+std::to_string(canvas.viewport().scale)+"}\n");
+        const auto revision=artwork.revision();
+        const auto saved = artwork.snapshot();
+        using K = ii::gui::WidgetInputKind;
+        const auto size = bounds("brush-size");
+        const double x = size.x + 9 + (size.width - 18) * .7, y = size.y + size.height / 2;
+        good(mount.dispatch_input({.kind = K::pointer_down, .x = x, .y = y, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_move, .x = x, .y = y, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_up, .x = x, .y = y}));
+        check(main->parameters->value(ToolParameter::size) == 128,
+              "Native slider drag did not adjust logarithmic brush size");
+        good(take(mount.find("size-plus")).activate());
+        check(main->parameters->value(ToolParameter::size) == 129,
+              "Native step button did not make a physical-unit adjustment");
+        main->reset_parameters();
+        auto scroll = take(mount.find("tool-scroll"));
+        const auto scroll_bounds = bounds("tool-scroll");
+        good(mount.dispatch_input({.kind = K::scroll,
+                                   .x = scroll_bounds.x + 100,
+                                   .y = scroll_bounds.y + 100,
+                                   .scroll_y = 850}));
+        check(take(scroll.snapshot()).scroll_offset > 0,
+              "Tool panel did not accept native wheel input");
+        capture(*host, "tool-dynamics.png");
+        good(scroll.set_scroll_offset(5000));
+        capture(*host, "tool-taper.png");
+        const auto taper = bounds("parameter-taper");
+        check(taper.y + taper.height <= scroll_bounds.y + scroll_bounds.height + .01,
+              "The final Tool parameter is inaccessible");
+        good(scroll.set_scroll_offset(0));
+        for (int tab = 1; tab < 4; ++tab)
+        {
+            good(take(mount.find("option-" + std::to_string(tab))).activate());
+            capture(*host, "options-" + std::to_string(tab) + ".png");
+        }
+        good(take(mount.find("option-0")).activate());
+        const auto ruler = bounds("timeline-ruler");
+        const double tick_x = ruler.x + 416 + (ruler.width - 416) * .625;
+        good(mount.dispatch_input(
+            {.kind = K::pointer_down, .x = tick_x, .y = ruler.y + 30, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_up, .x = tick_x, .y = ruler.y + 30}));
+        check(timeline_model->frame() == 30 &&
+                  take(take(mount.find("timeline-time")).snapshot()).text == "00:01.250",
+              "Timeline did not snap time to frame ticks");
+        check(artwork.revision() == revision && artwork.snapshot() == saved,
+              "Tool, panel or timeline navigation changed saved document data");
+        good(mount.dispatch_input(
+            {.kind = K::pointer_down, .x = tick_x, .y = ruler.y + 30, .alt = true, .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_move, .x = tick_x, .y = ruler.y + 6, .alt = true, .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_up, .x = tick_x, .y = ruler.y + 6, .alt = true}));
+        check(artwork.document().timeline.frameRate.numerator == 30 &&
+                  artwork.revision() == revision + 1,
+              "Timeline tick rate adjustment did not commit one document edit");
+        check(artwork.undo(), artwork.error());
+        timeline_model->set_rate(24);
+        timeline_model->scrub(1);
+        refresh();
+        auto layer_surface = take(mount.find("layers"));
+        good(layer_surface.focus());
+        good(mount.dispatch_input({.kind = K::key_down, .key = ii::gui::WidgetKey::enter}));
+        check(take(take(mount.find("rename-layer")).snapshot()).opened,
+              "Timeline layer rename did not open");
+        good(take(mount.find("layer-name")).focus());
+        good(mount.dispatch_input({.kind = K::key_down, .key = ii::gui::WidgetKey::select_all}));
+        good(mount.dispatch_input({.kind = K::text, .text = "Verified layer"}));
+        good(take(mount.find("commit-layer-name")).activate());
+        const auto renamed =
+            std::ranges::find_if(artwork.document().layers, [](const auto& layer)
+                                 { return layerProperties(layer).id == "reference-2"; });
+        check(renamed != artwork.document().layers.end() &&
+                  layerProperties(*renamed).name == "Verified layer",
+              "Timeline rename did not commit to the document");
+        check(artwork.undo(), artwork.error());
+        const auto layer_bounds = bounds("layers");
+        good(mount.dispatch_input({.kind = K::pointer_down,
+                                   .x = layer_bounds.x + 100,
+                                   .y = layer_bounds.y + 2 * 22 + 11,
+                                   .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_move,
+                                   .x = layer_bounds.x + 100,
+                                   .y = layer_bounds.y + 4 * 22 + 11,
+                                   .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_up, .x = layer_bounds.x + 100, .y = layer_bounds.y + 4 * 22 + 11}));
+        check(layerProperties(artwork.document().layers[5]).id == "reference-2",
+              "Timeline layer drag did not preserve the displayed compositing order");
+        check(artwork.undo(), artwork.error());
+        capture(*host, "editor.png");
+        const auto before_play = timeline_model->frame();
+        const auto play_revision = artwork.revision();
+        good(host->window_action(ii::gui::WindowAction::raise));
+        good(take(mount.find("timeline-play")).activate());
+        verify_reference_playback(before_play, play_revision,
+                                  ii::runtime::Clock::now() + std::chrono::seconds(15));
+    }
+    void verify_reference_playback(int before_play, std::uint64_t revision,
+                                   ii::runtime::Clock::time_point limit)
+    {
+        check(artwork.revision() == revision, "Playback changed the saved document revision");
+        if (timeline_model->frame() != before_play)
+        {
+            timeline_model->playing(false);
+            std::cout << "CONGREGATION_FIGMA_UI_OK size=1999x1080 parameters=22 drag=true "
+                         "scroll=true time=true rate=true playback=true "
+                         "navigation_revision=false qt=false captures="
+                      << path_text(directory) << '\n';
+            good(app.quit());
+            return;
+        }
+        check(ii::runtime::Clock::now() < limit,
+              "Native display frames did not advance timeline playback; callbacks=" +
+                  std::to_string(take(host->stats()).display_callbacks));
+        const auto weak = weak_from_this();
+        const auto completion = host->executor().after(std::chrono::milliseconds(100),
+                                                       [weak, before_play, revision, limit]
+                                                       {
+                                                           if (auto p = weak.lock())
+                                                               p->verify_reference_playback(
+                                                                   before_play, revision, limit);
+                                                       });
+        check(bool(completion), "Cannot schedule native playback verification");
     }
     void self_test()
     {
@@ -1602,14 +1974,28 @@ struct State final : std::enable_shared_from_this<State>
         after_setup = [weak, original]
         {
             if (auto p = weak.lock())
-                p->self_test_editor(original);
+            {
+                check(p->setup && p->setup_host, "Canvas child did not open for cancellation");
+                auto child = p->setup_host;
+                p->act(Action::new_document);
+                check(p->setup_host == child, "Repeated New created a duplicate child window");
+                p->setup->custom_size();
+                p->setup->set_background("Black");
+                p->act(Action::cancel_canvas);
+                check(take(child->snapshot()).closed && p->artwork.snapshot() == original,
+                      "Cancel changed the existing document");
+                p->after_setup = [weak, original] {
+                    if (auto next = weak.lock()) next->self_test_editor(original);
+                };
+                p->act(Action::new_document);
+            }
         };
         auto timeout = host->executor().after(
             std::chrono::seconds(240),
             [] { throw std::runtime_error("Native self-test did not finish"); });
         check(bool(timeout), "Self-test timeout admission failed");
         deadline = timeout.token;
-        good(take(mount.find("new")).activate());
+        act(Action::new_document);
     }
     void self_test_editor(const std::string& original)
     {
@@ -1627,6 +2013,9 @@ struct State final : std::enable_shared_from_this<State>
         check(artwork.document().extent == CanvasExtent{128, 96} &&
                   take(setup_host->snapshot()).closed,
               "Native canvas setup failed");
+        check(artwork.creation() && artwork.creation()->background == "White" &&
+                  artwork.document().layers.size() == 2, "New canvas did not apply its default background");
+        const auto initial_layers = artwork.document().layers.size();
         good(take(mount.find("brush-color")).activate());
         check(take(take(mount.find("color-popup")).snapshot()).opened,
               "Native color picker did not open");
@@ -1655,10 +2044,10 @@ struct State final : std::enable_shared_from_this<State>
         check(artwork.revision() == revision + 1,
               "Native pen stroke did not produce one durable edit");
         auto pixels = renderFrame(artwork.document(), 0).pixels.pixels;
-        check(std::ranges::any_of(pixels, [](auto p) { return p >> 24; }),
-              "Native canvas did not paint");
+        check(std::ranges::any_of(pixels, [](auto p) { return p != 0xffffffffU; }),
+              "Native canvas did not paint over its white background");
         const auto stroke_pixels=renderFrame(artwork.document(),0).pixels;
-        check((stroke_pixels.pixels[12*stroke_pixels.width+12]>>24)>0,"Surface coordinates were not mapped to the canvas stroke origin");
+        check(stroke_pixels.pixels[12*stroke_pixels.width+12] != 0xffffffffU,"Surface coordinates were not mapped to the canvas stroke origin");
         auto canceled = artwork.snapshot();
         auto canceled_revision = artwork.revision();
         good(mount.dispatch_input(point(60, 35, ii::gui::WidgetInputKind::pointer_down)));
@@ -1715,7 +2104,7 @@ struct State final : std::enable_shared_from_this<State>
         check(renderFrame(artwork.document(), 0).pixels.pixels == pixels,
               "Native Redo action failed");
         act(Action::add_layer);
-        check(artwork.document().layers.size() == 2, "Layer action failed");
+        check(artwork.document().layers.size() == initial_layers + 1, "Layer action failed");
         result(artwork.rename(artwork.selected(), "검증 레이어"));
         check(layers->rows().front().text == "검증 레이어", "Reactive layer list did not update");
         auto placed = encodeBitmap(makeRasterLayer(2, 2, 0xff22cc66));
@@ -1847,6 +2236,8 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
     auto weak = std::weak_ptr<State>(state);
     auto options = MainView::options();
     options.renderer = renderer;
+    options.event_loop = &app.event_loop();
+    options.frame_loop = &app.frame_loop();
     state->host = take(
         gui::attach_application(app, options,
                                 {.opened =

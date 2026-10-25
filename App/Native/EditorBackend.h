@@ -4,15 +4,26 @@
 #include <iiGUI/Bindings.h>
 #include <functional>
 #include <charconv>
+#include "ToolSettings.h"
+#include "TimelineModel.h"
 
 namespace congregation::ui
 {
 enum class Action
 {
-    toggle_layer_visibility, close_notice,
+    toggle_layer_visibility,
+    close_notice,
     open_join,
-    general_tab, profile_tab, members_tab, open_avatar, restore_license,
-    open_shapes, size_minus, size_plus, zoom_tool, presentation,
+    general_tab,
+    profile_tab,
+    members_tab,
+    open_avatar,
+    restore_license,
+    open_shapes,
+    size_minus,
+    size_plus,
+    zoom_tool,
+    presentation,
     eyedropper,
     remove_member,
     open_color,
@@ -63,23 +74,48 @@ enum class Action
     invite,
     accept_invite,
     reject_invite,
-    quit
+    quit,
+    save_tool_settings,
+    choose_asset_library,
+    insert_asset,
+    open_asset_library
 };
 class EditorBackend final
 {
   public:
     EditorBackend();
+    std::shared_ptr<native::ToolSettings> parameters = std::make_shared<native::ToolSettings>();
+    std::shared_ptr<native::TimelineModel> timeline = std::make_shared<native::TimelineModel>();
+    ii::core::Observable<std::string> preset{"Textured oil · Normal"}, selected_tool{"brush"},
+        document_info{"1536 × 1024 · RGB / 16-bit · sRGB"}, asset_root{""};
+    ii::core::Observable<int> option_tab{0};
+    ii::core::Observable<bool> grid_visible{false}, rulers_visible{true};
+    std::function<void(std::string)> tool_selected;
+    std::function<void(std::filesystem::path)> asset_inserted;
+    std::function<void(std::string)> builtin_asset_inserted;
+    std::function<void(std::string, double)> layer_opacity_changed;
+    std::function<void(std::string)> layer_mode_changed;
+    std::function<void(int)> frame_rate_changed;
+    std::function<void(std::string)> command;
+    void set_parameter(native::ToolParameter, double);
+    void set_parameter_normalized(native::ToolParameter, double);
+    void step_parameter(native::ToolParameter, int);
+    void reset_parameters();
+    void sync_parameter_fields();
+    void select_tool(std::string);
+    void choose_preset();
+    void save_parameters() { send(Action::save_tool_settings); }
     std::shared_ptr<const ii::gui::RasterImage> pan_icon, move_icon, add_icon, open_icon, save_icon, zoom_icon, brush_icon, eraser_icon, shape_icon, fill_icon, text_icon, minus_icon, plus_icon;
     ii::core::Observable<std::string> status{"Ready"}, title{"Untitled"}, tool{"Brush"},
         zoom{"100%"}, email{""}, license_key{""}, text_value{"Text"}, session_address{""},
-        display_name{"Guest"}, update_status{""}, new_width{"1024"}, new_height{"768"}, account_email{"Not connected"}, size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
+        display_name{"Guest"}, update_status{""}, account_email{"Not connected"}, size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
         hardness_label{"100%"}, spacing_label{"0.0 px"}, spacing_ratio_label{"15%"}, stabilizer_label{"0%"}, pressure_min_label{"0%"}, pressure_mid_label{"50%"}, pressure_max_label{"100%"};
     ii::core::Observable<bool> licensed{false}, needs_license{true}, can_activate{true},
-        start_recent{false}, discover{true}, infinite{false}, pressure_enabled{true},
+        start_recent{false}, discover{true}, pressure_enabled{true},
         layer_controls{false}, chrome_visible{true}, general_visible{true}, profile_visible{false}, members_visible{false},
-        start_new{true}, can_invite{false}, dimensions_enabled{true}, can_create{true};
-    ii::core::Observable<double> brush_size{2}, opacity{1}, flow{1}, hardness{1}, spacing{.15}, spacing_pixels{0},
-        stabilizer{0}, pressure_min{0}, pressure_mid{.5}, pressure_max{1};
+        start_new{true}, can_invite{false};
+    ii::core::Observable<double> brush_size{64}, opacity{1}, flow{.9}, hardness{.85}, spacing{.12},
+        spacing_pixels{0}, stabilizer{.18}, pressure_min{0}, pressure_mid{.5}, pressure_max{1};
     std::shared_ptr<lvrs::ListModel> layers = std::make_shared<lvrs::ListModel>(),
                                      members = std::make_shared<lvrs::ListModel>();
     std::shared_ptr<ii::gui::ColorPickerModel> color =
@@ -212,14 +248,6 @@ class EditorBackend final
         display_name.set(std::move(value));
         if (name_changed)
             name_changed();
-    }
-    void set_new_width(std::string value) { new_width.set(std::move(value)); validate_dimensions(); }
-    void set_new_height(std::string value) { new_height.set(std::move(value)); validate_dimensions(); }
-    void set_infinite(bool value) { infinite.set(value); dimensions_enabled.set(!value); validate_dimensions(); }
-    void validate_dimensions()
-    {
-        const auto valid=[](const std::string& text){int n=0;const auto parsed=std::from_chars(text.data(),text.data()+text.size(),n);return parsed.ec==std::errc{}&&parsed.ptr==text.data()+text.size()&&n>=1&&n<=8192;};
-        can_create.set(infinite.get()||(valid(new_width.get())&&valid(new_height.get())));
     }
     ii::core::Result<bool> pressure_curve_input(const ii::gui::WidgetInput& e) { return pressure_input?pressure_input(e):ii::core::Result<bool>{false}; }
     void set_spacing_pixels(double value) { spacing_pixels.set(value); if(brush_changed)brush_changed(); }

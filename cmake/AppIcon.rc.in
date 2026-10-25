@@ -1,0 +1,2 @@
+// The first icon resource is the application's icon in Windows Explorer.
+1 ICON "@CONGREGATION_APP_ICON_RC@"

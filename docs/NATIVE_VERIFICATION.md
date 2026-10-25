@@ -1,5 +1,9 @@
 # Congregation Qt 독립 실행 검증
 
+## Figma ApplicationWindow · 2026-10-25
+
+현재 Main 화면은 `83:6974`와 Tool 풀버전 `130:1832`를 반영한 1999×1080 네이티브 구성이다. 현재 구현의 검증 결과는 [FIGMA_UI_VERIFICATION.md](FIGMA_UI_VERIFICATION.md), 구조·입력·기능 경계는 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)를 따른다. 아래 Vincent·2026-10-24 설치 패키지 기록은 당시 빌드의 이력이다. 기존 PKG에 이번 UI가 반영되었다는 뜻은 아니다. 이번 `build/Congregation.app`은 개발 검증용 ad-hoc 서명본이며 설치 패키지는 다시 만들지 않았다.
+
 Qt 독립화·UI 검증일은 2026-10-23이며 arm64 macOS 그래픽 세션에서 수행했다. Windows·Linux는 사용자의 지시에 따라 소스 구현 범위이다. 직접 배포용 PKG의 최신 검증은 아래 2026-10-24 설치 패키지 항목을 따른다. 선행 Qt 독립화 단계의 재실행·로그는 `build/native-verification.json`에, UI 변경 결과는 `build/vincent-ui-verification.json`에 보존한다.
 
 ## macOS 설치 패키지 · 2026-10-24

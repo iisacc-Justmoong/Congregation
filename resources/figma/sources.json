@@ -1,0 +1,29 @@
+{
+  "figma_file": "r4E0PNUdZuo6dEiMEitF2I",
+  "reference_nodes": [
+    "83:6974",
+    "130:1832"
+  ],
+  "assets": [
+    {
+      "file": "coastal-house.png",
+      "bytes": 2401916,
+      "sha256": "c950d060ba59deefa3219a1e37e5a5214e80922299ec5cb6a31a69467e9fd624"
+    },
+    {
+      "file": "mountain-study.png",
+      "bytes": 3134857,
+      "sha256": "4d4b7d55802873f8e6e369a95e8e52ab6247a7d4bfc35cf4271bfde6e5216a40"
+    },
+    {
+      "file": "playhead-marker.svg",
+      "bytes": 251,
+      "sha256": "fc93fc8c7df7445db49c9ddd48af0a24b0f0b70b05b5df0cbdada4e6256fad30"
+    },
+    {
+      "file": "playhead-line.svg",
+      "bytes": 274,
+      "sha256": "076087032fbe11141fc455edc0a0b500297e764ad2ac8fc1f161d470070e5f37"
+    }
+  ]
+}

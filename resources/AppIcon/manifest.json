@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 1024,
+    "height": 1024,
+    "opaque": true,
+    "corner_radius": 0
+  },
+  "generator": "Adobe Illustrator PNG24; macOS sips and iconutil; PNG-based ICO",
+  "inputs": {
+    "resources/AppIcon/Congregation.svg": "3218758dbe5c34b73584617210d692ddb49969715004986a72919fde3cad0f04",
+    "resources/AppIcon/Congregation.ai": "fde962405a3ee396c5d423045b12fa1d40d4fe046ae596c71944cab84c713b44",
+    "resources/AppIcon/Congregation.png": "1c8ab0aaa0b595b876fb0e846c0be4d4b4339fb6ad8d2bf43ebce6cb71e19f9b",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/Contents.json": "8e295e2ab31f14964528b2d02619be72d14b99ebd2fca2a68331d14d829c70f5"
+  },
+  "outputs": {
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_16x16.png": "656d7bafc32b02d7f80aecae03fb6a35d4c689eb49e31b235dd9cdbf3dab45e5",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_16x16@2x.png": "d38bb664c09ab5f49ee41bd4e511ff7294b0a8a6643b3623f8636ba78693c674",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_32x32.png": "d38bb664c09ab5f49ee41bd4e511ff7294b0a8a6643b3623f8636ba78693c674",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_32x32@2x.png": "a16a8557191e81b713b8fc984f10e3186fc4b6827f6430b3413eef7e4339b1a9",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_128x128.png": "00377dc5e927dc21fe60a765e286364fbb485cd13c6dcfa212a40fba68280d5d",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_128x128@2x.png": "8a42f5855fac524c8b659a82caaf5bafa6a8c8a9d84f7ea3954a810362a65b58",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_256x256.png": "8a42f5855fac524c8b659a82caaf5bafa6a8c8a9d84f7ea3954a810362a65b58",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_256x256@2x.png": "7617159ee40bd45566ffbe164a29c665e486012895d7d5ad8e9b3c32c166045e",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_512x512.png": "7617159ee40bd45566ffbe164a29c665e486012895d7d5ad8e9b3c32c166045e",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/icon_512x512@2x.png": "1c8ab0aaa0b595b876fb0e846c0be4d4b4339fb6ad8d2bf43ebce6cb71e19f9b",
+    "packaging/macos/Congregation.xcassets/AppIcon.appiconset/AppIcon-1024.png": "1c8ab0aaa0b595b876fb0e846c0be4d4b4339fb6ad8d2bf43ebce6cb71e19f9b",
+    "resources/Appicon.icns": "ca9876fd29cea49d7587f731bc59ee09391c791deef66be0dbd1292b729f3c8f",
+    "resources/Appicon.ico": "e888853e75bc23fbf2be2abb5d5544441e8b08faf3ede40b1193c42f98f47636"
+  }
+}

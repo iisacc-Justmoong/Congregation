@@ -1,14 +1,22 @@
 #pragma once
+#include "Style.h"
 #include <iiGUI/NativeWidgets.h>
 
 namespace congregation::native::editor
 {
-// Vincent's client area: platform title/menu bars are outside these coordinates.
-inline constexpr double toolbar_height = 40, sidebar_width = 260;
-inline constexpr ii::gui::WidgetColor toolbar{31./255,31./255,31./255,1};
-inline constexpr ii::gui::WidgetColor sidebar{36./255,38./255,37./255,1};
-inline constexpr ii::gui::WidgetColor workspace{20./255,20./255,20./255,1};
-struct Fit final { double scale, x, y; };
+// Figma 83:6974: the OS title/menu bars stay outside the client composition.
+inline constexpr double toolbar_height = Metric::toolbarHeight,
+                        sidebar_width = Metric::sidebarWidth,
+                        tool_rail_width = Metric::toolRailWidth,
+                        inspector_width = Metric::inspectorWidth,
+                        timeline_height = Metric::timelineHeight;
+inline constexpr ii::gui::WidgetColor toolbar = Color::toolbar;
+inline constexpr ii::gui::WidgetColor sidebar = Color::popup;
+inline constexpr ii::gui::WidgetColor workspace = Color::workspace;
+struct Fit final
+{
+    double scale, x, y;
+};
 [[nodiscard]] Fit fit(double width, double height, double document_width, double document_height);
 [[nodiscard]] ii::gui::Color linear(ii::gui::WidgetColor);
 void panel(ii::gui::Widget, ii::gui::WidgetColor);

@@ -20,6 +20,110 @@ int main(int argc, char** argv)
     {
         check(argc == 2, "Workspace test directory missing");
         iiFileProvider::native::TemporaryDirectory temporary{std::filesystem::path(argv[1])};
+        {
+            Artwork controls(temporary.path());
+            check(controls.create(96, 64), controls.error());
+            const auto id = controls.selected();
+            const auto rev = controls.revision();
+            check(controls.opacity(id, .72) && controls.revision() == rev + 1,
+                  "Layer opacity did not commit one edit");
+            check(controls.opacity(id, .72) && controls.revision() == rev + 1,
+                  "Unchanged opacity created a document edit");
+            check(controls.cycle_blend(id) &&
+                      layerProperties(controls.document().layers.back()).blendMode ==
+                          RasterBlendMode::Multiply,
+                  "Layer blend control did not reach the document");
+            check(controls.timing(30, 60) && controls.document().timeline.frameCount == 60,
+                  "Timeline tick rate did not update document timing");
+            const auto saved = controls.snapshot();
+            check(!controls.timing(0, 60) && controls.snapshot() == saved,
+                  "Invalid timing changed the document");
+            AffineTransform original;
+            original.m11 = 1;
+            original.m12 = 2;
+            original.m21 = 3;
+            original.m22 = 4;
+            original.translationX = 5;
+            original.translationY = 6;
+            check(controls.transform(original), controls.error());
+            check(controls.transform(congregation::native::LayerTransform::flip_horizontal),
+                  controls.error());
+            auto result = layerProperties(controls.document().layers.back()).transform;
+            check(result.m11 == -1 && result.m12 == 2 && result.m21 == -3 && result.m22 == 4 &&
+                      result.translationX == 91 && result.translationY == 6,
+                  "Horizontal flip used the wrong affine matrix convention");
+            check(controls.transform(original) &&
+                      controls.transform(congregation::native::LayerTransform::rotate_right),
+                  controls.error());
+            result = layerProperties(controls.document().layers.back()).transform;
+            check(result.m11 == -2 && result.m12 == 1 && result.m21 == -4 && result.m22 == 3 &&
+                      result.translationX == 74 && result.translationY == -11,
+                  "Rotation failed to compose around the canvas center");
+            check(controls.transform(congregation::native::LayerTransform::rotate_left),
+                  controls.error());
+            result = layerProperties(controls.document().layers.back()).transform;
+            check(result.m11 == 1 && result.m12 == 2 && result.m21 == 3 && result.m22 == 4 &&
+                      result.translationX == 5 && result.translationY == 6,
+                  "Inverse rotation did not restore the layer transform");
+            check(controls.add_layer("Middle"), controls.error());
+            const auto middle = controls.selected();
+            check(controls.add_layer("Top"), controls.error());
+            const auto top = controls.selected();
+            check(controls.move(id, top) &&
+                      layerProperties(controls.document().layers.back()).id == id,
+                  "Dragging a layer above the top row did not change compositing order");
+            check(controls.move(id, "") &&
+                      layerProperties(controls.document().layers.front()).id == id,
+                  "Dropping a layer at the bottom did not change compositing order");
+            check(controls.move(top, middle) &&
+                      layerProperties(controls.document().layers.back()).id == top,
+                  "Moving before an adjacent row reversed the displayed order");
+        }
+        {
+            Artwork canvas(temporary.path());
+            for (const auto& [background, expected] : {std::pair{"White", 0xffffffffU},
+                                                       {"Transparent", 0x00000000U},
+                                                       {"Black", 0xff000000U}})
+            {
+                congregation::native::CanvasDefinition definition{
+                    25.4,          12.7,    64,    64, 32, "mm", background, "Test print canvas",
+                    "test-preset", "Print", "Test"};
+                check(canvas.create(definition), canvas.error());
+                check(canvas.document().extent == CanvasExtent{64, 32} && !canvas.can_undo() &&
+                          canvas.selected() == "paint-layer",
+                      "New canvas did not initialize its paint target");
+                check(canvas.creation() && canvas.creation()->unit == "mm" &&
+                          canvas.creation()->ppi == 64 &&
+                          canvas.creation()->preset_id == "test-preset",
+                      "Creation specification was discarded");
+                const auto rendered = renderFrame(canvas.document(), 0);
+                check(rendered.ok() &&
+                          std::ranges::all_of(rendered.pixels.pixels,
+                                              [expected](auto pixel) { return pixel == expected; }),
+                      "Selected canvas background was not rendered");
+                const auto before = canvas.snapshot();
+                const auto revision = canvas.revision();
+                auto invalid = definition;
+                invalid.pixel_width = 0;
+                check(!canvas.create(invalid) && canvas.snapshot() == before &&
+                          canvas.revision() == revision,
+                      "Rejected canvas creation replaced the existing document");
+                invalid = definition;
+                invalid.background = "unsupported";
+                check(!canvas.create(invalid) && canvas.snapshot() == before,
+                      "Rejected background changed the document");
+                const auto saved = temporary.path() / (std::string(background) + ".iisc");
+                check(canvas.save(saved), canvas.error());
+                Artwork reopened(temporary.path());
+                check(reopened.open(saved) && renderFrame(reopened.document(), 0).pixels.pixels ==
+                                                  rendered.pixels.pixels,
+                      "Canvas background was lost after saving and reopening");
+                check(!reopened.creation(),
+                      "Session-only preset metadata was retained for a reopened file");
+            }
+            check(canvas.create(48, 32) && !canvas.creation(),
+                  "Legacy create retained stale preset metadata");
+        }
         Artwork artwork(temporary.path());
         check(artwork.create(96, 64), artwork.error());
         const auto initial = artwork.revision();

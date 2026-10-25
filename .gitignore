@@ -90,8 +90,14 @@ CMakeLists.txt.user*
 
 bundling.sh
 /resources/*
+!/resources/canvas-presets.json
+!/resources/canvas-presets-source.json
 !/resources/Appicon.icns
 !/resources/Appicon.ico
+!/resources/AppIcon/
+!/resources/AppIcon/**
+!/resources/figma/
+!/resources/figma/**
 !/resources/windows/
 !/resources/UIIcons/
 !/resources/UIIcons/**

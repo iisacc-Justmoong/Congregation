@@ -1,4 +1,5 @@
 #pragma once
+#include "CanvasDefinition.h"
 #include <iiSharedCanvasNative.h>
 #include <filesystem>
 #include <deque>
@@ -9,12 +10,21 @@ namespace congregation::native
 {
 std::filesystem::path native_path(std::string_view);
 std::string path_text(const std::filesystem::path&);
+enum class LayerTransform
+{
+    flip_horizontal,
+    flip_vertical,
+    rotate_left,
+    rotate_right
+};
 // Product editing policy. Canonical storage/rasterization remain SDK services.
 class Artwork final
 {
   public:
     explicit Artwork(std::filesystem::path recovery_directory);
     bool create(int width = 1024, int height = 768, bool infinite = false);
+    bool create(const CanvasDefinition&);
+    const std::optional<CanvasDefinition>& creation() const { return creation_; }
     bool open(const std::filesystem::path&);
     bool recover(const std::filesystem::path&);
     bool replace(iiSharedCanvas::Document);
@@ -27,8 +37,12 @@ class Artwork final
     bool remove_layer();
     bool rename(std::string key, std::string name);
     bool visible(std::string key, bool);
+    bool opacity(std::string key, double);
+    bool cycle_blend(std::string key);
+    bool timing(int rate, int frames);
     bool move(std::string key, std::string before);
     bool transform(::AffineTransform);
+    bool transform(LayerTransform);
     bool begin(::DocumentPoint, double, iiSharedCanvas::BitmapBrush);
     bool extend(::DocumentPoint, double);
     bool end(::DocumentPoint, double);
@@ -69,6 +83,7 @@ class Artwork final
     std::vector<std::uint8_t> capture() const;
     bool fail(std::string);
     std::filesystem::path directory_, recovery_, source_;
+    std::optional<CanvasDefinition> creation_;
     iiSharedCanvas::DocumentFile file_;
     iiSharedCanvas::Document draft_;
     iiSharedCanvas::BitmapEditor raster_;

@@ -19,6 +19,12 @@ iiSharedCanvas 및 iiPaintEngine에 남는다. 작업 중인 파일은 별도의
 `build/native-migration-backup/`에 보존하며 새 앱은 `build/Congregation.app` 한 개이다.
 Windows와 Linux는 소스 구현 범위이며 실제 실행 검증은 현재 Mac에서 수행한다.
 
-## Vincent 화면 배치
+## 현재 Main 화면
 
-얇은 상단 도구 막대와 왼쪽 레이어 목록, 중앙 캔버스를 복원했다. 구성·팝업·환경설정 및 재현 검사 방법은 VINCENT_UI.md에 있다. 실행 결과와 원본 대비 시각 비교는 저장소 루트 design-qa.md와 build/vincent-ui-verification.json을 따른다.
+현재 기본 화면은 Figma의 `83:6974`와 Tool 풀버전 `130:1832`를 기준으로 한다. 세부 구성과 입력 계약은 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)에 있다. LVUI ApplicationWindow의 옵션·활성화·팝업과 같은 스코프에서 LVRS·iiGUI C++ 위젯을 구성한다.
+
+Vincent 복원 화면의 과거 구성·검증 기록은 VINCENT_UI.md에 보존한다. 현재 기본 레이아웃의 통과 증거로 사용하지 않는다.
+
+## New canvas
+
+새 캔버스 창은 Dreamscapes의 14개 카테고리·289개 프리셋과 상세 설정을 동일하게 제공하는 비모달 네이티브 서브윈도우이다. 구성·데이터 동기화·생성 규칙과 검증 방법은 [NEW_CANVAS_WINDOW.md](NEW_CANVAS_WINDOW.md)에 있다.

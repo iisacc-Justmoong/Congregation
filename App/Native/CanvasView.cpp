@@ -1,4 +1,5 @@
 #include "CanvasView.h"
+#include "Style.h"
 #include "EditorLayout.h"
 #include <iiGUI/Text.h>
 #include <iiSDKCore/Core/Text/Number.h>
@@ -20,10 +21,6 @@ template <class T> T take(ii::core::Result<T> result)
         throw std::runtime_error(result.error().message);
     }
     return std::move(*result);
-}
-ii::gui::Color gray(float v, float alpha = 1)
-{
-    return {v, v, v, alpha};
 }
 std::shared_ptr<const ii::gui::RasterImage> image(const RasterLayer& pixels)
 {
@@ -70,10 +67,8 @@ void CanvasView::fit()
     const auto fitted=editor::fit(viewport_.width,viewport_.height,extent.width,extent.height);
     viewport_.scale=fitted.scale;
     const auto origin = canvasOrigin(artwork_.document());
-    viewport_.x =
-        (viewport_.width - extent.width * viewport_.scale) / 2 - origin.x * viewport_.scale;
-    viewport_.y =
-        (viewport_.height - extent.height * viewport_.scale) / 2 - origin.y * viewport_.scale;
+    viewport_.x = fitted.x - origin.x * viewport_.scale;
+    viewport_.y = fitted.y - origin.y * viewport_.scale;
     render();
 }
 void CanvasView::zoom(double factor, double x, double y)
@@ -97,15 +92,19 @@ void CanvasView::refresh(bool changed)
         cache_.clear();
     render();
 }
+void CanvasView::set_frame(int value)
+{
+    value = std::clamp(value, 0, std::max(0, int(artwork_.document().timeline.frameCount) - 1));
+    if (value == frame_)
+        return;
+    frame_ = value;
+    render();
+}
 void CanvasView::render()
 {
     if (!attached_ || viewport_.width <= 0 || viewport_.height <= 0)
         return;
     ii::gui::WidgetDrawing drawing;
-    drawing.panels.push_back({{0, 0, float(viewport_.width), float(viewport_.height)},
-                              editor::linear(editor::workspace),
-                              editor::linear(editor::workspace),
-                              0});
     const auto& doc = artwork_.document();
     const auto scale = viewport_.scale;
     const bool infinite = doc.canvasMode == CanvasMode::Infinite;
@@ -120,9 +119,9 @@ void CanvasView::render()
     if (paper_right > paper_left && paper_bottom > paper_top)
         drawing.panels.push_back(
             {{paper_left, paper_top, paper_right - paper_left, paper_bottom - paper_top},
-             gray(1),
-             gray(1),
-             0});
+             editor::linear(Color::paper),
+             editor::linear(Color::paper),
+             Metric::radius0});
     const int lod = scale < 1 ? std::min(6, int(std::floor(std::log2(1 / scale))))
                               : -std::min(5, int(std::floor(std::log2(scale))));
     const int tile = lod >= 0 ? 512 << lod : 512 >> (-lod);
@@ -147,7 +146,7 @@ void CanvasView::render()
     for (int row = top; row <= bottom; ++row)
         for (int column = left; column <= right; ++column)
         {
-            const auto key = std::tuple{lod, column, row};
+            const auto key = std::tuple{lod, column, row, frame_};
             auto found = cache_.find(key);
             const int x = column * tile, y = row * tile,
                       w = infinite ? tile : std::min(tile, doc.extent.width - x),
@@ -155,7 +154,7 @@ void CanvasView::render()
             if (found == cache_.end())
             {
                 auto result = renderFrameRegion(
-                    doc, 0, {{x, y}, {w, h}},
+                    doc, frame_, {{x, y}, {w, h}},
                     {std::max(1, w >> std::max(0, lod)), std::max(1, h >> std::max(0, lod))},
                     RasterSampling::Smooth);
                 if (!result.ok())
@@ -174,13 +173,22 @@ void CanvasView::render()
         const auto to = world(last_.x, last_.y);
         const auto x = viewport_.x + std::min(down_.x, to.x) * scale,
                    y = viewport_.y + std::min(down_.y, to.y) * scale,
-                   w = std::max(1., std::abs(down_.x - to.x) * scale),
-                   h = std::max(1., std::abs(down_.y - to.y) * scale);
-        static const auto blue = take(ii::gui::rgba_image(1, 1, {50, 140, 255, 255}));
-        for (auto r : {ii::gui::Rect{float(x), float(y), float(w), 1},
-                       ii::gui::Rect{float(x), float(y + h - 1), float(w), 1},
-                       ii::gui::Rect{float(x), float(y), 1, float(h)},
-                       ii::gui::Rect{float(x + w - 1), float(y), 1, float(h)}})
+                   w = std::max<double>(Metric::stroke1, std::abs(down_.x - to.x) * scale),
+                   h = std::max<double>(Metric::stroke1, std::abs(down_.y - to.y) * scale);
+        static const auto blue = []
+        {
+            const auto c = Color::canvasSelection;
+            return take(ii::gui::rgba_image(1, 1,
+                                            {std::uint8_t(std::lround(c.red * 255)),
+                                             std::uint8_t(std::lround(c.green * 255)),
+                                             std::uint8_t(std::lround(c.blue * 255)),
+                                             std::uint8_t(std::lround(c.alpha * 255))}));
+        }();
+        for (auto r :
+             {ii::gui::Rect{float(x), float(y), float(w), Metric::stroke1},
+              ii::gui::Rect{float(x), float(y + h - Metric::stroke1), float(w), Metric::stroke1},
+              ii::gui::Rect{float(x), float(y), Metric::stroke1, float(h)},
+              ii::gui::Rect{float(x + w - Metric::stroke1), float(y), Metric::stroke1, float(h)}})
         {
             const auto left = std::max(0.f, r.x), top = std::max(0.f, r.y),
                        right = std::min(float(viewport_.width), r.x + r.width),
@@ -188,6 +196,18 @@ void CanvasView::render()
             if (right > left && bottom > top)
                 drawing.images.push_back({{left, top, right - left, bottom - top}, blue});
         }
+    }
+    if (grid)
+    {
+        const auto color = editor::linear(Color::materialSurfaceDenseEdge);
+        const auto step =
+            std::max<double>(Metric::gridMinimumStep, Metric::gridDocumentStep * scale);
+        for (double x = std::fmod(viewport_.x, step); x < viewport_.width; x += step)
+            drawing.panels.push_back(
+                {{float(x), 0, Metric::stroke1, float(viewport_.height)}, color, color});
+        for (double y = std::fmod(viewport_.y, step); y < viewport_.height; y += step)
+            drawing.panels.push_back(
+                {{0, float(y), float(viewport_.width), Metric::stroke1}, color, color});
     }
     auto result = widget_.set_drawing(std::move(drawing));
     if (!result && result.error().code != ii::core::ErrorCode::closed)

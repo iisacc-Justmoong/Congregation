@@ -1,5 +1,7 @@
 # Vincent 화면 복원
 
+이 문서는 이전 Vincent 배치의 이력이다. 현재 기본 화면은 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)를 따른다.
+
 기준은 Product/.Deprecated/Vincent의 3aeab4b 소스와 docs/marketing/vincent-windows-editor.png이다. Congregation의 docs/marketing/congregation-windows-editor.png도 같은 원본 화면을 보존한다. 제품명과 네이티브 런타임은 Congregation을 유지한다. Windows 제목·메뉴 막대는 플랫폼 영역으로 구분하고 앱 클라이언트 영역의 구성을 재현한다.
 
 상단 40px 아이콘 도구 막대, 왼쪽 260px 레이어 목록, 20px 레이어 행과 중앙 캔버스를 사용한다. 파일/도구 아이콘과 160px 크기 슬라이더, 브러시 미리보기, 원형 현재색을 복원한다. 프레젠테이션과 프로필은 메뉴를 통해 연다. 브러시를 다시 누르면 설정 팝업이 열리고 도형은 메뉴에서 고른다. 색상 팝업은 280px 색상환·삼각형이다. 텍스트 도구의 입력은 별도 작은 팝업에서 편집한다.

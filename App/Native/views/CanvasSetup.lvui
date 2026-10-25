@@ -1,13 +1,6 @@
 <script>
-import vm congregation.ui.EditorBackend
+import vm congregation.native.CanvasSetupModel
 </script>
-<Window title="New canvas" width={420} height={280} minimumWidth={420} minimumHeight={280}>
-  <div id="setup-root" style="height: 280px; display: flex; flex-direction: column; gap: 12px; padding: 24px; align-items: stretch; flex: 1">
-    <Label text="Canvas size" fontSize={20} fontWeight={600}/>
-    <div style="display: flex; flex-direction: row; gap: 12px; align-items: center"><div style="width: 64px"><Label text="Width" fontSize={13}/></div><InputField id="canvas-width" enabled={vm.dimensions_enabled} text={vm.new_width} width={296} onEdited={vm.set_new_width}/></div>
-    <div style="display: flex; flex-direction: row; gap: 12px; align-items: center"><div style="width: 64px"><Label text="Height" fontSize={13}/></div><InputField id="canvas-height" enabled={vm.dimensions_enabled} text={vm.new_height} width={296} onEdited={vm.set_new_height}/></div>
-    <CheckBox id="infinite-canvas" text="Infinite canvas" checked={vm.infinite} onToggled={vm.set_infinite}/>
-    <div style="display: flex; flex-direction: row; gap: 8px"><Spacer/><Button text="Cancel" tone={.default} height={28} onClick={vm.cancel_canvas}/><Button id="create-canvas" text="Create" enabled={vm.can_create} height={28} onClick={vm.create_canvas}/></div>
-    <Label text={vm.status} fontSize={12}/>
-  </div>
+<Window title="New canvas" width={Metric.canvasChooserWidth} height={Metric.canvasChooserHeight} minimumWidth={Metric.size320} minimumHeight={Metric.size480}>
+  <div id="setup-lvui-scope" visible={false}/>
 </Window>

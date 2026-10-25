@@ -23,12 +23,14 @@ class CanvasView final
     void render();
     void fit();
     void zoom(double factor, double x = -1, double y = -1);
+    void set_frame(int);
     ii::core::Result<bool> input(const ii::gui::WidgetInput&);
     const Viewport& viewport() const { return viewport_; }
     std::string tool = "brush", text = "Text";
     std::uint32_t color = 0xff1a1a1a;
     double brush_size = 2, opacity = 1;
     bool presentation = false;
+    bool grid = false;
     iiSharedCanvas::BitmapBrush settings;
     std::function<void(std::string)> status;
     std::function<void(std::uint32_t)> color_picked;
@@ -40,7 +42,8 @@ class CanvasView final
     Artwork& artwork_;
     ii::gui::Widget widget_;
     Viewport viewport_;
-    std::map<std::tuple<int, int, int>, std::shared_ptr<const ii::gui::RasterImage>> cache_;
+    std::map<std::tuple<int, int, int, int>, std::shared_ptr<const ii::gui::RasterImage>> cache_;
+    int frame_ = 0;
     bool fitted_ = true, attached_ = false, drag_ = false, panning_ = false, zooming_ = false, space_ = false,
          selecting_ = false;
     iiSharedCanvas::Point down_{}, last_{};

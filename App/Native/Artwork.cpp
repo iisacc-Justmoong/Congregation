@@ -77,6 +77,7 @@ bool Artwork::replace(Document document)
     draft_ = *file_.document();
     recovery_ = next;
     source_.clear();
+    creation_.reset();
     selected_ = draft_.layers.empty() ? "" : layerProperties(draft_.layers.back()).id;
     undo_.clear();
     redo_.clear();
@@ -105,6 +106,38 @@ bool Artwork::create(int width, int height, bool infinite)
     document.layers.emplace_back(
         StaticBitmapLayer{{"paint-layer", "Paint layer"}, StaticSource{"paint"}});
     return replace(std::move(document));
+}
+bool Artwork::create(const CanvasDefinition& value)
+{
+    if (value.pixel_width < 1 || value.pixel_height < 1 || value.pixel_width > 32768 ||
+        value.pixel_height > 32768 ||
+        std::uint64_t(value.pixel_width) * value.pixel_height > 268435456 ||
+        (value.background != "White" && value.background != "Transparent" &&
+         value.background != "Black"))
+        return fail("Enter valid canvas dimensions and background");
+    Document document;
+    document.extent = {value.pixel_width, value.pixel_height};
+    if (value.background != "Transparent")
+    {
+        VectorPath path;
+        const double w = value.pixel_width, h = value.pixel_height;
+        path.commands = {MoveTo{{0, 0}}, LineTo{{w, 0}}, LineTo{{w, h}}, LineTo{{0, h}},
+                         ClosePath{}};
+        path.fill = SolidPaint{value.background == "Black" ? 0xff000000U : 0xffffffffU};
+        document.assets.emplace_back(VectorAsset{"canvas.background", document.extent, {path}});
+        document.layers.emplace_back(StaticVectorLayer{{"canvas.background.layer", "Background"},
+                                                       StaticSource{"canvas.background"}});
+    }
+    document.assets.emplace_back(
+        RasterAsset{"paint", makeRasterLayer(value.pixel_width, value.pixel_height, 0)});
+    document.layers.emplace_back(
+        StaticBitmapLayer{{"paint-layer", "Paint layer"}, StaticSource{"paint"}});
+    if (!replace(std::move(document)))
+        return false;
+    creation_ = value;
+    if (changed)
+        changed();
+    return true;
 }
 bool Artwork::open(const std::filesystem::path& path)
 {
@@ -409,19 +442,56 @@ bool Artwork::visible(std::string key, bool value)
 {
     return edit([&](DocumentEditor& e) { return e.setLayerVisible(key, value).ok(); });
 }
+bool Artwork::opacity(std::string key, double value)
+{
+    return edit([&](DocumentEditor& e)
+                { return e.setLayerOpacity(key, std::clamp(value, 0., 1.)).ok(); });
+}
+bool Artwork::cycle_blend(std::string key)
+{
+    auto found = std::ranges::find_if(draft_.layers,
+                                      [&](const auto& l) { return layerProperties(l).id == key; });
+    if (found == draft_.layers.end())
+        return fail("Layer not found");
+    const auto mode = layerProperties(*found).blendMode;
+    const auto next = mode == RasterBlendMode::SourceOver ? RasterBlendMode::Multiply
+                      : mode == RasterBlendMode::Multiply ? RasterBlendMode::Screen
+                                                          : RasterBlendMode::SourceOver;
+    return edit([&](DocumentEditor& e) { return e.setLayerBlendMode(key, next).ok(); });
+}
+bool Artwork::timing(int rate, int frames)
+{
+    if (rate < 1 || rate > 240 || frames < 1)
+        return fail("Invalid document timing");
+    return edit(
+        [&](DocumentEditor& e)
+        {
+            return e.setFrameRate({std::uint32_t(rate), 1}).ok() &&
+                   e.setFrameCount(std::uint32_t(frames)).ok();
+        });
+}
 bool Artwork::move(std::string key, std::string before)
 {
     return edit(
         [&](DocumentEditor& e)
         {
-            std::size_t index = draft_.layers.size() - 1;
+            // The UI exposes the compositing stack from top to bottom.
+            // "before" identifies the next row in that displayed order.
+            std::size_t index = 0;
             if (!before.empty())
             {
                 auto p = std::ranges::find_if(draft_.layers, [&](const auto& v)
                                               { return layerProperties(v).id == before; });
                 if (p == draft_.layers.end())
                     return false;
-                index = std::size_t(p - draft_.layers.begin());
+                const auto source =
+                    std::ranges::find_if(draft_.layers, [&](const auto& value)
+                                         { return layerProperties(value).id == key; });
+                if (source == draft_.layers.end())
+                    return false;
+                if (source == p)
+                    return true;
+                index = std::size_t(p - draft_.layers.begin()) + 1 - (source < p ? 1 : 0);
             }
             return e.moveLayer(key, index).ok();
         });
@@ -429,6 +499,38 @@ bool Artwork::move(std::string key, std::string before)
 bool Artwork::transform(AffineTransform transform)
 {
     return edit([&](DocumentEditor& e) { return e.setLayerTransform(selected_, transform).ok(); });
+}
+bool Artwork::transform(LayerTransform command)
+{
+    const auto* current = layer(draft_, selected_);
+    if (!current)
+        return fail("Layer not found");
+    const auto old = layerProperties(*current).transform;
+    auto next = old;
+    if (command == LayerTransform::flip_horizontal)
+    {
+        next.m11 = -old.m11;
+        next.m21 = -old.m21;
+        next.translationX = draft_.extent.width - old.translationX;
+    }
+    else if (command == LayerTransform::flip_vertical)
+    {
+        next.m12 = -old.m12;
+        next.m22 = -old.m22;
+        next.translationY = draft_.extent.height - old.translationY;
+    }
+    else
+    {
+        const double direction = command == LayerTransform::rotate_left ? -1 : 1;
+        next.m11 = -direction * old.m12;
+        next.m21 = -direction * old.m22;
+        next.m12 = direction * old.m11;
+        next.m22 = direction * old.m21;
+        const double x = draft_.extent.width / 2., y = draft_.extent.height / 2.;
+        next.translationX = x - direction * (old.translationY - y);
+        next.translationY = y + direction * (old.translationX - x);
+    }
+    return transform(next);
 }
 bool Artwork::import_pixels(RasterLayer pixels, std::string name, double x, double y)
 {

@@ -4,7 +4,7 @@ Congregation is a local canvas editor built with the native iiSDK platform. Its 
 
 LVUI views are HTML-like markup with inline styles. They compile to C++23 during the build and are not interpreted as web pages at runtime. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.
 
-The Vincent editor layout is preserved: a compact icon toolbar, left layer hierarchy, dark centered canvas, brush/color popovers, and a 480×360 tabbed preferences window. See [the UI restoration contract](docs/VINCENT_UI.md) and [visual verification](design-qa.md).
+The current Main window follows the Congregation Figma design: a 224 px Society asset library, a 54 px icon tool rail, a centered canvas with pixel rulers, a bottom timeline/layer dock, and a 352 px segmented inspector. The Tool panel exposes all 22 parameters through sliders and step buttons with a scrolling body and fixed preset/actions. See [the native Figma contract](docs/FIGMA_APPLICATION_WINDOW.md). The earlier [Vincent restoration](docs/VINCENT_UI.md) remains historical reference.
 
 ## Editing
 
@@ -17,6 +17,8 @@ The Vincent editor layout is preserved: a compact icon toolbar, left layer hiera
 - Existing license activation, secure credentials, signed update services, LAN discovery, and shared-canvas services through native SDK packages.
 
 The document SDK retains vector paths and exports them as PDF smart objects in PSD files. Unsupported foreign-document features fail explicitly. Migrated legacy text is rendered into an individual native bitmap layer. Undo history is bounded to 32 commands and 64 MiB of serialized snapshots.
+
+UI colors and geometry use the shared LVUI `Color` and `Metric` types. `App/Native/views/Theme.lvui` supplies application-specific values to all three compiled views and the generated native C++ style header. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.
 
 ## Build
 
@@ -43,11 +45,15 @@ ctest --test-dir build --output-on-failure
 
 The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `build/native-tests`, close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.
 
-The Vincent reference tests also capture nine editor, popover, and dialog states per renderer. Run `ctest --test-dir build -R vincent_ui --output-on-failure` to reproduce them. See [the visual comparison report](design-qa.md) for the reference crop, display scale, captures, and remaining platform differences.
+The Figma reference tests exercise the Main layout, 22 parameter controls, scroll clipping, time-based timeline navigation, inspector tabs, and local assets. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.
 
 ## Controls
 
+The New canvas child window shares Dreamscapes’ catalogue, layout, search, units, PPI, and background controls while keeping the main editor interactive. See [the native chooser contract](docs/NEW_CANVAS_WINDOW.md).
+
 Use B for brush, E for eraser, T for text, V for selection, and H for pan. Space or the middle pointer button temporarily pans the view. Selection drag moves a layer; Shift drag scales it and Alt drag rotates it. Text editors retain their own keyboard input instead of invoking canvas shortcuts.
+
+Focus a timeline layer and press Enter to rename it; drag its name to reorder it. Drag the timeline playhead to scrub elapsed time, or hold Alt and drag its frame ticks vertically to change the document rate.
 
 Navigation and selection do not change document revisions. Each finished stroke is one durable edit; focus loss or Escape cancels its preview. The recent-canvas preference records only regular recovery files inside the app's own managed directory.
 
