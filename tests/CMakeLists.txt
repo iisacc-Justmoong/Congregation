@@ -254,7 +254,7 @@ target_include_directories(tests_congregationupdatemanager PRIVATE
 )
 
 target_link_libraries(tests_congregationupdatemanager PRIVATE
-        iiAcountManager::Native
+        iiAccountManager::Native
         Qt6::Core
         Qt6::Network
         Qt6::Test

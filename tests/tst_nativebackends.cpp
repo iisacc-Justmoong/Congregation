@@ -3,6 +3,7 @@
 #include <Engine/EditCommand.h>
 #include <Engine/NearbyDiscovery.h>
 #include <Engine/LicenseService.h>
+#include "LicenseTokenFixture.h"
 #include <Engine/Preferences.h>
 #include <Engine/DocumentMetadata.h>
 #include <iiUpdateManager/NativeUpdateManager.h>
@@ -357,46 +358,61 @@ void http_deadlines()
 }
 void license()
 {
-    ii::runtime::EventLoop loop;
-    Server server(loop);
-    server.response = [](auto request)
-    {
-        require(request.find("mutation ValidateLicense") != request.npos,
-                "GraphQL validation contract lost");
-        return R"({"data":{"validateLicense":{"valid":true,"productId":"congregation"}}})";
+    using namespace iisacc::accounts::native;
+    ii::runtime::EventLoop loop;Server server(loop),society(loop);std::string persisted,opened;bool owned=true,foreign=false,tampered=false,society_offline=false;
+    const auto now=[] { return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count(); };
+    server.response=[&](std::string request) {
+        require(request.find("password")==request.npos&&request.find("licenseKey")==request.npos,"App sent legacy credentials");
+        const auto body=request.substr(request.find("\r\n\r\n")+4);auto root=parse_json(body);require(bool(root),"Invalid app access document");
+        const auto input=object(field(field(*root,"variables"),"input"));const auto operation=text(field(input,"operation"));Object result;
+        if(operation=="start") result={{"requestId",Value(std::string(32,'c'))},{"authorizationUrl",Value("https://iisacc.com/Account/Apps/Connect?request="+std::string(32,'c'))},{"expiresAt",Value(now()+300)}};
+        else if(operation=="license") throw std::runtime_error("App bypassed Society and queried the license server");
+        else result={{"status",Value("connected")},{"account",Value(Object{{"sub",Value("fixture-owner")},{"email",Value("owner@example.invalid")}})},
+            {"productId",Value("congregation")},{"deviceId",Value(std::string(64,'a'))},{"sessionId",Value(std::string(32,'b'))},{"expiresAt",Value(now()+3600)},
+            {"manager",Value("society")},{"accessToken",Value(std::string(128,'T'))}};
+        return json(Value(Object{{"data",Value(Object{{"appAccess",Value(result)}})}}));
     };
-    std::size_t writes = 0, reads = 0;
-    std::string persisted;
-    CredentialPort port;
-    port.supported = [] { return true; };
-    port.read = [&](auto done)
-    {
-        ++reads;
-        done(CredentialPort::ReadStatus::not_found, {});
+    society.response=[&](std::string request) {
+        if(society_offline)return std::string("unavailable");
+        require(request.find("Authorization:")==request.npos,"App leaked a session credential to loopback");
+        auto input=parse_json(request.substr(request.find("\r\n\r\n")+4));require(bool(input),"Invalid Society request");
+        const auto timestamp=now();
+        const Object payload{{"v",Value(1)},{"iss",Value("https://iisacc.com")},{"aud",Value("society")},
+            {"sub",Value(foreign?"wrong-account":"fixture-owner")},{"deviceId",Value(std::string(64,'a'))},
+            {"issuedAt",Value(timestamp)},{"expiresAt",Value(timestamp+3600)},
+            {"licenses",Value(Array{Value(Object{{"productId",Value("congregation")},{"licensed",Value(owned)},{"expiresAt",Value{}}})})}};
+        auto token=license_fixture::sign(json(Value(payload)));if(tampered)token.back()=token.back()=='A'?'B':'A';
+        return json(Value(Object{{"allowed",Value(owned)},{"requestId",field(*input,"requestId")},{"licenseToken",Value(token)}}));
     };
-    port.write = [&](std::string_view bytes, auto done)
+    const auto broker=society.endpoint()+"v1/authorize";
+    const std::vector<iisacc::licensing::owned::TrustedKey> keys{{"fixture-owned-license",license_fixture::public_key()}};
+    SessionPersistence store{.read=[&]{return SecretResult{persisted.empty()?SecretResult::Status::not_found:SecretResult::Status::found,persisted};},
+        .write=[&](std::string_view value){persisted=value;return true;},.remove=[&]{persisted.clear();return true;}};
+    BrowserSessionOptions options{.product_id="congregation",.origin=server.endpoint().substr(0,server.endpoint().size()-1),
+        .device={std::string(64,'a'),"tablet","Fixture iPad","ios","27.0","com.iisacc.congregation.painter","1.0.0"},.allow_loopback=true};
     {
-        ++writes;
-        persisted = bytes;
-        done(true);
-    };
-    port.remove = [](auto done) { done(true); };
-    LicenseService license(loop, server.endpoint(), 1000, true, port);
-    bool finished = false;
-    license.validated = [&](bool valid)
-    {
-        require(valid, "Authoritative license did not unlock");
-        finished = true;
-    };
-    require(reads == 0 && server.requests == 0, "Construction accessed credentials/network");
-    license.validate(" ＶＥＲＩＦＩＥＤ@example.com ", "IIL1_0123456789abcdefghijklmnopqrstuv");
-    until(loop, [&] { return finished; });
-    require(license.licensed && license.stored && writes == 1,
-            "Verified license was not securely persisted");
-    auto stored = parse_json(persisted);
-    require(stored && text(field(*stored, "email")) == "verified@example.com",
-            "Native NFKC email normalization failed");
+        LicenseService license(loop,options,true,store,broker,keys);license.open_browser=[&](auto url){opened=std::move(url);};
+        require(server.requests==0,"License service construction performed network access");license.sign_in();
+        until(loop,[&]{return license.licensed;},std::chrono::seconds(6));
+        require(!opened.empty()&&license.signed_in&&license.stored&&license.email=="owner@example.invalid","Browser session did not unlock after ownership verification");
+        require(persisted.find("licenseKey")==persisted.npos&&persisted.find("password")==persisted.npos,"Legacy credentials persisted");
+        owned=false;license.retry();require(!license.licensed,"Recheck retained old authorization");
+        until(loop,[&]{return !license.verifying;});require(!license.licensed&&license.code=="license_not_owned","Revocation was not reflected");
+        foreign=true;license.retry();until(loop,[&]{return !license.verifying;});require(!license.licensed&&license.code=="invalid_society_response","Another account's license unlocked the app");
+        foreign=false;tampered=true;license.retry();until(loop,[&]{return !license.verifying;});require(!license.licensed,"Forged Society decision unlocked the app");
+        tampered=false;owned=true;license.retry();until(loop,[&]{return license.licensed;});
+        int repeated_unlocks=0;license.validated=[&](bool valid){if(valid)++repeated_unlocks;};
+        license.retry();until(loop,[&]{return !license.verifying;});require(license.licensed&&repeated_unlocks==0,"A repeated permission check reset the canvas viewport");
+    }
+    foreign=false;owned=true;tampered=false;society_offline=true;const auto auth_requests=server.requests;
+    LicenseService restored(loop,options,true,store,broker,keys);restored.restore();require(restored.licensed,"Verified Society delegation did not restore locally");
+    until(loop,[&]{return !restored.verifying;});require(restored.licensed&&restored.code=="licensed_offline","Suspended Society invalidated an unexpired delegation");
+    require(server.requests==auth_requests,"Local restart contacted the account/license server");
+    const auto valid_saved=persisted;auto record=parse_json(persisted);auto broken=object(*record);broken["licenseToken"]=Value("tampered");persisted=json(Value(broken));
+    LicenseService invalid(loop,options,true,store,broker,keys);invalid.restore();until(loop,[&]{return !invalid.verifying;});require(!invalid.licensed,"A tampered saved delegation unlocked the app");
+    persisted=valid_saved;restored.forget();require(persisted.empty()&&!restored.licensed&&restored.access_token().empty(),"Sign-out retained authorization");
 }
+
 struct Provider final : iisacc::updates::native::UpdateCredentialProvider
 {
     Completion pending;
@@ -506,6 +522,20 @@ void updates()
     reject(std::move(invalid), Manager::UpdateError::InvalidGrant);
     reject(grant, Manager::UpdateError::GrantExpired);
 #endif
+    bool scoped_request=false;
+    server.response=[&](std::string request) {
+        if(request.starts_with("GET /manifest ")) return manifest(request);
+        scoped_request=true;
+        require(request.find("mutation AppAccess")!=request.npos&&request.find("Authorization: Bearer "+std::string(128,'T'))!=request.npos,
+                "Scoped update authorization was not used");
+        require(request.find("licenseKey")==request.npos&&request.find("email")==request.npos,"Legacy keys entered a scoped update request");
+        return json(Value(Object{{"data",Value(Object{{"appAccess",Value(grant)}})}}));
+    };
+    std::optional<Manager::UpdateError> scoped_failure;update.updateFailed=[&](auto error,auto){scoped_failure=error;};
+    require(update.checkForUpdates(),"Scoped retry check rejected");until(loop,[&]{return update.state()==Manager::State::UpdateAvailable;});
+    require(update.updateNow(),"Scoped update rejected");iisacc::updates::native::UpdateCredentials scoped;scoped.accessToken=std::string(128,'T');
+    auto finish=std::move(provider.pending);finish(std::optional(std::move(scoped)),{});
+    until(loop,[&]{return scoped_failure.has_value();});require(scoped_request&&*scoped_failure==Manager::UpdateError::GrantExpired,"Scoped grant bypassed validation");
 }
 } // namespace
 int main(int argc, char** argv)

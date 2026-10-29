@@ -90,3 +90,25 @@ ctest --test-dir build --output-on-failure
 `artwork`는 배경 렌더링·저장·재열기·실패 시 문서 보존을 검사한다.
 전체 standalone·bundle relocation 검사는 실제 앱에서 같은 생성 흐름과
 Qt 없는 배포 번들의 독립 실행을 검사한다.
+
+## 2026-10-25 최종 결과
+
+macOS arm64 Release 정식 앱 빌드와 제품 전체 CTest **21/21**이 통과했다.
+실행 시간은 277.66초이며 건너뛴 검사는 없다. Metal·Vulkan 양쪽에서 새 창과 기존 Main 화면을
+실제로 열어 검사했다. 새 창은 1280 × 880, 640 × 480, 390 × 844, 320 × 640에서
+레이아웃·스크롤과 화면 캡처를 확인했다.
+
+실제 메뉴를 통한 단위·배경 선택, 검색 입력과 원형 지우기 버튼, 폭·PPI 입력 중 초점 보존,
+오류 시 생성 비활성화, Control + Return, 화면 밖 카드로의 포커스 이동을 확인했다.
+서브윈도우가 열려 있는 동안 부모 창 입력이 가능하고 자식 창을 닫은 뒤에도 부모 창이
+유지됨을 검사했다. 정식 앱에서는 중복 New 명령의 창 재사용, Cancel과 잘못된 크기 입력의
+문서 보존, 성공한 생성 이후의 페인팅·실행 취소·레이어·저장·재열기를 검사했다.
+
+버전 1.0.0 / 빌드 1의 `build/Congregation.app` 하나를 유지한다. 같은 번들을 다른 경로로
+옮겨 Metal·Vulkan에서 실행한 뒤 정식 경로로 복원했으며 외부 SDK 라이브러리를 읽지 않았다.
+Qt 없는 활성 빌드 그래프·동적 의존성과 ad-hoc 서명을 검증했다.
+
+통합 보고서는 `build/new-canvas/verification.json`, 전체 테스트는
+`build/new-canvas/final-tests.xml`과 `final-tests.log`, 빌드는 `final-build.log`에 있다.
+새 창의 렌더러별 화면은 `build/new-canvas/native/`와 `vulkan/`에 각각 11장이다.
+번들 이동 검사는 `build/native-relocation-verification.json`에 기록한다.

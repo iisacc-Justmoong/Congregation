@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <iiFileProviderNative.h>
 #include <iiImageCodec/ImageCodec.h>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 
 namespace congregation::native
 {
@@ -62,7 +65,12 @@ ii::gui::Widget AssetLibraryView::build(ii::gui::WidgetBuilder &raw, ii::gui::Wi
            [vm = vm_] { vm->send(congregation::ui::Action::open_asset_library); });
     auto source = take(b.controls.combo_box(
         root, "library-source",
-        {.text = "Society · This Mac",
+        {.text =
+#if defined(__APPLE__) && TARGET_OS_IOS
+             "Society · This iPad",
+#else
+             "Society · This Mac",
+#endif
          .arrow = ii::gui::StepperArrow::down,
          .width = Metric::size216},
         {.clicked = [vm = vm_] { vm->send(congregation::ui::Action::choose_asset_library); }}));

@@ -4,7 +4,7 @@ Congregation is a local canvas editor built with the native iiSDK platform. Its 
 
 LVUI views are HTML-like markup with inline styles. They compile to C++23 during the build and are not interpreted as web pages at runtime. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.
 
-The current Main window follows the Congregation Figma design: a 224 px Society asset library, a 54 px icon tool rail, a centered canvas with pixel rulers, a bottom timeline/layer dock, and a 352 px segmented inspector. The Tool panel exposes all 22 parameters through sliders and step buttons with a scrolling body and fixed preset/actions. See [the native Figma contract](docs/FIGMA_APPLICATION_WINDOW.md). The earlier [Vincent restoration](docs/VINCENT_UI.md) remains historical reference.
+The current Main window uses a 54 px vertical icon toolbar at the left window edge, a centered canvas with pixel rulers, a bottom timeline/layer dock, and a 352 px segmented inspector. The former 224 px asset sidebar is removed; the canvas and timeline share the recovered space. The rest of the layout follows the Congregation Figma design. The Tool panel exposes all 22 parameters through sliders and step buttons with a scrolling body and fixed preset/actions. See [the native Figma contract](docs/FIGMA_APPLICATION_WINDOW.md). The earlier [Vincent restoration](docs/VINCENT_UI.md) remains historical reference.
 
 ## Editing
 
@@ -14,7 +14,7 @@ The current Main window follows the Congregation Figma design: a 224 px Society 
 - Canonical `.iisc` documents, independent recovery files, and migration of earlier `.vrc` canvas containers.
 - PNG/JPEG/BMP/GIF/TGA/WebP/TIFF, layered PSD, and OpenRaster input. PNG/JPEG/BMP/TGA/WebP/TIFF and layered PSD output.
 - Native file dialogs, clipboard images, file/image drops, application menus, shortcuts, preferences, and collaboration windows.
-- Existing license activation, secure credentials, signed update services, LAN discovery, and shared-canvas services through native SDK packages.
+- Browser sign-in at iisacc.com, scoped app sessions and Society execution authorization. iiAccountManager owns the licensing implementation; Society manages accounts, app connections and local signed tokens; the app never asks for a password or license key. Signed updates, LAN discovery and shared-canvas services remain native.
 
 The document SDK retains vector paths and exports them as PDF smart objects in PSD files. Unsupported foreign-document features fail explicitly. Migrated legacy text is rendered into an individual native bitmap layer. Undo history is bounded to 32 commands and 64 MiB of serialized snapshots.
 
@@ -32,6 +32,8 @@ A C++23 compiler, CMake 3.31+, Python 3.9+, and an installed native iiSDK kit ar
 
 On Windows, use `build-windows.ps1 -SdkPrefix <native-kit>`. The source requires an appropriate native kit for the target architecture. Existing Qt-era Store/MSI authoring material remains historical and is not a verified release path for this native migration.
 
+For a connected iPad, build the isolated iPhoneOS SDK kit with `python3 -B tools/build_ipados_sdk.py all`, then use `python3 -B tools/build_ipados.py --device <iPad-UDID> --install --launch`. The UIKit/Metal app shares the C++ document engine and LVUI/LVRS views. The same canonical `build/Congregation.app` output slot is used; the previous macOS bundle is preserved in a verified ZIP before switching platforms. See [the iPadOS build and device checks](docs/IPADOS.md).
+
 See [the build guide](docs/BUILD.md), [native runtime contracts](docs/NATIVE_RUNTIME.md), and [migration verification](docs/NATIVE_VERIFICATION.md).
 
 For a macOS installer, run `cmake --build build --target CongregationInstaller` after building and testing. It signs the canonical native app and creates `build/Congregation.pkg` for `/Applications/Congregation.app`, with a checksum and payload verification report. See [installer signing and notarization](docs/MACOS_INSTALLER.md); a signed package is ready for public distribution only after notarization and Gatekeeper validation pass.
@@ -43,9 +45,9 @@ cmake --build build --parallel 6
 ctest --test-dir build --output-on-failure
 ```
 
-The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `build/native-tests`, close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.
+The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `resources/` (also linked from `build/native-tests` when available), close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.
 
-The Figma reference tests exercise the Main layout, 22 parameter controls, scroll clipping, time-based timeline navigation, inspector tabs, and local assets. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.
+The window tests verify the absence of the asset sidebar, the left-edge toolbar and tool selection, canvas/timeline expansion at full and minimum window sizes, 22 parameter controls, scroll clipping, time-based timeline navigation, and inspector tabs. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.
 
 ## Controls
 
@@ -62,3 +64,12 @@ Navigation and selection do not change document revisions. Each finished stroke 
 `App/Engine` owns product services and policies. `App/Native` owns native editor integration, and `App/Native/views` contains declarative LVUI views. `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.
 
 Version 1.0.0 and bundle build 1 are preserved. A successful local build does not establish Windows/Linux runtime compatibility, physical-tablet validation, execution on an older macOS machine, or production account/update-server behavior.
+
+<!-- workspace-docs:readme:start -->
+## Documentation entry points
+
+- Human overview: this English `README.md`.
+- Agent instructions: [AGENT.md](AGENT.md).
+- Human documentation: [documentation index](docs/README.md).
+- Structured agent documentation: [agent index](docs/agent-index.json).
+<!-- workspace-docs:readme:end -->

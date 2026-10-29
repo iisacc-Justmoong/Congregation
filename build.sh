@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root_dir="$(cd "$(dirname "$0")" && pwd)"
-sdk_prefix="${CONGREGATION_SDK_PREFIX:-$root_dir/../../SDK/build/congregation-native/prefix}"
+default_sdk_prefix="$root_dir/../../SDK/build/congregation-native/prefix"
+if [[ -f "$root_dir/../../SDK/build/congregation-web-account/prefix/include/iiAccountManager/BrowserSession.h" ]]; then
+  default_sdk_prefix="$root_dir/../../SDK/build/congregation-web-account/prefix"
+fi
+sdk_prefix="${CONGREGATION_SDK_PREFIX:-$default_sdk_prefix}"
+# Keep the selected SDK's headers and libraries together even in a shell with
+# development-wide SDK search paths.
+unset CPATH CPLUS_INCLUDE_PATH C_INCLUDE_PATH LIBRARY_PATH LD_LIBRARY_PATH
+unset CMAKE_PREFIX_PATH CMAKE_INCLUDE_PATH CMAKE_LIBRARY_PATH
+unset DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH DYLD_FALLBACK_FRAMEWORK_PATH
 build_type="${BUILD_TYPE:-Release}"
 run_tests="${RUN_TESTS:-1}"
 configure_only=0

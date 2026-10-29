@@ -10,15 +10,16 @@ void borders(Widget widget, bool top, bool right, bool bottom, bool left)
         {
             ii::gui::WidgetDrawing d;
             const auto color = editor::linear(editor::panel_edge_color());
-            if (top)
+            const bool drawable = r.width > 0 && r.height > 0;
+            if (drawable && top)
                 d.panels.push_back({{0, 0, r.width, Metric::stroke1}, color, color});
-            if (right)
+            if (drawable && right)
                 d.panels.push_back(
                     {{r.width - Metric::stroke1, 0, Metric::stroke1, r.height}, color, color});
-            if (bottom)
+            if (drawable && bottom)
                 d.panels.push_back(
                     {{0, r.height - Metric::stroke1, r.width, Metric::stroke1}, color, color});
-            if (left)
+            if (drawable && left)
                 d.panels.push_back({{0, 0, Metric::stroke1, r.height}, color, color});
             auto result = widget.set_drawing(std::move(d));
             if (!result && result.error().code != ii::core::ErrorCode::closed)

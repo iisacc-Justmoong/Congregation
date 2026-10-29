@@ -1,0 +1,555 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:c01dec5c9ea2660845a497c9ae224ff13890deb9bb76239ebfcc09ea75acab3c",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/MACOS_INSTALLER.md",
+    "sha256": "1e9cbb9ec1ca3b205e39a1fa6ae820fe19b59a411449dd4f45610203e6fec87d",
+    "bytes": 7166,
+    "line_count": 103,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation macOS 설치 패키지",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation macOS 설치 패키지\n",
+      "level": 1,
+      "title": "Congregation macOS 설치 패키지"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 5,
+      "raw": "현재 네이티브 실행 소스와 `build/Congregation.app`을 사용한다. 이전 `dist/`의 Qt 앱은\n패키징 입력으로 사용하지 않는다. 결과는 `build/Congregation.pkg`이며 설치 경로는\n`/Applications/Congregation.app`이다. 제품 버전과 번들 빌드 번호는 변경하지 않는다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "## 2026-10-24 생성 결과\n",
+      "level": 2,
+      "title": "2026-10-24 생성 결과"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 14,
+      "raw": "`build/Congregation.pkg`는 버전 1.0.0 / 빌드 1의 Apple Silicon(arm64) 앱을 포함한다.\n설치 요구 조건은 macOS 12.0 이상이며 파일 크기는 19,434,089바이트이다.\nDeveloper ID Application·Installer 서명과 신뢰 타임스탬프를 적용했다. Xcode의\n로그인 계정으로 PKG 자체의 공증 티켓을 받아 부착했으며 `stapler validate`와\nGatekeeper install 평가에서 `accepted / Notarized Developer ID`를 확인했다.\n압축 페이로드의 일반 파일 38개는 서명된 원본과 SHA-256이 일치한다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 16,
+      "end_line": 19,
+      "raw": "최종 체크섬은 `build/Congregation.pkg.sha256`을 따른다. 생성·설치 정책·파일 해시·공증\n결과는 `build/installer/verification.json`, 티켓과 Gatekeeper 로그는\n`build/installer/xcode/`에 보존한다. 이 결과는 설치 파일 생성·검증의 증거이며 이 Mac의\n`/Applications`에 앱을 설치한 기록은 아니다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 21,
+      "end_line": 24,
+      "raw": "제품 검사 12개 항목을 확인했으며, 설치 계약 10개 세부 검사와 Metal·Vulkan의 최종\n재배치 실행도 통과했다. 전체 실행의 11개 통과 기록에 보완한 계약·재배치 검사의 최종\n통과 기록을 합친 결과이다. 실행 출처는 `docs/NATIVE_VERIFICATION.md`와\n`build/installer/verification.json`에 구분하여 기록한다.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "heading",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "## 생성\n",
+      "level": 2,
+      "title": "생성"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "먼저 `./build.sh local`로 현재 소스를 빌드·검사한다. 이후 다음을 실행한다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "fenced_code",
+      "start_line": 30,
+      "end_line": 32,
+      "raw": "```sh\ncmake --build build --target CongregationInstaller\n```\n",
+      "language": "sh",
+      "code": "cmake --build build --target CongregationInstaller\n",
+      "closed": true
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "또는 빌드가 끝난 정식 앱에 다음 스크립트를 실행할 수 있다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "fenced_code",
+      "start_line": 36,
+      "end_line": 38,
+      "raw": "```sh\npython3 -B packaging/macos/create_installer.py --xcode\n```\n",
+      "language": "sh",
+      "code": "python3 -B packaging/macos/create_installer.py --xcode\n",
+      "closed": true
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 40,
+      "end_line": 43,
+      "raw": "앱은 Developer ID Application 인증서와 hardened runtime·신뢰 타임스탬프로 서명한다.\nPKG는 Developer ID Installer 인증서와 신뢰 타임스탬프로 서명한다. 인증서 이름은\n`--app-identity`와 `--installer-identity`로 선택할 수 있다. App Store용 샌드박스\nentitlements나 Apple Distribution 인증서는 이 직접 배포 경로에 사용하지 않는다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 45,
+      "end_line": 50,
+      "raw": "`--xcode`는 Xcode에 로그인된 개발자 계정과 `xcodebuild -exportArchive`의 Developer ID\n업로드를 사용한다. 별도의 notarytool 비밀번호 프로필이 필요하지 않다. 최종 서명 PKG를\n임시 제출 앱의 SharedSupport에 넣어 중첩 컨테이너로 제출하고, PKG 자체의 티켓을\n받는다. 제출 앱은 배포하지 않는다. 원본 앱은 먼저 ZIP·CRC·파일 해시로 보존하며\n성공·실패 모두 원래 서명 바이트로 복구한다. Xcode가 생성한 제출본도 압축 증거만\n보관하므로 작업 후 `build/`에는 정식 `.app` 디렉터리 하나만 남는다.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 51,
+      "end_line": 51,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 52,
+      "end_line": 54,
+      "raw": "공증 완료 전 업로드 성공을 배포 완료로 취급하지 않는다. 최종 PKG에 대한 티켓 부착,\n티켓 검증 및 Gatekeeper의 install 평가가 모두 성공해야 한다. 이미 서명·검증된\n`build/Congregation.pkg`만 공증할 때에는 다음을 실행한다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "fenced_code",
+      "start_line": 56,
+      "end_line": 58,
+      "raw": "```sh\npython3 -B packaging/macos/xcode_notarization.py\n```\n",
+      "language": "sh",
+      "code": "python3 -B packaging/macos/xcode_notarization.py\n",
+      "closed": true
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 59,
+      "end_line": 59,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 60,
+      "end_line": 62,
+      "raw": "키체인 공증 프로필이 있는 자동화 환경에서는 `--xcode` 대신 `--notary-profile <profile>`을 사용한다.\n이 옵션은 완성된 PKG를 Apple에 제출하고 Accepted 결과·티켓 부착·Gatekeeper 설치\n평가까지 확인한다. 비밀번호와 개인 키는 인수나 저장소에 기록하지 않는다.\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 63,
+      "end_line": 63,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 64,
+      "end_line": 67,
+      "raw": "서명과 공증은 별개이다. `build/installer/verification.json`의 `gatekeeper_ready`가\ntrue일 때만 서명·공증이 모두 끝난 배포물로 취급한다. 공증 인증을 사용할 수 없는\n경우에는 `--xcode`와 `--notary-profile`을 생략하여 서명된 PKG와 명시적인 미공증\n상태만 생성할 수 있다. `CongregationInstaller` 타깃은 Xcode 공증 경로를 사용한다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 68,
+      "end_line": 68,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "heading",
+      "start_line": 69,
+      "end_line": 69,
+      "raw": "## 설치와 검증 계약\n",
+      "level": 2,
+      "title": "설치와 검증 계약"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 70,
+      "end_line": 70,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "list",
+      "start_line": 71,
+      "end_line": 85,
+      "raw": "- 현재 앱을 복사하지 않고 `pkgbuild --component`로 직접 읽는다. 검사도 압축 Payload를\n  메모리에서 읽어 별도 `.app` 디렉터리를 만들지 않는다.\n- `/Applications`의 기존 번들을 교체하는 upgrade 동작을 사용한다. Qt 시대의 불필요한\n  프레임워크가 기존 설치에 남지 않도록 병합형 update를 사용하지 않는다.\n- 번들 재탐색을 끄고 같은 식별자·버전 조건을 검증한다. 현재 개발 앱이나 다른 위치의\n  앱을 찾아 덮어쓰는 relocation을 허용하지 않는다.\n- 실행 파일의 실제 아키텍처와 최소 macOS 버전을 Installer 요구 조건으로 넣는다.\n- 번들 런타임의 Qt·외부 개발 경로 의존성을 거부한다. PKG 내부 모든 파일의 SHA-256,\n  심볼릭 링크와 실행 권한을 서명된 원본과 대조한다.\n- 빌드된 앱의 복사된 리소스에 남은 다운로드 quarantine만 서명 전에 제거한다. SDK\n  원본과 사용자 문서는 변경하지 않는다. 압축 페이로드의 AppleDouble 메타데이터는\n  대상 경로·형식·범위를 검사하고 quarantine 항목이 포함되면 거부한다.\n- 검증된 임시 PKG만 `build/Congregation.pkg`로 교체한다. 이전 결과는 그때까지 보존한다.\n- 체크섬은 `build/Congregation.pkg.sha256`, 상세 기록은\n  `build/installer/verification.json`에 작성한다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "현재 앱을 복사하지 않고 `pkgbuild --component`로 직접 읽는다. 검사도 압축 Payload를",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`/Applications`의 기존 번들을 교체하는 upgrade 동작을 사용한다. Qt 시대의 불필요한",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "번들 재탐색을 끄고 같은 식별자·버전 조건을 검증한다. 현재 개발 앱이나 다른 위치의",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "실행 파일의 실제 아키텍처와 최소 macOS 버전을 Installer 요구 조건으로 넣는다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "번들 런타임의 Qt·외부 개발 경로 의존성을 거부한다. PKG 내부 모든 파일의 SHA-256,",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "빌드된 앱의 복사된 리소스에 남은 다운로드 quarantine만 서명 전에 제거한다. SDK",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "검증된 임시 PKG만 `build/Congregation.pkg`로 교체한다. 이전 결과는 그때까지 보존한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "체크섬은 `build/Congregation.pkg.sha256`, 상세 기록은",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 86,
+      "end_line": 86,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 87,
+      "end_line": 91,
+      "raw": "`Congregation.native_installer_contract`는 cpio 형식·정렬, 잘린 파일, 중복·탈출 경로,\n오래된 실행 파일, 누락·추가 파일과 실행 권한, 설치 교체 정책, quarantine 차단과\nXcode 실패 시 원본 복구를 검사한다. 실제 생성 과정은 Apple\n도구의 설치 메타데이터와 PKG 서명을 추가 확인한다. 패키지를 생성하는 작업은 이 Mac에\n앱을 설치하거나 현재 실행 중인 앱을 재시작하지 않는다.\n"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 92,
+      "end_line": 92,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "paragraph",
+      "start_line": 93,
+      "end_line": 98,
+      "raw": "배포용 hardened runtime은 `DYLD_PRINT_LIBRARIES`를 무시할 수 있다. 재배치 실행 검사는\n실행 중 프로세스의 `lsof` 파일 매핑에서 실제 Mach-O를 읽어 앱과 포함된 모든 dylib를\n확인한다. 외부 SDK 경로가 없고 필수 번들 이미지가 모두 관측되어야 통과한다. 별도\n디버깅 권한이나 런타임 보안 완화는 필요하지 않다.\nOS가 매핑한 삭제된 임시 데이터와 보호된 `/private/var/db/`, `/private/var/folders/` 상태·캐시 파일은 코드로\n분류하지 않는다. 필수 앱 이미지 누락과 읽을 수 없는 외부 라이브러리는 실패로 유지한다.\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 99,
+      "end_line": 99,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 100,
+      "end_line": 103,
+      "raw": "공식 참고 자료는 [Apple의 공증 워크플로](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)와\n[Xcode Developer ID 업로드](https://help.apple.com/xcode/mac/current/en.lproj/dev88332a81e.html)이다.\nApple은 중첩 컨테이너에도 별도의 티켓을 생성한다. 이 구현은 최종 PKG에 티켓을\n실제로 부착하고 검증한 결과를 완료 기준으로 삼는다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation macOS 설치 패키지",
+      "anchor": "congregation-macos-설치-패키지",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "2026-10-24 생성 결과",
+      "anchor": "2026-10-24-생성-결과",
+      "start_line": 7
+    },
+    {
+      "block_id": "b000013",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "생성",
+      "anchor": "생성",
+      "start_line": 26
+    },
+    {
+      "block_id": "b000035",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "설치와 검증 계약",
+      "anchor": "설치와-검증-계약",
+      "start_line": 69
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 4,
+        "text": "패키징 입력으로 사용하지 않는다. 결과는 `build/Congregation.pkg`이며 설치 경로는",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000003",
+        "line": 5,
+        "text": "`/Applications/Congregation.app`이다. 제품 버전과 번들 빌드 번호는 변경하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000023",
+        "line": 43,
+        "text": "entitlements나 Apple Distribution 인증서는 이 직접 배포 경로에 사용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000025",
+        "line": 48,
+        "text": "받는다. 제출 앱은 배포하지 않는다. 원본 앱은 먼저 ZIP·CRC·파일 해시로 보존하며",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000027",
+        "line": 52,
+        "text": "공증 완료 전 업로드 성공을 배포 완료로 취급하지 않는다. 최종 PKG에 대한 티켓 부착,",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000027",
+        "line": 53,
+        "text": "티켓 검증 및 Gatekeeper의 install 평가가 모두 성공해야 한다. 이미 서명·검증된",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000031",
+        "line": 62,
+        "text": "평가까지 확인한다. 비밀번호와 개인 키는 인수나 저장소에 기록하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000037",
+        "line": 74,
+        "text": "프레임워크가 기존 설치에 남지 않도록 병합형 update를 사용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000037",
+        "line": 76,
+        "text": "앱을 찾아 덮어쓰는 relocation을 허용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000037",
+        "line": 81,
+        "text": "원본과 사용자 문서는 변경하지 않는다. 압축 페이로드의 AppleDouble 메타데이터는",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000039",
+        "line": 91,
+        "text": "앱을 설치하거나 현재 실행 중인 앱을 재시작하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000041",
+        "line": 95,
+        "text": "확인한다. 외부 SDK 경로가 없고 필수 번들 이미지가 모두 관측되어야 통과한다. 별도",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000041",
+        "line": 98,
+        "text": "분류하지 않는다. 필수 앱 이미지 누락과 읽을 수 없는 외부 라이브러리는 실패로 유지한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [
+      {
+        "block_id": "b000017",
+        "language": "sh",
+        "code": "cmake --build build --target CongregationInstaller\n"
+      },
+      {
+        "block_id": "b000021",
+        "language": "sh",
+        "code": "python3 -B packaging/macos/create_installer.py --xcode\n"
+      },
+      {
+        "block_id": "b000029",
+        "language": "sh",
+        "code": "python3 -B packaging/macos/xcode_notarization.py\n"
+      }
+    ],
+    "links": [
+      {
+        "block_id": "b000043",
+        "label": "Apple의 공증 워크플로",
+        "target": "https://developer.apple.com/documentation/security/customizing-the-notarization-workflow",
+        "kind": "external",
+        "line": 100
+      },
+      {
+        "block_id": "b000043",
+        "label": "Xcode Developer ID 업로드",
+        "target": "https://help.apple.com/xcode/mac/current/en.lproj/dev88332a81e.html",
+        "kind": "external",
+        "line": 101
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

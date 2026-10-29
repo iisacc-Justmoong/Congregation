@@ -23,7 +23,11 @@ class CanvasSession final
         revision,
         invitations
     };
+    static constexpr std::size_t default_peer_pending_bytes = 513ULL * 1024 * 1024;
+    using SnapshotWriter = std::function<bool(ii::network::Tcp&, std::shared_ptr<const std::string>)>;
     CanvasSession(ii::runtime::EventLoop&, std::string own_session);
+    CanvasSession(ii::runtime::EventLoop&, std::string own_session, std::size_t peer_pending_bytes,
+                  SnapshotWriter snapshot_writer = {});
     ~CanvasSession();
     std::function<void(Notice)> changed;
     std::function<void()> snapshot_requested;
@@ -53,8 +57,10 @@ class CanvasSession final
     {
         std::shared_ptr<ii::network::Tcp> socket;
         std::string buffer, id, name;
+        std::shared_ptr<const std::string> pending_snapshot;
         bool accepted = false;
-        ii::runtime::TaskToken deadline;
+        bool writing_snapshot = false;
+        ii::runtime::TaskToken deadline, retry;
     };
     void notify(Notice);
     void set_state(State);
@@ -69,14 +75,18 @@ class CanvasSession final
     void participants();
     void apply_profiles(std::string_view);
     void latest(ii::network::Tcp*);
+    void retry_latest(ii::network::Tcp*);
     Object hello() const;
     ii::runtime::EventLoop& loop_;
     ii::network::Listener listener_;
+    std::size_t peer_pending_bytes_;
+    SnapshotWriter snapshot_writer_;
     std::unique_ptr<ii::network::Tcp> client_;
     std::map<ii::network::Tcp*, Peer> peers_;
     ii::runtime::TaskToken deadline_, request_;
     std::string buffer_, origin_;
     std::shared_ptr<const std::string> latest_frame_;
+    std::uint64_t session_generation_ = 0;
     bool stopping_ = false;
 };
 } // namespace congregation

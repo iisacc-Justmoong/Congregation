@@ -1,6 +1,11 @@
 # Keep the application icon separate from toolbar glyphs and the editable UI.
 set(_app_icon_sources)
-if(APPLE)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set(_app_icon_resources "${CMAKE_BINARY_DIR}/ipados/AppIcon.xcassets")
+    file(MAKE_DIRECTORY "${_app_icon_resources}/AppIcon.appiconset")
+    configure_file("${CMAKE_SOURCE_DIR}/resources/AppIcon/Congregation.png" "${_app_icon_resources}/AppIcon.appiconset/AppIcon.png" COPYONLY)
+    file(WRITE "${_app_icon_resources}/AppIcon.appiconset/Contents.json" "{\"images\":[{\"filename\":\"AppIcon.png\",\"idiom\":\"universal\",\"platform\":\"ios\",\"size\":\"1024x1024\"}],\"info\":{\"author\":\"xcode\",\"version\":1}}\n")
+elseif(APPLE)
     set(_app_icon_resources "${CMAKE_SOURCE_DIR}/resources/Appicon.icns")
 elseif(WIN32)
     enable_language(RC)

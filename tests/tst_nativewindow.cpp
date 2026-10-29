@@ -63,12 +63,32 @@ int main(int argc, char** argv)
                  const auto root = take(take(mount.find("root")).snapshot());
                  require(root.bounds.width == 1999 && root.bounds.height == 1080,
                          "ApplicationWindow size changed");
-                 require(take(take(mount.find("sidebar")).snapshot()).bounds.width == 224,
-                         "Asset library width changed");
-                 require(take(take(mount.find("tool-rail")).snapshot()).bounds.width == 54,
-                         "Tool rail width changed");
-                 require(take(take(mount.find("inspector")).snapshot()).bounds.width == 352,
-                         "Inspector width changed");
+                 const auto checkWorkspace = [&]
+                 {
+                     require(!mount.find("sidebar") && !mount.find("asset-results"),
+                             "The removed asset sidebar is still mounted");
+                     const auto rail = take(take(mount.find("tool-rail")).snapshot()).bounds;
+                     const auto center =
+                         take(take(mount.find("canvas-and-timeline")).snapshot()).bounds;
+                     const auto inspector = take(take(mount.find("inspector")).snapshot()).bounds;
+                     const auto timeline = take(take(mount.find("timeline")).snapshot()).bounds;
+                     const auto window = take(take(mount.find("root")).snapshot()).bounds;
+                     require(rail.x == 0 && rail.width == 54,
+                             "The vertical toolbar must sit at the left window edge");
+                     require(inspector.width == 352 &&
+                                 inspector.x + inspector.width == window.width,
+                             "The right inspector must retain its width and position");
+                     require(center.x == rail.width && center.x + center.width == inspector.x &&
+                                 timeline.x == center.x && timeline.width == center.width,
+                             "Canvas and timeline did not reclaim the removed sidebar width");
+                 };
+                 checkWorkspace();
+                 good(take(mount.find("eraser")).activate());
+                 require(vm->selected_tool.get() == "eraser",
+                         "The retained vertical toolbar no longer selects tools");
+                 good(take(mount.find("brush")).activate());
+                 require(vm->selected_tool.get() == "brush",
+                         "The retained toolbar cannot return to the brush");
                  const auto pixels = take(host.capture_canvas());
                  const auto pixelScale = pixels.width / 1999.;
                  const auto colorAt = [&](double x, double y)
@@ -90,10 +110,10 @@ int main(int argc, char** argv)
                                  std::to_string(actual[1]) + "," + std::to_string(actual[2]));
                  };
                  checkColor(400, 80, {20, 23, 25});
-                 for (const auto& position : std::array<std::array<double, 2>, 5>{
-                          {{1000, 27}, {223, 900}, {277, 700}, {1400, 764}, {1800, 380}}})
-                     checkColor(position[0], position[1], {49, 51, 53});
-                 checkColor(1646, 700, {49, 51, 53});
+                 for (const auto& position : std::array<std::array<double, 2>, 4>{
+                          {{1000, 27}, {53, 700}, {1400, 764}, {1800, 380}}})
+                     checkColor(position[0], position[1], {12, 12, 12});
+                 checkColor(1646, 700, {12, 12, 12});
                  checkColor(1647, 700, {20, 23, 25});
                  const auto divider = take(take(mount.find("color-divider")).snapshot()).bounds;
                  checkColor(divider.x + 100, divider.y, {35, 36, 36});
@@ -127,17 +147,6 @@ int main(int argc, char** argv)
                  good(scroll.set_scroll_offset(5000));
                  require(take(scroll.snapshot()).scroll_offset > 0,
                          "Tool parameters are not scrollable");
-                 auto results = take(mount.find("asset-results"));
-                 auto first = take(results.content_item("asset-0"));
-                 require(take(first.snapshot()).accessibility_name == "Coastal house.png",
-                         "Original Figma asset missing from the library");
-                 good(take(mount.find("assets-saved")).activate());
-                 require(!take(take(results.content_item("asset-0")).snapshot()).visible,
-                         "Saved filter includes assets that have not been saved");
-                 good(take(mount.find("asset-link")).activate());
-                 require(take(take(results.content_item("asset-0")).snapshot()).visible,
-                         "Saved filter did not include the selected saved asset");
-                 good(take(mount.find("assets-all")).activate());
                  auto rail = take(take(mount.find("color-transparency")).snapshot()).bounds;
                  good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::pointer_down,
                                             .x = rail.x + 11,
@@ -153,16 +162,14 @@ int main(int argc, char** argv)
                  const auto small = take(take(mount.find("canvas")).snapshot());
                  require(small.bounds.width > 0 && small.bounds.height > 0,
                          "The minimum window size lost its canvas");
-                 const auto sidebar = take(take(mount.find("sidebar")).snapshot());
-                 require(sidebar.content_height > sidebar.bounds.height,
-                         "Short windows cannot scroll to library controls");
+                 checkWorkspace();
                  good(host.set_content_size({1999, 1080}));
                  good(view.detach(host));
                  require(!stale.snapshot(), "Retired window handles remained usable");
                  settings->set(ToolParameter::size, 66);
                  good(host.request_close());
              }}));
-        std::cout << "NATIVE_WINDOW_CONTRACT_OK parameters=22 geometry=true input=true scroll=true "
+        std::cout << "NATIVE_WINDOW_CONTRACT_OK sidebar=false tool_rail=true parameters=22 geometry=true input=true scroll=true "
                      "generation=true figma_colors=true qt=false\n";
     }
     catch (const std::exception& e)

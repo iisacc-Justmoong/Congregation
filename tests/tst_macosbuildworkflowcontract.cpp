@@ -113,7 +113,7 @@ void tst_MacOSBuildWorkflowContract::cmakeAvoidsRedundantMacOSRuntimeRpaths()
                                            "    list(APPEND _congregation_local_dependency_runtime_candidates")));
     QVERIFY(!source.contains(QStringLiteral("if(UNIX)\n"
                                             "    list(APPEND _congregation_local_dependency_runtime_candidates")));
-    QVERIFY(source.contains(QStringLiteral("iiAcountManager/Native")));
+    QVERIFY(source.contains(QStringLiteral("iiAccountManager/Native")));
     QVERIFY(source.contains(QStringLiteral("iiLicenseManager/Native")));
     QVERIFY(source.contains(QStringLiteral("iiUpdateManager/Native")));
     QVERIFY(source.contains(QStringLiteral("VerifyNativeEngine.cmake")));
@@ -477,7 +477,7 @@ esac
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
     environment.insert(QStringLiteral("CONGREGATION_BUILD_MODE"), QStringLiteral("local"));
     const auto nativeSdkRoot=temp.filePath(QStringLiteral("native-sdk"));
-    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAcountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
+    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAccountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
         QVERIFY(temp.mkpath(QStringLiteral("native-sdk/")+module));
         QFile nativeConfig(nativeSdkRoot+QLatin1Char('/')+module+QStringLiteral("/CMakeLists.txt"));
         QVERIFY(nativeConfig.open(QIODevice::WriteOnly));
@@ -617,7 +617,7 @@ exit 1
     environment.insert(QStringLiteral("PATH"), binDir + QStringLiteral(":") + environment.value(QStringLiteral("PATH")));
     environment.insert(QStringLiteral("RUN_TESTS"), QStringLiteral("0"));
     const auto nativeSdkRoot=temp.filePath(QStringLiteral("native-sdk"));
-    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAcountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
+    for(const auto& module:{QStringLiteral("iiFileProvider/Compatibility"),QStringLiteral("iiNetwork"),QStringLiteral("iiAccountManager/Native"),QStringLiteral("iiLicenseManager/Native"),QStringLiteral("iiUpdateManager/Native")}){
         QVERIFY(temp.mkpath(QStringLiteral("native-sdk/")+module));
         QFile nativeConfig(nativeSdkRoot+QLatin1Char('/')+module+QStringLiteral("/CMakeLists.txt"));
         QVERIFY(nativeConfig.open(QIODevice::WriteOnly));

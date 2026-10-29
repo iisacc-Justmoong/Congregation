@@ -65,6 +65,8 @@ enum class Action
     paste,
     activate,
     forget_license,
+    cancel_sign_in,
+    open_society,
     profile,
     check_update,
     install_update,
@@ -107,10 +109,10 @@ class EditorBackend final
     void save_parameters() { send(Action::save_tool_settings); }
     std::shared_ptr<const ii::gui::RasterImage> pan_icon, move_icon, add_icon, open_icon, save_icon, zoom_icon, brush_icon, eraser_icon, shape_icon, fill_icon, text_icon, minus_icon, plus_icon;
     ii::core::Observable<std::string> status{"Ready"}, title{"Untitled"}, tool{"Brush"},
-        zoom{"100%"}, email{""}, license_key{""}, text_value{"Text"}, session_address{""},
+        zoom{"100%"}, account_status{"Sign in at iisacc.com to check your Congregation license."}, text_value{"Text"}, session_address{""},
         display_name{"Guest"}, update_status{""}, account_email{"Not connected"}, size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
         hardness_label{"100%"}, spacing_label{"0.0 px"}, spacing_ratio_label{"15%"}, stabilizer_label{"0%"}, pressure_min_label{"0%"}, pressure_mid_label{"50%"}, pressure_max_label{"100%"};
-    ii::core::Observable<bool> licensed{false}, needs_license{true}, can_activate{true},
+    ii::core::Observable<bool> licensed{false}, needs_license{true}, can_activate{true}, signed_in{false}, signing_in{false},
         start_recent{false}, discover{true}, pressure_enabled{true},
         layer_controls{false}, chrome_visible{true}, general_visible{true}, profile_visible{false}, members_visible{false},
         start_new{true}, can_invite{false};
@@ -199,6 +201,8 @@ class EditorBackend final
     void fit() { send(Action::fit); }
     void activate() { send(Action::activate); }
     void forget_license() { send(Action::forget_license); }
+    void open_society() { send(Action::open_society); }
+    void cancel_sign_in() { send(Action::cancel_sign_in); }
     void profile() { send(Action::profile); }
     void check_update() { send(Action::check_update); }
     void install_update() { send(Action::install_update); }
@@ -239,8 +243,6 @@ class EditorBackend final
         if (resized)
             resized(value);
     }
-    void set_email(std::string value) { email.set(std::move(value)); }
-    void set_license_key(std::string value) { license_key.set(std::move(value)); }
     void set_text(std::string value) { text_value.set(std::move(value)); }
     void set_address(std::string value) { session_address.set(std::move(value)); }
     void set_name(std::string value)

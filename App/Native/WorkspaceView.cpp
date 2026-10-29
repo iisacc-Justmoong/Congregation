@@ -21,7 +21,7 @@ void ruler(Widget widget, bool vertical)
         [widget, vertical](ii::gui::Rect r)
         {
             ii::gui::WidgetDrawing d;
-            const auto color = editor::linear(editor::panel_edge_color());
+            const auto color = editor::linear(editor::detail_line_color());
             const auto inkColor = editor::linear(ink);
             const auto length = vertical ? r.height : r.width;
             for (int i = 0; i <= length / Metric::rulerTickStep; ++i)
@@ -104,9 +104,6 @@ void WorkspaceView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
         root, "work-area",
         {.spacing = Metric::space0, .alignment = ii::gui::StackAlignment::stretch}));
     good(body.set_flex(1));
-    library_ = std::make_shared<AssetLibraryView>(vm_, assets_);
-    library_->build(raw, body);
-    good(raw.retain(library_));
     tools(raw, body);
     const auto center = b.column(body, "canvas-and-timeline");
     good(center.set_flex(1));
@@ -261,8 +258,10 @@ void WorkspaceView::canvas(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
     auto root = b.column(parent, "canvas-document");
     borders(root, false, true);
     good(root.set_flex(1));
-    auto horizontal = take(
-        b.controls.event_listener(root, "horizontal-ruler", {Metric::size1369, Metric::size18}));
+    constexpr auto center_width =
+        Metric::windowWidth - Metric::toolRailWidth - Metric::inspectorWidth;
+    auto horizontal = take(b.controls.event_listener(
+        root, "horizontal-ruler", {center_width, Metric::size18}));
     ruler(horizontal, false);
     good(ii::gui::bind_visible(*bindings_, horizontal, vm_->rulers_visible));
     auto body = take(b.controls.hstack(
@@ -274,7 +273,7 @@ void WorkspaceView::canvas(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
     ruler(vertical, true);
     good(ii::gui::bind_visible(*bindings_, vertical, vm_->rulers_visible));
     auto canvas = take(b.controls.event_listener(
-        body, "canvas", {Metric::size1341, Metric::size692}, [vm = vm_](const auto &e)
+        body, "canvas", {center_width - Metric::size28, Metric::size692}, [vm = vm_](const auto &e)
         { return vm->canvas_input(e); }, [vm = vm_](const auto &r) { vm->canvas_resize(r); }));
     good(canvas.set_flex(1));
     auto foot = b.row(root, "canvas-footer", 0, Metric::size26, Metric::space4);

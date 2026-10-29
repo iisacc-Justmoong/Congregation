@@ -11,4 +11,5 @@ ii::gui::WidgetColor over_window(ii::gui::WidgetColor color)
             channel(color.blue, window_background.blue), 1};
 }
 ii::gui::WidgetColor panel_edge_color() { return Color::panelEdgeResolved; }
+ii::gui::WidgetColor detail_line_color() { return Color::detailLineResolved; }
 } // namespace congregation::native::editor

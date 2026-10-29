@@ -1,0 +1,121 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:da861bcf290f4e01484b2d9db65d2b096ea8dc9d4baec9f083c1d8e5457e37d7",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "resources/figma/README.md",
+    "sha256": "15e285132ddc54af49220f0495f53e2e177eda7b050a195100a4c91f1f35fb2e",
+    "bytes": 789,
+    "line_count": 10,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Congregation Figma content assets",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation Figma content assets\n",
+      "level": 1,
+      "title": "Congregation Figma content assets"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "These individual content assets were exported from the Congregation design owned by the project. Their provenance and SHA-256 digests are recorded in `sources.json`.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "list",
+      "start_line": 5,
+      "end_line": 8,
+      "raw": "- `coastal-house.png`: Asset Library preview and local reference asset (1536 × 1024).\n- `mountain-study.png`: Original canvas artwork and local reference asset (1536 × 1024).\n- `playhead-marker.svg`: Original 22 × 26 playhead alpha mask.\n- `playhead-line.svg`: Original colored playhead layer, composed through the alpha mask by TimelineView.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`coastal-house.png`: Asset Library preview and local reference asset (1536 × 1024).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`mountain-study.png`: Original canvas artwork and local reference asset (1536 × 1024).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`playhead-marker.svg`: Original 22 × 26 playhead alpha mask.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`playhead-line.svg`: Original colored playhead layer, composed through the alpha mask by TimelineView.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "The application uses the native LVRS icon library for named controls. No whole-screen screenshot, remote URL, Qt resource collection, or web runtime is used by these assets. Screenshots captured for visual comparison stay under `build/`.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation Figma content assets",
+      "anchor": "congregation-figma-content-assets",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

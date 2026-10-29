@@ -1,0 +1,299 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:f8ba7ff132019a628f22dbb98aeb5c0f54db4c545753507a9c63dcc4d9efd7a3",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/NATIVE_UI.md",
+    "sha256": "49cccf6b330054c85b873f41ca180a52f393a4dd8da78bb3790f131fde83cc59",
+    "bytes": 3514,
+    "line_count": 43,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation 네이티브 전환",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation 네이티브 전환\n",
+      "level": 1,
+      "title": "Congregation 네이티브 전환"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 6,
+      "raw": "실행 진입점과 이벤트 루프는 iiSDKCore Application이 소유한다. LVUI의 HTML 태그와\n인라인 스타일을 빌드 때 C++로 컴파일하며 LVRS 위젯을 iiGUI의 네이티브 창과 GPU에\n표시한다. 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 사용하지 않는다.\n기존 Qt 화면 소스는 이전 작업 보존을 위해 남아 있지만 새 빌드 그래프에 포함하지 않는다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 8,
+      "end_line": 11,
+      "raw": "Artwork는 Congregation의 편집 정책을 담당한다. 문서 저장과 래스터/벡터 처리 구현은\niiSharedCanvas 및 iiPaintEngine에 남는다. 작업 중인 파일은 별도의 복구 디렉터리에\n저장하고 저장 명령은 정규 IISC 스냅샷을 FileProvider로 원자적으로 발행한다. 열기 실패는\n기존 문서를 덮어쓰지 않는다. 펜 샘플은 스트로크를 처리한 후 픽셀로 확정하며 저장하지 않는다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 13,
+      "end_line": 16,
+      "raw": "레이어 선택과 화면 확대·이동은 문서 리비전을 올리지 않는다. 스트로크 취소는 마지막\n확정 상태로 복구한다. 실행 취소는 최대 32개 명령과 합계 64 MiB의 스냅샷 예산을 사용한다.\n단일 명령이 예산을 넘으면 이전 기록을 비워 불연속적인 실행 취소로 최신 작업을 잃지 않게 한다.\n벡터 도형은 벡터 자산으로 보존하고 PSD 출력에는 PDF Smart Object로 포함한다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 18,
+      "end_line": 20,
+      "raw": "빌드 산출물은 저장소의 `build/` 안에 둔다. 이전 Qt 앱과 변경 전 빌드 설정은\n`build/native-migration-backup/`에 보존하며 새 앱은 `build/Congregation.app` 한 개이다.\nWindows와 Linux는 소스 구현 범위이며 실제 실행 검증은 현재 Mac에서 수행한다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "heading",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "## 현재 Main 화면\n",
+      "level": 2,
+      "title": "현재 Main 화면"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "현재 기본 화면은 Figma의 `83:6974`와 Tool 풀버전 `130:1832`를 기준으로 한다. 세부 구성과 입력 계약은 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)에 있다. LVUI ApplicationWindow의 옵션·활성화·팝업과 같은 스코프에서 LVRS·iiGUI C++ 위젯을 구성한다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "Vincent 복원 화면의 과거 구성·검증 기록은 VINCENT_UI.md에 보존한다. 현재 기본 레이아웃의 통과 증거로 사용하지 않는다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "heading",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "## New canvas\n",
+      "level": 2,
+      "title": "New canvas"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "새 캔버스 창은 Dreamscapes의 14개 카테고리·289개 프리셋과 상세 설정을 동일하게 제공하는 비모달 네이티브 서브윈도우이다. 구성·데이터 동기화·생성 규칙과 검증 방법은 [NEW_CANVAS_WINDOW.md](NEW_CANVAS_WINDOW.md)에 있다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "heading",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "## 현재 프레임의 캔버스 입력\n",
+      "level": 2,
+      "title": "현재 프레임의 캔버스 입력"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 34,
+      "end_line": 38,
+      "raw": "선택·스포이트와 채우기 영역 판정은 표시 중인 타임라인 프레임을 샘플링한다. 정적 비트맵 레이어에\n그릴 때는 해당 프레임에서 평가한 레이어·아트보드 변환의 역변환을 획의 시작부터\n종료까지 사용한다. 프레임이 바뀌면 진행 중인 콘텐츠 제스처를 취소하고 미리보기\n캐시를 비운다. 선택이나 취소는 파일 리비전을 바꾸지 않는다. 유효하지 않거나 퇴화한\n변환은 문서 편집 전에 오류로 거부한다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 40,
+      "end_line": 43,
+      "raw": "`Congregation.canvas_frame_*` 검사는 창을 열지 않고 정적 비트맵과 모션이 포함된\n레이어의 그리기·스포이트·선택·채우기·프레임 전환 취소를 확인한다. 채우기는 표시\n프레임에서 영역을 찾지만 결과는 정적 비트맵 레이어에 저장한다. 이 범위는 동적\n프레임의 자산 편집이나 물리 펜 입력 전체의 검증이 아니다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation 네이티브 전환",
+      "anchor": "congregation-네이티브-전환",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000011",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "현재 Main 화면",
+      "anchor": "현재-main-화면",
+      "start_line": 22
+    },
+    {
+      "block_id": "b000017",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "New canvas",
+      "anchor": "new-canvas",
+      "start_line": 28
+    },
+    {
+      "block_id": "b000021",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "현재 프레임의 캔버스 입력",
+      "anchor": "현재-프레임의-캔버스-입력",
+      "start_line": 32
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 5,
+        "text": "표시한다. 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 사용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000003",
+        "line": 6,
+        "text": "기존 Qt 화면 소스는 이전 작업 보존을 위해 남아 있지만 새 빌드 그래프에 포함하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000005",
+        "line": 11,
+        "text": "기존 문서를 덮어쓰지 않는다. 펜 샘플은 스트로크를 처리한 후 픽셀로 확정하며 저장하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000015",
+        "line": 26,
+        "text": "Vincent 복원 화면의 과거 구성·검증 기록은 VINCENT_UI.md에 보존한다. 현재 기본 레이아웃의 통과 증거로 사용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000013",
+        "label": "FIGMA_APPLICATION_WINDOW.md",
+        "target": "FIGMA_APPLICATION_WINDOW.md",
+        "kind": "relative",
+        "line": 24
+      },
+      {
+        "block_id": "b000019",
+        "label": "NEW_CANVAS_WINDOW.md",
+        "target": "NEW_CANVAS_WINDOW.md",
+        "kind": "relative",
+        "line": 30
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

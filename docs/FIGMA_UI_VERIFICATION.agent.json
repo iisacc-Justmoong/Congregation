@@ -1,0 +1,846 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:7e9f4ac1237ea452e3fb0cdd8c30537a13bba4c0dd8bef0301b35e6e44498790",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/FIGMA_UI_VERIFICATION.md",
+    "sha256": "da52d2ea6081392d413062dce0465952c6176aaebea8989cb4a46f59e14a79fa",
+    "bytes": 11314,
+    "line_count": 92,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Figma ApplicationWindow 검증 · 2026-10-25",
+    "role": "evidence",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Figma ApplicationWindow 검증 · 2026-10-25\n",
+      "level": 1,
+      "title": "Figma ApplicationWindow 검증 · 2026-10-25"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "## 패널 색상 후속 보정\n",
+      "level": 2,
+      "title": "패널 색상 후속 보정"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "같은 날 원본 paint·변수와 최신 PNG를 다시 대조하여 패널 대비를 보정했다. 아래 14/14 기록은 최초 창 구현의 전체 검사이며, 색상 보정 후 관련 검사 **5/5**가 한 번의 실행에서 통과했다(314.26초). Metal·Vulkan의 실제 픽셀 검사와 두 렌더러의 전체 화면·조작·재생을 포함한다. 이후 색상 보정의 별도 결과는 `build/figma-colors/verification.json`과 `build/figma-color-tests.xml`을 따른다. 색상 검사 전에는 (100,100,100)의 과도한 경계선이 실제 GPU 회귀 검사에서 실패했다. 색상·합성·개별 경계선 소유권은 FIGMA_APPLICATION_WINDOW.md의 패널 색 항목에 기록했다. 후속 검사에서 화면 렌더링이 지연될 때 750ms의 고정 재생 판정이 실패하는 경우를 확인했다. 이 검사는 실제 프레임 이동을 확인할 때 완료하고 최대 15초까지만 기다리도록 바꾸었다. 재생 여부·문서 무변경 조건은 유지한다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "heading",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "## 결과\n",
+      "level": 2,
+      "title": "결과"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "arm64 macOS 그래픽 세션에서 최종 빌드와 단일 CTest 일괄 실행을 완료했다. 제품 검사 **14/14**가 통과했으며 총 시간은 **244.41초**이다. Main `83:6974`와 Tool 전체 항목 `130:1832`를 실제 소스에 반영했고, Figma 파일 자체는 수정하지 않았다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 11,
+      "end_line": 11,
+      "raw": "정식 개발 산출물은 `build/Congregation.app`이다. 버전 **1.0.0 / 빌드 1**을 유지하며 Qt5·Qt6 탐색, AUTOMOC·AUTORCC·AUTOUIC를 사용하지 않는다. LVUI는 빌드 때 C++23으로 생성되고, iiSDKCore가 앱 수명·이벤트·프레임 루프를 소유한다. LVRS와 iiGUI가 네이티브 콘텐츠를 그린다.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "heading",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "## 실행 검사\n",
+      "level": 2,
+      "title": "실행 검사"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "table",
+      "start_line": 15,
+      "end_line": 30,
+      "raw": "| 검사 | 결과와 확인 범위 |\n|---|---|\n| native_build_surface | 활성 빌드 진입점의 Qt 획득·배포 경로 없음 |\n| native_build_surface_contract | Qt 유입 거부와 이행 기록 구분 |\n| engine | Core 앱 엔진·수명·비동기 계약 |\n| services | 기존 네이티브 제품 서비스 |\n| artwork | 브러시·취소·실행 취소·파일 입출력·리비전·레이어 불투명도·혼합·타이밍·행 순서·아핀 변형 |\n| tool_settings | 22개 값·로그 축·증감·유효 범위·설정 왕복·엔진 상태 연결·시간 눈금 |\n| editor_layout | 캔버스 맞춤·확대 금지·좌표·sRGB |\n| native_installer_contract | 기존 패키징 도구의 회귀 계약; 새 PKG 생성 증거는 아님 |\n| native_window_contract | 1999×1080·패널 폭·32px 슬라이더·증감·세그먼트·스크롤·Saved 필터·투명도·최소 창·위젯 세대 퇴역 |\n| standalone_native | Metal에서 기존 펜·텍스트·레이어·저장·열기·팝업·단축키 회귀 검사 |\n| figma_ui_native | Metal에서 새 Main 배치·드래그·전체 Tool 스크롤·우측 탭·시간·레이트·재생·이름 변경·레이어 이동 |\n| standalone_vulkan | Vulkan/MoltenVK에서 기존 편집 기능 회귀 검사 |\n| figma_ui_vulkan | Vulkan/MoltenVK에서 같은 새 Main 화면·입력·레이어·재생 검사 |\n| bundle_relocation | 번들을 다른 경로로 이동하고 빈 작업 폴더에서 두 렌더러 실행·로드 이미지 감사·정식 경로 복원 |\n",
+      "columns": [
+        "검사",
+        "결과와 확인 범위"
+      ],
+      "rows": [
+        [
+          "native_build_surface",
+          "활성 빌드 진입점의 Qt 획득·배포 경로 없음"
+        ],
+        [
+          "native_build_surface_contract",
+          "Qt 유입 거부와 이행 기록 구분"
+        ],
+        [
+          "engine",
+          "Core 앱 엔진·수명·비동기 계약"
+        ],
+        [
+          "services",
+          "기존 네이티브 제품 서비스"
+        ],
+        [
+          "artwork",
+          "브러시·취소·실행 취소·파일 입출력·리비전·레이어 불투명도·혼합·타이밍·행 순서·아핀 변형"
+        ],
+        [
+          "tool_settings",
+          "22개 값·로그 축·증감·유효 범위·설정 왕복·엔진 상태 연결·시간 눈금"
+        ],
+        [
+          "editor_layout",
+          "캔버스 맞춤·확대 금지·좌표·sRGB"
+        ],
+        [
+          "native_installer_contract",
+          "기존 패키징 도구의 회귀 계약; 새 PKG 생성 증거는 아님"
+        ],
+        [
+          "native_window_contract",
+          "1999×1080·패널 폭·32px 슬라이더·증감·세그먼트·스크롤·Saved 필터·투명도·최소 창·위젯 세대 퇴역"
+        ],
+        [
+          "standalone_native",
+          "Metal에서 기존 펜·텍스트·레이어·저장·열기·팝업·단축키 회귀 검사"
+        ],
+        [
+          "figma_ui_native",
+          "Metal에서 새 Main 배치·드래그·전체 Tool 스크롤·우측 탭·시간·레이트·재생·이름 변경·레이어 이동"
+        ],
+        [
+          "standalone_vulkan",
+          "Vulkan/MoltenVK에서 기존 편집 기능 회귀 검사"
+        ],
+        [
+          "figma_ui_vulkan",
+          "Vulkan/MoltenVK에서 같은 새 Main 화면·입력·레이어·재생 검사"
+        ],
+        [
+          "bundle_relocation",
+          "번들을 다른 경로로 이동하고 빈 작업 폴더에서 두 렌더러 실행·로드 이미지 감사·정식 경로 복원"
+        ]
+      ]
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "문서 편집을 수반하지 않는 도구 설정·탭·스크롤·스크러빙·재생은 저장 데이터와 문서 리비전을 바꾸지 않는다. 프레임 레이트를 손잡이의 Alt 드래그로 바꾸면 한 번의 문서 편집을 기록한다. 레이어 이름·순서 변경도 실제 문서에 적용한 뒤 실행 취소로 원복함을 확인했다.\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "## 배치와 화면\n",
+      "level": 2,
+      "title": "배치와 화면"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "두 렌더러에서 클라이언트 **1999×1080**, 상단 **28px**, 라이브러리 **224px**, 도구 레일 **54px**, 우측 **352px**, 타임라인 **296px**을 확인했다. 그리기 영역은 `(306,46,1341,692)`, 1536×1024 원본 그림의 표시 원점은 그 영역 안 `(235,66)`, 배율은 `0.548828125`이다. 이에 따라 원본 그림은 창 좌표 `(541,112)`에 843×562로 배치된다. 화면에 확대율은 54.9%로 표시한다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "원본 DPR 2 캡처는 다음 위치에 있다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "list",
+      "start_line": 40,
+      "end_line": 43,
+      "raw": "- `build/figma-application/native/editor.png`\n- `build/figma-application/vulkan/editor.png`\n- 각 렌더러 폴더의 `tool-dynamics.png`, `tool-taper.png`, `options-1.png`부터 `options-3.png`\n- 각 폴더의 `layout.json`\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`build/figma-application/native/editor.png`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`build/figma-application/vulkan/editor.png`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "각 렌더러 폴더의 `tool-dynamics.png`, `tool-taper.png`, `options-1.png`부터 `options-3.png`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "각 폴더의 `layout.json`",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "Figma 기준 스크린샷은 비교용이며 앱에 포함하지 않는다. 콘텐츠 PNG·플레이헤드 SVG는 `resources/figma/sources.json`에 원본 파일의 SHA-256을 기록했다. 자동 픽셀 일치 검사가 아니라 실제 배치·입력 계약과 캡처 검토의 통과이다. 문서 데이터와 지원 상태를 표시하므로 그림의 8-bit 표기 및 비활성 도구 표시는 Figma의 정적 예시와 차이가 있다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 46,
+      "end_line": 46,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "heading",
+      "start_line": 47,
+      "end_line": 47,
+      "raw": "## 번들과 SDK\n",
+      "level": 2,
+      "title": "번들과 SDK"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "번들의 실행 코드 5개를 검사하여 Qt 동적 의존성 0개와 QML 파일 0개를 확인했다. 재배치 실행에서도 번들 밖 SDK·Homebrew 코드를 불러오지 않았고 정식 앱 경로가 복원되었다. ad-hoc 서명을 `codesign --verify --deep --strict`로 확인했다.\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 50,
+      "end_line": 50,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 51,
+      "end_line": 51,
+      "raw": "이번 화면에 필요한 최신 iiGUI·LVRS의 설치물을 전용 스테이징 키트에 반영했다. `native-kit-manifest.json`을 다시 고정하고 헤더·설정·라이브러리·도구·라이선스 **801개 파일**과 상대 링크의 일치를 확인했다. Qt 공개 헤더·Qt 패키지 탐색·키트 밖 심볼릭 링크는 이 검사에서 거부한다. 다른 작업에서 편집 중인 SDK 소스는 보존했으며 전체 SDK 테스트가 이번에 모두 재실행되었다고 주장하지 않는다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 52,
+      "end_line": 52,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "기존 배포 서명 앱은 `build/figma-application/previous-signed-release.bundle`에 보존했다. 이번 앱은 개발 검증용이며 새 설치 패키지·공증·배포는 수행하지 않았다. 이전 `Congregation.pkg`에 이번 UI가 반영된 것으로 취급해서는 안 된다.\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "heading",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "## 기록과 재실행\n",
+      "level": 2,
+      "title": "기록과 재실행"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 56,
+      "end_line": 56,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "list",
+      "start_line": 57,
+      "end_line": 61,
+      "raw": "- 전체 검사: `build/figma-window-tests.xml`, `build/Testing/Temporary/LastTest.log`\n- 화면·의존성·재배치 통합 기록: `build/figma-application/verification.json`\n- Mach-O 의존성: `build/figma-application/bundle-audit.json`\n- 실제 로드 이미지: `build/native-relocation-verification.json`, `build/congregation-relocated-native.log`, `build/congregation-relocated-vulkan.log`\n- 키트: `build/figma-application/native-kit-check.log`\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "전체 검사: `build/figma-window-tests.xml`, `build/Testing/Temporary/LastTest.log`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "화면·의존성·재배치 통합 기록: `build/figma-application/verification.json`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Mach-O 의존성: `build/figma-application/bundle-audit.json`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "실제 로드 이미지: `build/native-relocation-verification.json`, `build/congregation-relocated-native.log`, `build/congregation-relocated-vulkan.log`",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "키트: `build/figma-application/native-kit-check.log`",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 62,
+      "end_line": 62,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "fenced_code",
+      "start_line": 63,
+      "end_line": 66,
+      "raw": "```sh\n./build.sh local\nctest --test-dir build -R figma_ui --output-on-failure\n```\n",
+      "language": "sh",
+      "code": "./build.sh local\nctest --test-dir build -R figma_ui --output-on-failure\n",
+      "closed": true
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 67,
+      "end_line": 67,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 68,
+      "end_line": 68,
+      "raw": "Windows·Linux는 기존 합의대로 소스 구현 범위이다. macOS 실행을 이들 플랫폼이나 실제 펜 장치·원격 Society Storage·운영 계정의 검증으로 확대하지 않는다. 지원하지 않는 도구·End 테이퍼·세션 내 에셋 상태의 경계는 FIGMA_APPLICATION_WINDOW.md에 명시했다.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 69,
+      "end_line": 69,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "heading",
+      "start_line": 70,
+      "end_line": 70,
+      "raw": "## Color·Metric 후속 전환\n",
+      "level": 2,
+      "title": "Color·Metric 후속 전환"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 71,
+      "end_line": 71,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 72,
+      "end_line": 72,
+      "raw": "같은 날 [Color·Metric 공통 스타일 프로필](UI_STYLE_TOKENS.md)로 전환한 최종 빌드의 제품 전체 검사 **16/16**이 통과했다(279.31초). 메인 창·환경설정·새 캔버스·직접 그리는 패널이 동일한 값 소스를 공유한다. 타임라인 손잡이/세로선의 독립 픽셀 검사를 추가했으며 기존 배치·색상·조작 기준도 통과했다. 결과는 `build/ui-token-verification.json`과 `build/ui-token-tests.xml`에 기록했다.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "heading",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "## 2026-10-26 좌측 사이드바 제거\n",
+      "level": 2,
+      "title": "2026-10-26 좌측 사이드바 제거"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "paragraph",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "224px 에셋 사이드바를 현재 창의 구성과 활성 빌드 대상에서 제외했다. 왼쪽에는 기존 54px 세로 도구 막대만 남기며, 제거한 폭은 중앙 캔버스와 하단 타임라인에 배분한다. 1999×1080 기준 캔버스는 x=82px·너비 1565px, 중앙 열과 타임라인은 x=54px·너비 1593px이다. 우측 상세 패널 352px와 하단 타임라인 높이 296px는 유지한다.\n"
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "paragraph",
+      "start_line": 78,
+      "end_line": 78,
+      "raw": "먼저 변경된 창 계약 검사가 기존 화면에서 `The removed asset sidebar is still mounted`로 실패하는 것을 확인했다. 구현 후 Metal·Vulkan의 창 검사 2개와 나머지 회귀 검사 20개가 모두 통과했다. 두 창 검사의 합계는 1.66초, 나머지 20개의 합계는 520.74초이다. 최소 창 크기 1200×720에서도 세로 도구 막대의 위치, 도구 선택, 빈 영역 없는 캔버스·타임라인 배분을 검사했다. 기존 배경·경계선 색상과 파라미터·타임라인·레이어 조작 검사도 통과했다.\n"
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 79,
+      "end_line": 79,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "paragraph",
+      "start_line": 80,
+      "end_line": 80,
+      "raw": "기록은 `build/toolbar-only/macos-window-test.log`, `macos-regression-test.log`, `macos-regression-tests.xml`, `macos-verification.json`이다. 실제 화면과 좌표는 `build/toolbar-only/macos/metal/` 및 `macos/vulkan/`의 `editor.png`·`layout.json`이다. Metal 캡처를 직접 확인했다. 이 결과는 이전 Figma 원본에 사이드바가 있었다는 사실과 별개로, 후속 변경 지시를 반영한 네이티브 앱의 검증이다.\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 81,
+      "end_line": 81,
+      "raw": "\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "paragraph",
+      "start_line": 82,
+      "end_line": 82,
+      "raw": "같은 소스로 iPadOS 후보를 서명·빌드하여 연결된 iPad Pro에 설치했다. 기기의 격리된 편집 회귀 검사는 Apple A12Z GPU·Metal에서 통과했으며 `qt=false`, 2732×1998 캡처를 기록했다. 해당 캡처에서도 좌측에는 세로 도구 막대만 남아 있는 것을 직접 확인했다. 기록은 `build/toolbar-only/device/metal/evidence/success.json`과 `metal.png`이다. 테스트 후 일반 실행으로 돌려놓았으며 `device/normal/evidence/startup.json`은 `mode=normal`, `visible=true`, `licensed=false`이다. 일반 실행은 기존 계정 인증 화면이며 격리된 편집 화면 검사와 구분한다.\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 83,
+      "end_line": 83,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "paragraph",
+      "start_line": 84,
+      "end_line": 84,
+      "raw": "플랫폼 전환 시 macOS 후보는 `build/ipados/Congregation-macOS-307412595e55.zip`으로 보존했다. 현재 canonical 앱 `build/Congregation.app`은 iPadOS 후보이며 버전 1.0.0·빌드 1을 유지한다.\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 85,
+      "end_line": 85,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "heading",
+      "start_line": 86,
+      "end_line": 86,
+      "raw": "## 2026-10-26 Figma 원본 레이아웃 동기화\n",
+      "level": 2,
+      "title": "2026-10-26 Figma 원본 레이아웃 동기화"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 87,
+      "end_line": 87,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "paragraph",
+      "start_line": 88,
+      "end_line": 88,
+      "raw": "후속 요청의 대상은 Figma `83:6973`이다. 작업 시작 시 원본에는 사이드바가 이미 제거되어 있었지만, 캔버스 눈금자·탐색 바와 타임라인의 행·시간 열이 이전 폭에 고정되어 있었다. 기존 노드를 직접 수정하여 중앙 열 1593px, 시간 열 1169px에 맞췄다. 10개 레이어 행과 각 행의 48개 셀은 가변 폭으로 전환했으며 9개 시간 라벨·49개 프레임 틱과 1초 플레이헤드를 함께 정렬했다. 캔버스 뷰포트는 1593×692px이며 원본 아트워크는 크기를 유지하고 중앙에 배치했다. 눈금자는 확장된 영역까지 표시한다.\n"
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 89,
+      "end_line": 89,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "paragraph",
+      "start_line": 90,
+      "end_line": 90,
+      "raw": "1999×1080 창, 좌측 54px 도구 막대, 우측 352px 상세 패널을 유지했다. 단일 창만 담고 있는 외곽 프레임은 4079px에서 1999px로 정리하고 자동 크기 조절을 적용했다. 도구 막대·상세 패널·ApplicationWindow의 색상·텍스트·변수 연결은 변경 전후 해시가 같다. LVRS 인스턴스와 Pretendard 스타일을 유지하며 전체 화면을 이미지로 평탄화하지 않았다.\n"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 91,
+      "end_line": 91,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "paragraph",
+      "start_line": 92,
+      "end_line": 92,
+      "raw": "Figma 구조 검사와 최종 렌더링을 독립적으로 확인했다. 실제 변경 노드 ID와 검증 결과는 `build/toolbar-only/figma/mutation.json`·`verification.json`, 화면은 `before.png`·`after.png`에 기록했다. 이 단계의 검증 범위는 Figma 원본이며 네이티브 앱의 빌드·실행 결과는 앞 절의 별도 기록을 따른다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Figma ApplicationWindow 검증 · 2026-10-25",
+      "anchor": "figma-applicationwindow-검증--2026-10-25",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000003",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "패널 색상 후속 보정",
+      "anchor": "패널-색상-후속-보정",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000007",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "결과",
+      "anchor": "결과",
+      "start_line": 7
+    },
+    {
+      "block_id": "b000013",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "실행 검사",
+      "anchor": "실행-검사",
+      "start_line": 13
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "배치와 화면",
+      "anchor": "배치와-화면",
+      "start_line": 34
+    },
+    {
+      "block_id": "b000029",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "번들과 SDK",
+      "anchor": "번들과-sdk",
+      "start_line": 47
+    },
+    {
+      "block_id": "b000037",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "기록과 재실행",
+      "anchor": "기록과-재실행",
+      "start_line": 55
+    },
+    {
+      "block_id": "b000045",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Color·Metric 후속 전환",
+      "anchor": "colormetric-후속-전환",
+      "start_line": 70
+    },
+    {
+      "block_id": "b000049",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "2026-10-26 좌측 사이드바 제거",
+      "anchor": "2026-10-26-좌측-사이드바-제거",
+      "start_line": 74
+    },
+    {
+      "block_id": "b000061",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "2026-10-26 Figma 원본 레이아웃 동기화",
+      "anchor": "2026-10-26-figma-원본-레이아웃-동기화",
+      "start_line": 86
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000011",
+        "line": 11,
+        "text": "정식 개발 산출물은 `build/Congregation.app`이다. 버전 **1.0.0 / 빌드 1**을 유지하며 Qt5·Qt6 탐색, AUTOMOC·AUTORCC·AUTOUIC를 사용하지 않는다. LVUI는 빌드 때 C++23으로 생성되고, iiSDKCore가 앱 수명·이벤트·프레임 루프를 소유한다. LVRS와 iiGUI가 네이티브 콘텐츠를 그린다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000015",
+        "line": 23,
+        "text": "| editor_layout | 캔버스 맞춤·확대 금지·좌표·sRGB |",
+        "basis": "lexical_match",
+        "context": "table"
+      },
+      {
+        "block_id": "b000027",
+        "line": 45,
+        "text": "Figma 기준 스크린샷은 비교용이며 앱에 포함하지 않는다. 콘텐츠 PNG·플레이헤드 SVG는 `resources/figma/sources.json`에 원본 파일의 SHA-256을 기록했다. 자동 픽셀 일치 검사가 아니라 실제 배치·입력 계약과 캡처 검토의 통과이다. 문서 데이터와 지원 상태를 표시하므로 그림의 8-bit 표기 및 비활성 도구 표시는 Figma의 정적 예시와 차이가 있다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000033",
+        "line": 51,
+        "text": "이번 화면에 필요한 최신 iiGUI·LVRS의 설치물을 전용 스테이징 키트에 반영했다. `native-kit-manifest.json`을 다시 고정하고 헤더·설정·라이브러리·도구·라이선스 **801개 파일**과 상대 링크의 일치를 확인했다. Qt 공개 헤더·Qt 패키지 탐색·키트 밖 심볼릭 링크는 이 검사에서 거부한다. 다른 작업에서 편집 중인 SDK 소스는 보존했으며 전체 SDK 테스트가 이번에 모두 재실행되었다고 주장하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000035",
+        "line": 53,
+        "text": "기존 배포 서명 앱은 `build/figma-application/previous-signed-release.bundle`에 보존했다. 이번 앱은 개발 검증용이며 새 설치 패키지·공증·배포는 수행하지 않았다. 이전 `Congregation.pkg`에 이번 UI가 반영된 것으로 취급해서는 안 된다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000043",
+        "line": 68,
+        "text": "Windows·Linux는 기존 합의대로 소스 구현 범위이다. macOS 실행을 이들 플랫폼이나 실제 펜 장치·원격 Society Storage·운영 계정의 검증으로 확대하지 않는다. 지원하지 않는 도구·End 테이퍼·세션 내 에셋 상태의 경계는 FIGMA_APPLICATION_WINDOW.md에 명시했다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [
+      {
+        "block_id": "b000041",
+        "language": "sh",
+        "code": "./build.sh local\nctest --test-dir build -R figma_ui --output-on-failure\n"
+      }
+    ],
+    "links": [
+      {
+        "block_id": "b000047",
+        "label": "Color·Metric 공통 스타일 프로필",
+        "target": "UI_STYLE_TOKENS.md",
+        "kind": "relative",
+        "line": 72
+      }
+    ],
+    "tables": [
+      {
+        "block_id": "b000015",
+        "columns": [
+          "검사",
+          "결과와 확인 범위"
+        ],
+        "rows": [
+          [
+            "native_build_surface",
+            "활성 빌드 진입점의 Qt 획득·배포 경로 없음"
+          ],
+          [
+            "native_build_surface_contract",
+            "Qt 유입 거부와 이행 기록 구분"
+          ],
+          [
+            "engine",
+            "Core 앱 엔진·수명·비동기 계약"
+          ],
+          [
+            "services",
+            "기존 네이티브 제품 서비스"
+          ],
+          [
+            "artwork",
+            "브러시·취소·실행 취소·파일 입출력·리비전·레이어 불투명도·혼합·타이밍·행 순서·아핀 변형"
+          ],
+          [
+            "tool_settings",
+            "22개 값·로그 축·증감·유효 범위·설정 왕복·엔진 상태 연결·시간 눈금"
+          ],
+          [
+            "editor_layout",
+            "캔버스 맞춤·확대 금지·좌표·sRGB"
+          ],
+          [
+            "native_installer_contract",
+            "기존 패키징 도구의 회귀 계약; 새 PKG 생성 증거는 아님"
+          ],
+          [
+            "native_window_contract",
+            "1999×1080·패널 폭·32px 슬라이더·증감·세그먼트·스크롤·Saved 필터·투명도·최소 창·위젯 세대 퇴역"
+          ],
+          [
+            "standalone_native",
+            "Metal에서 기존 펜·텍스트·레이어·저장·열기·팝업·단축키 회귀 검사"
+          ],
+          [
+            "figma_ui_native",
+            "Metal에서 새 Main 배치·드래그·전체 Tool 스크롤·우측 탭·시간·레이트·재생·이름 변경·레이어 이동"
+          ],
+          [
+            "standalone_vulkan",
+            "Vulkan/MoltenVK에서 기존 편집 기능 회귀 검사"
+          ],
+          [
+            "figma_ui_vulkan",
+            "Vulkan/MoltenVK에서 같은 새 Main 화면·입력·레이어·재생 검사"
+          ],
+          [
+            "bundle_relocation",
+            "번들을 다른 경로로 이동하고 빈 작업 폴더에서 두 렌더러 실행·로드 이미지 감사·정식 경로 복원"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

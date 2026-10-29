@@ -1,0 +1,93 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:6054083ed60b5a2357b6c054da0314056874224e320818834a3486580b01402c",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "resources/icons/README.md",
+    "sha256": "198879282e0abb275350c0080aafaa305631ca9e5680ce4ac81767ff4c12753f",
+    "bytes": 627,
+    "line_count": 5,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Vincent editor icons",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Vincent editor icons\n",
+      "level": 1,
+      "title": "Vincent editor icons"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "The fifteen standard SVGs in this directory are preserved from LVRS commit `29399482`, before subsequent Figma icon recoloring. `panHand.svg` and `translateObject.svg` come from the preserved Vincent source at `Product/.Deprecated/Vincent/src/App/resources/icons`. This app embeds these vectors at build time so SDK theme updates do not change the restored editor. The existing LVRS and third-party icon license notices remain part of the native bundle.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "The eraser's gold and the shapes' neutral gray are restored to the preserved editor screenshot palette; their original vector geometry is retained.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Vincent editor icons",
+      "anchor": "vincent-editor-icons",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 3,
+        "text": "The fifteen standard SVGs in this directory are preserved from LVRS commit `29399482`, before subsequent Figma icon recoloring. `panHand.svg` and `translateObject.svg` come from the preserved Vincent source at `Product/.Deprecated/Vincent/src/App/resources/icons`. This app embeds these vectors at build time so SDK theme updates do not change the restored editor. The existing LVRS and third-party icon license notices remain part of the native bundle.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

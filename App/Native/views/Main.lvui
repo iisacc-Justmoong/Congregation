@@ -7,14 +7,18 @@ import vm congregation.ui.EditorBackend
     <Spacer/>
     <AppCard id="activation" width={Metric.size540} height={Metric.size340}>
       <div style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch">
-      <Label text="Activate Congregation" fontSize={Metric.font24} fontWeight={Metric.weightSemiBold}/>
-      <Label text="Verify this copy before opening the canvas." fontSize={Metric.textBody}/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space12"><Label text="Product" fontSize={Metric.textDescription}/><Spacer/><Label text="Congregation" fontSize={Metric.textBody}/></div>
-      <Label text="Use the verified email and license key in your private dashboard." fontSize={Metric.textDescription}/>
-      <InputField id="license-email" text={vm.email} placeholder="Verified account email" width={Metric.size460} onEdited={vm.set_email}/>
-      <InputField id="license-key" text={vm.license_key} placeholder="IIL… license key" password={true} width={Metric.size460} onEdited={vm.set_license_key}/>
-      <Label text={vm.status} fontSize={Metric.textDescription}/>
-      <Button id="activate" text="Activate" enabled={vm.can_activate} on:click={vm.activate}/>
+      <Label text="Sign in to Congregation" fontSize={Metric.font24} fontWeight={Metric.weightSemiBold}/>
+      <Label text="Use your iisacc account. Your browser opens the secure sign-in page." fontSize={Metric.textBody}/>
+      <div style="display: flex; flex-direction: row; gap: Metric.space12"><Label text="Account" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.account_email} fontSize={Metric.textBody}/></div>
+      <Label text="Accounts, connected devices and licenses are managed in Society." fontSize={Metric.textDescription}/>
+      <Label id="account-status" text={vm.account_status} fontSize={Metric.textDescription}/>
+      <Button id="account-open-society" text="Open Society" onClick={vm.open_society}/>
+      <Button id="activate" text="Sign in at iisacc.com" enabled={vm.can_activate} onClick={vm.activate}/>
+      <div style="display: flex; flex-direction: row; gap: Metric.space8">
+        <Button id="refresh-license" visible={vm.signed_in} text="Check license again" enabled={vm.can_activate} onClick={vm.restore_license}/>
+        <Button id="cancel-sign-in" visible={vm.signing_in} text="Cancel" onClick={vm.cancel_sign_in}/>
+        <Button id="sign-out" visible={vm.signed_in} text="Sign out" onClick={vm.forget_license}/>
+      </div>
       </div>
     </AppCard>
     <Spacer/>

@@ -38,9 +38,19 @@ int main()
         check(std::abs(c.red - .00699541) < 1e-6,
               "Workspace encoded sRGB was treated as linear light");
         const auto edge = editor::panel_edge_color();
-        check(std::abs(edge.red * 255 - 48.2) < 1e-5 && std::abs(edge.green * 255 - 50.84) < 1e-5 &&
-                  std::abs(edge.blue * 255 - 52.6) < 1e-5 && edge.alpha == 1,
-              "Figma sRGB edge was not composited before GPU conversion");
+        check(std::abs(edge.red * 255 - 12) < 1e-5 && std::abs(edge.green * 255 - 12) < 1e-5 &&
+                  std::abs(edge.blue * 255 - 12) < 1e-5 && edge.alpha == 1,
+              "Panel borders must use opaque near-black gray");
+        const auto linear_edge = editor::linear(edge);
+        check(std::abs(linear_edge.red - .003676507) < 1e-7 &&
+                  std::abs(linear_edge.green - .003676507) < 1e-7 &&
+                  std::abs(linear_edge.blue - .003676507) < 1e-7 && linear_edge.alpha == 1,
+              "Near-black panel borders must be converted from sRGB to linear light");
+        const auto detail = editor::detail_line_color();
+        check(std::abs(detail.red * 255 - 48.2) < 1e-5 &&
+                  std::abs(detail.green * 255 - 50.84) < 1e-5 &&
+                  std::abs(detail.blue * 255 - 52.6) < 1e-5 && detail.alpha == 1,
+              "Timeline and ruler detail lines must retain their composited color");
         check(editor::over_window({1, 1, 1, 0}) == editor::window_background,
               "A transparent overlay changed the window color");
         check(editor::over_window({1, 0, 0, 1}) == ii::gui::WidgetColor{1, 0, 0, 1},

@@ -8,10 +8,11 @@ Congregation의 활성 UI는 LVUI 기본 LVRS 토큰과 앱 전용 `App/Native/v
 // 앱 전용 프로필의 예
 let window: Color = Color("#141719")
 let inspectorWidth: Metric = 352
-let panelEdgeResolved: Color = composite(.material.surface.dense.edge, .window)
+let panelEdgeResolved: Color = Color("#0c0c0c")
+let detailLineResolved: Color = composite(.material.surface.dense.edge, .window)
 ```
 
-`Color.window` 변경은 해당 앱의 기본 appearance에도 적용된다. 패널 경계선은 LVRS의 Dense/Edge 흰색 12%를 앱의 window 위에 encoded sRGB로 합성한 값이다. 실제 렌더링에서는 그 결과를 선형 색으로 변환한다. 원본 Figma 알파의 소수 정밀도를 보존하며, 경계선 두께는 `Metric.stroke1`이다.
+`Color.window` 변경은 해당 앱의 기본 appearance에도 적용된다. 패널 경계선은 불투명한 `#0C0C0C`이며 두께는 `Metric.stroke1`이다. 타임라인 내부 선과 눈금자는 별도 `detailLineResolved`를 사용하여 LVRS Dense/Edge 흰색 12%를 창 배경 위에 encoded sRGB로 합성한 기존 값을 유지한다. 실제 렌더링에서는 각 결과를 선형 색으로 변환한다. 선택·호버·포커스 색은 변경하지 않는다.
 
 | 대상 | 선택 방법 |
 |---|---|

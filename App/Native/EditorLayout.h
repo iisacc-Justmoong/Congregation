@@ -6,12 +6,10 @@ namespace congregation::native::editor
 {
 // Figma 83:6974: the OS title/menu bars stay outside the client composition.
 inline constexpr double toolbar_height = Metric::toolbarHeight,
-                        sidebar_width = Metric::sidebarWidth,
                         tool_rail_width = Metric::toolRailWidth,
                         inspector_width = Metric::inspectorWidth,
                         timeline_height = Metric::timelineHeight;
 inline constexpr ii::gui::WidgetColor toolbar = Color::toolbar;
-inline constexpr ii::gui::WidgetColor sidebar = Color::popup;
 inline constexpr ii::gui::WidgetColor workspace = Color::workspace;
 struct Fit final
 {

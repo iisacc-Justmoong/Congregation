@@ -57,7 +57,7 @@ Windows·Linux의 실제 실행 검증은 사용자의 “소스 코드 구현�
 | --- | --- | --- |
 | 앱 수명·작업·타이머·프로세스·객체 간 호출 | iiSDKCore Runtime, Application, EventLoop, HostLoop, TaskScope, QueryPort | `QtEngineHost`를 iiGUI의 Core 루프 연결로 바꾸고 기존 엔진의 소유 관계를 유지한다. 별도 실행기나 전역 이벤트 버스를 추가할 이유가 없다. |
 | TCP/UDP/HTTP/TLS·협업 메시지 | iiNetwork, 엔진의 CanvasSession/NearbyDiscovery | 네이티브 서비스의 결과를 Qt-free 화면에 연결한다. TLS 라이브러리 배치는 별도의 실제 차단 사항이다. |
-| 계정·보안 저장소·인증서·업데이트 | iiAcountManager/Native, iiLicenseManager/Native, iiUpdateManager/Native | QObject 어댑터·오류 표현·창 수명을 대체하고 새 설치 패키지를 제품에 선택한다. 외부 서비스의 실운영 성공은 이번 조사 범위가 아니다. |
+| 계정·보안 저장소·인증서·업데이트 | iiAccountManager/Native, iiLicenseManager/Native, iiUpdateManager/Native | QObject 어댑터·오류 표현·창 수명을 대체하고 새 설치 패키지를 제품에 선택한다. 외부 서비스의 실운영 성공은 이번 조사 범위가 아니다. |
 | 파일·임시/캐시·원자적 저장·기존 잠금·SQLite | iiFileProvider Native/CoreIO/Compatibility | SharedCanvas가 참조하는 기존 Qt 제공자와 파일 구현을 네이티브 계약으로 이행한다. |
 | JSON·XML·표준 값 | iiJson, iiXml Native, Core Value 및 기존 엔진 코덱 | SharedCanvas와 잔여 어댑터의 Qt 사용을 옮긴다. 새 JSON/XML 엔진이 필요한 상황이 아니다. |
 | 브러시·압력·보정·래스터 편집·레이어 합성·이력 | iiPaintEngine | 네이티브 입력과 문서/화면 어댑터를 연결한다. `StrokePoint`에는 이미 압력·시간·기울기·회전 등이 있다. 실제 OS 이벤트가 이를 공급하는 경계가 부족하다. |

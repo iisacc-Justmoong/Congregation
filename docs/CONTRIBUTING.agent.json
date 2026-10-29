@@ -1,0 +1,423 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:3274205c75e9dca87bd837ae21f18bb94c9cffd909665de2e5b05fad5d7b52ba",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/CONTRIBUTING.md",
+    "sha256": "cfbd4660dc6c74712aeceaf25e46342769f5f119a78d920bad1f11937d0cbf98",
+    "bytes": 3375,
+    "line_count": 46,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation에 기여",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "html",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "<a id=\"contributing-to-congregation\"></a>\n"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "# Congregation에 기여\n",
+      "level": 1,
+      "title": "Congregation에 기여"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "Congregation는 재현 가능한 버그 보고서, Windows 하드웨어 테스트, 문서 개선 및 집중적인 코드 기여를 환영합니다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "html",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "<a id=\"start-with-a-public-discussion-or-issue\"></a>\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "heading",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "## 공개 토론이나 문제로 시작하세요.\n",
+      "level": 2,
+      "title": "공개 토론이나 문제로 시작하세요."
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "list",
+      "start_line": 11,
+      "end_line": 13,
+      "raw": "- 일반적인 피드백, 디자인 아이디어 및 질문에 대해서는 [GitHub 토론](https://github.com/iisacc-Justmoong/Congregation/discussions)를 사용하십시오.\n- 재현 가능한 결함이나 한계가 설정된 구현 작업에는 [GitHub 문제](https://github.com/iisacc-Justmoong/Congregation/issues)를 사용하세요.\n- [Windows 10/11 테스트 문제](https://github.com/iisacc-Justmoong/Congregation/issues/18)에는 유용한 첫 번째 검증 작업이 나열되어 있습니다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "일반적인 피드백, 디자인 아이디어 및 질문에 대해서는 [GitHub 토론](https://github.com/iisacc-Justmoong/Congregation/discussions)를 사용하십시오.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "재현 가능한 결함이나 한계가 설정된 구현 작업에는 [GitHub 문제](https://github.com/iisacc-Justmoong/Congregation/issues)를 사용하세요.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "[Windows 10/11 테스트 문제](https://github.com/iisacc-Justmoong/Congregation/issues/18)에는 유용한 첫 번째 검증 작업이 나열되어 있습니다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "운영 체제 버전, 하드웨어 또는 입력 장치, 정확한 재현 단계, 예상 결과 및 실제 결과를 포함합니다. 스크린샷과 로그에서 개인정보를 제거하세요.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "html",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "<a id=\"build-and-test\"></a>\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "heading",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "## 빌드 및 테스트\n",
+      "level": 2,
+      "title": "빌드 및 테스트"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "생성된 모든 빌드 파일을 저장소 로컬 `build/` 디렉터리에 보관합니다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "fenced_code",
+      "start_line": 23,
+      "end_line": 27,
+      "raw": "```powershell\ncmake -S . -B build -DBUILD_TESTING=ON\ncmake --build build --parallel\nctest --test-dir build --output-on-failure\n```\n",
+      "language": "powershell",
+      "code": "cmake -S . -B build -DBUILD_TESTING=ON\ncmake --build build --parallel\nctest --test-dir build --output-on-failure\n",
+      "closed": true
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "끌어오기 요청을 제출하기 전에 전체 테스트 모음을 실행하세요. 새로운 동작은 일반적으로 자동화된 회귀 테스트로 시작되거나 포함되어야 합니다. UI 프로토타입과 탐색 작업을 통해 먼저 구현을 확립할 수 있지만 검토 전에 적절한 테스트와 문서를 추가해야 합니다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "html",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "<a id=\"project-rules\"></a>\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "heading",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "## 프로젝트 규칙\n",
+      "level": 2,
+      "title": "프로젝트 규칙"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "list",
+      "start_line": 35,
+      "end_line": 40,
+      "raw": "- Qt 및 KDE 코딩 지침, 저장소 `.clang-format`, 4칸 들여쓰기 및 Allman 중괄호를 따르세요.\n- QML 변경 사항은 `.local/SDK/LVRS/` 프레임워크를 사용해야 하며 파일당 하나의 루트 구성 요소를 유지해야 합니다.\n- 모듈을 교체 가능하게 유지하고, 순환 종속성을 피하고, 하위 수준 모듈이 상위 수준 모듈에 종속되지 않도록 하세요.\n- 비도메인 인프라를 로컬로 구현하기 전에 유지 관리되고 적절하게 라이센스가 부여된 외부 라이브러리를 평가하십시오.\n- 소스가 변경될 때마다 관련 문서와 테스트를 업데이트하세요.\n- 생성된 바이너리, 자격 증명, 개인 키, 인증서 파일 또는 서명 토큰을 커밋하지 마세요.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "Qt 및 KDE 코딩 지침, 저장소 `.clang-format`, 4칸 들여쓰기 및 Allman 중괄호를 따르세요.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "QML 변경 사항은 `.local/SDK/LVRS/` 프레임워크를 사용해야 하며 파일당 하나의 루트 구성 요소를 유지해야 합니다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "모듈을 교체 가능하게 유지하고, 순환 종속성을 피하고, 하위 수준 모듈이 상위 수준 모듈에 종속되지 않도록 하세요.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "비도메인 인프라를 로컬로 구현하기 전에 유지 관리되고 적절하게 라이센스가 부여된 외부 라이브러리를 평가하십시오.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "소스가 변경될 때마다 관련 문서와 테스트를 업데이트하세요.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "생성된 바이너리, 자격 증명, 개인 키, 인증서 파일 또는 서명 토큰을 커밋하지 마세요.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "html",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "<a id=\"windows-release-safety\"></a>\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "## Windows 릴리스 안전\n",
+      "level": 2,
+      "title": "Windows 릴리스 안전"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 46,
+      "end_line": 46,
+      "raw": "서명되지 않은 MSI, ZIP, MSIX 및 자체 서명된 SignPath 시험 출력물은 개발 전용 아티팩트입니다. 서비스 승인 전에 생성된 모든 필수 워크플로우 입력은 개발 전용입니다. 그것들은 공개 릴리스에 첨부되거나 신뢰할 수 있는 다운로드로 제시되어서는 안 됩니다. 절대 `NECESSARY_SIGN_TOKEN` 를 커밋하거나 출력하지 마세요; 제공자가 Congregation 를 승인한 후에만 GitHub 액션 리포지토리 시크릿 스토어에 속해야 합니다. 웹사이트 MSI 는 외부 MSI 와 중첩된 `Congregation.exe` 가 모두 리포지토리의 신뢰할 수 있는 Authenticode, 예상 발행자, 동일한 인증서, 및 RFC 3161 타임스탬프 검증 게이트를 통과한 후에만 게시할 수 있습니다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000003",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation에 기여",
+      "anchor": "congregation에-기여",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000009",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "공개 토론이나 문제로 시작하세요.",
+      "anchor": "공개-토론이나-문제로-시작하세요",
+      "start_line": 9
+    },
+    {
+      "block_id": "b000017",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "빌드 및 테스트",
+      "anchor": "빌드-및-테스트",
+      "start_line": 19
+    },
+    {
+      "block_id": "b000027",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "프로젝트 규칙",
+      "anchor": "프로젝트-규칙",
+      "start_line": 33
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "Windows 릴리스 안전",
+      "anchor": "windows-릴리스-안전",
+      "start_line": 44
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000035",
+        "line": 46,
+        "text": "서명되지 않은 MSI, ZIP, MSIX 및 자체 서명된 SignPath 시험 출력물은 개발 전용 아티팩트입니다. 서비스 승인 전에 생성된 모든 필수 워크플로우 입력은 개발 전용입니다. 그것들은 공개 릴리스에 첨부되거나 신뢰할 수 있는 다운로드로 제시되어서는 안 됩니다. 절대 `NECESSARY_SIGN_TOKEN` 를 커밋하거나 출력하지 마세요; 제공자가 Congregation 를 승인한 후에만 GitHub 액션 리포지토리 시크릿 스토어에 속해야 합니다. 웹사이트 MSI 는 외부 MSI 와 중첩된 `Congregation.exe` 가 모두 리포지토리의 신뢰할 수 있는 Authenticode, 예상 발행자, 동일한 인증서, 및 RFC 3161 타임스탬프 검증 게이트를 통과한 후에만 게시할 수 있습니다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [
+      {
+        "block_id": "b000021",
+        "language": "powershell",
+        "code": "cmake -S . -B build -DBUILD_TESTING=ON\ncmake --build build --parallel\nctest --test-dir build --output-on-failure\n"
+      }
+    ],
+    "links": [
+      {
+        "block_id": "b000011",
+        "label": "GitHub 토론",
+        "target": "https://github.com/iisacc-Justmoong/Congregation/discussions",
+        "kind": "external",
+        "line": 11
+      },
+      {
+        "block_id": "b000011",
+        "label": "GitHub 문제",
+        "target": "https://github.com/iisacc-Justmoong/Congregation/issues",
+        "kind": "external",
+        "line": 12
+      },
+      {
+        "block_id": "b000011",
+        "label": "Windows 10/11 테스트 문제",
+        "target": "https://github.com/iisacc-Justmoong/Congregation/issues/18",
+        "kind": "external",
+        "line": 13
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

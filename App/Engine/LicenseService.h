@@ -1,39 +1,13 @@
 #pragma once
 #include "Data.h"
-#include <iiNetwork/Network.h>
-#include <iiAcountManager/NativeAccount.h>
+#include <iiAccountManager/BrowserSession.h>
 namespace congregation
 {
-struct Credentials final
-{
-    std::string email, key;
-    Credentials() = default;
-    Credentials(std::string e, std::string k) : email(std::move(e)), key(std::move(k)) {}
-    Credentials(const Credentials&) = delete;
-    Credentials& operator=(const Credentials&) = delete;
-    Credentials(Credentials&&) = default;
-    Credentials& operator=(Credentials&&) = default;
-    ~Credentials();
-    void clear();
-};
-struct CredentialPort final
-{
-    using ReadStatus = iisacc::accounts::native::SecretResult::Status;
-    std::function<bool()> supported;
-    std::function<void(std::function<void(ReadStatus, std::string)>)> read;
-    std::function<void(std::string_view, std::function<void(bool)>)> write;
-    std::function<void(std::function<void(bool)>)> remove;
-};
+// Society authorizes app execution. iiAccountManager owns the license subsystem
+// and verifies Society's signed local token; apps never query license ownership.
 class LicenseService final
 {
   public:
-    enum class StoredStatus
-    {
-        available,
-        not_found,
-        unavailable,
-        invalid
-    };
     enum class Notice
     {
         licensed,
@@ -41,35 +15,39 @@ class LicenseService final
         stored,
         code
     };
-    LicenseService(ii::runtime::EventLoop&, std::string endpoint, int timeout, bool enforced,
-                   CredentialPort);
+    LicenseService(ii::runtime::EventLoop &, iisacc::accounts::native::BrowserSessionOptions,
+                   bool enforced, iisacc::accounts::native::SessionPersistence = {},
+                   std::string society_endpoint = "http://127.0.0.1:49627/v1/authorize",
+                   std::vector<iisacc::licensing::owned::TrustedKey> = iisacc::licensing::owned::trusted_keys());
     ~LicenseService();
     std::function<void(Notice)> changed;
     std::function<void(bool)> validated;
-    bool enforced = true, licensed = false, verifying = false, stored = false;
-    std::string code;
-    [[nodiscard]] bool persistence() const;
+    std::function<void(std::string)> open_browser;
+    bool enforced = true, licensed = false, verifying = false, stored = false, signed_in = false;
+    std::string code, email;
+    void sign_in();
     void restore();
-    void validate(std::string email, std::string key);
     void retry();
+    void open_society();
+    void cancel();
     void forget();
-    void credentials(std::function<void(StoredStatus, Credentials)>);
+    [[nodiscard]] std::string access_token() const;
 
   private:
-    void start(std::string, std::string, bool);
+    void session_changed(iisacc::accounts::native::BrowserSessionSnapshot);
+    void fetch(bool force_refresh = false);
     void finish(ii::network::HttpResponse);
-    void clear_stored();
-    void set_licensed(bool);
-    void set_verifying(bool);
-    void set_stored(bool);
-    void set_code(std::string);
-    void complete(bool);
+    void publish();
+    void schedule_expiry(std::int64_t);
+    ii::runtime::EventLoop::Sender events_;
     ii::network::Http http_;
-    std::string endpoint_;
-    int timeout_;
-    CredentialPort store_;
-    Credentials active_, saved_;
-    bool uses_saved_ = false;
+    iisacc::accounts::native::BrowserSessionOptions options_;
+    iisacc::accounts::native::BrowserSession account_;
+    ii::runtime::TaskToken refresh_;
+    std::string subject_, society_endpoint_, request_id_;
+    std::vector<iisacc::licensing::owned::TrustedKey> trusted_keys_;
+    std::uint64_t generation_ = 0;
+    bool last_validated_ = false;
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 };
 } // namespace congregation

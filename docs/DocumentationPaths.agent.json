@@ -1,0 +1,122 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:cf57ffb5a9e36f4beaeec92f8968b2c28f638ae7483a34ab15527a314a313cab",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/DocumentationPaths.md",
+    "sha256": "8f84b7ff0eeb42eedeb19a2de274c3c0e14df06f6c61aadb666d94c0bc61929d",
+    "bytes": 768,
+    "line_count": 7,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "문서 경로 계약",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 문서 경로 계약\n",
+      "level": 1,
+      "title": "문서 경로 계약"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "사람용 영문 진입점은 루트 `README.md`이고 에이전트 진입점은 `AGENT.md`이다. 기여 지침의 원본은 [CONTRIBUTING.md](CONTRIBUTING.md)이며 루트의 기존 경로는 이동 안내로 유지한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "보존된 `tests/tst_windowsbuildworkflowcontract.cpp`는 기여 지침을 `../docs/CONTRIBUTING.md`에서 읽는다. WorkspaceDocumentation의 C++23 문서 소비 검사는 이 소스가 선택한 실제 파일과 원래 필수 문구를 대조한다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "현재 애플리케이션은 `App/`의 네이티브 타깃이며 과거 Qt 테스트는 현재 빌드 대상으로 승격하지 않는다. 문서 데이터 계약 검사와 현재 네이티브 빌드·테스트 및 Windows CI 실제 실행을 각각 구분한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "문서 경로 계약",
+      "anchor": "문서-경로-계약",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000005",
+        "line": 5,
+        "text": "보존된 `tests/tst_windowsbuildworkflowcontract.cpp`는 기여 지침을 `../docs/CONTRIBUTING.md`에서 읽는다. WorkspaceDocumentation의 C++23 문서 소비 검사는 이 소스가 선택한 실제 파일과 원래 필수 문구를 대조한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000007",
+        "line": 7,
+        "text": "현재 애플리케이션은 `App/`의 네이티브 타깃이며 과거 Qt 테스트는 현재 빌드 대상으로 승격하지 않는다. 문서 데이터 계약 검사와 현재 네이티브 빌드·테스트 및 Windows CI 실제 실행을 각각 구분한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000003",
+        "label": "CONTRIBUTING.md",
+        "target": "CONTRIBUTING.md",
+        "kind": "relative",
+        "line": 3
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

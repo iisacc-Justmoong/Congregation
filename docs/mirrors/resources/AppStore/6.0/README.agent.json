@@ -1,0 +1,191 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:7f51f61829dc2513973601e67e871ba410c3669584335a9062e0c97e64cbe502",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "resources/AppStore/6.0/README.md",
+    "sha256": "b45724498b5614f21e5b64d9d3c21459efb9193c75b684e92528c6493c0ceb4a",
+    "bytes": 1338,
+    "line_count": 16,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation   6.0  App Store screenshots",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "html",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "<a id=\"congregation-60-app-store-스크린샷\"></a>\n"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "# Congregation   6.0  App Store screenshots\n",
+      "level": 1,
+      "title": "Congregation   6.0  App Store screenshots"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "`AppStore-6.0-01.png` to  `AppStore-6.0-06.png` is the final asset for App Store Connect upload. All final images are  2880×1800,  16:10, opaque  RGB  PNG.  `*-source.png` is the original captured directly from  Congregation   6.0  build.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "table",
+      "start_line": 7,
+      "end_line": 14,
+      "raw": "|File|Screen|5.1  highlight after|\n| --- | --- | --- |\n| `AppStore-6.0-01.png` |Main editor|Organized toolbar, presentation and profile entry points|\n| `AppStore-6.0-02.png` |New canvas|`Infinite canvas`  creation options|\n| `AppStore-6.0-03.png` |General settings|Start canvas, surrounding  Congregation  navigation, purchase restore and update verification|\n| `AppStore-6.0-04.png` |Profile settings|Profile image·name, user invite allowed|\n| `AppStore-6.0-05.png` |Members settings|LAN  canvas sharing and host member status|\n| `AppStore-6.0-06.png` |Presentation mode|Full-screen artwork display and laser pointer trajectory|\n",
+      "columns": [
+        "File",
+        "Screen",
+        "5.1  highlight after"
+      ],
+      "rows": [
+        [
+          "`AppStore-6.0-01.png`",
+          "Main editor",
+          "Organized toolbar, presentation and profile entry points"
+        ],
+        [
+          "`AppStore-6.0-02.png`",
+          "New canvas",
+          "`Infinite canvas`  creation options"
+        ],
+        [
+          "`AppStore-6.0-03.png`",
+          "General settings",
+          "Start canvas, surrounding  Congregation  navigation, purchase restore and update verification"
+        ],
+        [
+          "`AppStore-6.0-04.png`",
+          "Profile settings",
+          "Profile image·name, user invite allowed"
+        ],
+        [
+          "`AppStore-6.0-05.png`",
+          "Members settings",
+          "LAN  canvas sharing and host member status"
+        ],
+        [
+          "`AppStore-6.0-06.png`",
+          "Presentation mode",
+          "Full-screen artwork display and laser pointer trajectory"
+        ]
+      ]
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "The final settings image is enlarged and placed above the main editor original in the same session to maintain readability of the small auxiliary window. Only the actual  Congregation  UI and capture data were used, and no arbitrary  UI  elements were added. The capture profile and  LAN  sharing status were restored to the original state immediately after capture.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000003",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation   6.0  App Store screenshots",
+      "anchor": "congregation---60--app-store-screenshots",
+      "start_line": 3
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": [
+      {
+        "block_id": "b000007",
+        "columns": [
+          "File",
+          "Screen",
+          "5.1  highlight after"
+        ],
+        "rows": [
+          [
+            "`AppStore-6.0-01.png`",
+            "Main editor",
+            "Organized toolbar, presentation and profile entry points"
+          ],
+          [
+            "`AppStore-6.0-02.png`",
+            "New canvas",
+            "`Infinite canvas`  creation options"
+          ],
+          [
+            "`AppStore-6.0-03.png`",
+            "General settings",
+            "Start canvas, surrounding  Congregation  navigation, purchase restore and update verification"
+          ],
+          [
+            "`AppStore-6.0-04.png`",
+            "Profile settings",
+            "Profile image·name, user invite allowed"
+          ],
+          [
+            "`AppStore-6.0-05.png`",
+            "Members settings",
+            "LAN  canvas sharing and host member status"
+          ],
+          [
+            "`AppStore-6.0-06.png`",
+            "Presentation mode",
+            "Full-screen artwork display and laser pointer trajectory"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

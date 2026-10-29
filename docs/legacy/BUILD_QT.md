@@ -6,7 +6,7 @@
 
 # Congregation 1.0.0 포장 가이드
 
-현재 소스의 비GUI 엔진은 iiSDKCore C++23 및 iiNetwork, iiAcountManager/Native,
+현재 소스의 비GUI 엔진은 iiSDKCore C++23 및 iiNetwork, iiAccountManager/Native,
 iiLicenseManager/Native, iiUpdateManager/Native를 사용한다. LVRS/QML UI는 유지한다.
 설치된 iiSDKCore 0.18+, iiJson, iiFileProvider Native/CoreIO와 플랫폼에 맞는 libcurl,
 libxml2, libsodium을 준비한다. `CONGREGATION_SDK_SOURCE_ROOT`는 기본적으로
@@ -38,7 +38,7 @@ Windows MSI 는 Congregation 업그레이드 패밀리와 UpgradeCode `31432BB7-
 - iiPaintEngine는 `$HOME/.local/SDK/iiPaintEngine` 아래에 설치되거나 `CMAKE_PREFIX_PATH`를 통해 `iiPaintEngine::iiPaintEngine`로 사용 가능합니다.
 - iiSharedCanvas 0.31.1(최소 패키지 버전)는 `$HOME/.local/SDK/iiSharedCanvas` 아래에 설치되거나 `IISHAREDCANVAS_PREFIX`와 함께 선택되어 `iiSharedCanvas::iiSharedCanvas`를 내보냅니다.
 - iiFileProvider Native 0.8 이상과 CoreIO, 그리고 GUI용 iiFileProvider 0.6 이상을 설치한다. 비GUI 파일 I/O는 `iiFileProvider::Native`와 `iiFileProvider::CoreIO`를 사용한다. iiSDKCore Runtime 0.18 이상과 iiJson 0.1 이상도 필요하다.
-- `CONGREGATION_SDK_SOURCE_ROOT` 아래 iiNetwork 및 iiAcountManager/iiLicenseManager/iiUpdateManager의 `Native/` 소스가 필요하다. 기존 Qt SDK 설치본은 제품 백엔드로 사용하지 않는다.
+- `CONGREGATION_SDK_SOURCE_ROOT` 아래 iiNetwork 및 iiAccountManager/iiLicenseManager/iiUpdateManager의 `Native/` 소스가 필요하다. 기존 Qt SDK 설치본은 제품 백엔드로 사용하지 않는다.
 - `IILICENSEMANAGER_NATIVE_SODIUM_ROOT`는 현재 플랫폼용 libsodium 정적 라이브러리와 헤더를 선택한다. 기본값은 iiLicenseManager의 기존 `build/dependencies/libsodium/` 산출물이다.
 
 <a id="1a-automated-macos-build-script"></a>

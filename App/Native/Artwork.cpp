@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
+#include <optional>
 
 namespace congregation::native
 {
@@ -21,17 +22,18 @@ const Layer* layer(const Document& d, std::string_view key)
                                   { return layerProperties(value).id == key; });
     return p == d.layers.end() ? nullptr : &*p;
 }
-DocumentPoint localPoint(DocumentPoint point, const Document& doc, std::string_view key)
+std::optional<DocumentPoint> localPoint(DocumentPoint point, const AffineTransform& t)
 {
-    auto* selected = layer(doc, key);
-    if (!selected)
-        return point;
-    const auto& t = layerProperties(*selected).transform;
     const double determinant = t.m11 * t.m22 - t.m12 * t.m21;
-    if (!std::isfinite(determinant) || determinant == 0)
-        throw std::invalid_argument("Cannot paint through a degenerate layer transform");
+    if (!std::isfinite(point.x) || !std::isfinite(point.y) ||
+        !std::isfinite(determinant) || determinant == 0)
+        return {};
     const auto x = point.x - t.translationX, y = point.y - t.translationY;
-    return {(t.m22 * x - t.m21 * y) / determinant, (-t.m12 * x + t.m11 * y) / determinant};
+    const DocumentPoint result{(t.m22 * x - t.m21 * y) / determinant,
+                               (-t.m12 * x + t.m11 * y) / determinant};
+    if (!std::isfinite(result.x) || !std::isfinite(result.y))
+        return {};
+    return result;
 }
 
 } // namespace
@@ -141,31 +143,42 @@ bool Artwork::create(const CanvasDefinition& value)
 }
 bool Artwork::open(const std::filesystem::path& path)
 {
-    Document doc;
-    auto read = DocumentFile::readSnapshot(path_text(path), doc);
-    if (read.ok())
+    std::string prefix;
+    try
     {
+        auto reader = iiFileProvider::native::File::openRead(path);
+        prefix = reader->read(16);
+    }
+    catch (const std::exception& error)
+    {
+        return fail(error.what());
+    }
+    Document doc;
+    const bool native = prefix.starts_with(std::string_view{"IISC\r\n\x1a\n", 8}) ||
+                        prefix.starts_with(std::string_view{"SQLite format 3\0", 16});
+    if (native)
+    {
+        const auto read = DocumentFile::readSnapshot(path_text(path), doc);
+        if (!read.ok())
+            return fail(read.message.empty() ? "Cannot read the native document" : read.message);
         if (!replace(std::move(doc)))
             return false;
         source_ = path;
         return true;
     }
     const auto extension = lower(path.extension().string());
-    if (extension == ".vrc" || extension == ".iisc")
+    if ((extension == ".vrc" || extension == ".iisc") && prefix.starts_with("CONGREGATIONRC"))
     {
         try
         {
             auto bytes = iiFileProvider::native::File::read(path, maximum_canvas_bytes);
-            if (bytes.starts_with("CONGREGATIONRC"))
-            {
-                auto legacy = decode_canvas(bytes);
-                if (!legacy)
-                    return fail(legacy.error());
-                auto migrated = migrate_legacy_canvas(*legacy);
-                if (!migrated)
-                    return fail(migrated.error());
-                return replace(std::move(*migrated));
-            }
+            auto legacy = decode_canvas(bytes);
+            if (!legacy)
+                return fail(legacy.error());
+            auto migrated = migrate_legacy_canvas(*legacy);
+            if (!migrated)
+                return fail(migrated.error());
+            return replace(std::move(*migrated));
         }
         catch (const std::exception& error)
         {
@@ -279,11 +292,16 @@ bool Artwork::commit(std::vector<std::uint8_t> before, std::string before_select
     if (!committed.ok())
     {
         draft_ = *file_.document();
+        selected_ = std::move(before_selection);
         bind();
         return fail(committed.message);
     }
     if (!committed.changed)
+    {
+        selected_ = std::move(before_selection);
+        bind();
         return true;
+    }
     draft_ = *file_.document();
     bind();
     if (history)
@@ -318,16 +336,17 @@ bool Artwork::edit(const std::function<bool(DocumentEditor&)>& action)
 {
     cancel();
     auto before = capture();
-    const auto selection = selected_;
+    auto selection = selected_;
     DocumentEditor editor(draft_);
     if (!action(editor))
     {
         auto failure = editor.lastResult().message;
         draft_ = *file_.document();
+        selected_ = std::move(selection);
         bind();
         return fail(failure.empty() ? "Document edit was rejected" : failure);
     }
-    return commit(std::move(before), selection);
+    return commit(std::move(before), std::move(selection));
 }
 bool Artwork::add_layer(std::string name)
 {
@@ -420,14 +439,9 @@ bool Artwork::remove_layer()
                 return false;
             if (!asset.empty())
             {
-                bool referenced = false;
-                for (const auto& candidate : draft_.layers)
-                {
-                    auto* item = staticLayerSource(candidate);
-                    if (item && item->assetId == asset)
-                        referenced = true;
-                }
-                if (!referenced && !editor.removeAsset(asset).ok())
+                // Frame content and masks may share the asset even when no
+                // remaining layer has a matching static source.
+                if (assetReferences(draft_, asset).empty() && !editor.removeAsset(asset).ok())
                     return false;
             }
             selected_ = draft_.layers.empty() ? "" : layerProperties(draft_.layers.back()).id;
@@ -569,13 +583,23 @@ bool Artwork::grow(DocumentPoint point, double radius)
          {int(std::ceil(radius * 2 + 2)), int(std::ceil(radius * 2 + 2))}});
     return result.ok() || fail(result.message);
 }
-bool Artwork::begin(DocumentPoint point, double pressure, BitmapBrush brush)
+bool Artwork::begin(DocumentPoint point, double pressure, BitmapBrush brush, FrameIndex frame)
 {
     if (stroke_active())
         cancel();
+    if (frame >= draft_.timeline.frameCount)
+        return fail("The current frame is outside the document timeline");
     if (!bind())
         return fail("Select a bitmap layer before painting");
-    point = localPoint(point, draft_, selected_);
+    const auto* selected = layer(draft_, selected_);
+    if (!selected)
+        return fail("Select a bitmap layer before painting");
+    // Keep the exact displayed transform stable for every point in the stroke.
+    stroke_transform_ = sampleLayerAt(draft_, *selected, frame).transform;
+    const auto converted = localPoint(point, stroke_transform_);
+    if (!converted)
+        return fail("Cannot paint through a degenerate layer transform");
+    point = *converted;
     stroke_before_ = capture();
     stroke_selection_ = selected_;
     const auto rollback = [&](std::string error)
@@ -601,7 +625,12 @@ bool Artwork::begin(DocumentPoint point, double pressure, BitmapBrush brush)
 
 bool Artwork::extend(DocumentPoint point, double pressure)
 {
-    point = localPoint(point, draft_, selected_);
+    if (!stroke_active())
+        return fail("No stroke is active");
+    const auto converted = localPoint(point, stroke_transform_);
+    if (!converted)
+        return fail("Cannot paint through a degenerate layer transform");
+    point = *converted;
     if (!grow(point,
               std::ceil(chunks_.isBound() ? chunks_.brush().size / 2 : raster_.brush().size / 2) +
                   2))
@@ -612,7 +641,15 @@ bool Artwork::extend(DocumentPoint point, double pressure)
 }
 bool Artwork::end(DocumentPoint point, double pressure)
 {
-    point = localPoint(point, draft_, selected_);
+    if (!stroke_active())
+        return fail("No stroke is active");
+    const auto converted = localPoint(point, stroke_transform_);
+    if (!converted)
+    {
+        cancel();
+        return fail("Cannot paint through a degenerate layer transform");
+    }
+    point = *converted;
     if (!grow(point,
               std::ceil(chunks_.isBound() ? chunks_.brush().size / 2 : raster_.brush().size / 2) +
                   2))
@@ -706,15 +743,17 @@ bool Artwork::fill(std::uint32_t color)
     return shape("rectangle", {0, 0}, {double(draft_.extent.width), double(draft_.extent.height)},
                  color, 0, true);
 }
-bool Artwork::fill_at(Point point, std::uint32_t color)
+bool Artwork::fill_at(Point point, std::uint32_t color, FrameIndex frame)
 {
+    if (frame >= draft_.timeline.frameCount)
+        return fail("The current frame is outside the document timeline");
     const auto origin = canvasOrigin(draft_);
     if (point.x < origin.x || point.y < origin.y || point.x >= origin.x + draft_.extent.width ||
         point.y >= origin.y + draft_.extent.height)
         return false;
     if (std::uint64_t(draft_.extent.width) * draft_.extent.height > 64ULL * 1024 * 1024)
         return fail("Flood fill exceeds the 64 megapixel working budget");
-    auto rendered = renderFrame(draft_, 0);
+    auto rendered = renderFrame(draft_, frame);
     if (!rendered.ok())
         return fail(rendered.message);
     auto mask =
@@ -740,9 +779,10 @@ bool Artwork::apply_history(bool forward)
     auto decoded = decodeIisc(forward ? entry.after : entry.before);
     if (!decoded.ok())
         return fail("History snapshot is invalid");
+    auto previous_selection = selected_;
     draft_ = std::move(decoded.document);
     selected_ = forward ? entry.after_selection : entry.before_selection;
-    if (!commit({}, {}, false))
+    if (!commit({}, std::move(previous_selection), false))
         return false;
     destination.push_back(std::move(entry));
     source.pop_back();
@@ -770,8 +810,9 @@ bool Artwork::receive(std::string_view bytes)
         return fail("Received document is invalid");
     cancel();
     auto before = capture();
+    auto previous_selection = selected_;
     draft_ = std::move(decoded.document);
     selected_ = draft_.layers.empty() ? "" : layerProperties(draft_.layers.back()).id;
-    return commit(std::move(before), selected_);
+    return commit(std::move(before), std::move(previous_selection));
 }
 } // namespace congregation::native

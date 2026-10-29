@@ -1,0 +1,502 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:267aaf687af3bcd1544b8bd091aa2e1570d29f90c8d57d2d2b5a309c0c4d6990",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/APP_ENGINE.md",
+    "sha256": "553395c50c31f666d7acebacf10f4a734e1243c55283a1d717538ca248ad4222",
+    "bytes": 6650,
+    "line_count": 67,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "iiSDKCore 기반 앱 엔진",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# iiSDKCore 기반 앱 엔진\n",
+      "level": 1,
+      "title": "iiSDKCore 기반 앱 엔진"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "Congregation의 실행 소스는 `App/Engine`과 `App/Native`이다. 최종 진입점, 이벤트 루프, 작업 수명은 iiSDKCore가 소유한다. iiGUI Host는 같은 Core 루프를 네이티브 창과 GPU 표시 경로에 연결한다. Qt 호스트·QObject 어댑터·QML 엔진은 현재 실행 경로에 없다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "## 소유 관계\n",
+      "level": 2,
+      "title": "소유 관계"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "table",
+      "start_line": 7,
+      "end_line": 17,
+      "raw": "| 소유자 | 책임 |\n| --- | --- |\n| `ApplicationEngine` | 소유 또는 차용한 Core EventLoop, TaskScope, 시작·종료와 제품 서비스 수명 |\n| `CanvasDocument`, `Palette` | 타입이 있는 QueryPort, 브러시·압력·도구·팔레트 상태 |\n| `CanvasSession`, `NearbyDiscovery` | TCP 협업, 정규 문서·기준 리비전, 멤버·초대와 LAN 탐색 |\n| `Preferences`, `RecentCanvas` | 설정 이행·원자적 저장, 복구 경로 검증과 이전 컨테이너 해석 |\n| `LicenseService` | 라이선스 검증 정책, 보안 저장소 복원·삭제·재시도 |\n| `EditorBackend` | LVUI 스코프가 소유하는 Core Observable 값, UI 명령과 목록·색상 모델 |\n| `Artwork` | 제품 도구와 실행 취소 정책, SharedCanvas 문서 명령 |\n| `CanvasView` | 문서 좌표와 화면 좌표, 보이는 타일·입력·선택 표시 |\n| `State` | 주 창·보조창, 메뉴·대화상자와 서비스 결과 연결 |\n",
+      "columns": [
+        "소유자",
+        "책임"
+      ],
+      "rows": [
+        [
+          "`ApplicationEngine`",
+          "소유 또는 차용한 Core EventLoop, TaskScope, 시작·종료와 제품 서비스 수명"
+        ],
+        [
+          "`CanvasDocument`, `Palette`",
+          "타입이 있는 QueryPort, 브러시·압력·도구·팔레트 상태"
+        ],
+        [
+          "`CanvasSession`, `NearbyDiscovery`",
+          "TCP 협업, 정규 문서·기준 리비전, 멤버·초대와 LAN 탐색"
+        ],
+        [
+          "`Preferences`, `RecentCanvas`",
+          "설정 이행·원자적 저장, 복구 경로 검증과 이전 컨테이너 해석"
+        ],
+        [
+          "`LicenseService`",
+          "라이선스 검증 정책, 보안 저장소 복원·삭제·재시도"
+        ],
+        [
+          "`EditorBackend`",
+          "LVUI 스코프가 소유하는 Core Observable 값, UI 명령과 목록·색상 모델"
+        ],
+        [
+          "`Artwork`",
+          "제품 도구와 실행 취소 정책, SharedCanvas 문서 명령"
+        ],
+        [
+          "`CanvasView`",
+          "문서 좌표와 화면 좌표, 보이는 타일·입력·선택 표시"
+        ],
+        [
+          "`State`",
+          "주 창·보조창, 메뉴·대화상자와 서비스 결과 연결"
+        ]
+      ]
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "Core를 하위 기반으로 사용하며 Core에서 앱·GUI·문서를 참조하지 않는다. 문서의 파일·SQLite 소유자는 iiFileProvider이고 픽셀·레이어·변환·합성·파일 형식 소유자는 iiSharedCanvas Native이다. 이미지 코덱과 ICC 변환은 iiImageCodec에 둔다. 계정·라이선스·서명된 업데이트·보안 저장소는 각 Native SDK를 사용한다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "heading",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "## 실행과 해제\n",
+      "level": 2,
+      "title": "실행과 해제"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "GUI 실행은 Core Application의 이벤트 루프를 엔진에 차용한다. 차용한 엔진을 종료할 때에는 자기 TaskScope만 닫고 공유 루프는 유지한다. 엔진 단독 생성자는 자신의 루프를 소유하며 함께 닫는다. 주 창·환경설정·새 캔버스 보조창은 하나의 Core 루프를 공유한다. 보조창 표시 콜백은 비동기적으로 도착하므로 `show()` 직후 마운트가 완료되었다고 가정하지 않는다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "HTTP·TCP·UDP·예약 작업은 Core 수명과 네이티브 iiNetwork에 연결한다. 서비스 결과는 약한 소유 참조와 작업 취소를 거쳐 전달하며 이미 해제된 뷰를 갱신하지 않는다. 파일 선택은 운영체제의 비동기 대화상자를 사용한다. 웹 이미지 가져오기는 HTTP(S), 16 MiB·15초·리디렉션 3회로 제한하며 대상 문서가 바뀌면 결과를 적용하지 않는다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "LVUI는 HTML과 인라인 스타일을 빌드 시 C++23으로 생성한다. 백엔드를 구성한 뒤 위젯을 생성하여 같은 목록·색상 모델을 주입한다. `vm.method`는 지연 콜백 참조이고 `vm.method()`는 호출이다. Core Observable과 위젯 BindingScope가 변경 통지와 구독 해제를 담당한다.\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "## 문서와 편집\n",
+      "level": 2,
+      "title": "문서와 편집"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "완성된 스트로크 하나는 문서 변경 하나이다. 미리보기 중 취소·포커스 상실·잘못된 브러시는 이전 픽셀과 캔버스 범위를 복원한다. 무한 캔버스의 음수 좌표 확장은 미리보기 문서에서 계산하고 완료 시에만 반영한다. 화면 이동·확대·레이어 선택·한 픽셀 조회·브러시 설정은 문서 리비전·dirty·저장을 바꾸지 않는다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "저장 파일은 이식 가능한 정규 `.iisc`이며 작업 복구용 SQLite는 앱의 관리 디렉터리에 별도로 둔다. 복구본을 열어도 내부 파일을 사용자의 저장 대상 경로로 설정하지 않는다. 이전 `.vrc`는 확인 가능한 개별 레이어·도형·텍스트를 이행하며 알 수 없는 개체·잘못된 식별자·누락 데이터는 원본 변경 없이 거부한다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "협업의 편집 페이로드는 정규 IISC와 기준 리비전이다. 호스트는 오래된 편집을 거부하고 클라이언트의 로컬 복구본을 유지한다. 로컬 협업 모의 서버 검사와 실운영 인터넷 협업의 검증은 구분한다.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "빌드와 실행 증거는 [BUILD.md](BUILD.md), [NATIVE_VERIFICATION.md](NATIVE_VERIFICATION.md)에 있다. 세부 제품 계약은 [NATIVE_RUNTIME.md](NATIVE_RUNTIME.md)에 있다. 이전 Qt 호스트 설명은 `build/native-migration-backup/APP_ENGINE_QT.md`에 보존한다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 38,
+      "end_line": 39,
+      "raw": "\n\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "heading",
+      "start_line": 40,
+      "end_line": 40,
+      "raw": "### 협업 스냅샷 송신 대기열\n",
+      "level": 3,
+      "title": "협업 스냅샷 송신 대기열"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 42,
+      "end_line": 47,
+      "raw": "호스트는 각 참가자에게 최신 스냅샷을 공유 버퍼로 전달한다. 송신 대기열이 가득 찼거나\n쓰기 요청이 거부되면 해당 참가자의 최신 대기 상태를 보관하고 쓰기 진행 시 또는\n50ms 뒤 재시도한다. 이후 상태가 도착하면 아직 대기 중인 이전 상태를 교체한다.\n연결이나 세션이 종료되면 예약 작업을 취소한다. 이벤트 루프가 재시도를 수용하지\n못하거나 스냅샷이 참가자의 송신 한도를 초과하면 오류를 알린다. 로컬 편집은 이\n게시보다 먼저 확정되므로 게시 실패가 문서를 되돌리지는 않는다.\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 49,
+      "end_line": 53,
+      "raw": "송신 함수 주입은 테스트나 대체 어댑터를 위한 경계이며 함수는 세션에 재진입하거나\n소켓 참조를 보유하지 않아야 한다. 로컬 TCP의 단일·복수 참가자, 다시 연결, 한도,\n빈 큐 거부·예외·이벤트 루프 포화와 종료 취소를 자동 검사한다. 이 계약은 원격\n수신 확인, 대형 문서 분할 전송 또는 기존 iiNetwork 0.5의 할당 실패 후 대기 바이트\n계수 복구를 보장하지 않는다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 55,
+      "raw": "\n\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 56,
+      "end_line": 60,
+      "raw": "오류 또는 리비전 알림 콜백이 세션을 종료하거나 새 세션을 열 수 있다. 게시 중에는\n참가자 소켓 수명을 보존하고 세션 세대가 바뀌면 이전 게시의 성공을 반환하지 않는다.\n콜백이 세션 객체 자체를 파괴하거나 다른 스레드에서 동시에 호출하는 것은 이 계약에\n포함되지 않는다. 오류 알림 중 종료, 리비전 알림 중 종료와 새 세션 열기를 주소·미정의\n동작 검사기로 검증한다.\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 61,
+      "end_line": 62,
+      "raw": "\n\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 63,
+      "end_line": 67,
+      "raw": "주입한 스냅샷 송신 함수도 동기적으로 세션을 종료하거나 새 게시를 요청할 수 있다.\n송신 중 소켓과 시도한 프레임을 보존하고 콜백 뒤 세션과 참가자를 다시 확인한다.\n같은 참가자의 중첩 송신은 병합하며, 이전 프레임의 성공이 더 최신 대기 프레임을\n지우지 않는다. 다른 예외는 송신 중 상태를 해제한 뒤 호출자에게 전달한다.\n세션 객체 자체의 콜백 중 파괴와 동시 스레드 호출은 이 계약의 범위 밖이다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "iiSDKCore 기반 앱 엔진",
+      "anchor": "iisdkcore-기반-앱-엔진",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "소유 관계",
+      "anchor": "소유-관계",
+      "start_line": 5
+    },
+    {
+      "block_id": "b000011",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "실행과 해제",
+      "anchor": "실행과-해제",
+      "start_line": 21
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "문서와 편집",
+      "anchor": "문서와-편집",
+      "start_line": 29
+    },
+    {
+      "block_id": "b000029",
+      "parent_id": "b000019",
+      "level": 3,
+      "title": "협업 스냅샷 송신 대기열",
+      "anchor": "협업-스냅샷-송신-대기열",
+      "start_line": 40
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000009",
+        "line": 19,
+        "text": "Core를 하위 기반으로 사용하며 Core에서 앱·GUI·문서를 참조하지 않는다. 문서의 파일·SQLite 소유자는 iiFileProvider이고 픽셀·레이어·변환·합성·파일 형식 소유자는 iiSharedCanvas Native이다. 이미지 코덱과 ICC 변환은 iiImageCodec에 둔다. 계정·라이선스·서명된 업데이트·보안 저장소는 각 Native SDK를 사용한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000013",
+        "line": 23,
+        "text": "GUI 실행은 Core Application의 이벤트 루프를 엔진에 차용한다. 차용한 엔진을 종료할 때에는 자기 TaskScope만 닫고 공유 루프는 유지한다. 엔진 단독 생성자는 자신의 루프를 소유하며 함께 닫는다. 주 창·환경설정·새 캔버스 보조창은 하나의 Core 루프를 공유한다. 보조창 표시 콜백은 비동기적으로 도착하므로 `show()` 직후 마운트가 완료되었다고 가정하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000015",
+        "line": 25,
+        "text": "HTTP·TCP·UDP·예약 작업은 Core 수명과 네이티브 iiNetwork에 연결한다. 서비스 결과는 약한 소유 참조와 작업 취소를 거쳐 전달하며 이미 해제된 뷰를 갱신하지 않는다. 파일 선택은 운영체제의 비동기 대화상자를 사용한다. 웹 이미지 가져오기는 HTTP(S), 16 MiB·15초·리디렉션 3회로 제한하며 대상 문서가 바뀌면 결과를 적용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000023",
+        "line": 33,
+        "text": "저장 파일은 이식 가능한 정규 `.iisc`이며 작업 복구용 SQLite는 앱의 관리 디렉터리에 별도로 둔다. 복구본을 열어도 내부 파일을 사용자의 저장 대상 경로로 설정하지 않는다. 이전 `.vrc`는 확인 가능한 개별 레이어·도형·텍스트를 이행하며 알 수 없는 개체·잘못된 식별자·누락 데이터는 원본 변경 없이 거부한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000033",
+        "line": 53,
+        "text": "계수 복구를 보장하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000035",
+        "line": 57,
+        "text": "참가자 소켓 수명을 보존하고 세션 세대가 바뀌면 이전 게시의 성공을 반환하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000027",
+        "label": "BUILD.md",
+        "target": "BUILD.md",
+        "kind": "relative",
+        "line": 37
+      },
+      {
+        "block_id": "b000027",
+        "label": "NATIVE_VERIFICATION.md",
+        "target": "NATIVE_VERIFICATION.md",
+        "kind": "relative",
+        "line": 37
+      },
+      {
+        "block_id": "b000027",
+        "label": "NATIVE_RUNTIME.md",
+        "target": "NATIVE_RUNTIME.md",
+        "kind": "relative",
+        "line": 37
+      }
+    ],
+    "tables": [
+      {
+        "block_id": "b000007",
+        "columns": [
+          "소유자",
+          "책임"
+        ],
+        "rows": [
+          [
+            "`ApplicationEngine`",
+            "소유 또는 차용한 Core EventLoop, TaskScope, 시작·종료와 제품 서비스 수명"
+          ],
+          [
+            "`CanvasDocument`, `Palette`",
+            "타입이 있는 QueryPort, 브러시·압력·도구·팔레트 상태"
+          ],
+          [
+            "`CanvasSession`, `NearbyDiscovery`",
+            "TCP 협업, 정규 문서·기준 리비전, 멤버·초대와 LAN 탐색"
+          ],
+          [
+            "`Preferences`, `RecentCanvas`",
+            "설정 이행·원자적 저장, 복구 경로 검증과 이전 컨테이너 해석"
+          ],
+          [
+            "`LicenseService`",
+            "라이선스 검증 정책, 보안 저장소 복원·삭제·재시도"
+          ],
+          [
+            "`EditorBackend`",
+            "LVUI 스코프가 소유하는 Core Observable 값, UI 명령과 목록·색상 모델"
+          ],
+          [
+            "`Artwork`",
+            "제품 도구와 실행 취소 정책, SharedCanvas 문서 명령"
+          ],
+          [
+            "`CanvasView`",
+            "문서 좌표와 화면 좌표, 보이는 타일·입력·선택 표시"
+          ],
+          [
+            "`State`",
+            "주 창·보조창, 메뉴·대화상자와 서비스 결과 연결"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

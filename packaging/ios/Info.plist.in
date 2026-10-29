@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>Congregation</string>
+<key>CFBundleIdentifier</key><string>com.iisacc.congregation.painter</string>
+<key>CFBundleName</key><string>Congregation</string>
+<key>CFBundleDisplayName</key><string>Congregation</string>
+<key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>com.iisacc.congregation.account</string><key>CFBundleURLSchemes</key><array><string>congregation</string></array></dict></array>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>@PROJECT_VERSION@</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>LSRequiresIPhoneOS</key><true/>
+<key>MinimumOSVersion</key><string>18.0</string>
+<key>UIDeviceFamily</key><array><integer>2</integer></array>
+<key>UILaunchScreen</key><dict/>
+<key>UISupportedInterfaceOrientations~ipad</key><array><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationPortraitUpsideDown</string></array>
+<key>UIApplicationSceneManifest</key><dict><key>UIApplicationSupportsMultipleScenes</key><false/><key>UISceneConfigurations</key><dict><key>UIWindowSceneSessionRoleApplication</key><array><dict><key>UISceneConfigurationName</key><string>iiSDK</string><key>UISceneDelegateClassName</key><string>IIGUIIOSScene</string></dict></array></dict></dict>
+<key>CADisableMinimumFrameDurationOnPhone</key><true/>
+<key>UIApplicationSupportsIndirectInputEvents</key><true/>
+<key>NSLocalNetworkUsageDescription</key><string>Discover nearby Society libraries and collaboration peers.</string>
+<key>NSBonjourServices</key><array><string>_society._tcp</string><string>_congregation._tcp</string></array>
+<key>UIFileSharingEnabled</key><true/>
+<key>LSSupportsOpeningDocumentsInPlace</key><true/>
+<key>CFBundleDocumentTypes</key><array><dict><key>CFBundleTypeName</key><string>iiSharedCanvas Document</string><key>CFBundleTypeRole</key><string>Editor</string><key>LSHandlerRank</key><string>Owner</string><key>LSItemContentTypes</key><array><string>com.iisacc.iisc</string><string>public.image</string></array></dict></array>
+<key>UTExportedTypeDeclarations</key><array><dict><key>UTTypeIdentifier</key><string>com.iisacc.iisc</string><key>UTTypeDescription</key><string>iiSharedCanvas Document</string><key>UTTypeConformsTo</key><array><string>public.data</string></array><key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>iisc</string></array></dict></dict></array>
+</dict></plist>

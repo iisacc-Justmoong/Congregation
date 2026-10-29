@@ -2,23 +2,24 @@
 
 ## 기준과 구현 경계
 
-Main은 Figma `r4E0PNUdZuo6dEiMEitF2I`의 `83:6974`, Tool의 전체 항목은 `130:1832`를 기준으로 한다. 기준 클라이언트는 1999×1080이다. 캡션·윈도우 운영체제 테두리는 애플리케이션 콘텐츠에 포함하지 않는다.
+Main은 Figma `r4E0PNUdZuo6dEiMEitF2I`의 `83:6974`, Tool의 전체 항목은 `130:1832`를 기준으로 한다. 기준 클라이언트는 1999×1080이다. 2026-10-26의 변경 지시에 따라 왼쪽 에셋 사이드바를 제거하고 세로 도구 막대만 남긴다. 네이티브 앱 반영에 이어 Figma `83:6973`의 기존 뷰도 같은 구성으로 동기화했다. 캡션·윈도우 운영체제 테두리는 애플리케이션 콘텐츠에 포함하지 않는다.
 
 `App/Native/views/Main.lvui`의 ApplicationWindow를 빌드 때 C++23으로 컴파일한다. `MainWindow`는 생성된 옵션·스코프·백엔드를 유지하면서 같은 iiGUI 위젯 세대에 `WorkspaceView`를 구성한다. 앱의 최종 진입점·이벤트 루프·프레임 루프는 iiSDKCore가 소유한다. Qt·QML·브라우저·WebView 실행기를 연결하지 않는다.
 
-LVRS의 WindowMaterial, IconButton, LabelButton, ComboBox, SegmentedControl, Slider, ColorSurface, Card를 재사용한다. WindowMaterial의 공개 색상 옵션에 Figma ApplicationWindow를 측정한 대표 색을 사용하고 각 패널은 별도 배경을 그리지 않는다. 에셋의 클릭 행은 iiGUI ActionSurface 안에 LVRS 아이콘·라벨을 배치하며 기본 버튼의 가운데 정렬을 강제로 덮어쓰지 않는다. 투명도 레일은 iiGUI의 그래픽과 포인터 입력을 사용하고 기존 색상 모델의 alpha 채널을 공유한다. 일반 패널은 투명하며 1px 경계선으로 구분한다. 타임라인의 격자·노출 번호·플레이헤드는 iiGUI의 보존된 그래픽으로 그린다. C++ 소유 객체와 구독은 위젯 세대에 귀속된다.
+LVRS의 WindowMaterial, IconButton, LabelButton, ComboBox, SegmentedControl, Slider, ColorSurface, Card를 재사용한다. WindowMaterial의 공개 색상 옵션에 Figma ApplicationWindow를 측정한 대표 색을 사용하고 각 패널은 별도 배경을 그리지 않는다. 투명도 레일은 iiGUI의 그래픽과 포인터 입력을 사용하고 기존 색상 모델의 alpha 채널을 공유한다. 일반 패널은 투명하며 1px 경계선으로 구분한다. 타임라인의 격자·노출 번호·플레이헤드는 iiGUI의 보존된 그래픽으로 그린다. C++ 소유 객체와 구독은 위젯 세대에 귀속된다.
 
 ## 배치
 
 | 영역 | 기준 치수 | 내용 |
 |---|---|---|
 | 상단 | 28px | 열기·저장·실행 취소·변형·정렬·보기 명령 |
-| 왼쪽 | 224px | Society 로컬 에셋, 검색, 종류, 미리보기, 삽입 |
-| 도구 레일 | 54px | 원본 아이콘 중심의 두 열 도구 |
+| 왼쪽 도구 막대 | 54px | 창의 왼쪽 끝에 배치한 두 열 아이콘 도구 |
 | 중앙 | 가변 | 픽셀 눈금자, 캔버스, 확대·보기 상태 |
 | 하단 도크 | 296px | 레이어와 시간 눈금, 재생·스크러빙 |
 | 오른쪽 | 352px | Tool·Doc·View·More 세그먼트 |
 | 상태 표시줄 | 20px | 실제 문서·작업·시간 상태 |
+
+에셋 사이드바의 자리와 구분선은 남기지 않는다. 제거한 224px는 중앙 캔버스와 하단 타임라인에 배분한다. 기준 창에서 도구 막대는 x=0, 중앙 열은 x=54·너비 1593px, 캔버스는 세로 눈금자를 제외한 x=82·너비 1565px이다. 우측 상세 패널의 너비 352px와 타임라인 높이 296px는 유지한다.
 
 창을 줄이거나 늘리면 중앙과 스크롤 뷰가 남는 공간을 사용한다. 오른쪽 Tool의 프리셋과 동작 행은 고정하고, 22개 파라미터가 있는 본문만 스크롤한다. 값은 이름과 분리한 17px 표시, 이름은 13px, 범위는 11px이다. 각 항목의 슬라이더 높이는 32px이며 버튼은 LVRS의 22px 기준을 따른다.
 
@@ -26,9 +27,9 @@ LVRS의 WindowMaterial, IconButton, LabelButton, ComboBox, SegmentedControl, Sli
 
 2026-10-25에 Figma의 실제 paint·변수·개별 stroke 변과 최신 PNG를 다시 확인했다. 원본 `Panel/window`는 #141414이고 2% 강조색과 미세 그레인을 합성한다. 현재 창 배경의 측정 중앙값은 **#141719**(20,23,25)이며, 앱의 불투명한 대표 배경색도 이 값으로 맞춘다. 일반 패널은 별도 배경을 추가하지 않는다.
 
-`Surface/Dense/Edge`의 원본은 흰색 **12%**, 두께는 **1px**이다. Figma의 sRGB 합성 결과는 대표 바탕에서 (48.2,50.84,52.6), 8-bit로 **#303335**이다. 이 색을 먼저 합성한 뒤 iiGUI의 선형광 그래픽 색으로 변환한다. 선형광 GPU에 흰색 alpha 0.12를 직접 보내던 이전 경계선은 실제 (100,100,100)으로 표시되어 대비가 과도했다. SDK의 일반 GPU 합성이나 선택·호버·포커스 색을 바꾸지 않고, 알려진 불투명 창 바탕 위의 구조 경계선만 Figma에 맞게 처리한다.
+앱의 `panelEdgeResolved` 패널 외곽선 토큰은 불투명한 **#0C0C0C**, 두께 **1px**이다. 타임라인 내부 선과 눈금자는 기존 `Surface/Dense/Edge` 흰색 12%를 대표 바탕에 sRGB 합성한 (48.2,50.84,52.6)을 유지한다. 이 값과 새 외곽선 색은 각각 iiGUI의 선형광 그래픽 색으로 변환한다. SDK의 일반 GPU 합성과 선택·호버·포커스 색은 변경하지 않는다. Figma의 기존 캔버스·타임라인·도구 패널 경계도 로컬 의미 변수 `Panel/Border`를 사용하며, 이 변수는 같은 값을 가진 `Color/Neutral/12`를 참조한다. 앱과 Figma 변수는 별도 정의이므로 변경 시 함께 갱신한다.
 
-전용 Color picker 구분선 `77:19369`는 흰색 12% 경계선과 다르다. 이 부분은 `Panel/surfacePanel`의 **#232424**를 사용한다. 캔버스와 타임라인이 오른쪽 경계선을 소유하며 우측 패널에서 중복하여 그리지 않는다. 값과 합성 규칙은 `EditorPalette`에 모아 배경을 바꿀 때 함께 갱신할 수 있도록 한다.
+전용 Color picker 구분선 `77:19369`는 `Panel/surfacePanel`의 **#232424**를 사용한다. 캔버스와 타임라인이 오른쪽 경계선을 소유하며 우측 패널에서 중복하여 그리지 않는다. 값과 합성 규칙은 `EditorPalette`에 모아 유지한다.
 
 GPU 캡처의 창 바탕·상단·양쪽 열·타임라인·전용 구분선 픽셀을 검사한다. Figma 그레인에 따른 ±1~2 단계의 변동과 고정 대표 바탕의 차이는 허용하며 전체 화면 스크린샷을 실행 자산으로 사용하지 않는다. Figma의 미세 그레인은 현재 대표 색으로 취급하며, 노이즈 텍스처 자체의 구현은 이번 색상 보정 범위에 포함하지 않는다.
 
@@ -50,14 +51,14 @@ GPU 캡처의 창 바탕·상단·양쪽 열·타임라인·전용 구분선 픽
 
 두 PNG는 Figma의 개별 콘텐츠 이미지이다. 전체 화면 스크린샷은 코드나 배경으로 사용하지 않는다. 플레이헤드도 원본의 두 SVG 레이어와 알파 마스크를 그대로 합성한다. 아이콘은 같은 이름의 LVRS 원본 자산을 사용한다. `palette-menu`는 원본 컴포넌트 이름인 `generalmoreVertical`, 이미지 표식은 `fileTypesimage`에 대응한다.
 
-원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. Society는 사용자가 선택한 로컬·마운트된 Asset Library 폴더를 통해 읽는다. 한 폴더에서 최대 512개의 PNG/JPEG/WebP 이미지를 읽는다. All·Recent·Saved 필터, 종류별 개수, 이름 검색·정렬과 미리보기를 제공하며 Recent·Saved는 현재 창 세션의 상태이다. 체인 아이콘은 선택 에셋의 Saved 상태를 바꾼다. 원본 에셋과 라이브러리 폴더는 수정하지 않는다. 작은 창에서는 왼쪽 패널 전체도 스크롤할 수 있다. Society 계정·원격 Storage API 연결을 이 화면 구현의 완료 증거로 주장하지 않는다.
+원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. 기존 `AssetLibraryView` 소스는 보존하지만 현재 창에 구성하지 않으며 활성 타깃에서도 제외한다. 라이브러리 경로 설정과 Society 연동 서비스는 별도 기능으로 유지한다. 사이드바 제거 과정에서 원본 에셋과 사용자 라이브러리 폴더는 수정하지 않는다.
 
 ## 검증
 
-`Congregation.tool_settings`는 값 보존·로그 변환·증감·범위·설정 왕복·엔진 연결·시간 경계를 검사한다. `Congregation.editor_layout`은 캔버스 맞춤과 좌표를 검사한다. `Congregation.figma_ui_native`와 `Congregation.figma_ui_vulkan`은 실제 창의 조작과 캡처를 검사한다. 기존 네이티브 편집 회귀 검사와 macOS 번들 재배치 검사를 함께 수행한다.
+`Congregation.tool_settings`는 값 보존·로그 변환·증감·범위·설정 왕복·엔진 연결·시간 경계를 검사한다. `Congregation.editor_layout`은 캔버스 맞춤과 좌표를 검사한다. `Congregation.native_window_contract`와 `Congregation.native_window_colors_vulkan`은 기준 크기·최소 크기에서 사이드바가 없고 세로 도구 막대가 왼쪽 끝에 있는지, 도구 선택이 작동하는지, 캔버스와 타임라인이 빈 공간 없이 확장되는지 검사한다. `Congregation.figma_ui_native`와 `Congregation.figma_ui_vulkan`은 변경된 실제 창의 조작과 캡처를 검사한다. 기존 네이티브 편집 회귀 검사와 macOS 번들 재배치 검사를 함께 수행한다.
 
 실제 수행 결과와 화면은 FIGMA_UI_VERIFICATION.md에 기록한다. macOS의 결과로 Windows·Linux의 실행 성공을 주장하지 않는다.
 
 ## Color·Metric 전환
 
-현재 화면의 색상·간격·크기는 [공통 스타일 프로필](UI_STYLE_TOKENS.md)을 따른다. 기존 Figma 배치와 독립 픽셀 기준은 유지하며, 원본 값 변경은 LVUI 뷰와 네이티브 C++ 패널에 함께 반영된다.
+현재 화면의 색상·간격·크기는 [공통 스타일 프로필](UI_STYLE_TOKENS.md)을 따른다. 기존 배치 치수는 유지하고 패널 외곽선은 위에 명시한 앱 전용 색상을 사용한다. 프로필 변경은 LVUI 뷰와 네이티브 C++ 패널에 함께 반영된다.

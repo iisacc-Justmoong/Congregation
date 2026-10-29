@@ -787,7 +787,7 @@ void tst_WindowsBuildWorkflowContract::signPathWorkflowDefinesFreeWebsiteRelease
     QVERIFY(readme.contains(QStringLiteral("https://github.com/iisacc-Justmoong/Congregation/discussions")));
     QVERIFY(readme.contains(QStringLiteral("https://github.com/iisacc-Justmoong/Congregation/issues/new")));
 
-    const QString contributingPath = QFINDTESTDATA("../CONTRIBUTING.md");
+    const QString contributingPath = QFINDTESTDATA("../docs/CONTRIBUTING.md");
     QVERIFY2(!contributingPath.isEmpty(), "CONTRIBUTING.md test data was not found");
     const QString contributing = readTextFile(contributingPath);
     QVERIFY(contributing.contains(QStringLiteral("`build/`")));

@@ -1,0 +1,268 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:2d8b546997d00802c7d090da732eac6ea32b4cac1aa9a02c5910ae94131ae936",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/app_structure.md",
+    "sha256": "14795ac656d733a5b25aae9c763289ad30b21e54f4d0d90e44bb1ab42aa38e33",
+    "bytes": 2379,
+    "line_count": 23,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation 1.0.0 네이티브 앱 구조",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation 1.0.0 네이티브 앱 구조\n",
+      "level": 1,
+      "title": "Congregation 1.0.0 네이티브 앱 구조"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "실행 소스는 `App/`이다. C++23과 iiSDKCore, LVUI, LVRS Native, iiGUI를 사용한다. 화면은 브라우저나 WebView 없이 네이티브 창의 GPU 표면에 그린다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "table",
+      "start_line": 5,
+      "end_line": 17,
+      "raw": "| 경로 | 역할 |\n| --- | --- |\n| `App/Engine/` | Core 수명, QueryPort, 협업·탐색, 설정·복구·라이선스와 문서 메타데이터 |\n| `App/Native/Application.cpp` | 앱·창·서비스 조립, 대화상자·메뉴·클립보드·드롭·명령 |\n| `App/Native/EditorBackend.*` | LVUI의 스코프 소유 백엔드와 반응형 값·목록 모델 |\n| `App/Native/Artwork.*` | 문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기 |\n| `App/Native/CanvasView.*` | 화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시 |\n| `App/Native/Shapes.*`, `LegacyCanvas.cpp` | 벡터 도형 정책과 이전 문서의 검증·이행 |\n| `App/Native/views/` | HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI |\n| `cmake/` | Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징 |\n| `tests/` | 엔진·서비스·편집·실제 GUI·번들 재배치 검증 |\n| `resources/` | 앱 아이콘과 제품 자원 |\n| `build/` | 생성 C++·SDK 소비 결과·앱 하나·검사 자료 |\n",
+      "columns": [
+        "경로",
+        "역할"
+      ],
+      "rows": [
+        [
+          "`App/Engine/`",
+          "Core 수명, QueryPort, 협업·탐색, 설정·복구·라이선스와 문서 메타데이터"
+        ],
+        [
+          "`App/Native/Application.cpp`",
+          "앱·창·서비스 조립, 대화상자·메뉴·클립보드·드롭·명령"
+        ],
+        [
+          "`App/Native/EditorBackend.*`",
+          "LVUI의 스코프 소유 백엔드와 반응형 값·목록 모델"
+        ],
+        [
+          "`App/Native/Artwork.*`",
+          "문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기"
+        ],
+        [
+          "`App/Native/CanvasView.*`",
+          "화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시"
+        ],
+        [
+          "`App/Native/Shapes.*`, `LegacyCanvas.cpp`",
+          "벡터 도형 정책과 이전 문서의 검증·이행"
+        ],
+        [
+          "`App/Native/views/`",
+          "HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI"
+        ],
+        [
+          "`cmake/`",
+          "Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징"
+        ],
+        [
+          "`tests/`",
+          "엔진·서비스·편집·실제 GUI·번들 재배치 검증"
+        ],
+        [
+          "`resources/`",
+          "앱 아이콘과 제품 자원"
+        ],
+        [
+          "`build/`",
+          "생성 C++·SDK 소비 결과·앱 하나·검사 자료"
+        ]
+      ]
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "하위 SDK는 제품 정책을 알지 않는다. 파일·잠금·SQLite는 iiFileProvider, 문서·합성은 iiSharedCanvas Native, 브러시 엔진은 iiPaintEngine, 코덱·ICC는 iiImageCodec에 둔다. Core는 이벤트 루프·작업·관측 값을 제공하고 iiGUI는 OS 창·입력·텍스트·GPU 표시·운영체제 서비스를 제공한다. LVRS는 위젯과 모델, LVUI는 선언 구문과 C++ 생성을 담당한다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "주 창과 보조창은 Core 루프를 공유한다. 화면 이동·확대·선택과 문서 편집의 리비전을 분리한다. 문서 저장은 정규 IISC이며 내부 복구본·이전 VRC·PSD·ORA·비트맵을 경계에서 검증한다. 실제 제품 기능과 제한은 [NATIVE_RUNTIME.md](NATIVE_RUNTIME.md), 엔진 소유 관계는 [APP_ENGINE.md](APP_ENGINE.md), 빌드는 [BUILD.md](BUILD.md)에 있다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "`src/App/`과 이전 QML은 비교와 기존 변경 보존을 위한 자료이다. 현재 타깃과 리소스에 포함하지 않는다. 이전 구조 문서는 [legacy/app_structure.md](legacy/app_structure.md)에 보존한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation 1.0.0 네이티브 앱 구조",
+      "anchor": "congregation-100-네이티브-앱-구조",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000011",
+        "line": 23,
+        "text": "`src/App/`과 이전 QML은 비교와 기존 변경 보존을 위한 자료이다. 현재 타깃과 리소스에 포함하지 않는다. 이전 구조 문서는 [legacy/app_structure.md](legacy/app_structure.md)에 보존한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000009",
+        "label": "NATIVE_RUNTIME.md",
+        "target": "NATIVE_RUNTIME.md",
+        "kind": "relative",
+        "line": 21
+      },
+      {
+        "block_id": "b000009",
+        "label": "APP_ENGINE.md",
+        "target": "APP_ENGINE.md",
+        "kind": "relative",
+        "line": 21
+      },
+      {
+        "block_id": "b000009",
+        "label": "BUILD.md",
+        "target": "BUILD.md",
+        "kind": "relative",
+        "line": 21
+      },
+      {
+        "block_id": "b000011",
+        "label": "legacy/app_structure.md",
+        "target": "legacy/app_structure.md",
+        "kind": "relative",
+        "line": 23
+      }
+    ],
+    "tables": [
+      {
+        "block_id": "b000005",
+        "columns": [
+          "경로",
+          "역할"
+        ],
+        "rows": [
+          [
+            "`App/Engine/`",
+            "Core 수명, QueryPort, 협업·탐색, 설정·복구·라이선스와 문서 메타데이터"
+          ],
+          [
+            "`App/Native/Application.cpp`",
+            "앱·창·서비스 조립, 대화상자·메뉴·클립보드·드롭·명령"
+          ],
+          [
+            "`App/Native/EditorBackend.*`",
+            "LVUI의 스코프 소유 백엔드와 반응형 값·목록 모델"
+          ],
+          [
+            "`App/Native/Artwork.*`",
+            "문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기"
+          ],
+          [
+            "`App/Native/CanvasView.*`",
+            "화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시"
+          ],
+          [
+            "`App/Native/Shapes.*`, `LegacyCanvas.cpp`",
+            "벡터 도형 정책과 이전 문서의 검증·이행"
+          ],
+          [
+            "`App/Native/views/`",
+            "HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI"
+          ],
+          [
+            "`cmake/`",
+            "Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징"
+          ],
+          [
+            "`tests/`",
+            "엔진·서비스·편집·실제 GUI·번들 재배치 검증"
+          ],
+          [
+            "`resources/`",
+            "앱 아이콘과 제품 자원"
+          ],
+          [
+            "`build/`",
+            "생성 C++·SDK 소비 결과·앱 하나·검사 자료"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

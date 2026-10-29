@@ -1,0 +1,219 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:8490ab84b7e571acf15bf185cfe290ed3b55a7a4027f99784e703321e45a5107",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "design-qa.md",
+    "sha256": "65c0dc86f6c2165423090922b81cb3aa67bbe145e226751cc9bfaecc631761d6",
+    "bytes": 1094,
+    "line_count": 23,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Document moved",
+    "role": "compatibility",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Document moved\n",
+      "level": 1,
+      "title": "Document moved"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "html",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "<!-- workspace-docs:redirect -->\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "The maintained document is [design-qa.md](docs/design-qa.md).\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "html",
+      "start_line": 7,
+      "end_line": 8,
+      "raw": "<a id=\"vincent-ui-복원-시각-검증\"></a>\n[Continue to this section](docs/design-qa.md#vincent-ui-%EB%B3%B5%EC%9B%90-%EC%8B%9C%EA%B0%81-%EA%B2%80%EC%A6%9D).\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "html",
+      "start_line": 10,
+      "end_line": 11,
+      "raw": "<a id=\"기준과-검증-범위\"></a>\n[Continue to this section](docs/design-qa.md#%EA%B8%B0%EC%A4%80%EA%B3%BC-%EA%B2%80%EC%A6%9D-%EB%B2%94%EC%9C%84).\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "html",
+      "start_line": 13,
+      "end_line": 14,
+      "raw": "<a id=\"화면-크기와-비교-방법\"></a>\n[Continue to this section](docs/design-qa.md#%ED%99%94%EB%A9%B4-%ED%81%AC%EA%B8%B0%EC%99%80-%EB%B9%84%EA%B5%90-%EB%B0%A9%EB%B2%95).\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "html",
+      "start_line": 16,
+      "end_line": 17,
+      "raw": "<a id=\"확인한-배치와-외형\"></a>\n[Continue to this section](docs/design-qa.md#%ED%99%95%EC%9D%B8%ED%95%9C-%EB%B0%B0%EC%B9%98%EC%99%80-%EC%99%B8%ED%98%95).\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "html",
+      "start_line": 19,
+      "end_line": 20,
+      "raw": "<a id=\"검토와-수정-기록\"></a>\n[Continue to this section](docs/design-qa.md#%EA%B2%80%ED%86%A0%EC%99%80-%EC%88%98%EC%A0%95-%EA%B8%B0%EB%A1%9D).\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "html",
+      "start_line": 22,
+      "end_line": 23,
+      "raw": "<a id=\"남은-차이와-최종-판정\"></a>\n[Continue to this section](docs/design-qa.md#%EB%82%A8%EC%9D%80-%EC%B0%A8%EC%9D%B4%EC%99%80-%EC%B5%9C%EC%A2%85-%ED%8C%90%EC%A0%95).\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Document moved",
+      "anchor": "document-moved",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000005",
+        "label": "design-qa.md",
+        "target": "docs/design-qa.md",
+        "kind": "relative",
+        "line": 5
+      },
+      {
+        "block_id": "b000007",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#vincent-ui-%EB%B3%B5%EC%9B%90-%EC%8B%9C%EA%B0%81-%EA%B2%80%EC%A6%9D",
+        "kind": "relative",
+        "line": 8
+      },
+      {
+        "block_id": "b000009",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#%EA%B8%B0%EC%A4%80%EA%B3%BC-%EA%B2%80%EC%A6%9D-%EB%B2%94%EC%9C%84",
+        "kind": "relative",
+        "line": 11
+      },
+      {
+        "block_id": "b000011",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#%ED%99%94%EB%A9%B4-%ED%81%AC%EA%B8%B0%EC%99%80-%EB%B9%84%EA%B5%90-%EB%B0%A9%EB%B2%95",
+        "kind": "relative",
+        "line": 14
+      },
+      {
+        "block_id": "b000013",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#%ED%99%95%EC%9D%B8%ED%95%9C-%EB%B0%B0%EC%B9%98%EC%99%80-%EC%99%B8%ED%98%95",
+        "kind": "relative",
+        "line": 17
+      },
+      {
+        "block_id": "b000015",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#%EA%B2%80%ED%86%A0%EC%99%80-%EC%88%98%EC%A0%95-%EA%B8%B0%EB%A1%9D",
+        "kind": "relative",
+        "line": 20
+      },
+      {
+        "block_id": "b000017",
+        "label": "Continue to this section",
+        "target": "docs/design-qa.md#%EB%82%A8%EC%9D%80-%EC%B0%A8%EC%9D%B4%EC%99%80-%EC%B5%9C%EC%A2%85-%ED%8C%90%EC%A0%95",
+        "kind": "relative",
+        "line": 23
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

@@ -7,6 +7,9 @@
 #include "Style.h"
 #include "PreferencesView.generated.h"
 #include "CanvasSetupWindow.h"
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 #include <Engine/ApplicationEngine.h>
 #include <Engine/Preferences.h>
 #include <Engine/LicenseService.h>
@@ -16,7 +19,6 @@
 #include <iiGUI/Desktop.h>
 #include <iiImageCodec/ImageCodec.h>
 #include <iiUpdateManager/NativeUpdateManager.h>
-#include <iiLicenseManager/NativeLicenseClient.h>
 #include <iiFileProviderNative.h>
 #include <iiFileProviderCompatibility.h>
 #include <iiSDKCore/Core/Text/Number.h>
@@ -64,23 +66,44 @@ void good(ii::core::Result<void> result)
         throw std::runtime_error(result.error().message);
     }
 }
-CredentialPort credentials(const std::shared_ptr<iisacc::accounts::native::SecureStore>& store,
-                           bool test)
+iisacc::accounts::native::SessionPersistence session_store(
+    const std::shared_ptr<iisacc::accounts::native::SecureStore>& store, bool test)
 {
-    if (test)
-        return {.supported = [] { return false; },
-                .read = [](auto done) { done(CredentialPort::ReadStatus::not_found, {}); },
-                .write = [](auto, auto done) { done(false); },
-                .remove = [](auto done) { done(false); }};
-    return {.supported = [store] { return store->supported(); },
-            .read =
-                [store](auto done)
-            {
-                auto value = store->read();
-                done(value.status, std::move(value.bytes));
-            },
-            .write = [store](auto bytes, auto done) { done(store->write(bytes)); },
-            .remove = [store](auto done) { done(store->remove()); }};
+    if(test) return {};
+    return {.read=[store]{return store->read();}, .write=[store](auto bytes){return store->write(bytes);},
+            .remove=[store]{return store->remove();}};
+}
+iisacc::accounts::native::BrowserSessionOptions account_options(const std::filesystem::path& directory,bool test)
+{
+    using namespace iisacc::accounts::native;
+    std::string fallback(64,'a');
+    if(!test) {
+        const auto path=directory/"account-device.id";std::error_code error;
+        if(std::filesystem::is_regular_file(path,error)) fallback=iiFileProvider::native::File::read(path,64);
+        else {
+            fallback=BrowserSession::random_device_id();
+            iiFileProvider::native::File::createDirectories(directory);
+            iiFileProvider::native::File::write(path,fallback);
+        }
+    }
+    return {.product_id="congregation",.device=detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,fallback)};
+}
+std::string account_message(const LicenseService& license)
+{
+    if(license.code=="waiting_for_browser") return "Finish signing in through your browser, then return.";
+    if(license.code=="society_unavailable") return "Open Society to authorize Congregation on this device.";
+    if(license.code=="society_account_required") return "Connect the same account in Society to authorize this app.";
+    if(license.code=="checking_license") return "Requesting authorization from Society…";
+    if(license.code=="license_not_owned") return "No Congregation license. Manage licenses in Society.";
+    if(license.code=="licensed_offline") return "Authorized by Society. Using your verified local license token.";
+    if(license.code=="licensed") return "Congregation license verified.";
+    if(license.code=="secure_storage_unavailable") return "Signed in for this run. Secure session storage is unavailable.";
+    if(license.code=="sign_in_cancelled") return "Sign-in cancelled.";
+    if(license.code=="unauthenticated"||license.code=="saved_session_invalid") return "Your session has expired. Sign in again.";
+    if(license.code=="app_request_expired") return "Sign-in expired. Start a new sign-in request.";
+    if(license.code=="device_limit_reached") return "This device limit was reached. Manage connected devices in Society.";
+    if(!license.code.empty()) return "Verification unavailable. Check your connection and retry.";
+    return "Sign in at iisacc.com to check your Congregation license.";
 }
 class UpdateCredentials final : public iisacc::updates::native::UpdateCredentialProvider
 {
@@ -88,24 +111,11 @@ class UpdateCredentials final : public iisacc::updates::native::UpdateCredential
     explicit UpdateCredentials(LicenseService& value) : license_(value) {}
     void requestCredentials(Completion completion) override
     {
-        auto generation = generation_;
-        const auto expected = *generation;
-        license_.credentials(
-            [generation, expected, completion = std::move(completion)](auto status,
-                                                                       Credentials value) mutable
-            {
-                if (*generation != expected)
-                    return;
-                if (status != LicenseService::StoredStatus::available)
-                {
-                    completion(std::nullopt, "A saved Congregation license is required");
-                    return;
-                }
-                iisacc::updates::native::UpdateCredentials out;
-                out.email = std::move(value.email);
-                out.licenseKey = std::move(value.key);
-                completion(std::move(out), {});
-            });
+        auto token=license_.access_token();
+        if(token.empty()) { completion(std::nullopt,"Sign in at iisacc.com before updating"); return; }
+        iisacc::updates::native::UpdateCredentials out;
+        out.accessToken=std::move(token);
+        completion(std::move(out), {});
     }
     void cancel() noexcept override { ++*generation_; }
     ~UpdateCredentials() override { cancel(); }
@@ -118,7 +128,7 @@ class UpdateCredentials final : public iisacc::updates::native::UpdateCredential
 struct State final : std::enable_shared_from_this<State>
 {
     ii::runtime::Application& app;
-    bool test = false, closed = false, receiving = false;
+    bool test = false, closed = false, receiving = false, device_evidence = false;
     int pressure_handle = -1;
     ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
     std::filesystem::path directory, initial_file, reference_image;
@@ -141,13 +151,12 @@ struct State final : std::enable_shared_from_this<State>
     ui::EditorBackend* secondary = nullptr;
     std::shared_ptr<iisacc::accounts::native::SecureStore> store =
         std::make_shared<iisacc::accounts::native::SecureStore>("com.iisacc.congregation.painter",
-                                                                "account-license");
+                                                                "web-app-session-v1");
     LicenseService license;
     UpdateCredentials update_credentials;
     iisacc::updates::native::UpdateManager updater;
     ii::network::Http image_http;
     std::string selected_member;
-    iisacc::licensing::native::LicenseClient account;
     NearbyDiscovery discovery;
     CanvasSession session;
     ii::runtime::TaskToken deadline, notice_deadline;
@@ -160,18 +169,17 @@ struct State final : std::enable_shared_from_this<State>
           preferences(test ? directory / "preferences.ini" : std::filesystem::path{},
                       directory / "recovery"),
           artwork(directory / "recovery"), canvas(artwork),
-          license(app.event_loop(), "https://iisacc.com/graphql", 10000, !test,
-                  credentials(store, test)),
+          license(app.event_loop(), account_options(directory,test), !test, session_store(store,test)),
           update_credentials(license),
           updater(app.event_loop(), "congregation", CONGREGATION_VERSION),
           image_http(app.event_loop()),
-          account(app.event_loop(), "congregation", "https://iisacc.com/graphql",
-                  directory / "licenses"),
           discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
     {
         check(artwork.create(test ? 128 : 1024, test ? 96 : 768), artwork.error());
         const auto program = std::filesystem::absolute(native_path(app.arguments().front()));
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_IOS
+        view->set_assets(program.parent_path() / "figma");
+#elif defined(__APPLE__)
         view->set_assets(program.parent_path().parent_path() / "Resources" / "figma");
 #else
         view->set_assets(program.parent_path() / "resources");
@@ -251,7 +259,10 @@ struct State final : std::enable_shared_from_this<State>
         if (receiving)
             return;
         if (session.state == CanvasSession::State::hosting)
-            session.publish(artwork.snapshot());
+        {
+            if (!session.publish(artwork.snapshot()))
+                status(session.error.empty() ? "The canvas update could not be shared." : session.error);
+        }
         else if (session.state == CanvasSession::State::connected)
         {
             auto bytes = artwork.snapshot();
@@ -287,7 +298,7 @@ struct State final : std::enable_shared_from_this<State>
         backend.can_invite.set(preferences.invitations_allowed);
         backend.discover.set(preferences.discover_nearby);
         backend.display_name.set(preferences.profile_name);
-        backend.account_email.set(main && !main->email.get().empty() ? main->email.get() : "Not connected");
+        backend.account_email.set(license.email.empty() ? "Not connected" : license.email);
         if (auxiliary && main)
         {
             backend.spacing_pixels.set(main->spacing_pixels.get());
@@ -930,42 +941,25 @@ struct State final : std::enable_shared_from_this<State>
                     status(error.what());
                 }
         }
-        license.changed = [weak](LicenseService::Notice)
-        {
-            if (auto p = weak.lock())
-            {
-                for (auto* backend : {p->main, p->secondary})
-                    if (backend)
-                    {
-                        backend->licensed.set(p->license.licensed);
-                        backend->needs_license.set(!p->license.licensed);
-                        backend->can_activate.set(!p->license.verifying);
-                    }
-                if (!p->license.code.empty())
-                    p->status(p->license.code);
+        license.open_browser = [weak](std::string url) {
+            if(auto p=weak.lock()) {
+                auto opened=ii::gui::open_external_url(url);
+                if(!opened) { p->license.cancel(); p->status("The sign-in page could not be opened."); }
             }
         };
-        license.validated = [weak](bool valid)
-        {
-            if (auto p = weak.lock())
-            {
-                if (valid)
-                {
-                    p->license.credentials(
-                        [weak](auto state, Credentials value)
-                        {
-                            if (auto p = weak.lock();
-                                p && state == LicenseService::StoredStatus::available)
-                                {
-                                    if(p->main)p->main->email.set(value.email);
-                                    if(p->secondary)p->secondary->account_email.set(value.email);
-                                    p->account.activate(std::move(value.email), std::move(value.key));
-                                }
-                        });
-                    p->canvas.fit();
-                    p->status("License activated");
-                }
+        license.changed = [weak](LicenseService::Notice) {
+            if(auto p=weak.lock()) for(auto* backend : {p->main,p->secondary}) if(backend) {
+                backend->licensed.set(p->test||p->license.licensed);
+                backend->needs_license.set(!p->test&&!p->license.licensed);
+                backend->can_activate.set(!p->license.verifying);
+                backend->signing_in.set(p->license.verifying);
+                backend->signed_in.set(p->license.signed_in);
+                backend->account_email.set(p->license.email.empty()?"Not connected":p->license.email);
+                backend->account_status.set(account_message(p->license));
             }
+        };
+        license.validated = [weak](bool valid) {
+            if(auto p=weak.lock();p&&valid) {p->canvas.fit();p->status("Congregation license verified");}
         };
         updater.setCredentialProvider(&update_credentials);
         updater.upToDate = [weak](std::string version)
@@ -1045,7 +1039,6 @@ struct State final : std::enable_shared_from_this<State>
         if (!test)
         {
             license.restore();
-            account.loadLicense();
             if (preferences.discover_nearby)
                 discovery.start();
             if (preferences.start_recent)
@@ -1056,6 +1049,13 @@ struct State final : std::enable_shared_from_this<State>
             }
         }
         check(bool(engine.start([] {})), "Core engine startup was rejected");
+        if (device_evidence)
+        {
+            const auto capture = host->executor().after(std::chrono::seconds(3), [weak] {
+                if (auto p = weak.lock()) p->capture_evidence(*p->host, "startup");
+            });
+            check(bool(capture), "Cannot schedule device startup evidence");
+        }
         if (!initial_file.empty())
         {
             result(artwork.open(initial_file));
@@ -1339,29 +1339,19 @@ struct State final : std::enable_shared_from_this<State>
             open_preferences();
             return;
         }
-        if (action == Action::activate)
-        {
-            if (main)
-            {
-                license.validate(main->email.get(), main->license_key.get());
-                main->license_key.set("");
-            }
-            return;
-        }
-        if (action == Action::restore_license) { license.restore(); status("Restoring purchases"); return; }
-        if (action == Action::forget_license)
-        {
-            license.forget();
-            return;
-        }
+        if(action==Action::activate) { license.sign_in(); return; }
+        if(action==Action::open_society) { license.open_society(); return; }
+        if(action==Action::restore_license) { license.retry(); return; }
+        if(action==Action::forget_license) { license.forget(); return; }
+        if(action==Action::cancel_sign_in) { license.cancel(); return; }
         if (action == Action::profile)
         {
-            good(ii::gui::open_external_url("https://iisacc.com/account"));
+            good(ii::gui::open_external_url("https://iisacc.com/Account/Dashboard"));
             return;
         }
         if (!test && !license.licensed)
         {
-            status("Activate a Congregation license to edit this canvas");
+            status("Sign in at iisacc.com with a Congregation license to edit this canvas");
             return;
         }
         const std::map<Action, const char*> active_tools{{Action::brush, "brush"},
@@ -1651,8 +1641,10 @@ struct State final : std::enable_shared_from_this<State>
             if (session.host(secondary ? secondary->display_name.get() : "Host"))
             {
                 session.set_invitations(true);
-                session.publish(artwork.snapshot());
-                status("Canvas sharing is active on port " + std::to_string(session.port()));
+                if (session.publish(artwork.snapshot()))
+                    status("Canvas sharing is active on port " + std::to_string(session.port()));
+                else
+                    status(session.error.empty() ? "The canvas could not be shared." : session.error);
             }
             else
                 status(session.error);
@@ -1817,13 +1809,15 @@ struct State final : std::enable_shared_from_this<State>
         const auto bounds = [&](std::string_view id)
         { return take(take(mount.find(id)).snapshot()).bounds; };
         const auto canvas_bounds = bounds("canvas"), toolbar_bounds = bounds("toolbar");
-        check(canvas_bounds.x == 306 && canvas_bounds.y == 46 && canvas_bounds.width == 1341 &&
+        check(canvas_bounds.x == 82 && canvas_bounds.y == 46 && canvas_bounds.width == 1565 &&
                   canvas_bounds.height == 692,
-              "Figma canvas geometry differs from the authored composition");
-        check(toolbar_bounds.height == 28 && bounds("sidebar").width == 224 &&
+              "Canvas did not reclaim the removed asset sidebar width");
+        check(!mount.find("sidebar") && !mount.find("asset-results") &&
+                  toolbar_bounds.height == 28 && bounds("tool-rail").x == 0 &&
                   bounds("tool-rail").width == 54 && bounds("inspector").width == 352 &&
+                  bounds("timeline").x == 54 && bounds("timeline").width == 1593 &&
                   bounds("timeline").height == 296,
-              "Figma fixed panel geometry changed");
+              "Toolbar-only workspace geometry changed");
         capture(*host, "editor-initial.png");
         iiFileProvider::native::File::create(directory/"layout.json", "{\"canvasX\":"+std::to_string(canvas_bounds.x)+",\"canvasY\":"+std::to_string(canvas_bounds.y)+",\"canvasWidth\":"+std::to_string(canvas_bounds.width)+",\"canvasHeight\":"+std::to_string(canvas_bounds.height)+",\"toolbarHeight\":"+std::to_string(toolbar_bounds.height)+",\"paperX\":"+std::to_string(canvas.viewport().x)+",\"paperY\":"+std::to_string(canvas.viewport().y)+",\"scale\":"+std::to_string(canvas.viewport().scale)+"}\n");
         const auto revision=artwork.revision();
@@ -1949,9 +1943,40 @@ struct State final : std::enable_shared_from_this<State>
                                                        });
         check(bool(completion), "Cannot schedule native playback verification");
     }
+    void capture_evidence(ii::gui::Host& source, std::string_view name)
+    {
+        const auto image = take(source.capture_canvas());
+        const auto graphics = take(source.graphics_info());
+        const auto window = take(source.snapshot());
+        const auto png = take(ii::image::encode_png(
+            {image.width, image.height, ii::image::PixelFormat::rgba8, 0, image.rgba}));
+        const auto output = test ? directory : directory / "device-diagnostics";
+        iiFileProvider::native::File::createDirectories(output);
+        iiFileProvider::native::File::write(output / (std::string(name) + ".png"),
+            {reinterpret_cast<const char*>(png.data()), png.size()});
+        iiFileProvider::native::File::write(output / (std::string(name) + ".json"), json(Value(Object{
+            {"mode", Value(test ? "isolated-test" : "normal")}, {"visible", Value(window.visible)},
+            {"logical_width", Value(window.size.width)}, {"logical_height", Value(window.size.height)},
+            {"pixel_width", Value(image.width)}, {"pixel_height", Value(image.height)},
+            {"renderer", Value(graphics.api == ii::gui::GraphicsApi::vulkan ? "Vulkan" : "Metal")},
+            {"adapter", Value(graphics.adapter)}, {"hardware", Value(graphics.hardware)},
+            {"presentations", Value(graphics.presentations)}, {"licensed", Value(license.licensed)}})));
+    }
     void self_test()
     {
         check(test && main, "Isolated self-test state missing");
+        const auto license_revision = artwork.revision();
+        main->licensed.set(false);
+        main->needs_license.set(true);
+        view->refresh_document(artwork.document(), artwork.selected());
+        capture_evidence(*host, "unlicensed");
+        main->licensed.set(true);
+        main->needs_license.set(false);
+        view->refresh_document(artwork.document(), artwork.selected());
+        check(artwork.revision() == license_revision, "License screen changed the document");
+#if defined(__APPLE__) && TARGET_OS_IOS
+        check(iisacc::updates::native::platform_key() == "ios-arm64", "Wrong iPad update platform");
+#endif
         const auto mount = view->widgets();
         check(take(host->snapshot()).visible, "Native window is not visible");
         check(&engine.events() == &app.event_loop(), "Engine created a second Core event loop");
@@ -2001,6 +2026,7 @@ struct State final : std::enable_shared_from_this<State>
     {
         const auto mount = view->widgets();
         check(setup && setup_host, "Native canvas setup did not open");
+        capture_evidence(*setup_host, "new-canvas");
         setup->set_new_width("0");
         check(!take(take(setup_view->widgets().find("create-canvas")).snapshot()).enabled,"Invalid canvas size did not disable Create");
         act(Action::create_canvas);
@@ -2158,8 +2184,9 @@ struct State final : std::enable_shared_from_this<State>
               "Native profile or brush preferences failed");
         check(artwork.revision() == preferences_revision, "Preferences changed saved artwork");
         good(preferences_host->request_close());
-        const auto used_api = take(host->graphics_info()).api;
         auto capture = take(host->capture_canvas());
+        const auto graphics = take(host->graphics_info());
+        const auto used_api = graphics.api;
         auto png = ii::image::encode_png(
             {capture.width, capture.height, ii::image::PixelFormat::rgba8, 0, capture.rgba});
         check(bool(png), "Cannot encode native evidence image");
@@ -2168,6 +2195,15 @@ struct State final : std::enable_shared_from_this<State>
                          : used_api == ii::gui::GraphicsApi::direct3d11 ? "direct3d11.png"
                                                                         : "metal.png"),
             {reinterpret_cast<const char*>(png->data()), png->size()});
+        iiFileProvider::native::File::write(directory / "success.json", json(Value(Object{
+            {"status", Value("passed")}, {"qt", Value(false)}, {"new_canvas", Value(true)},
+            {"unlicensed_shell", Value(true)},
+            {"cancel_preserves_document", Value(true)}, {"pen_route", Value(true)},
+            {"physical_pencil_tested", Value(false)}, {"save_reopen", Value(true)},
+            {"renderer", Value(used_api == ii::gui::GraphicsApi::vulkan ? "Vulkan" : "Metal")},
+            {"adapter", Value(graphics.adapter)}, {"hardware", Value(graphics.hardware)},
+            {"pixel_width", Value(capture.width)}, {"pixel_height", Value(capture.height)},
+            {"presentations", Value(graphics.presentations)}})));
         std::cout << "CONGREGATION_NATIVE_OK qt=false lvui=html-inline lvrs=true core_loop=shared "
                      "pen=true cancel=true undo=true layers=true navigation_readonly=true "
                      "save_reopen=true png=true psd=true secondary=true setup=true popup=true "
@@ -2176,7 +2212,8 @@ struct State final : std::enable_shared_from_this<State>
                   << (used_api == ii::gui::GraphicsApi::vulkan       ? "Vulkan"
                       : used_api == ii::gui::GraphicsApi::direct3d11 ? "Direct3D11"
                                                                      : "Metal")
-                  << " tiles=" << canvas.viewport().visible_tiles << '\n';
+                  << " tiles=" << canvas.viewport().visible_tiles
+                  << " captures=" << path_text(directory) << std::endl;
         good(app.quit());
     }
 };
@@ -2185,7 +2222,7 @@ struct State final : std::enable_shared_from_this<State>
 ii::core::Result<void> ii::runtime::configure_application(Application& app)
 {
     using namespace congregation::native;
-    bool test = false;
+    bool test = false, device_evidence = false;
     std::filesystem::path directory, initial_file, reference_image;
     ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
     for (std::size_t i = 1; i < app.arguments().size(); ++i)
@@ -2196,6 +2233,13 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
             test = true;
             directory = native_path(app.arguments()[++i]);
         }
+        else if (arg == "--device-self-test")
+        {
+            test = true;
+            directory = congregation::application_data() / "device-tests";
+            iiFileProvider::native::File::createDirectories(directory);
+        }
+        else if (arg == "--device-evidence") device_evidence = true;
         else if(arg == "--ui-reference" && i+1<app.arguments().size()) reference_image=native_path(app.arguments()[++i]);
         else if (arg == "--renderer" && i + 1 < app.arguments().size())
         {
@@ -2215,7 +2259,8 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
         else
             return core::fail(core::ErrorCode::invalid_argument,
                               "Usage: Congregation [document] [--renderer native|vulkan] "
-                              "[--self-test existing-directory] [--ui-reference image]");
+                              "[--self-test existing-directory | --device-self-test] "
+                              "[--ui-reference image]");
     }
     if(!reference_image.empty()&&!test) return core::fail(core::ErrorCode::invalid_argument,"UI reference capture requires --self-test");
     if (test)
@@ -2230,6 +2275,7 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
     else
         directory = congregation::application_data();
     auto state = std::make_shared<State>(app, test, directory);
+    state->device_evidence = device_evidence;
     state->renderer = renderer;
     state->reference_image=std::move(reference_image);
     state->initial_file = std::move(initial_file);

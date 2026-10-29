@@ -1,0 +1,107 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:ce928404ec80cee949263feec8f49abcd4bbca9a32c788251065434f19636fca",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/WindowsValidation.md",
+    "sha256": "1ba53eee9c981969fd0d703aa28cda91f6228a481145d7187b53f1af798eb485",
+    "bytes": 760,
+    "line_count": 7,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Windows 검증",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Windows 검증\n",
+      "level": 1,
+      "title": "Windows 검증"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "저장소가 지정한 iiSharedCanvas 0.11.0 의존성을 별도 설치 경로에 빌드하여 사용한다. 최신 SDK와 ABI를 혼합하지 않는다. Qt MinGW 키트와 Ninja로 `build/`에 빌드한다. GUI 검증은 Windows 플랫폼 플러그인에서 실제 창 생성과 정상 종료를 확인한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "문서 계약 테스트는 번역된 제목 대신 보존된 Markdown section ID와 실행 명령·API 이름을 검사한다. 영어 원문에 종속된 검사 때문에 한국어 설명서가 오탐되지 않도록 한다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "Windows 바이너리 버전 검사는 실제 CMake 프로젝트 버전을 따른다. GUI 프로세스는 native Windows 플러그인을 명시하여 실제 창의 크기와 유지 상태를 확인한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Windows 검증",
+      "anchor": "windows-검증",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 3,
+        "text": "저장소가 지정한 iiSharedCanvas 0.11.0 의존성을 별도 설치 경로에 빌드하여 사용한다. 최신 SDK와 ABI를 혼합하지 않는다. Qt MinGW 키트와 Ninja로 `build/`에 빌드한다. GUI 검증은 Windows 플랫폼 플러그인에서 실제 창 생성과 정상 종료를 확인한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

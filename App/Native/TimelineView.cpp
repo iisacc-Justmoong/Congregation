@@ -28,8 +28,9 @@ void image(ii::gui::WidgetDrawing &d, Rect r, std::string_view name)
     d.images.push_back({r, take(lvrs::Icons::image(name, Metric::iconRasterSize))});
 }
 void line(ii::gui::WidgetDrawing &d, Rect r,
-          ii::gui::WidgetColor color = editor::panel_edge_color())
+          ii::gui::WidgetColor color = editor::detail_line_color())
 {
+    if (r.width <= 0 || r.height <= 0) return;
     const auto c = editor::linear(color);
     d.panels.push_back({r, c, c});
 }

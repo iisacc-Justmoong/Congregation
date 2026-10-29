@@ -14,13 +14,14 @@ import vm congregation.ui.EditorBackend
     </div>
     <div id="general-pane" visible={vm.general_visible} style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch; flex: 1">
       <Label text="Account" fontSize={Metric.textDescription} color={Color.secondaryText}/>
-      <Label text={vm.account_email} fontSize={Metric.textBody}/>
+      <div style="display: flex; flex-direction: row; gap: Metric.space8"><Label text={vm.account_email} fontSize={Metric.textBody}/><Spacer/><Button id="preferences-open-society" text="Open Society" height={Metric.size28} onClick={vm.open_society}/><Button text="Sign out" height={Metric.size28} visible={vm.signed_in} onClick={vm.forget_license}/></div>
+      <Label text="Manage your account and licenses in Society." fontSize={Metric.textDescription} color={Color.secondaryText}/>
       <Label text="Startup" fontSize={Metric.textDescription} color={Color.secondaryText}/>
       <div style="display: flex; flex-direction: row; gap: Metric.space16"><RadioButton text="New canvas" checked={vm.start_new} onToggled={vm.set_start_new}/><RadioButton text="Recent canvas" checked={vm.start_recent} onToggled={vm.set_start_recent}/></div>
       <CheckBox text="Discover nearby Congregation users" checked={vm.discover} onToggled={vm.set_discover}/>
       <Spacer/>
       <Label text={vm.update_status} fontSize={Metric.textDescription}/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space8"><Button id="restore-purchases" text="Restore purchases" tone={.default} height={Metric.size28} onClick={vm.restore_license}/><Spacer/><Button id="check-update" text="Check for updates" height={Metric.size28} onClick={vm.check_update}/></div>
+      <div style="display: flex; flex-direction: row; gap: Metric.space8"><Button id="restore-purchases" text="Check license" tone={.default} height={Metric.size28} onClick={vm.restore_license}/><Spacer/><Button id="check-update" text="Check for updates" height={Metric.size28} onClick={vm.check_update}/></div>
     </div>
     <div id="profile-pane" visible={vm.profile_visible} style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch; flex: 1">
       <Label text="User image" fontSize={Metric.textDescription} color={Color.secondaryText}/>

@@ -21,7 +21,7 @@
 - `src/App/models/document/recentcanvascontainer.*`는 버전이 지정된 SHA-256 확인 내부 최근 세션 컨테이너 코덱을 소유합니다.
 - `src/App/models/license/accountmanager.*`는 Native 라이선스 클라이언트의 검증된 계정 ID를 QML 기본 설정 화면에 연결한다.
 - `src/App/models/license/licensemanager.*`는 보유된 온라인 Congregation 제품 라이센스 요청, 안전하게 거부하는 런타임 결정, 자격 증명 수명 주기 및 명시적 애플리케이션 적용 모드를 소유합니다. Congregation는 현재 비활성화 모드를 선택합니다.
-- `src/App/models/license/licensecredentialstore.*`는 `iiAcountManager::Native`의 플랫폼 보안 저장소와 QML 어댑터를 연결한다. 테스트에서는 같은 자격 증명 인터페이스에 메모리 저장소를 주입한다.
+- `src/App/models/license/licensecredentialstore.*`는 `iiAccountManager::Native`의 플랫폼 보안 저장소와 QML 어댑터를 연결한다. 테스트에서는 같은 자격 증명 인터페이스에 메모리 저장소를 주입한다.
 - `src/App/models/network/nearbycongregationdiscovery.*`는 Native `NearbyDiscovery` 상태와 신호를 QML에 연결한다. UDP, 인터페이스 멤버십, 하트비트와 피어 만료는 iiNetwork 및 Core EventLoop가 처리한다.
 - `src/App/models/network/localcanvassession.*`는 Native `CanvasSession`의 참가자·프레임·명령·스냅샷 상태를 QML에 연결한다.
 - `src/App/models/collaboration/memberprofilelistbuilder.*` 는 현재 로컬 프로필 및 활성 캔버스 협업자 기록에서 멤버 프레젠테이션 목록을 생성합니다. 상위 공급 측 `isMe` 행을 중복 제거하고, 호스트를 먼저 유지하며, 정확한 역할 접미사를 할당하며, 각 제거 가능한 협업자의 소스 기록과 인덱스를 세션 삭제를 위해 보존합니다.
@@ -329,9 +329,9 @@
 
 ## GraphQL 라이센스 권한
 
-`validateLicense(input: LicenseValidationInput!)` 는 `data.validateLicense` 를 반환합니다. 클라이언트는 `valid`, `code`, `productId`, `checkedAt`, 및 `expiresAt` 를 요청하며 공유 GraphQL 엔벨로프 파서는 `iiAcountManager::Native`에 있다. HTTP 200 오류 및 부분 데이터는 사용 불가능한 결정입니다: 앱 잠금 해제 또는 저장된 라이선스 삭제를 할 수 없습니다. 거짓 결과는 null productId 를 가질 수 있으며, 참 결과는 이 제품과 일치해야 합니다. 활성화 및 업데이트 권한은 업데이트된 SDK 를 사용합니다. 새 제품 빌드를 배포하기 전에 서버 GraphQL 를 배포해야 합니다.
+`validateLicense(input: LicenseValidationInput!)` 는 `data.validateLicense` 를 반환합니다. 클라이언트는 `valid`, `code`, `productId`, `checkedAt`, 및 `expiresAt` 를 요청하며 공유 GraphQL 엔벨로프 파서는 `iiAccountManager::Native`에 있다. HTTP 200 오류 및 부분 데이터는 사용 불가능한 결정입니다: 앱 잠금 해제 또는 저장된 라이선스 삭제를 할 수 없습니다. 거짓 결과는 null productId 를 가질 수 있으며, 참 결과는 이 제품과 일치해야 합니다. 활성화 및 업데이트 권한은 업데이트된 SDK 를 사용합니다. 새 제품 빌드를 배포하기 전에 서버 GraphQL 를 배포해야 합니다.
 
-빌드에서는 `iiAcountManager::Native`의 Qt 없는 GraphQL 파서와 플랫폼 자격 증명 저장소를 선택한다. 제품 라이선스·업데이트 테스트는 앱과 같은 Native 대상에 연결한다.
+빌드에서는 `iiAccountManager::Native`의 Qt 없는 GraphQL 파서와 플랫폼 자격 증명 저장소를 선택한다. 제품 라이선스·업데이트 테스트는 앱과 같은 Native 대상에 연결한다.
 
 
 The native engine now also owns collaboration protocols, discovery, preferences,

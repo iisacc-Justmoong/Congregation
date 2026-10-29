@@ -1,0 +1,1064 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:49223109d0b9ad68cf14eb96d3dfab1be34e1d01a89486a4b4612688d2a98e60",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/README.md",
+    "sha256": "b148c40afd337870747a0344eb965f942edfd40bd8071e58de6a03a996fd0f76",
+    "bytes": 4165,
+    "line_count": 52,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Congregation Documentation",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation Documentation\n",
+      "level": 1,
+      "title": "Congregation Documentation"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "html",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "<!-- workspace-docs:document-map:start -->\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "heading",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "## Human and agent document map\n",
+      "level": 2,
+      "title": "Human and agent document map"
+    },
+    {
+      "id": "b000005",
+      "kind": "blank",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "paragraph",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "Markdown is the maintained human source. Agent JSON is a structured, source-traceable projection.\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "blank",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "table",
+      "start_line": 8,
+      "end_line": 51,
+      "raw": "| Document | Agent JSON |\n| --- | --- |\n| [`AGENT.md`](../AGENT.md) | [JSON](entrypoints/AGENT.agent.json) |\n| [`AGENTS.md`](../AGENTS.md) | [JSON](entrypoints/AGENTS.agent.json) |\n| [`CONTRIBUTING.md`](../CONTRIBUTING.md) | [JSON](entrypoints/CONTRIBUTING.agent.json) |\n| [`Changelog.md`](../Changelog.md) | [JSON](entrypoints/Changelog.agent.json) |\n| [`README.md`](../README.md) | [JSON](entrypoints/README.agent.json) |\n| [`design-qa.md`](../design-qa.md) | [JSON](entrypoints/design-qa.agent.json) |\n| [`docs/APP_ENGINE.md`](APP_ENGINE.md) | [JSON](APP_ENGINE.agent.json) |\n| [`docs/APP_ICON.md`](APP_ICON.md) | [JSON](APP_ICON.agent.json) |\n| [`docs/BUILD.md`](BUILD.md) | [JSON](BUILD.agent.json) |\n| [`docs/CONTRIBUTING.md`](CONTRIBUTING.md) | [JSON](CONTRIBUTING.agent.json) |\n| [`docs/Changelog.md`](Changelog.md) | [JSON](Changelog.agent.json) |\n| [`docs/DocumentationPaths.md`](DocumentationPaths.md) | [JSON](DocumentationPaths.agent.json) |\n| [`docs/FIGMA_APPLICATION_WINDOW.md`](FIGMA_APPLICATION_WINDOW.md) | [JSON](FIGMA_APPLICATION_WINDOW.agent.json) |\n| [`docs/FIGMA_UI_VERIFICATION.md`](FIGMA_UI_VERIFICATION.md) | [JSON](FIGMA_UI_VERIFICATION.agent.json) |\n| [`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md) | [JSON](FILE_PROVIDER.agent.json) |\n| [`docs/IPADOS.md`](IPADOS.md) | [JSON](IPADOS.agent.json) |\n| [`docs/MACOS_INSTALLER.md`](MACOS_INSTALLER.md) | [JSON](MACOS_INSTALLER.agent.json) |\n| [`docs/NATIVE_RUNTIME.md`](NATIVE_RUNTIME.md) | [JSON](NATIVE_RUNTIME.agent.json) |\n| [`docs/NATIVE_UI.md`](NATIVE_UI.md) | [JSON](NATIVE_UI.agent.json) |\n| [`docs/NATIVE_VERIFICATION.md`](NATIVE_VERIFICATION.md) | [JSON](NATIVE_VERIFICATION.agent.json) |\n| [`docs/NEW_CANVAS_WINDOW.md`](NEW_CANVAS_WINDOW.md) | [JSON](NEW_CANVAS_WINDOW.agent.json) |\n| [`docs/QT_INDEPENDENCE_AUDIT.md`](QT_INDEPENDENCE_AUDIT.md) | [JSON](QT_INDEPENDENCE_AUDIT.agent.json) |\n| [`docs/SDK_CAPABILITY_AUDIT_2026-10-26.md`](SDK_CAPABILITY_AUDIT_2026-10-26.md) | [JSON](SDK_CAPABILITY_AUDIT_2026-10-26.agent.json) |\n| [`docs/SDK_CAPABILITY_REVIEW_2026-10-27.md`](SDK_CAPABILITY_REVIEW_2026-10-27.md) | [JSON](SDK_CAPABILITY_REVIEW_2026-10-27.agent.json) |\n| [`docs/SDK_UPGRADE_PROGRESS.md`](SDK_UPGRADE_PROGRESS.md) | [JSON](SDK_UPGRADE_PROGRESS.agent.json) |\n| [`docs/SHARED_CANVAS.md`](SHARED_CANVAS.md) | [JSON](SHARED_CANVAS.agent.json) |\n| [`docs/SingleAppBuild.md`](SingleAppBuild.md) | [JSON](SingleAppBuild.agent.json) |\n| [`docs/UI_STYLE_TOKENS.md`](UI_STYLE_TOKENS.md) | [JSON](UI_STYLE_TOKENS.agent.json) |\n| [`docs/VINCENT_UI.md`](VINCENT_UI.md) | [JSON](VINCENT_UI.agent.json) |\n| [`docs/WEB_ACCOUNT.md`](WEB_ACCOUNT.md) | [JSON](WEB_ACCOUNT.agent.json) |\n| [`docs/WindowsValidation.md`](WindowsValidation.md) | [JSON](WindowsValidation.agent.json) |\n| [`docs/app_structure.md`](app_structure.md) | [JSON](app_structure.agent.json) |\n| [`docs/design-qa.md`](design-qa.md) | [JSON](design-qa.agent.json) |\n| [`docs/documentation-structure.md`](documentation-structure.md) | [JSON](documentation-structure.agent.json) |\n| [`docs/legacy/BUILD_QT.md`](legacy/BUILD_QT.md) | [JSON](legacy/BUILD_QT.agent.json) |\n| [`docs/legacy/app_structure.md`](legacy/app_structure.md) | [JSON](legacy/app_structure.agent.json) |\n| [`docs/legacy/automation/AUTOMATION.md`](legacy/automation/AUTOMATION.md) | [JSON](legacy/automation/AUTOMATION.agent.json) |\n| [`docs/marketing/PLATFORM_COPY.md`](marketing/PLATFORM_COPY.md) | [JSON](marketing/PLATFORM_COPY.agent.json) |\n| [`example/README.md`](../example/README.md) | [JSON](mirrors/example/README.agent.json) |\n| [`resources/AppStore/6.0/README.md`](../resources/AppStore/6.0/README.md) | [JSON](mirrors/resources/AppStore/6.0/README.agent.json) |\n| [`resources/figma/README.md`](../resources/figma/README.md) | [JSON](mirrors/resources/figma/README.agent.json) |\n| [`resources/icons/README.md`](../resources/icons/README.md) | [JSON](mirrors/resources/icons/README.agent.json) |\n",
+      "columns": [
+        "Document",
+        "Agent JSON"
+      ],
+      "rows": [
+        [
+          "[`AGENT.md`](../AGENT.md)",
+          "[JSON](entrypoints/AGENT.agent.json)"
+        ],
+        [
+          "[`AGENTS.md`](../AGENTS.md)",
+          "[JSON](entrypoints/AGENTS.agent.json)"
+        ],
+        [
+          "[`CONTRIBUTING.md`](../CONTRIBUTING.md)",
+          "[JSON](entrypoints/CONTRIBUTING.agent.json)"
+        ],
+        [
+          "[`Changelog.md`](../Changelog.md)",
+          "[JSON](entrypoints/Changelog.agent.json)"
+        ],
+        [
+          "[`README.md`](../README.md)",
+          "[JSON](entrypoints/README.agent.json)"
+        ],
+        [
+          "[`design-qa.md`](../design-qa.md)",
+          "[JSON](entrypoints/design-qa.agent.json)"
+        ],
+        [
+          "[`docs/APP_ENGINE.md`](APP_ENGINE.md)",
+          "[JSON](APP_ENGINE.agent.json)"
+        ],
+        [
+          "[`docs/APP_ICON.md`](APP_ICON.md)",
+          "[JSON](APP_ICON.agent.json)"
+        ],
+        [
+          "[`docs/BUILD.md`](BUILD.md)",
+          "[JSON](BUILD.agent.json)"
+        ],
+        [
+          "[`docs/CONTRIBUTING.md`](CONTRIBUTING.md)",
+          "[JSON](CONTRIBUTING.agent.json)"
+        ],
+        [
+          "[`docs/Changelog.md`](Changelog.md)",
+          "[JSON](Changelog.agent.json)"
+        ],
+        [
+          "[`docs/DocumentationPaths.md`](DocumentationPaths.md)",
+          "[JSON](DocumentationPaths.agent.json)"
+        ],
+        [
+          "[`docs/FIGMA_APPLICATION_WINDOW.md`](FIGMA_APPLICATION_WINDOW.md)",
+          "[JSON](FIGMA_APPLICATION_WINDOW.agent.json)"
+        ],
+        [
+          "[`docs/FIGMA_UI_VERIFICATION.md`](FIGMA_UI_VERIFICATION.md)",
+          "[JSON](FIGMA_UI_VERIFICATION.agent.json)"
+        ],
+        [
+          "[`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md)",
+          "[JSON](FILE_PROVIDER.agent.json)"
+        ],
+        [
+          "[`docs/IPADOS.md`](IPADOS.md)",
+          "[JSON](IPADOS.agent.json)"
+        ],
+        [
+          "[`docs/MACOS_INSTALLER.md`](MACOS_INSTALLER.md)",
+          "[JSON](MACOS_INSTALLER.agent.json)"
+        ],
+        [
+          "[`docs/NATIVE_RUNTIME.md`](NATIVE_RUNTIME.md)",
+          "[JSON](NATIVE_RUNTIME.agent.json)"
+        ],
+        [
+          "[`docs/NATIVE_UI.md`](NATIVE_UI.md)",
+          "[JSON](NATIVE_UI.agent.json)"
+        ],
+        [
+          "[`docs/NATIVE_VERIFICATION.md`](NATIVE_VERIFICATION.md)",
+          "[JSON](NATIVE_VERIFICATION.agent.json)"
+        ],
+        [
+          "[`docs/NEW_CANVAS_WINDOW.md`](NEW_CANVAS_WINDOW.md)",
+          "[JSON](NEW_CANVAS_WINDOW.agent.json)"
+        ],
+        [
+          "[`docs/QT_INDEPENDENCE_AUDIT.md`](QT_INDEPENDENCE_AUDIT.md)",
+          "[JSON](QT_INDEPENDENCE_AUDIT.agent.json)"
+        ],
+        [
+          "[`docs/SDK_CAPABILITY_AUDIT_2026-10-26.md`](SDK_CAPABILITY_AUDIT_2026-10-26.md)",
+          "[JSON](SDK_CAPABILITY_AUDIT_2026-10-26.agent.json)"
+        ],
+        [
+          "[`docs/SDK_CAPABILITY_REVIEW_2026-10-27.md`](SDK_CAPABILITY_REVIEW_2026-10-27.md)",
+          "[JSON](SDK_CAPABILITY_REVIEW_2026-10-27.agent.json)"
+        ],
+        [
+          "[`docs/SDK_UPGRADE_PROGRESS.md`](SDK_UPGRADE_PROGRESS.md)",
+          "[JSON](SDK_UPGRADE_PROGRESS.agent.json)"
+        ],
+        [
+          "[`docs/SHARED_CANVAS.md`](SHARED_CANVAS.md)",
+          "[JSON](SHARED_CANVAS.agent.json)"
+        ],
+        [
+          "[`docs/SingleAppBuild.md`](SingleAppBuild.md)",
+          "[JSON](SingleAppBuild.agent.json)"
+        ],
+        [
+          "[`docs/UI_STYLE_TOKENS.md`](UI_STYLE_TOKENS.md)",
+          "[JSON](UI_STYLE_TOKENS.agent.json)"
+        ],
+        [
+          "[`docs/VINCENT_UI.md`](VINCENT_UI.md)",
+          "[JSON](VINCENT_UI.agent.json)"
+        ],
+        [
+          "[`docs/WEB_ACCOUNT.md`](WEB_ACCOUNT.md)",
+          "[JSON](WEB_ACCOUNT.agent.json)"
+        ],
+        [
+          "[`docs/WindowsValidation.md`](WindowsValidation.md)",
+          "[JSON](WindowsValidation.agent.json)"
+        ],
+        [
+          "[`docs/app_structure.md`](app_structure.md)",
+          "[JSON](app_structure.agent.json)"
+        ],
+        [
+          "[`docs/design-qa.md`](design-qa.md)",
+          "[JSON](design-qa.agent.json)"
+        ],
+        [
+          "[`docs/documentation-structure.md`](documentation-structure.md)",
+          "[JSON](documentation-structure.agent.json)"
+        ],
+        [
+          "[`docs/legacy/BUILD_QT.md`](legacy/BUILD_QT.md)",
+          "[JSON](legacy/BUILD_QT.agent.json)"
+        ],
+        [
+          "[`docs/legacy/app_structure.md`](legacy/app_structure.md)",
+          "[JSON](legacy/app_structure.agent.json)"
+        ],
+        [
+          "[`docs/legacy/automation/AUTOMATION.md`](legacy/automation/AUTOMATION.md)",
+          "[JSON](legacy/automation/AUTOMATION.agent.json)"
+        ],
+        [
+          "[`docs/marketing/PLATFORM_COPY.md`](marketing/PLATFORM_COPY.md)",
+          "[JSON](marketing/PLATFORM_COPY.agent.json)"
+        ],
+        [
+          "[`example/README.md`](../example/README.md)",
+          "[JSON](mirrors/example/README.agent.json)"
+        ],
+        [
+          "[`resources/AppStore/6.0/README.md`](../resources/AppStore/6.0/README.md)",
+          "[JSON](mirrors/resources/AppStore/6.0/README.agent.json)"
+        ],
+        [
+          "[`resources/figma/README.md`](../resources/figma/README.md)",
+          "[JSON](mirrors/resources/figma/README.agent.json)"
+        ],
+        [
+          "[`resources/icons/README.md`](../resources/icons/README.md)",
+          "[JSON](mirrors/resources/icons/README.agent.json)"
+        ]
+      ]
+    },
+    {
+      "id": "b000009",
+      "kind": "html",
+      "start_line": 52,
+      "end_line": 52,
+      "raw": "<!-- workspace-docs:document-map:end -->\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation Documentation",
+      "anchor": "congregation-documentation",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000004",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Human and agent document map",
+      "anchor": "human-and-agent-document-map",
+      "start_line": 4
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000008",
+        "label": "`AGENT.md`",
+        "target": "../AGENT.md",
+        "kind": "relative",
+        "line": 10
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/AGENT.agent.json",
+        "kind": "relative",
+        "line": 10
+      },
+      {
+        "block_id": "b000008",
+        "label": "`AGENTS.md`",
+        "target": "../AGENTS.md",
+        "kind": "relative",
+        "line": 11
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/AGENTS.agent.json",
+        "kind": "relative",
+        "line": 11
+      },
+      {
+        "block_id": "b000008",
+        "label": "`CONTRIBUTING.md`",
+        "target": "../CONTRIBUTING.md",
+        "kind": "relative",
+        "line": 12
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/CONTRIBUTING.agent.json",
+        "kind": "relative",
+        "line": 12
+      },
+      {
+        "block_id": "b000008",
+        "label": "`Changelog.md`",
+        "target": "../Changelog.md",
+        "kind": "relative",
+        "line": 13
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/Changelog.agent.json",
+        "kind": "relative",
+        "line": 13
+      },
+      {
+        "block_id": "b000008",
+        "label": "`README.md`",
+        "target": "../README.md",
+        "kind": "relative",
+        "line": 14
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/README.agent.json",
+        "kind": "relative",
+        "line": 14
+      },
+      {
+        "block_id": "b000008",
+        "label": "`design-qa.md`",
+        "target": "../design-qa.md",
+        "kind": "relative",
+        "line": 15
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "entrypoints/design-qa.agent.json",
+        "kind": "relative",
+        "line": 15
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/APP_ENGINE.md`",
+        "target": "APP_ENGINE.md",
+        "kind": "relative",
+        "line": 16
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "APP_ENGINE.agent.json",
+        "kind": "relative",
+        "line": 16
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/APP_ICON.md`",
+        "target": "APP_ICON.md",
+        "kind": "relative",
+        "line": 17
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "APP_ICON.agent.json",
+        "kind": "relative",
+        "line": 17
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/BUILD.md`",
+        "target": "BUILD.md",
+        "kind": "relative",
+        "line": 18
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "BUILD.agent.json",
+        "kind": "relative",
+        "line": 18
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/CONTRIBUTING.md`",
+        "target": "CONTRIBUTING.md",
+        "kind": "relative",
+        "line": 19
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "CONTRIBUTING.agent.json",
+        "kind": "relative",
+        "line": 19
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/Changelog.md`",
+        "target": "Changelog.md",
+        "kind": "relative",
+        "line": 20
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "Changelog.agent.json",
+        "kind": "relative",
+        "line": 20
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/DocumentationPaths.md`",
+        "target": "DocumentationPaths.md",
+        "kind": "relative",
+        "line": 21
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "DocumentationPaths.agent.json",
+        "kind": "relative",
+        "line": 21
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/FIGMA_APPLICATION_WINDOW.md`",
+        "target": "FIGMA_APPLICATION_WINDOW.md",
+        "kind": "relative",
+        "line": 22
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "FIGMA_APPLICATION_WINDOW.agent.json",
+        "kind": "relative",
+        "line": 22
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/FIGMA_UI_VERIFICATION.md`",
+        "target": "FIGMA_UI_VERIFICATION.md",
+        "kind": "relative",
+        "line": 23
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "FIGMA_UI_VERIFICATION.agent.json",
+        "kind": "relative",
+        "line": 23
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/FILE_PROVIDER.md`",
+        "target": "FILE_PROVIDER.md",
+        "kind": "relative",
+        "line": 24
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "FILE_PROVIDER.agent.json",
+        "kind": "relative",
+        "line": 24
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/IPADOS.md`",
+        "target": "IPADOS.md",
+        "kind": "relative",
+        "line": 25
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "IPADOS.agent.json",
+        "kind": "relative",
+        "line": 25
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/MACOS_INSTALLER.md`",
+        "target": "MACOS_INSTALLER.md",
+        "kind": "relative",
+        "line": 26
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "MACOS_INSTALLER.agent.json",
+        "kind": "relative",
+        "line": 26
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/NATIVE_RUNTIME.md`",
+        "target": "NATIVE_RUNTIME.md",
+        "kind": "relative",
+        "line": 27
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "NATIVE_RUNTIME.agent.json",
+        "kind": "relative",
+        "line": 27
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/NATIVE_UI.md`",
+        "target": "NATIVE_UI.md",
+        "kind": "relative",
+        "line": 28
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "NATIVE_UI.agent.json",
+        "kind": "relative",
+        "line": 28
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/NATIVE_VERIFICATION.md`",
+        "target": "NATIVE_VERIFICATION.md",
+        "kind": "relative",
+        "line": 29
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "NATIVE_VERIFICATION.agent.json",
+        "kind": "relative",
+        "line": 29
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/NEW_CANVAS_WINDOW.md`",
+        "target": "NEW_CANVAS_WINDOW.md",
+        "kind": "relative",
+        "line": 30
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "NEW_CANVAS_WINDOW.agent.json",
+        "kind": "relative",
+        "line": 30
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/QT_INDEPENDENCE_AUDIT.md`",
+        "target": "QT_INDEPENDENCE_AUDIT.md",
+        "kind": "relative",
+        "line": 31
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "QT_INDEPENDENCE_AUDIT.agent.json",
+        "kind": "relative",
+        "line": 31
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/SDK_CAPABILITY_AUDIT_2026-10-26.md`",
+        "target": "SDK_CAPABILITY_AUDIT_2026-10-26.md",
+        "kind": "relative",
+        "line": 32
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "SDK_CAPABILITY_AUDIT_2026-10-26.agent.json",
+        "kind": "relative",
+        "line": 32
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/SDK_CAPABILITY_REVIEW_2026-10-27.md`",
+        "target": "SDK_CAPABILITY_REVIEW_2026-10-27.md",
+        "kind": "relative",
+        "line": 33
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "SDK_CAPABILITY_REVIEW_2026-10-27.agent.json",
+        "kind": "relative",
+        "line": 33
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/SDK_UPGRADE_PROGRESS.md`",
+        "target": "SDK_UPGRADE_PROGRESS.md",
+        "kind": "relative",
+        "line": 34
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "SDK_UPGRADE_PROGRESS.agent.json",
+        "kind": "relative",
+        "line": 34
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/SHARED_CANVAS.md`",
+        "target": "SHARED_CANVAS.md",
+        "kind": "relative",
+        "line": 35
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "SHARED_CANVAS.agent.json",
+        "kind": "relative",
+        "line": 35
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/SingleAppBuild.md`",
+        "target": "SingleAppBuild.md",
+        "kind": "relative",
+        "line": 36
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "SingleAppBuild.agent.json",
+        "kind": "relative",
+        "line": 36
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/UI_STYLE_TOKENS.md`",
+        "target": "UI_STYLE_TOKENS.md",
+        "kind": "relative",
+        "line": 37
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "UI_STYLE_TOKENS.agent.json",
+        "kind": "relative",
+        "line": 37
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/VINCENT_UI.md`",
+        "target": "VINCENT_UI.md",
+        "kind": "relative",
+        "line": 38
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "VINCENT_UI.agent.json",
+        "kind": "relative",
+        "line": 38
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/WEB_ACCOUNT.md`",
+        "target": "WEB_ACCOUNT.md",
+        "kind": "relative",
+        "line": 39
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "WEB_ACCOUNT.agent.json",
+        "kind": "relative",
+        "line": 39
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/WindowsValidation.md`",
+        "target": "WindowsValidation.md",
+        "kind": "relative",
+        "line": 40
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "WindowsValidation.agent.json",
+        "kind": "relative",
+        "line": 40
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/app_structure.md`",
+        "target": "app_structure.md",
+        "kind": "relative",
+        "line": 41
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "app_structure.agent.json",
+        "kind": "relative",
+        "line": 41
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/design-qa.md`",
+        "target": "design-qa.md",
+        "kind": "relative",
+        "line": 42
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "design-qa.agent.json",
+        "kind": "relative",
+        "line": 42
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/documentation-structure.md`",
+        "target": "documentation-structure.md",
+        "kind": "relative",
+        "line": 43
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "documentation-structure.agent.json",
+        "kind": "relative",
+        "line": 43
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/legacy/BUILD_QT.md`",
+        "target": "legacy/BUILD_QT.md",
+        "kind": "relative",
+        "line": 44
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "legacy/BUILD_QT.agent.json",
+        "kind": "relative",
+        "line": 44
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/legacy/app_structure.md`",
+        "target": "legacy/app_structure.md",
+        "kind": "relative",
+        "line": 45
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "legacy/app_structure.agent.json",
+        "kind": "relative",
+        "line": 45
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/legacy/automation/AUTOMATION.md`",
+        "target": "legacy/automation/AUTOMATION.md",
+        "kind": "relative",
+        "line": 46
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "legacy/automation/AUTOMATION.agent.json",
+        "kind": "relative",
+        "line": 46
+      },
+      {
+        "block_id": "b000008",
+        "label": "`docs/marketing/PLATFORM_COPY.md`",
+        "target": "marketing/PLATFORM_COPY.md",
+        "kind": "relative",
+        "line": 47
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "marketing/PLATFORM_COPY.agent.json",
+        "kind": "relative",
+        "line": 47
+      },
+      {
+        "block_id": "b000008",
+        "label": "`example/README.md`",
+        "target": "../example/README.md",
+        "kind": "relative",
+        "line": 48
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "mirrors/example/README.agent.json",
+        "kind": "relative",
+        "line": 48
+      },
+      {
+        "block_id": "b000008",
+        "label": "`resources/AppStore/6.0/README.md`",
+        "target": "../resources/AppStore/6.0/README.md",
+        "kind": "relative",
+        "line": 49
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "mirrors/resources/AppStore/6.0/README.agent.json",
+        "kind": "relative",
+        "line": 49
+      },
+      {
+        "block_id": "b000008",
+        "label": "`resources/figma/README.md`",
+        "target": "../resources/figma/README.md",
+        "kind": "relative",
+        "line": 50
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "mirrors/resources/figma/README.agent.json",
+        "kind": "relative",
+        "line": 50
+      },
+      {
+        "block_id": "b000008",
+        "label": "`resources/icons/README.md`",
+        "target": "../resources/icons/README.md",
+        "kind": "relative",
+        "line": 51
+      },
+      {
+        "block_id": "b000008",
+        "label": "JSON",
+        "target": "mirrors/resources/icons/README.agent.json",
+        "kind": "relative",
+        "line": 51
+      }
+    ],
+    "tables": [
+      {
+        "block_id": "b000008",
+        "columns": [
+          "Document",
+          "Agent JSON"
+        ],
+        "rows": [
+          [
+            "[`AGENT.md`](../AGENT.md)",
+            "[JSON](entrypoints/AGENT.agent.json)"
+          ],
+          [
+            "[`AGENTS.md`](../AGENTS.md)",
+            "[JSON](entrypoints/AGENTS.agent.json)"
+          ],
+          [
+            "[`CONTRIBUTING.md`](../CONTRIBUTING.md)",
+            "[JSON](entrypoints/CONTRIBUTING.agent.json)"
+          ],
+          [
+            "[`Changelog.md`](../Changelog.md)",
+            "[JSON](entrypoints/Changelog.agent.json)"
+          ],
+          [
+            "[`README.md`](../README.md)",
+            "[JSON](entrypoints/README.agent.json)"
+          ],
+          [
+            "[`design-qa.md`](../design-qa.md)",
+            "[JSON](entrypoints/design-qa.agent.json)"
+          ],
+          [
+            "[`docs/APP_ENGINE.md`](APP_ENGINE.md)",
+            "[JSON](APP_ENGINE.agent.json)"
+          ],
+          [
+            "[`docs/APP_ICON.md`](APP_ICON.md)",
+            "[JSON](APP_ICON.agent.json)"
+          ],
+          [
+            "[`docs/BUILD.md`](BUILD.md)",
+            "[JSON](BUILD.agent.json)"
+          ],
+          [
+            "[`docs/CONTRIBUTING.md`](CONTRIBUTING.md)",
+            "[JSON](CONTRIBUTING.agent.json)"
+          ],
+          [
+            "[`docs/Changelog.md`](Changelog.md)",
+            "[JSON](Changelog.agent.json)"
+          ],
+          [
+            "[`docs/DocumentationPaths.md`](DocumentationPaths.md)",
+            "[JSON](DocumentationPaths.agent.json)"
+          ],
+          [
+            "[`docs/FIGMA_APPLICATION_WINDOW.md`](FIGMA_APPLICATION_WINDOW.md)",
+            "[JSON](FIGMA_APPLICATION_WINDOW.agent.json)"
+          ],
+          [
+            "[`docs/FIGMA_UI_VERIFICATION.md`](FIGMA_UI_VERIFICATION.md)",
+            "[JSON](FIGMA_UI_VERIFICATION.agent.json)"
+          ],
+          [
+            "[`docs/FILE_PROVIDER.md`](FILE_PROVIDER.md)",
+            "[JSON](FILE_PROVIDER.agent.json)"
+          ],
+          [
+            "[`docs/IPADOS.md`](IPADOS.md)",
+            "[JSON](IPADOS.agent.json)"
+          ],
+          [
+            "[`docs/MACOS_INSTALLER.md`](MACOS_INSTALLER.md)",
+            "[JSON](MACOS_INSTALLER.agent.json)"
+          ],
+          [
+            "[`docs/NATIVE_RUNTIME.md`](NATIVE_RUNTIME.md)",
+            "[JSON](NATIVE_RUNTIME.agent.json)"
+          ],
+          [
+            "[`docs/NATIVE_UI.md`](NATIVE_UI.md)",
+            "[JSON](NATIVE_UI.agent.json)"
+          ],
+          [
+            "[`docs/NATIVE_VERIFICATION.md`](NATIVE_VERIFICATION.md)",
+            "[JSON](NATIVE_VERIFICATION.agent.json)"
+          ],
+          [
+            "[`docs/NEW_CANVAS_WINDOW.md`](NEW_CANVAS_WINDOW.md)",
+            "[JSON](NEW_CANVAS_WINDOW.agent.json)"
+          ],
+          [
+            "[`docs/QT_INDEPENDENCE_AUDIT.md`](QT_INDEPENDENCE_AUDIT.md)",
+            "[JSON](QT_INDEPENDENCE_AUDIT.agent.json)"
+          ],
+          [
+            "[`docs/SDK_CAPABILITY_AUDIT_2026-10-26.md`](SDK_CAPABILITY_AUDIT_2026-10-26.md)",
+            "[JSON](SDK_CAPABILITY_AUDIT_2026-10-26.agent.json)"
+          ],
+          [
+            "[`docs/SDK_CAPABILITY_REVIEW_2026-10-27.md`](SDK_CAPABILITY_REVIEW_2026-10-27.md)",
+            "[JSON](SDK_CAPABILITY_REVIEW_2026-10-27.agent.json)"
+          ],
+          [
+            "[`docs/SDK_UPGRADE_PROGRESS.md`](SDK_UPGRADE_PROGRESS.md)",
+            "[JSON](SDK_UPGRADE_PROGRESS.agent.json)"
+          ],
+          [
+            "[`docs/SHARED_CANVAS.md`](SHARED_CANVAS.md)",
+            "[JSON](SHARED_CANVAS.agent.json)"
+          ],
+          [
+            "[`docs/SingleAppBuild.md`](SingleAppBuild.md)",
+            "[JSON](SingleAppBuild.agent.json)"
+          ],
+          [
+            "[`docs/UI_STYLE_TOKENS.md`](UI_STYLE_TOKENS.md)",
+            "[JSON](UI_STYLE_TOKENS.agent.json)"
+          ],
+          [
+            "[`docs/VINCENT_UI.md`](VINCENT_UI.md)",
+            "[JSON](VINCENT_UI.agent.json)"
+          ],
+          [
+            "[`docs/WEB_ACCOUNT.md`](WEB_ACCOUNT.md)",
+            "[JSON](WEB_ACCOUNT.agent.json)"
+          ],
+          [
+            "[`docs/WindowsValidation.md`](WindowsValidation.md)",
+            "[JSON](WindowsValidation.agent.json)"
+          ],
+          [
+            "[`docs/app_structure.md`](app_structure.md)",
+            "[JSON](app_structure.agent.json)"
+          ],
+          [
+            "[`docs/design-qa.md`](design-qa.md)",
+            "[JSON](design-qa.agent.json)"
+          ],
+          [
+            "[`docs/documentation-structure.md`](documentation-structure.md)",
+            "[JSON](documentation-structure.agent.json)"
+          ],
+          [
+            "[`docs/legacy/BUILD_QT.md`](legacy/BUILD_QT.md)",
+            "[JSON](legacy/BUILD_QT.agent.json)"
+          ],
+          [
+            "[`docs/legacy/app_structure.md`](legacy/app_structure.md)",
+            "[JSON](legacy/app_structure.agent.json)"
+          ],
+          [
+            "[`docs/legacy/automation/AUTOMATION.md`](legacy/automation/AUTOMATION.md)",
+            "[JSON](legacy/automation/AUTOMATION.agent.json)"
+          ],
+          [
+            "[`docs/marketing/PLATFORM_COPY.md`](marketing/PLATFORM_COPY.md)",
+            "[JSON](marketing/PLATFORM_COPY.agent.json)"
+          ],
+          [
+            "[`example/README.md`](../example/README.md)",
+            "[JSON](mirrors/example/README.agent.json)"
+          ],
+          [
+            "[`resources/AppStore/6.0/README.md`](../resources/AppStore/6.0/README.md)",
+            "[JSON](mirrors/resources/AppStore/6.0/README.agent.json)"
+          ],
+          [
+            "[`resources/figma/README.md`](../resources/figma/README.md)",
+            "[JSON](mirrors/resources/figma/README.agent.json)"
+          ],
+          [
+            "[`resources/icons/README.md`](../resources/icons/README.md)",
+            "[JSON](mirrors/resources/icons/README.agent.json)"
+          ]
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

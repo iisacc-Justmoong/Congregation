@@ -97,6 +97,14 @@ void CanvasView::set_frame(int value)
     value = std::clamp(value, 0, std::max(0, int(artwork_.document().timeline.frameCount) - 1));
     if (value == frame_)
         return;
+    // A content gesture belongs to the frame where it began. A frame switch
+    // cancels it before another frame can be displayed or receive the release.
+    if (artwork_.stroke_active() || (drag_ && !panning_ && !zooming_))
+    {
+        artwork_.cancel();
+        drag_ = panning_ = zooming_ = selecting_ = false;
+        cache_.clear();
+    }
     frame_ = value;
     render();
 }
@@ -235,7 +243,7 @@ bool CanvasView::hit(Point point)
         if (!layerProperties(layer).visible)
             continue;
         auto rendered = renderFrameLayerTiles(
-            document, 0, i - 1,
+            document, frame_, i - 1,
             {{{{int(std::floor(point.x)), int(std::floor(point.y))}, {1, 1}}, {1, 1}}});
         if (rendered.ok() && !rendered.tiles.empty() && !rendered.tiles[0].pixels.pixels.empty() &&
             (rendered.tiles[0].pixels.pixels[0] >> 24) > 8)
@@ -313,7 +321,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         if (tool == "eyedropper")
         {
             auto pixel = renderFrameRegion(
-                artwork_.document(), 0,
+                artwork_.document(), frame_,
                 {{int(std::floor(down_.x)), int(std::floor(down_.y))}, {1, 1}}, {1, 1});
             drag_ = false;
             if (pixel.ok() && !pixel.pixels.pixels.empty())
@@ -341,7 +349,8 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
             brush.eraser = tool == "eraser" || event.device == ii::gui::PointerDevice::eraser;
             const auto ok = artwork_.begin(
                 {down_.x, down_.y},
-                event.device == ii::gui::PointerDevice::mouse ? 1 : event.pressure, brush);
+                event.device == ii::gui::PointerDevice::mouse ? 1 : event.pressure, brush,
+                static_cast<FrameIndex>(frame_));
             if (!ok && status)
                 status(artwork_.error());
             refresh();
@@ -380,7 +389,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         if (tool == "fill")
         {
             drag_ = false;
-            if (!artwork_.fill_at(down_, color) && status)
+            if (!artwork_.fill_at(down_, color, static_cast<FrameIndex>(frame_)) && status)
                 status(artwork_.error());
             drag_ = false;
             return true;

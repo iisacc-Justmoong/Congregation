@@ -70,3 +70,23 @@ Windows·Linux는 기존 합의대로 소스 구현 범위이다. macOS 실행�
 ## Color·Metric 후속 전환
 
 같은 날 [Color·Metric 공통 스타일 프로필](UI_STYLE_TOKENS.md)로 전환한 최종 빌드의 제품 전체 검사 **16/16**이 통과했다(279.31초). 메인 창·환경설정·새 캔버스·직접 그리는 패널이 동일한 값 소스를 공유한다. 타임라인 손잡이/세로선의 독립 픽셀 검사를 추가했으며 기존 배치·색상·조작 기준도 통과했다. 결과는 `build/ui-token-verification.json`과 `build/ui-token-tests.xml`에 기록했다.
+
+## 2026-10-26 좌측 사이드바 제거
+
+224px 에셋 사이드바를 현재 창의 구성과 활성 빌드 대상에서 제외했다. 왼쪽에는 기존 54px 세로 도구 막대만 남기며, 제거한 폭은 중앙 캔버스와 하단 타임라인에 배분한다. 1999×1080 기준 캔버스는 x=82px·너비 1565px, 중앙 열과 타임라인은 x=54px·너비 1593px이다. 우측 상세 패널 352px와 하단 타임라인 높이 296px는 유지한다.
+
+먼저 변경된 창 계약 검사가 기존 화면에서 `The removed asset sidebar is still mounted`로 실패하는 것을 확인했다. 구현 후 Metal·Vulkan의 창 검사 2개와 나머지 회귀 검사 20개가 모두 통과했다. 두 창 검사의 합계는 1.66초, 나머지 20개의 합계는 520.74초이다. 최소 창 크기 1200×720에서도 세로 도구 막대의 위치, 도구 선택, 빈 영역 없는 캔버스·타임라인 배분을 검사했다. 기존 배경·경계선 색상과 파라미터·타임라인·레이어 조작 검사도 통과했다.
+
+기록은 `build/toolbar-only/macos-window-test.log`, `macos-regression-test.log`, `macos-regression-tests.xml`, `macos-verification.json`이다. 실제 화면과 좌표는 `build/toolbar-only/macos/metal/` 및 `macos/vulkan/`의 `editor.png`·`layout.json`이다. Metal 캡처를 직접 확인했다. 이 결과는 이전 Figma 원본에 사이드바가 있었다는 사실과 별개로, 후속 변경 지시를 반영한 네이티브 앱의 검증이다.
+
+같은 소스로 iPadOS 후보를 서명·빌드하여 연결된 iPad Pro에 설치했다. 기기의 격리된 편집 회귀 검사는 Apple A12Z GPU·Metal에서 통과했으며 `qt=false`, 2732×1998 캡처를 기록했다. 해당 캡처에서도 좌측에는 세로 도구 막대만 남아 있는 것을 직접 확인했다. 기록은 `build/toolbar-only/device/metal/evidence/success.json`과 `metal.png`이다. 테스트 후 일반 실행으로 돌려놓았으며 `device/normal/evidence/startup.json`은 `mode=normal`, `visible=true`, `licensed=false`이다. 일반 실행은 기존 계정 인증 화면이며 격리된 편집 화면 검사와 구분한다.
+
+플랫폼 전환 시 macOS 후보는 `build/ipados/Congregation-macOS-307412595e55.zip`으로 보존했다. 현재 canonical 앱 `build/Congregation.app`은 iPadOS 후보이며 버전 1.0.0·빌드 1을 유지한다.
+
+## 2026-10-26 Figma 원본 레이아웃 동기화
+
+후속 요청의 대상은 Figma `83:6973`이다. 작업 시작 시 원본에는 사이드바가 이미 제거되어 있었지만, 캔버스 눈금자·탐색 바와 타임라인의 행·시간 열이 이전 폭에 고정되어 있었다. 기존 노드를 직접 수정하여 중앙 열 1593px, 시간 열 1169px에 맞췄다. 10개 레이어 행과 각 행의 48개 셀은 가변 폭으로 전환했으며 9개 시간 라벨·49개 프레임 틱과 1초 플레이헤드를 함께 정렬했다. 캔버스 뷰포트는 1593×692px이며 원본 아트워크는 크기를 유지하고 중앙에 배치했다. 눈금자는 확장된 영역까지 표시한다.
+
+1999×1080 창, 좌측 54px 도구 막대, 우측 352px 상세 패널을 유지했다. 단일 창만 담고 있는 외곽 프레임은 4079px에서 1999px로 정리하고 자동 크기 조절을 적용했다. 도구 막대·상세 패널·ApplicationWindow의 색상·텍스트·변수 연결은 변경 전후 해시가 같다. LVRS 인스턴스와 Pretendard 스타일을 유지하며 전체 화면을 이미지로 평탄화하지 않았다.
+
+Figma 구조 검사와 최종 렌더링을 독립적으로 확인했다. 실제 변경 노드 ID와 검증 결과는 `build/toolbar-only/figma/mutation.json`·`verification.json`, 화면은 `before.png`·`after.png`에 기록했다. 이 단계의 검증 범위는 Figma 원본이며 네이티브 앱의 빌드·실행 결과는 앞 절의 별도 기록을 따른다.

@@ -1,0 +1,93 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:aa3186dfa477902523688aec55352b9e600835cda12031e4feb2f4adbb861950",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/legacy/automation/AUTOMATION.md",
+    "sha256": "12bede1870b43fde970796814a0387858cb6f1f6bc5f4168ceec8bba2e3886ba",
+    "bytes": 640,
+    "line_count": 5,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "이전 Qt 배포 자동화 기록",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 이전 Qt 배포 자동화 기록\n",
+      "level": 1,
+      "title": "이전 Qt 배포 자동화 기록"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "이 디렉터리는 Qt 제품 빌드·Windows 서명·Qt 대응 소스 배포에 사용했던 워크플로를 보존한다. 현재 GitHub Actions의 실행 대상으로 사용하지 않는다. 이전 배포의 출처와 정책을 확인하기 위한 원본 설정이다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "현재 네이티브 빌드는 `.github/workflows/native-build.yml`과 `docs/BUILD.md`를 따른다. 운영체제에 맞는 사전 설치 iiSDK 키트와 그래픽 세션이 있는 자체 실행기가 필요하다. 이번 작업은 워크플로 소스 전환이며 원격 실행·서명·업로드를 수행한 결과가 아니다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "이전 Qt 배포 자동화 기록",
+      "anchor": "이전-qt-배포-자동화-기록",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000003",
+        "line": 3,
+        "text": "이 디렉터리는 Qt 제품 빌드·Windows 서명·Qt 대응 소스 배포에 사용했던 워크플로를 보존한다. 현재 GitHub Actions의 실행 대상으로 사용하지 않는다. 이전 배포의 출처와 정책을 확인하기 위한 원본 설정이다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

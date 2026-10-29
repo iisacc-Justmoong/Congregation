@@ -1,0 +1,7 @@
+include("${MODULE}")
+if(DEFINED LINK_PATH)
+    congregation_optional_resource_link("${RESOURCE_ROOT}" "${LINK_PATH}")
+else()
+    congregation_test_resource_directory("${RESOURCE_ROOT}" "${REQUESTED}" "${BASE_DIRECTORY}" resolved)
+    message(STATUS "RESOLVED_RESOURCE=${resolved}")
+endif()

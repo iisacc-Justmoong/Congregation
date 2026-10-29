@@ -3,13 +3,17 @@
 #include "EditCommand.h"
 #include "NearbyDiscovery.h"
 #include "RecentCanvas.h"
+#include <array>
+#include <new>
 #include <set>
+#include <stdexcept>
 namespace congregation
 {
 namespace
 {
 using namespace std::chrono_literals;
-constexpr std::size_t max_control = 64 * 1024, max_frame = maximum_canvas_bytes + max_control;
+constexpr std::size_t max_control = 64 * 1024, max_frame = maximum_canvas_bytes + max_control,
+                      max_peers = 16;
 enum Message
 {
     Hello = 1,
@@ -85,8 +89,15 @@ Value profile_record(std::string peer, std::string name, bool host, bool removab
 }
 } // namespace
 CanvasSession::CanvasSession(ii::runtime::EventLoop& loop, std::string own)
-    : own_session(std::move(own)), session(own_session), loop_(loop), listener_(loop)
+    : CanvasSession(loop, std::move(own), default_peer_pending_bytes)
+{}
+CanvasSession::CanvasSession(ii::runtime::EventLoop& loop, std::string own,
+                             std::size_t peer_pending_bytes, SnapshotWriter snapshot_writer)
+    : own_session(std::move(own)), session(own_session), loop_(loop), listener_(loop),
+      peer_pending_bytes_(peer_pending_bytes), snapshot_writer_(std::move(snapshot_writer))
 {
+    if (!peer_pending_bytes_ || peer_pending_bytes_ > default_peer_pending_bytes)
+        throw std::invalid_argument("Invalid canvas peer send budget");
     listener_.accepted = [this](auto socket) { accepted(std::move(socket)); };
 }
 CanvasSession::~CanvasSession()
@@ -201,6 +212,7 @@ bool CanvasSession::join(std::string requested, std::string address, int port, s
 }
 void CanvasSession::stop()
 {
+    ++session_generation_;
     stopping_ = true;
     deadline_.cancel();
     request_.cancel();
@@ -208,6 +220,7 @@ void CanvasSession::stop()
     for (auto& [id, p] : peers_)
     {
         p.deadline.cancel();
+        p.retry.cancel();
         p.socket->close();
     }
     peers_.clear();
@@ -268,6 +281,13 @@ bool CanvasSession::publish(std::string_view snapshot)
     }
     if (state != State::hosting || revision == UINT64_MAX)
         return false;
+    if (snapshot.size() > max_frame - 44 || peer_pending_bytes_ <= 60 ||
+        snapshot.size() > peer_pending_bytes_ - 60)
+    {
+        set_error("The canvas snapshot exceeds the participant send budget.");
+        return false;
+    }
+    const auto generation = session_generation_;
     origin_ = peer_id;
     ++revision;
     std::string outgoing = "VCAN";
@@ -281,11 +301,25 @@ bool CanvasSession::publish(std::string_view snapshot)
     outgoing += snapshot;
     latest_frame_ = std::make_shared<const std::string>(std::move(outgoing));
     notify(Notice::revision);
+    if (session_generation_ != generation || state != State::hosting)
+        return false;
+    set_error({});
+    if (session_generation_ != generation || state != State::hosting)
+        return false;
+    std::array<std::shared_ptr<ii::network::Tcp>, max_peers> targets;
+    std::size_t count = 0;
     for (const auto& [id, p] : peers_)
         if (p.accepted)
-            latest(id);
-    set_error({});
-    return true;
+            targets[count++] = p.socket;
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        if (session_generation_ != generation || state != State::hosting)
+            return false;
+        auto peer = peers_.find(targets[i].get());
+        if (peer != peers_.end() && peer->second.accepted && peer->second.socket == targets[i])
+            latest(peer->first);
+    }
+    return session_generation_ == generation && state == State::hosting;
 }
 bool CanvasSession::submit(const Object& command)
 {
@@ -351,13 +385,15 @@ bool CanvasSession::respond(bool accepted, std::string name)
 void CanvasSession::accepted(std::unique_ptr<ii::network::Tcp> socket)
 {
     auto* id = socket.get();
-    if (!ii::network::local_address(socket->peer_address()) || peers_.size() >= 16)
+    if (!ii::network::local_address(socket->peer_address()) || peers_.size() >= max_peers)
     {
         socket->close();
         return;
     }
     socket->receive_limit(max_frame + 16);
+    socket->send_limit(peer_pending_bytes_);
     socket->readable = [this, id] { host_read(id); };
+    socket->bytes_written = [this, id](std::size_t) { retry_latest(id); };
     socket->disconnected = [this, id]
     {
         auto i = peers_.find(id);
@@ -365,6 +401,7 @@ void CanvasSession::accepted(std::unique_ptr<ii::network::Tcp> socket)
             return;
         auto accepted = i->second.accepted;
         i->second.deadline.cancel();
+        i->second.retry.cancel();
         peers_.erase(i);
         if (accepted && state == State::hosting && !stopping_)
             participants();
@@ -577,8 +614,82 @@ void CanvasSession::client_closed()
 }
 void CanvasSession::latest(ii::network::Tcp* socket)
 {
-    if (latest_frame_ && socket)
-        (void) socket->write(latest_frame_);
+    auto peer = peers_.find(socket);
+    if (!latest_frame_ || peer == peers_.end())
+        return;
+    peer->second.pending_snapshot = latest_frame_;
+    retry_latest(socket);
+}
+void CanvasSession::retry_latest(ii::network::Tcp* socket)
+{
+    auto peer = peers_.find(socket);
+    if (peer == peers_.end() || !peer->second.pending_snapshot || !socket->is_connected() ||
+        peer->second.writing_snapshot)
+        return;
+    // A writer can synchronously stop/rehost or publish another update. Keep
+    // the socket and attempted frame alive, and reacquire the peer afterwards.
+    const auto held_socket = peer->second.socket;
+    const auto attempted = peer->second.pending_snapshot;
+    const auto generation = session_generation_;
+    peer->second.writing_snapshot = true;
+    const auto current_peer = [&]() -> Peer*
+    {
+        if (session_generation_ != generation || state != State::hosting)
+            return nullptr;
+        auto current = peers_.find(socket);
+        return current != peers_.end() && current->second.socket == held_socket
+                   ? &current->second : nullptr;
+    };
+    bool accepted = false;
+    try
+    {
+        accepted = snapshot_writer_ ? snapshot_writer_(*held_socket, attempted)
+                                    : held_socket->write(attempted);
+    }
+    catch (const std::bad_alloc&)
+    {
+        // Older iiNetwork builds may throw while admitting a queued write.
+    }
+    catch (...)
+    {
+        if (auto* current = current_peer())
+            current->writing_snapshot = false;
+        throw;
+    }
+    auto* current = current_peer();
+    if (!current)
+        return;
+    current->writing_snapshot = false;
+    if (accepted && current->pending_snapshot == attempted)
+    {
+        current->pending_snapshot.reset();
+        current->retry.cancel();
+        current->retry = {};
+        return;
+    }
+    // A nested publication superseded the frame that just completed. Keep
+    // the newest frame even if the older write succeeded.
+    if (!current->pending_snapshot || !held_socket->is_connected() || current->retry.pending())
+        return;
+    try
+    {
+        auto retry = loop_.after(50ms, [this, socket]
+        {
+            auto current = peers_.find(socket);
+            if (current == peers_.end())
+                return;
+            current->second.retry = {};
+            retry_latest(socket);
+        });
+        if (retry)
+            current->retry = retry.token;
+        else
+            set_error("A canvas update could not be scheduled for retry.");
+    }
+    catch (const std::bad_alloc&)
+    {
+        set_error("A canvas update could not be scheduled for retry.");
+    }
 }
 
 void CanvasSession::reject(ii::network::Tcp* socket, std::string code, std::string message)

@@ -43,14 +43,16 @@ class Artwork final
     bool move(std::string key, std::string before);
     bool transform(::AffineTransform);
     bool transform(LayerTransform);
-    bool begin(::DocumentPoint, double, iiSharedCanvas::BitmapBrush);
+    bool begin(::DocumentPoint, double, iiSharedCanvas::BitmapBrush,
+               iiSharedCanvas::FrameIndex frame = 0);
     bool extend(::DocumentPoint, double);
     bool end(::DocumentPoint, double);
     void cancel();
     bool shape(std::string kind, iiSharedCanvas::Point from, iiSharedCanvas::Point to,
                std::uint32_t color, double width, bool filled);
     bool fill(std::uint32_t color);
-    bool fill_at(iiSharedCanvas::Point, std::uint32_t color);
+    bool fill_at(iiSharedCanvas::Point, std::uint32_t color,
+                 iiSharedCanvas::FrameIndex frame = 0);
     bool undo();
     bool redo();
     bool select(std::string key);
@@ -88,6 +90,7 @@ class Artwork final
     iiSharedCanvas::Document draft_;
     iiSharedCanvas::BitmapEditor raster_;
     iiSharedCanvas::ChunkedBitmapEditor chunks_;
+    ::AffineTransform stroke_transform_{};
     std::string selected_, error_, stroke_selection_;
     std::vector<std::uint8_t> stroke_before_;
     std::deque<History> undo_, redo_;
