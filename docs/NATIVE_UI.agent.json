@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/NATIVE_UI.md",
-    "sha256": "49cccf6b330054c85b873f41ca180a52f393a4dd8da78bb3790f131fde83cc59",
-    "bytes": 3514,
-    "line_count": 43,
+    "sha256": "059c398da13ce56f7d7620103a448021109c3a1d60d936bc47bc3327d61561fb",
+    "bytes": 8078,
+    "line_count": 103,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 6,
-      "raw": "실행 진입점과 이벤트 루프는 iiSDKCore Application이 소유한다. LVUI의 HTML 태그와\n인라인 스타일을 빌드 때 C++로 컴파일하며 LVRS 위젯을 iiGUI의 네이티브 창과 GPU에\n표시한다. 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 사용하지 않는다.\n기존 Qt 화면 소스는 이전 작업 보존을 위해 남아 있지만 새 빌드 그래프에 포함하지 않는다.\n"
+      "raw": "실행 진입점과 이벤트 루프는 iiSDKCore Application이 소유한다. LVUI의 HTML 태그와\n인라인 스타일을 빌드 때 C++로 컴파일하며 LVUI 소유 위젯을 iiGUI의 네이티브 창과 GPU에\n표시한다. LVRS, 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 링크하지 않는다.\n기존 Qt 화면 소스는 이전 작업 보존을 위해 남아 있지만 새 빌드 그래프에 포함하지 않는다.\n"
     },
     {
       "id": "b000004",
@@ -84,21 +84,21 @@
       "id": "b000009",
       "kind": "paragraph",
       "start_line": 18,
-      "end_line": 20,
-      "raw": "빌드 산출물은 저장소의 `build/` 안에 둔다. 이전 Qt 앱과 변경 전 빌드 설정은\n`build/native-migration-backup/`에 보존하며 새 앱은 `build/Congregation.app` 한 개이다.\nWindows와 Linux는 소스 구현 범위이며 실제 실행 검증은 현재 Mac에서 수행한다.\n"
+      "end_line": 21,
+      "raw": "빌드 산출물은 저장소의 `build/` 안에 둔다. 이전 Qt 앱과 변경 전 빌드 설정은\n`build/native-migration-backup/`에 보존하며 새 앱은 `build/Congregation.app` 한 개이다.\nWindows와 Linux는 소스 구현 범위이며 현재 Mac의 결과로 두 플랫폼의 실제 실행을\n검증한 것으로 간주하지 않는다.\n"
     },
     {
       "id": "b000010",
       "kind": "blank",
-      "start_line": 21,
-      "end_line": 21,
+      "start_line": 22,
+      "end_line": 22,
       "raw": "\n"
     },
     {
       "id": "b000011",
       "kind": "heading",
-      "start_line": 22,
-      "end_line": 22,
+      "start_line": 23,
+      "end_line": 23,
       "raw": "## 현재 Main 화면\n",
       "level": 2,
       "title": "현재 Main 화면"
@@ -106,104 +106,280 @@
     {
       "id": "b000012",
       "kind": "blank",
-      "start_line": 23,
-      "end_line": 23,
+      "start_line": 24,
+      "end_line": 24,
       "raw": "\n"
     },
     {
       "id": "b000013",
       "kind": "paragraph",
-      "start_line": 24,
-      "end_line": 24,
-      "raw": "현재 기본 화면은 Figma의 `83:6974`와 Tool 풀버전 `130:1832`를 기준으로 한다. 세부 구성과 입력 계약은 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)에 있다. LVUI ApplicationWindow의 옵션·활성화·팝업과 같은 스코프에서 LVRS·iiGUI C++ 위젯을 구성한다.\n"
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "현재 기본 화면은 Figma의 `83:6974`와 Tool 풀버전 `130:1832`를 기준으로 한다. 세부 구성과 입력 계약은 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)에 있다. LVUI ApplicationWindow의 옵션·활성화·팝업과 같은 스코프에서 LVUI·iiGUI C++ 위젯을 구성한다.\n"
     },
     {
       "id": "b000014",
       "kind": "blank",
-      "start_line": 25,
-      "end_line": 25,
+      "start_line": 26,
+      "end_line": 26,
       "raw": "\n"
     },
     {
       "id": "b000015",
       "kind": "paragraph",
-      "start_line": 26,
-      "end_line": 26,
+      "start_line": 27,
+      "end_line": 27,
       "raw": "Vincent 복원 화면의 과거 구성·검증 기록은 VINCENT_UI.md에 보존한다. 현재 기본 레이아웃의 통과 증거로 사용하지 않는다.\n"
     },
     {
       "id": "b000016",
       "kind": "blank",
-      "start_line": 27,
-      "end_line": 27,
+      "start_line": 28,
+      "end_line": 28,
       "raw": "\n"
     },
     {
       "id": "b000017",
-      "kind": "heading",
-      "start_line": 28,
-      "end_line": 28,
-      "raw": "## New canvas\n",
-      "level": 2,
-      "title": "New canvas"
+      "kind": "paragraph",
+      "start_line": 29,
+      "end_line": 33,
+      "raw": "타임라인의 미구현 버튼은 눌림·해제의 시각적 반응만 제공한다. 레이어 잠금,\n그룹·마스크·클리핑·연결, 스냅, 어니언 스킨과 미구현 키프레임 버튼은 아직 문서나\n레이어의 상태를 바꾸지 않는다. 공통 버튼 어댑터는 연결된 동작이 없는 경우 빈 동작을\n호출하므로 콜백이 없어도 입력을 정상 처리한다. 기존에 기능이 연결된 버튼의 동작과\n실제 사용 조건에 따라 비활성화되는 제어는 그대로 유지한다.\n"
     },
     {
       "id": "b000018",
       "kind": "blank",
-      "start_line": 29,
-      "end_line": 29,
+      "start_line": 34,
+      "end_line": 34,
       "raw": "\n"
     },
     {
       "id": "b000019",
       "kind": "paragraph",
-      "start_line": 30,
-      "end_line": 30,
-      "raw": "새 캔버스 창은 Dreamscapes의 14개 카테고리·289개 프리셋과 상세 설정을 동일하게 제공하는 비모달 네이티브 서브윈도우이다. 구성·데이터 동기화·생성 규칙과 검증 방법은 [NEW_CANVAS_WINDOW.md](NEW_CANVAS_WINDOW.md)에 있다.\n"
+      "start_line": 35,
+      "end_line": 36,
+      "raw": "`Congregation.independent_workspace`는 레이어 잠금을 포함한 이 버튼들의 포인터 반복\n입력과 프로그램 활성화에서 눌림·해제 및 모델 상태 불변을 확인한다.\n"
     },
     {
       "id": "b000020",
       "kind": "blank",
-      "start_line": 31,
-      "end_line": 31,
+      "start_line": 37,
+      "end_line": 37,
       "raw": "\n"
     },
     {
       "id": "b000021",
       "kind": "heading",
-      "start_line": 32,
-      "end_line": 32,
-      "raw": "## 현재 프레임의 캔버스 입력\n",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "## New canvas\n",
       "level": 2,
-      "title": "현재 프레임의 캔버스 입력"
+      "title": "New canvas"
     },
     {
       "id": "b000022",
-      "kind": "blank",
-      "start_line": 33,
-      "end_line": 33,
-      "raw": "\n"
-    },
-    {
-      "id": "b000023",
-      "kind": "paragraph",
-      "start_line": 34,
-      "end_line": 38,
-      "raw": "선택·스포이트와 채우기 영역 판정은 표시 중인 타임라인 프레임을 샘플링한다. 정적 비트맵 레이어에\n그릴 때는 해당 프레임에서 평가한 레이어·아트보드 변환의 역변환을 획의 시작부터\n종료까지 사용한다. 프레임이 바뀌면 진행 중인 콘텐츠 제스처를 취소하고 미리보기\n캐시를 비운다. 선택이나 취소는 파일 리비전을 바꾸지 않는다. 유효하지 않거나 퇴화한\n변환은 문서 편집 전에 오류로 거부한다.\n"
-    },
-    {
-      "id": "b000024",
       "kind": "blank",
       "start_line": 39,
       "end_line": 39,
       "raw": "\n"
     },
     {
-      "id": "b000025",
+      "id": "b000023",
       "kind": "paragraph",
       "start_line": 40,
+      "end_line": 40,
+      "raw": "새 캔버스 창은 Dreamscapes의 14개 카테고리·289개 프리셋과 상세 설정을 동일하게 제공하는 비모달 네이티브 서브윈도우이다. 구성·데이터 동기화·생성 규칙과 검증 방법은 [NEW_CANVAS_WINDOW.md](NEW_CANVAS_WINDOW.md)에 있다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "heading",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "## 현재 프레임의 캔버스 입력\n",
+      "level": 2,
+      "title": "현재 프레임의 캔버스 입력"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 43,
       "end_line": 43,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 44,
+      "end_line": 48,
+      "raw": "선택·스포이트와 채우기 영역 판정은 표시 중인 타임라인 프레임을 샘플링한다. 정적 비트맵 레이어에\n그릴 때는 해당 프레임에서 평가한 레이어·아트보드 변환의 역변환을 획의 시작부터\n종료까지 사용한다. 프레임이 바뀌면 진행 중인 콘텐츠 제스처를 취소하고 미리보기\n캐시를 비운다. 선택이나 취소는 파일 리비전을 바꾸지 않는다. 유효하지 않거나 퇴화한\n변환은 문서 편집 전에 오류로 거부한다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 50,
+      "end_line": 53,
       "raw": "`Congregation.canvas_frame_*` 검사는 창을 열지 않고 정적 비트맵과 모션이 포함된\n레이어의 그리기·스포이트·선택·채우기·프레임 전환 취소를 확인한다. 채우기는 표시\n프레임에서 영역을 찾지만 결과는 정적 비트맵 레이어에 저장한다. 이 범위는 동적\n프레임의 자산 편집이나 물리 펜 입력 전체의 검증이 아니다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "heading",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "## macOS 글로벌 메뉴\n",
+      "level": 2,
+      "title": "macOS 글로벌 메뉴"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 56,
+      "end_line": 56,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 57,
+      "end_line": 61,
+      "raw": "macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지\n않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,\nWindow, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱\n메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을\n표시한다. `Congregation.app_menu` 검사는 메뉴 순서와 명령 연결을 확인한다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 62,
+      "end_line": 62,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "heading",
+      "start_line": 63,
+      "end_line": 63,
+      "raw": "## 우측 패널 세그먼트\n",
+      "level": 2,
+      "title": "우측 패널 세그먼트"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 64,
+      "end_line": 64,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 65,
+      "end_line": 75,
+      "raw": "Figma `84:9464`의 LVUI 아이콘 세그먼트로 Tools, Generative, Document,\nAsset Library를 이 순서로 선택한다. 선택 상태는 작업 영역 뷰모델의 `option_tab`과\n동기화된다. Document에 기존 문서·보기 설정을 유지한다. Asset Library는 Society가\n등록한 저장소와 컨테이너 식별자를 확인하고 매니페스트의 asset-library 섹션을 읽는다.\n명시적으로 선택한 로컬 폴더가 있으면 그 폴더를 사용한다. 하위 디렉터리를 포함해 최대\n512개 파일을 이름순으로 표시하며, 패널 진입과 Refresh에서 다시 읽는다. PNG·JPEG·WebP\n항목은 선택하면 이미지 레이어로 삽입한다. 다른 형식은 목록에 표시하되 이미지로 삽입할\n수 없다는 상태를 알린다. 연결되지 않았거나 빈 라이브러리는 각각 안내한다. Society\n라이브러리 열기와 폴더 연결도 제공한다. Generative는 연결된 생성 기능이 없어 안내만\n표시한다. `Congregation.society_assets`는 등록 정보와 파일 목록을 검사하고,\n`Congregation.inspector_segments`는 아이콘 자산과 순서를 확인한다.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "heading",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "## Transfer와 Smoothing 제어\n",
+      "level": 2,
+      "title": "Transfer와 Smoothing 제어"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 78,
+      "end_line": 78,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "paragraph",
+      "start_line": 79,
+      "end_line": 83,
+      "raw": "Transfer의 Flow·Wetness·Mix는 각각 Jitter, Control과 Minimum을 브러시 엔진의\n동역학 변형에 전달한다. Flow를 필압으로 제어할 때는 이전의 별도 필압 Flow 계수를\n중복 적용하지 않는다. Wetness·Mix의 가시적인 효과는 믹서나 스머지 등 해당 물리\n모델이 활성화된 도구에서 나타난다. 불투명도는 별도의 필압 응답과 최소·최대 값을\n계속 사용한다.\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 84,
+      "end_line": 84,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 85,
+      "end_line": 88,
+      "raw": "Smoothing의 활성화, Exponential/Pulled String 방식 및 획 끝 따라잡기는 독립적으로\n설정한다. Strength와 Radius는 기존 Brush 및 Smoothing 값을 공유한다. 추가 파라미터는\n기존 설정 파일을 읽을 때 기본값으로 초기화하며, `Congregation.tool_settings`가\n필압에 따른 Transfer 계산과 Smoothing 구성 전달을 검사한다.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 89,
+      "end_line": 89,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "heading",
+      "start_line": 90,
+      "end_line": 90,
+      "raw": "## 브러시 질감과 입자 효과\n",
+      "level": 2,
+      "title": "브러시 질감과 입자 효과"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 91,
+      "end_line": 91,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 92,
+      "end_line": 99,
+      "raw": "Tool 패널의 Texture 선택 버튼은 이미지 파일을 읽어 밝기와 알파로 브러시 마스크를\n구성한다. Invert, Scale, Brightness, Contrast, Texture Each Tip, Mode, Depth,\nMinimum Depth, Depth Jitter와 Control은 엔진 텍스처 설정에 전달한다. 선택한 텍스처와\n배경색은 현재 실행 세션에 보관한다. Color Dynamics의 `Use current color`로 현재 색을\n배경색으로 지정한 뒤 전경색을 바꾸고 Foreground/Background Jitter 및 Control을\n사용한다. Noise의 Grain Size는 문서 픽셀 단위이다. Wet Edges의 폭은 문서 픽셀,\nDiffusion은 백분율이다. Build-up은 활성화, 누적률, 불투명도 상한, 시간 기반 분사를\n독립적으로 설정한다. 시간 기반 분사는 획 입력과 기존 시계 진행 경로를 사용한다.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 100,
+      "end_line": 100,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 101,
+      "end_line": 103,
+      "raw": "Tool 패널은 주요 고급 섹션을 Figma 순서로 배치하고 작은 슬라이더를 사용하며,\nBrush 섹션에 절대 간격과 필압 곡선 편집을 제공한다. `Congregation.tool_settings`와\n`Congregation.brush_tools_integration`은 설정 전달과 실제 픽셀 변화를 검사한다.\n"
     }
   ],
   "outline": [
@@ -221,23 +397,55 @@
       "level": 2,
       "title": "현재 Main 화면",
       "anchor": "현재-main-화면",
-      "start_line": 22
-    },
-    {
-      "block_id": "b000017",
-      "parent_id": "b000001",
-      "level": 2,
-      "title": "New canvas",
-      "anchor": "new-canvas",
-      "start_line": 28
+      "start_line": 23
     },
     {
       "block_id": "b000021",
       "parent_id": "b000001",
       "level": 2,
+      "title": "New canvas",
+      "anchor": "new-canvas",
+      "start_line": 38
+    },
+    {
+      "block_id": "b000025",
+      "parent_id": "b000001",
+      "level": 2,
       "title": "현재 프레임의 캔버스 입력",
       "anchor": "현재-프레임의-캔버스-입력",
-      "start_line": 32
+      "start_line": 42
+    },
+    {
+      "block_id": "b000031",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "macOS 글로벌 메뉴",
+      "anchor": "macos-글로벌-메뉴",
+      "start_line": 55
+    },
+    {
+      "block_id": "b000035",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "우측 패널 세그먼트",
+      "anchor": "우측-패널-세그먼트",
+      "start_line": 63
+    },
+    {
+      "block_id": "b000039",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Transfer와 Smoothing 제어",
+      "anchor": "transfer와-smoothing-제어",
+      "start_line": 77
+    },
+    {
+      "block_id": "b000045",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "브러시 질감과 입자 효과",
+      "anchor": "브러시-질감과-입자-효과",
+      "start_line": 90
     }
   ],
   "indexes": {
@@ -245,7 +453,7 @@
       {
         "block_id": "b000003",
         "line": 5,
-        "text": "표시한다. 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 사용하지 않는다.",
+        "text": "표시한다. LVRS, 브라우저, 웹뷰, Qt, QML 실행기와 JavaScript 런타임은 링크하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
@@ -264,9 +472,23 @@
         "context": "paragraph"
       },
       {
+        "block_id": "b000009",
+        "line": 21,
+        "text": "검증한 것으로 간주하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
         "block_id": "b000015",
-        "line": 26,
+        "line": 27,
         "text": "Vincent 복원 화면의 과거 구성·검증 기록은 VINCENT_UI.md에 보존한다. 현재 기본 레이아웃의 통과 증거로 사용하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000041",
+        "line": 81,
+        "text": "중복 적용하지 않는다. Wetness·Mix의 가시적인 효과는 믹서나 스머지 등 해당 물리",
         "basis": "lexical_match",
         "context": "paragraph"
       }
@@ -278,14 +500,14 @@
         "label": "FIGMA_APPLICATION_WINDOW.md",
         "target": "FIGMA_APPLICATION_WINDOW.md",
         "kind": "relative",
-        "line": 24
+        "line": 25
       },
       {
-        "block_id": "b000019",
+        "block_id": "b000023",
         "label": "NEW_CANVAS_WINDOW.md",
         "target": "NEW_CANVAS_WINDOW.md",
         "kind": "relative",
-        "line": 30
+        "line": 40
       }
     ],
     "tables": []

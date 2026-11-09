@@ -46,7 +46,7 @@ int main(int argc,char **argv) {
         iiFileProvider::native::TemporaryDirectory temp(parent);
         check(temp.isValid(),"temporary directory failed");
         Artwork art(temp.path());
-        check(art.replace(document(mode=="eyedropper" || mode=="selection" || mode=="fill")),"document creation failed");
+        check(art.replace(document(mode=="eyedropper" || mode=="selection" || mode=="fill" || mode=="wand")),"document creation failed");
         CanvasView view(art); view.brush_size=8; view.color=0xffff0000U; view.set_frame(4);
         using K=ii::gui::WidgetInputKind;
         if (mode=="paint") {
@@ -72,6 +72,17 @@ int main(int argc,char **argv) {
             auto distant=renderFrameRegion(art.document(),4,{{5,5},{1,1}},{1,1});
             check(painted.ok() && painted.pixels.pixels[0]==0xff00ff00U,"fill did not color the displayed frame target");
             check(distant.ok() && (distant.pixels.pixels[0]>>24)==0,"fill sampled an unrelated frame region");
+        } else if (mode=="wand") {
+            check(alpha(art.document(),4,73,40)>0 && alpha(art.document(),0,73,40)==0,"wand frame control");
+            const auto revision=art.revision();
+            view.tool="magic-wand";view.selection_antialias=false;send(view,K::pointer_down,73,40);
+            check(art.selection_mask() && art.selection_mask()->alpha[40*160+73]==255 &&
+                  art.selection_mask()->alpha[5*160+5]==0,"binary wand did not sample the displayed frame");
+            check(art.revision()==revision && art.undo() && !art.selection_mask(),"binary wand selection altered document or failed undo");
+            view.selection_antialias=true;send(view,K::pointer_down,73,40);
+            check(art.selection_mask() && art.selection_mask()->alpha[40*160+73]>0 &&
+                  art.selection_mask()->alpha[5*160+5]==0,"antialiased wand did not sample the displayed frame");
+            check(art.revision()==revision && art.undo() && !art.selection_mask(),"antialiased wand altered document or failed undo");
         } else if (mode=="cancel") {
             const auto revision=art.revision();
             send(view,K::pointer_down,73,40);

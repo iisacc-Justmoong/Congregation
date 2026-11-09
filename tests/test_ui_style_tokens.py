@@ -45,10 +45,18 @@ def literal(value):
 
 def cpp_violations(source):
     found = []
-    for match in re.finditer(r"\.(?:" + STYLE_FIELDS + r")\s*=\s*(" + NUMBER + r")\s*[,}]", source):
+    for match in re.finditer(r"\.(" + STYLE_FIELDS + r")\s*=\s*(" + NUMBER + r")\s*[,}]", source):
+        # Full and zero opacity are structural on/off values, not palette entries.
+        if match.group(1) in {'tint_opacity', 'intense_opacity', 'faint_opacity'} and float(match.group(2).rstrip('fF')) in (0., 1.):
+            continue
         found.append((match.start(), 'numeric style field'))
+    # A hexadecimal value displayed as label text is user-visible data, not
+    # a color assigned to a UI style. Keep all other literals under the guard.
+    label_colors = [m.span('value') for m in re.finditer(
+        r'\bb\.label\(\s*[^,\n()]+,\s*"(?P<value>#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?)"', source)]
     for match in re.finditer(r'#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b', source):
-        found.append((match.start(), 'literal UI color'))
+        if not any(start <= match.start() and match.end() <= end for start, end in label_colors):
+            found.append((match.start(), 'literal UI color'))
     for match in re.finditer(r'\.(?:color|fill|hover_fill|pressed_fill|surface_color)\s*=\s*\{\s*' + NUMBER, source):
         found.append((match.start(), 'literal color channels'))
     for match in re.finditer(r'\bInsets\{', source):
@@ -95,6 +103,49 @@ def lvui_violations(source):
 
 
 class UIStyleTokenTests(unittest.TestCase):
+    def test_description_labels_use_the_default_lvui_style(self):
+        for name in ('Main.lvui', 'Preferences.lvui'):
+            source = (ROOT / 'App/Native/views' / name).read_text(encoding='utf-8')
+            self.assertNotIn('fontSize={Metric.textDescription}', source)
+            self.assertNotIn('color={Color.text.description}', source)
+
+    def test_brush_popup_uses_lvui_mini_sliders_and_scroll_view(self):
+        source = (ROOT / 'App/Native/views/Main.lvui').read_text(encoding='utf-8')
+        popup = source.split('<Popover id="brush-popup"', 1)[1].split('</Popover>', 1)[0]
+        self.assertNotRegex(popup.split('>', 1)[0], r'\b(?:surfaceColor|padding|cornerRadius|clip)=')
+        sliders = re.findall(r'<Slider\b[^>]*/>', popup)
+        self.assertEqual(len(sliders), 7)
+        self.assertIn('<ScrollView id="brush-scroll"', popup)
+        self.assertNotRegex(popup, r'\b(?:fontSize|fontWeight)=')
+        for slider in sliders:
+            self.assertIn('size={.mini}', slider)
+            self.assertNotRegex(slider, r'\b(?:height|thumbDiameter|trackHeight|rangeInset)=')
+
+    def test_native_slider_sizes_come_from_lvui(self):
+        for name, expected in [('TimelineView.cpp', 2), ('WorkspaceView.cpp', 1)]:
+            source = (ROOT / 'App/Native' / name).read_text(encoding='utf-8')
+            self.assertEqual(source.count('.size = lvui::SliderSize::mini'), expected)
+            self.assertNotRegex(source, r'\.(?:thumb_diameter|track_height|range_inset)\s*=')
+
+    def test_native_icon_buttons_do_not_embed_a_product_palette(self):
+        cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
+        widgets = (ROOT / 'App/Native/OwnedWidgetStyle.cpp').read_text(encoding='utf-8')
+        self.assertNotIn('EditorAssets.generated.h', cmake)
+        self.assertNotIn('App/Native/EditorIcons.cpp', cmake)
+        self.assertIn('lvui::native::NativeButton::create', widgets)
+        self.assertIn('options.icon_name=std::move(source)', widgets)
+        self.assertIn('options.icon_source=lvui::design_icon_catalog()', widgets)
+
+    def test_application_has_no_independent_color_palette(self):
+        profile = (ROOT / 'App/Native/views/Layout.lvui').read_text(encoding='utf-8')
+        self.assertNotRegex(profile, r'(?m)^\s*let\s+\w+\s*:\s*Color\b')
+        for path in (ROOT / 'App/Native/views').glob('*.lvui'):
+            if path.name != 'Layout.lvui':
+                self.assertNotRegex(path.read_text(encoding='utf-8'), r'Color\.(?:popup|secondaryText|memberSelection|panelEdgeResolved)\b')
+        palette = (ROOT / 'App/Native/EditorPalette.cpp').read_text(encoding='utf-8')
+        self.assertIn('Color::canvas', palette)
+        self.assertIn('Color::materialSurfaceDenseEdge', palette)
+
     def test_style_fields_builder_arguments_and_painting_reject_literals(self):
         for source in ['b.row(parent, "row", 0, 22, 4);', '.font_size = 13,', '.spacing = 0,',
                        '.fill = {1, 1, 1, .5}', 'd.panels.push_back({{0, 0, 32, 24}, ink, ink});',
@@ -111,6 +162,11 @@ class UIStyleTokenTests(unittest.TestCase):
         auto scale = std::clamp(value, 0., 1.);'''
         self.assertEqual(cpp_violations(source), [])
 
+    def test_hex_label_text_is_data_but_style_literals_are_rejected(self):
+        self.assertEqual(cpp_violations('b.label(color_row, "#000000", Metric::textDescription);'), [])
+        self.assertTrue(cpp_violations('auto fill = "#000000";'))
+        self.assertTrue(cpp_violations('b.label(color_row, "#000000", Metric::textDescription); auto fill = "#112233";'))
+
     def test_lvui_controls_reject_inline_style_values(self):
         self.assertTrue(lvui_violations('<Window width={1999}><div style="gap:8px"/></Window>'))
         self.assertEqual(lvui_violations('<Window width={Metric.windowWidth}><Slider from={0} to={1} value={0.5}/><div style="gap:Metric.space8"/></Window>'), [])
@@ -118,7 +174,7 @@ class UIStyleTokenTests(unittest.TestCase):
     def test_active_native_views_use_shared_types(self):
         root = ROOT / 'App/Native'
         paths = set(root.glob('*View.cpp'))
-        paths.update(root / name for name in ('MainWindow.cpp', 'WidgetStyle.cpp', 'EditorLayout.cpp', 'EditorPalette.cpp', 'EditorIcons.cpp', 'ToolPanel.cpp', 'CanvasSetupWindow.cpp', 'Application.cpp', 'WidgetStyle.h', 'EditorPalette.h', 'EditorLayout.h'))
+        paths.update(root / name for name in ('MainWindow.cpp', 'WidgetStyle.cpp', 'EditorLayout.cpp', 'EditorPalette.cpp', 'ToolPanel.cpp', 'CanvasSetupWindow.cpp', 'Application.cpp', 'WidgetStyle.h', 'EditorPalette.h', 'EditorLayout.h'))
         violations = []
         for path in sorted(paths):
             source = path.read_text(encoding="utf-8")
@@ -133,12 +189,13 @@ class UIStyleTokenTests(unittest.TestCase):
 
     def test_all_lvui_views_use_shared_profile(self):
         for path in (ROOT / 'App/Native/views').glob('*.lvui'):
-            if path.name != 'Theme.lvui':
+            if path.name != 'Layout.lvui':
                 with self.subTest(path=path.name):
                     self.assertEqual(lvui_violations(path.read_text(encoding="utf-8")), [])
         cmake = (ROOT / 'CMakeLists.txt').read_text(encoding="utf-8")
-        calls = re.findall(r'lvui_generate\([^\n]+', cmake)
-        self.assertEqual(len(calls), 3)
+        calls = re.findall(r'lvui_generate\([^)]*\)', cmake, flags=re.DOTALL)
+        views = {name for call in calls for name in re.findall(r'SOURCE App/Native/views/(Main|Preferences|CanvasSetup)\.lvui', call)}
+        self.assertEqual(views, {'Main', 'Preferences', 'CanvasSetup'})
         self.assertTrue(all('STYLE_FILE "${_style_profile}"' in c for c in calls))
         self.assertIn('lvui_generate_styles(', cmake)
         style = (ROOT / 'App/Native/Style.h').read_text(encoding="utf-8")

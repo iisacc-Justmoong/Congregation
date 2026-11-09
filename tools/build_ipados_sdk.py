@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Build the Qt-free iPadOS SDK graph into an isolated Workspace prefix."""
-import argparse, fcntl, hashlib, json, os, pathlib, shutil, subprocess, tarfile, urllib.request
+import argparse, fcntl, hashlib, io, json, os, pathlib, shutil, subprocess, sys, tarfile, tempfile, urllib.request
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from ipados_sdk_coherence import STAGES as COHERENCE_STAGES, invalidate as invalidate_generation, record as record_generation
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 SDK=ROOT/'SDK'
 WORK=SDK/'build/congregation-ipados'
 PREFIX=WORK/'prefix'
 VENDOR=WORK/'vendor'
 ENV={k:v for k,v in os.environ.items() if not k.startswith('DYLD_') and k not in ('CPATH','CPLUS_INCLUDE_PATH','C_INCLUDE_PATH','LIBRARY_PATH','LD_LIBRARY_PATH','CMAKE_PREFIX_PATH','CMAKE_INCLUDE_PATH','CMAKE_LIBRARY_PATH')}
+JSON_COMPAT_REVISION='1a428a4135bf1f3d55173dd0cb075a4b9850dc3a'
 SYSROOT=subprocess.check_output(['xcrun','--sdk','iphoneos','--show-sdk-path'],text=True).strip()
-COMMON=['-G','Ninja','-DCMAKE_SYSTEM_NAME=iOS','-DCMAKE_SYSTEM_VERSION=18.0','-DCMAKE_SYSTEM_PROCESSOR=arm64','-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON','-DCMAKE_OSX_SYSROOT=iphoneos','-DCMAKE_OSX_ARCHITECTURES=arm64','-DCMAKE_OSX_DEPLOYMENT_TARGET=18.0','-DCMAKE_BUILD_TYPE=Release','-DCMAKE_MACOSX_BUNDLE=OFF','-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY','-DBUILD_SHARED_LIBS=OFF','-DBUILD_TESTING=OFF','-DCMAKE_INSTALL_PREFIX='+str(PREFIX),'-DCMAKE_PREFIX_PATH='+str(PREFIX),'-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH','-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER','-DCMAKE_FIND_FRAMEWORK=LAST','-DZLIB_LIBRARY='+SYSROOT+'/usr/lib/libz.tbd','-DZLIB_INCLUDE_DIR='+SYSROOT+'/usr/include','-DLIBXML2_LIBRARY='+SYSROOT+'/usr/lib/libxml2.tbd','-DLIBXML2_INCLUDE_DIR='+SYSROOT+'/usr/include/libxml2','-DVulkan_LIBRARY='+str(PREFIX/'lib/libMoltenVK.a'),'-DVulkan_INCLUDE_DIR='+str(PREFIX/'include'),'-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON','-DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON']
+COMMON=['-G','Ninja','-DCMAKE_SYSTEM_NAME=iOS','-DCMAKE_SYSTEM_VERSION=18.0','-DCMAKE_SYSTEM_PROCESSOR=arm64','-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON','-DCMAKE_OSX_SYSROOT=iphoneos','-DCMAKE_OSX_ARCHITECTURES=arm64','-DCMAKE_OSX_DEPLOYMENT_TARGET=18.0','-DCMAKE_BUILD_TYPE=Release','-DCMAKE_MACOSX_BUNDLE=OFF','-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY','-DBUILD_SHARED_LIBS=OFF','-DBUILD_TESTING=OFF','-DCMAKE_INSTALL_PREFIX='+str(PREFIX),'-DCMAKE_PREFIX_PATH='+str(PREFIX),'-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH','-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER','-DCMAKE_FIND_FRAMEWORK=LAST','-DZLIB_LIBRARY='+SYSROOT+'/usr/lib/libz.tbd','-DZLIB_INCLUDE_DIR='+SYSROOT+'/usr/include','-DLIBXML2_LIBRARY='+SYSROOT+'/usr/lib/libxml2.tbd','-DLIBXML2_INCLUDE_DIR='+SYSROOT+'/usr/include/libxml2','-DVulkan_LIBRARY='+str(PREFIX/'lib/libMoltenVK.a'),'-DVulkan_INCLUDE_DIR='+str(PREFIX/'include'),'-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON','-DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON','-DCMAKE_DISABLE_FIND_PACKAGE_LVRS=ON']
 def run(args,log,cwd=None,env=None):
  log.parent.mkdir(parents=True,exist_ok=True)
  print('BUILD',log,flush=True)
@@ -23,6 +26,33 @@ def cmake(source,build,options=(),targets=()):
  run(['cmake','--fresh','-S',source,'-B',build,*COMMON,*native_dependencies,*options],build.parent/'configure.log')
  run(['cmake','--build',build,'--parallel','4',*(['--target',*targets] if targets else [])],build.parent/'build.log')
  run(['cmake','--install',build],build.parent/'install.log')
+def prepare_compatible_json():
+ # Match the Core-value JSON API used by the currently staged product and network.
+ # Keep the immutable source snapshot outside all build directories.
+ root=SDK/'iiJson/resources/dependencies/congregation-ipados'
+ source=root/'iiJson'
+ root.mkdir(parents=True,exist_ok=True)
+ WORK.mkdir(parents=True,exist_ok=True)
+ with (WORK/'json-source.lock').open('a') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX)
+  if source.exists():
+   marker=source/'.iisacc-source-revision'
+   if not marker.is_file() or marker.read_text().strip()!=JSON_COMPAT_REVISION:
+    raise SystemExit('Existing iPad JSON source is not the expected immutable revision: '+str(source))
+   for name in ['CMakeLists.txt','src/iiJson/Json.h','src/iiJson/Json.cpp',
+                'cmake/iiJsonConfig.cmake.in','tests/boundary.py']:
+    expected=subprocess.check_output(['git','-C',str(SDK/'iiJson'),'show',JSON_COMPAT_REVISION+':'+name],env=ENV)
+    if not (source/name).is_file() or (source/name).read_bytes()!=expected:
+     raise SystemExit('Existing iPad JSON source was modified: '+str(source/name))
+   return source
+  archive=subprocess.check_output(['git','-C',str(SDK/'iiJson'),'archive','--format=tar',JSON_COMPAT_REVISION],env=ENV)
+  with tempfile.TemporaryDirectory(prefix='iiJson-',dir=root) as temporary:
+   tree=pathlib.Path(temporary)/'source';tree.mkdir()
+   with tarfile.open(fileobj=io.BytesIO(archive),mode='r:') as tar:
+    tar.extractall(tree,filter='data')
+   (tree/'.iisacc-source-revision').write_text(JSON_COMPAT_REVISION+'\n')
+   tree.rename(source)
+ return source
 def archive(name,url):
  VENDOR.mkdir(parents=True,exist_ok=True)
  path=VENDOR/name
@@ -109,9 +139,14 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('stage',choices=['base','vendors','crypto','codecs','files','network','canvas','gui','all']);a=p.parse_args();PREFIX.mkdir(parents=True,exist_ok=True)
  stages=['base','vendors','crypto','codecs','files','network','canvas','gui'] if a.stage=='all' else [a.stage]
  for stage in stages:
+  invalidate_stage={'base':'base','vendors':'gui','crypto':'network','codecs':'canvas',
+                    'files':'files','network':'network','canvas':'canvas','gui':'gui'}[stage]
+  invalidate_generation(WORK, invalidate_stage)
   if stage=='base':
    cmake(SDK/'iiSDKCore',SDK/'iiSDKCore/build/ipados/build',['-DIISDKCORE_BUILD_EXAMPLES=OFF'])
-   for m in ['iiJson','LVUI']:cmake(SDK/m,SDK/m/'build/ipados/build')
+   cmake(prepare_compatible_json(),SDK/'iiJson/build/ipados/build')
+   cmake(SDK/'iiColorManager',SDK/'iiColorManager/build/ipados/build')
+   cmake(SDK/'LVUI',SDK/'LVUI/build/ipados/build',['-DLVUI_BUILD_COLOR_ADAPTER=ON'])
   elif stage=='vendors':
    prepare_moltenvk()
   elif stage=='crypto':
@@ -119,7 +154,8 @@ def main():
   elif stage=='codecs':
    codecs()
   elif stage=='files':
-   cmake(SDK/'iiFileProvider',SDK/'iiFileProvider/build/ipados/build',['-DIIFILEPROVIDER_BUILD_QT_API=OFF','-DIIFILEPROVIDER_BUILD_CORE_IO=ON','-DIIFILEPROVIDER_BUILD_TOOLS=OFF'])
+   cmake(SDK/'iiFileProvider',SDK/'iiFileProvider/build/ipados/build',['-DIIFILEPROVIDER_BUILD_QT_API=OFF','-DIIFILEPROVIDER_BUILD_CORE_IO=OFF','-DIIFILEPROVIDER_BUILD_TOOLS=OFF'])
+   cmake(SDK/'iiFileProvider/example/CoreIO',SDK/'iiFileProvider/build/ipados-coreio/build')
    cmake(SDK/'iiFileProvider/Compatibility',SDK/'iiFileProvider/build/ipados-compatibility/build')
   elif stage=='network':
    # iiNetwork reserves its top-level build/ for host development. Consume it
@@ -130,10 +166,13 @@ def main():
    for m,opt in [('iiAccountManager','IIACCOUNTMANAGER_BUILD_QT_API'),('iiUpdateManager','IIUPDATEMANAGER_BUILD_QT_API')]:cmake(SDK/m,SDK/m/'build/ipados/build',['-D'+opt+'=OFF','-DIILICENSEMANAGER_NATIVE_SODIUM_ROOT='+str(PREFIX)])
   elif stage=='canvas':
    cmake(SDK/'iiPaintEngine',SDK/'iiPaintEngine/build/ipados/build',['-DIIPAINTENGINE_BUILD_SHARED=OFF','-DIIPAINTENGINE_BUILD_EXAMPLES=OFF'])
-   cmake(SDK/'iiImageCodec',SDK/'iiImageCodec/build/ipados/build')
+   cmake(SDK/'iiGraphicAdjust',SDK/'iiGraphicAdjust/build/ipados/build')
+   cmake(SDK/'iiVisualCodec',SDK/'iiVisualCodec/build/ipados/build',[
+    '-DIIVISUALCODEC_VIDEO=OFF','-DIIVISUALCODEC_USD=OFF','-DIIVISUALCODEC_OPENCV=OFF',
+    '-DIIVISUALCODEC_3D=OFF','-DIIVISUALCODEC_CAD=OFF'])
    cmake(SDK/'iiSharedCanvas',SDK/'iiSharedCanvas/build/ipados/build',['-DIISHAREDCANVAS_BUILD_QT_API=OFF'])
   elif stage=='gui':
-   cmake(SDK/'iiGUI',SDK/'iiGUI/build/ipados/build',prepare_moltenvk()+['-DIIGUI_BUILD_EXAMPLES=OFF','-DFETCHCONTENT_SOURCE_DIR_LUNASVG='+str(SDK/'iiGUI/build/dependencies/lunasvg/source')])
-   cmake(SDK/'LVRS',SDK/'LVRS/build/ipados/build',['-DLVRS_BACKEND=native','-DLVRS_BUILD_EXAMPLES=OFF'])
+   cmake(SDK/'iiGUI',SDK/'iiGUI/build/ipados/build',prepare_moltenvk()+['-DIIGUI_BUILD_EXAMPLES=OFF','-DFETCHCONTENT_SOURCE_DIR_LUNASVG='+str(SDK/'iiGUI/resources/dependencies/lunasvg')])
+  if stage in COHERENCE_STAGES: record_generation(PREFIX, WORK, stage)
  print('IPADOS_SDK_STAGE_OK',a.stage,flush=True)
 if __name__=='__main__':main()

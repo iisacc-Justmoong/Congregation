@@ -2,7 +2,8 @@
 #include "Artwork.h"
 #include "EditorLayout.h"
 #include "Style.h"
-#include "WidgetStyle.h"
+#include "OwnedWidgetStyle.h"
+#include <LVUI/NativeAuthoredIcons.h>
 #include <algorithm>
 #include <iiFileProviderNative.h>
 #include <iiImageCodec/ImageCodec.h>
@@ -30,7 +31,7 @@ std::shared_ptr<const ii::gui::RasterImage> load_image(const std::filesystem::pa
     auto srgb = ii::image::to_srgb(*decoded);
     if (!srgb)
         throw std::runtime_error(srgb.error().message);
-    return widgets::take(ii::gui::rgba_image(srgb->width, srgb->height, std::move(srgb->rgba)));
+    return owned_widgets::take(ii::gui::rgba_image(srgb->width, srgb->height, std::move(srgb->rgba)));
 }
 } // namespace
 AssetLibraryView::AssetLibraryView(std::shared_ptr<congregation::ui::EditorBackend> vm,
@@ -40,7 +41,7 @@ AssetLibraryView::AssetLibraryView(std::shared_ptr<congregation::ui::EditorBacke
 }
 ii::gui::Widget AssetLibraryView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
 {
-    using namespace widgets;
+    using namespace owned_widgets;
     Builder b(raw, "library/");
     auto viewport = take(raw.scroll_view(parent, "sidebar", {.width = Metric::sidebarWidth}));
     auto root = b.column(viewport, "asset-library-content", Metric::sidebarWidth,
@@ -82,8 +83,7 @@ ii::gui::Widget AssetLibraryView::build(ii::gui::WidgetBuilder &raw, ii::gui::Wi
         take(b.controls.input_field(root, "asset-search",
                                     {.placeholder = "Search assets",
                                      .width = Metric::size216,
-                                     .accessibility_name = "Search Society assets",
-                                     .style = ii::gui::InputStyle{.height = Metric::size22}},
+                                     .accessibility_name = "Search Society assets"},
                                     [weak](std::string text)
                                     {
                                         if (auto s = weak.lock())
@@ -183,13 +183,14 @@ ii::gui::Widget AssetLibraryView::build(ii::gui::WidgetBuilder &raw, ii::gui::Wi
     b.icon(previewTitle, {}, "generalopen",
            [vm = vm_] { vm->send(congregation::ui::Action::choose_asset_library); });
     borders(previewTitle, true);
-    preview_card_ = take(lvrs::Card::create(raw, root, "asset-preview",
-                                            {.type = lvrs::CardType::file_preview,
-                                             .display_state = lvrs::CardDisplayState::selected,
-                                             .selected = true,
-                                             .width = Metric::size216,
-                                             .height = Metric::size160}));
-    preview_ = preview_card_.root();
+    lvui_host::CardInput preview_options;
+    preview_options.configuration.type = lvui::CardType::file_preview;
+    preview_options.configuration.display_state = lvui::CardDisplayState::selected;
+    preview_options.configuration.selected = true;
+    preview_options.configuration.width = Metric::size216;
+    preview_options.configuration.height = Metric::size160;
+    preview_card_ = take(lvui_host::Card::create(raw, root, "asset-preview", preview_options));
+    preview_ = preview_card_->root();
     name_ = b.label(root, "", Metric::textCaption, "asset-selected-name");
     metadata_ = b.label(root, "Local copy · Available offline", Metric::textCaption);
     auto actions = b.row(root);
@@ -229,17 +230,21 @@ ii::gui::Widget AssetLibraryView::build(ii::gui::WidgetBuilder &raw, ii::gui::Wi
     good(bindings_->bind(root, vm_->asset_root,
                          [weak](Widget, const std::string &path) -> ii::core::Result<void>
                          {
-                             if (auto s = weak.lock())
+                             if (auto s = weak.lock(); s && s->published_)
                                  s->reload(path);
                              return {};
                          }));
+    good(raw.on_publish([weak] {
+        if (auto s = weak.lock()) { s->published_ = true; s->reload(s->vm_->asset_root.get()); }
+    }));
+    good(raw.on_retire([weak] { if (auto s = weak.lock()) s->published_ = false; }));
     return root;
 }
 void AssetLibraryView::reload(std::string root)
 {
     entries_.clear();
     selected_ = 0;
-    widgets::good(location_.set_text(root.empty() ? "Storage / Asset Library" : root));
+    owned_widgets::good(location_.set_text(root.empty() ? "Storage / Asset Library" : root));
     if (root.empty())
         entries_ = {{"Coastal house.png", "PNG · 1536 × 1024", "fileTypesimage", "coast",
                      bundled_ / "coastal-house.png"},
@@ -273,19 +278,19 @@ void AssetLibraryView::reload(std::string root)
         select(0);
     else
     {
-        widgets::good(name_.set_text("No supported images in this folder"));
-        auto options = widgets::take(preview_card_.options());
-        options.title = "No asset selected";
-        options.metadata = "Choose a local library folder";
-        options.preview_source = {};
-        widgets::good(preview_card_.set_options(std::move(options)));
+        owned_widgets::good(name_.set_text("No supported images in this folder"));
+        auto options = owned_widgets::take(preview_card_->options());
+        options.configuration.title = "No asset selected";
+        options.configuration.metadata = "Choose a local library folder";
+        options.preview = {};
+        owned_widgets::good(preview_card_->set_options(std::move(options)));
     }
 }
 ii::core::Result<void> AssetLibraryView::results(ii::gui::WidgetBuilder &raw)
 {
     try
     {
-        using namespace widgets;
+        using namespace owned_widgets;
         Builder b(raw, "asset-row/");
         auto root = b.column({}, "asset-list", 0, 0);
         entry_rows_.clear();
@@ -301,8 +306,8 @@ ii::core::Result<void> AssetLibraryView::results(ii::gui::WidgetBuilder &raw)
                                            s->select(i);
                                    });
             (void)button;
-            auto metadata = b.row(row, {}, 0, Metric::size11, Metric::space0);
-            auto indent = b.column(metadata, {}, Metric::size26, Metric::size11);
+            auto metadata = b.row(row, {}, 0, Metric::textCaptionLineHeight, Metric::space0);
+            auto indent = b.column(metadata, {}, Metric::size26, Metric::textCaptionLineHeight);
             (void)indent;
             b.label(metadata, entry.metadata, Metric::textCaption);
             entry_rows_.push_back(row);
@@ -318,7 +323,7 @@ ii::core::Result<void> AssetLibraryView::results(ii::gui::WidgetBuilder &raw)
 void AssetLibraryView::refresh()
 {
     const auto weak = weak_from_this();
-    widgets::good(results_.set_content(
+    owned_widgets::good(results_.set_content(
         [weak](ii::gui::WidgetBuilder &b) -> ii::core::Result<void>
         {
             if (auto s = weak.lock())
@@ -347,14 +352,14 @@ void AssetLibraryView::refresh()
                            (scope_ == "Saved" && saved_.contains(e.key));
         const bool visible =
             scope && in_category(e, category_) && lower(e.name).find(filter_) != std::string::npos;
-        widgets::good(entry_rows_[i].set_visible(visible));
+        owned_widgets::good(entry_rows_[i].set_visible(visible));
         shown += visible;
     }
     for (const auto &[category, widget] : collection_counts_)
-        widgets::good(widget.set_text(std::to_string(counts[category])));
+        owned_widgets::good(widget.set_text(std::to_string(counts[category])));
 
-    widgets::good(results_.set_extent({Metric::size216, double(shown * Metric::libraryRowHeight)}));
-    widgets::good(count_.set_text(std::to_string(shown) + " assets"));
+    owned_widgets::good(results_.set_extent({Metric::size216, double(shown * Metric::libraryRowHeight)}));
+    owned_widgets::good(count_.set_text(std::to_string(shown) + " assets"));
 }
 void AssetLibraryView::select(std::size_t index)
 {
@@ -363,18 +368,19 @@ void AssetLibraryView::select(std::size_t index)
     selected_ = index;
     const auto &entry = entries_[index];
     recent_.insert(entry.key);
-    widgets::good(
+    owned_widgets::good(
         name_.set_text("Asset Library / " + (entry.path.empty() ? entry.metadata : "References")));
     try
     {
         auto image = entry.path.empty()
-                         ? widgets::take(lvrs::Icons::image(entry.icon, Metric::assetThumbnailSize))
+                         ? owned_widgets::take(lvui::native::design_icon_image<ii::gui::CachedSvgDecoder>(entry.icon, Metric::assetThumbnailSize))
                          : load_image(entry.path);
-        auto options = widgets::take(preview_card_.options());
-        options.title = entry.name;
-        options.metadata = entry.metadata;
-        options.preview_source = std::move(image);
-        widgets::good(preview_card_.set_options(std::move(options)));
+        auto options = owned_widgets::take(preview_card_->options());
+        options.configuration.title = entry.name;
+        options.configuration.preview_title = entry.name;
+        options.configuration.metadata = entry.metadata;
+        options.preview = std::move(image);
+        owned_widgets::good(preview_card_->set_options(std::move(options)));
     }
     catch (const std::exception &e)
     {
@@ -388,10 +394,10 @@ void AssetLibraryView::insert()
     const auto &e = entries_[selected_];
     if (!e.path.empty())
     {
-        if (vm_->asset_inserted)
-            vm_->asset_inserted(e.path);
+        if (auto callback = vm_->asset_inserted)
+            callback(e.path);
     }
-    else if (vm_->builtin_asset_inserted)
-        vm_->builtin_asset_inserted(e.key);
+    else if (auto callback = vm_->builtin_asset_inserted)
+        callback(e.key);
 }
 } // namespace congregation::native

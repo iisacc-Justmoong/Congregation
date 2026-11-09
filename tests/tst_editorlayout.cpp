@@ -26,32 +26,37 @@ int main()
         check(std::isfinite(f.scale) && f.scale > 0, "Tiny viewport generated invalid scale");
         f = editor::fit(0, 0, 0, 0);
         check(f.scale == 1, "Invalid viewport must have deterministic fallback");
-        check(editor::pressure_value(6) == 1 && editor::pressure_value(46) == .5 &&
-                  editor::pressure_value(86) == 0,
+        check(editor::pressure_value(6, 92) == 1 && editor::pressure_value(46, 92) == .5 &&
+                  editor::pressure_value(86, 92) == 0,
               "Pressure graph axis changed");
-        check(editor::pressure_value(-100) == 1 && editor::pressure_value(1000) == 0,
+        check(editor::pressure_value(-100, 92) == 1 && editor::pressure_value(1000, 92) == 0,
               "Pressure graph did not clamp input");
+        check(editor::pressure_value(26, 92) == .75 && editor::pressure_value(66, 92) == .25,
+              "Pressure graph grid intervals and input mapping diverged");
+        check(editor::pressure_value(6, 172) == 1 && editor::pressure_value(86, 172) == .5 &&
+                  editor::pressure_value(166, 172) == 0 && editor::pressure_value(0, 12) == 0,
+              "Pressure mapping did not follow the allocated view height");
         check(editor::pressure_point(6, 316) == 0 && editor::pressure_point(158, 316) == 1 &&
                   editor::pressure_point(310, 316) == 2,
               "Pressure graph handles are not independently addressable");
         const auto c = editor::linear(editor::workspace);
-        check(std::abs(c.red - .00699541) < 1e-6,
-              "Workspace encoded sRGB was treated as linear light");
+        check(std::abs(c.red - .005092162612308555) < 1e-9,
+              "Workspace must use the shared LVRS canvas color in linear light");
         const auto edge = editor::panel_edge_color();
-        check(std::abs(edge.red * 255 - 12) < 1e-5 && std::abs(edge.green * 255 - 12) < 1e-5 &&
-                  std::abs(edge.blue * 255 - 12) < 1e-5 && edge.alpha == 1,
-              "Panel borders must use opaque near-black gray");
+        check(edge == Color::canvas, "Panel borders must use the LVRS canvas token");
         const auto linear_edge = editor::linear(edge);
-        check(std::abs(linear_edge.red - .003676507) < 1e-7 &&
-                  std::abs(linear_edge.green - .003676507) < 1e-7 &&
-                  std::abs(linear_edge.blue - .003676507) < 1e-7 && linear_edge.alpha == 1,
-              "Near-black panel borders must be converted from sRGB to linear light");
+        check(std::abs(linear_edge.red - .005092162612308555) < 1e-9 &&
+                  std::abs(linear_edge.blue - .005287150125039124) < 1e-9,
+              "Panel borders must be converted from shared sRGB to linear light");
+        const ii::gui::WidgetColor window{26. / 255, 27. / 255, 29. / 255, 1};
+        check(editor::window_background() == window, "Main window must preserve the authored blue accent tint");
         const auto detail = editor::detail_line_color();
-        check(std::abs(detail.red * 255 - 48.2) < 1e-5 &&
-                  std::abs(detail.green * 255 - 50.84) < 1e-5 &&
-                  std::abs(detail.blue * 255 - 52.6) < 1e-5 && detail.alpha == 1,
-              "Timeline and ruler detail lines must retain their composited color");
-        check(editor::over_window({1, 1, 1, 0}) == editor::window_background,
+        const auto dense = Color::materialSurfaceDenseEdge;
+        check(std::abs(detail.red - (dense.red * dense.alpha + window.red * (1-dense.alpha))) < 1e-12 &&
+                  std::abs(detail.green - (dense.green * dense.alpha + window.green * (1-dense.alpha))) < 1e-12 &&
+                  std::abs(detail.blue - (dense.blue * dense.alpha + window.blue * (1-dense.alpha))) < 1e-12,
+              "Timeline details must use the shared dense edge and window");
+        check(editor::over_window({1, 1, 1, 0}) == window,
               "A transparent overlay changed the window color");
         check(editor::over_window({1, 0, 0, 1}) == ii::gui::WidgetColor{1, 0, 0, 1},
               "An opaque overlay retained the background tint");

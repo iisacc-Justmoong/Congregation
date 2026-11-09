@@ -1,5 +1,6 @@
 <script>
 import vm congregation.ui.EditorBackend
+import host congregation.native.NativeViewBackend
 </script>
 <ApplicationWindow title="Congregation" width={Metric.windowWidth} height={Metric.windowHeight} minimumWidth={Metric.windowMinimumWidth} minimumHeight={Metric.windowMinimumHeight}>
   <div id="activation-shell" style=" display: flex; flex-direction: column; gap: Metric.space0; align-items: stretch; flex: 1">
@@ -7,21 +8,179 @@ import vm congregation.ui.EditorBackend
     <Spacer/>
     <AppCard id="activation" width={Metric.size540} height={Metric.size340}>
       <div style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch">
-      <Label text="Sign in to Congregation" fontSize={Metric.font24} fontWeight={Metric.weightSemiBold}/>
-      <Label text="Use your iisacc account. Your browser opens the secure sign-in page." fontSize={Metric.textBody}/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space12"><Label text="Account" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.account_email} fontSize={Metric.textBody}/></div>
-      <Label text="Accounts, connected devices and licenses are managed in Society." fontSize={Metric.textDescription}/>
-      <Label id="account-status" text={vm.account_status} fontSize={Metric.textDescription}/>
-      <Button id="account-open-society" text="Open Society" onClick={vm.open_society}/>
-      <Button id="activate" text="Sign in at iisacc.com" enabled={vm.can_activate} onClick={vm.activate}/>
+      <Label text={vm.account_title} fontSize={Metric.textTitle} fontWeight={Metric.weightSemiBold}/>
+      <Label text={vm.account_description} fontSize={Metric.textBody}/>
+      <div style="display: flex; flex-direction: row; gap: Metric.space12"><Label text="Account"/><Spacer/><Label text={vm.account_email} fontSize={Metric.textBody}/></div>
+      <Label text="Congregation is free. Your account is used to verify access."/>
+      <Label id="account-status" text={vm.account_status}/>
+      <Button id="account-open-society" text={vm.account_button} onClick={vm.open_society}/>
+      <Button id="activate" text="Check license" enabled={vm.can_activate} onClick={vm.restore_license}/>
       <div style="display: flex; flex-direction: row; gap: Metric.space8">
-        <Button id="refresh-license" visible={vm.signed_in} text="Check license again" enabled={vm.can_activate} onClick={vm.restore_license}/>
         <Button id="cancel-sign-in" visible={vm.signing_in} text="Cancel" onClick={vm.cancel_sign_in}/>
-        <Button id="sign-out" visible={vm.signed_in} text="Sign out" onClick={vm.forget_license}/>
       </div>
       </div>
     </AppCard>
     <Spacer/>
+    </div>
+    <div id="workspace-screen" visible={vm.licensed} style="display: flex; flex-direction: column; gap: Metric.space0; align-items: stretch; flex: 1">
+      <div id="toolbar" visible={vm.chrome_visible} style="display: flex; flex-direction: column; gap: Metric.space0; height: Metric.toolbarHeight">
+        <div height={Metric.toolbarHeight - Metric.stroke1} style="display: flex; flex-direction: row; gap: Metric.space0; align-items: stretch">
+          <div style="width: Metric.space4"/>
+          <div style="display: flex; flex-direction: row; gap: Metric.space4; align-items: center; flex: 1">
+          <IconButton id="open" iconName="generalopen" accessibilityName="generalopen" tone={.borderless} onClick={vm.open}/>
+          <IconButton id="save" iconName="generalsave" accessibilityName="generalsave" tone={.borderless} onClick={vm.save}/>
+          <IconButton id="undo" iconName="generalundo" accessibilityName="generalundo" tone={.borderless} onClick={vm.undo}/>
+          <IconButton id="redo" iconName="generalredo" accessibilityName="generalredo" tone={.borderless} onClick={vm.redo}/>
+          <ComboBox id="transform-mode" text="Free transform" arrow={.down} width={Metric.size148} onClick={vm.select}/>
+          <IconButton id="command-align-left" iconName="align-left" accessibilityName="align-left" tone={.borderless} onClick={vm.align_left}/>
+          <IconButton id="command-align-center" iconName="align-center" accessibilityName="align-center" tone={.borderless} onClick={vm.align_center}/>
+          <IconButton id="command-align-right" iconName="align-right" accessibilityName="align-right" tone={.borderless} onClick={vm.align_right}/>
+          <IconButton id="command-align-top" iconName="align-top" accessibilityName="align-top" tone={.borderless} onClick={vm.align_top}/>
+          <IconButton id="command-align-middle" iconName="align-middle" accessibilityName="align-middle" tone={.borderless} onClick={vm.align_middle}/>
+          <IconButton id="command-align-bottom" iconName="align-bottom" accessibilityName="align-bottom" tone={.borderless} onClick={vm.align_bottom}/>
+          <IconButton id="command-distribute-horizontal" iconName="distribute-horizontal" accessibilityName="distribute-horizontal" tone={.borderless} onClick={vm.distribute_horizontal}/>
+          <IconButton id="command-distribute-vertical" iconName="distribute-vertical" accessibilityName="distribute-vertical" tone={.borderless} onClick={vm.distribute_vertical}/>
+          <IconButton id="command-flip-horizontal" iconName="flip-horizontal" accessibilityName="flip-horizontal" tone={.borderless} onClick={vm.flip_horizontal}/>
+          <IconButton id="command-flip-vertical" iconName="flip-vertical" accessibilityName="flip-vertical" tone={.borderless} onClick={vm.flip_vertical}/>
+          <IconButton id="command-rotate-left" iconName="rotate-left" accessibilityName="rotate-left" tone={.borderless} onClick={vm.rotate_left}/>
+          <IconButton id="command-rotate-right" iconName="rotate-right" accessibilityName="rotate-right" tone={.borderless} onClick={vm.rotate_right}/>
+          <IconButton id="command-perspective-grid" iconName="perspective-grid" accessibilityName="perspective-grid" tone={.borderless} onClick={vm.perspective_grid}/>
+          <IconButton id="command-symmetry-paint" iconName="symmetry-paint" accessibilityName="symmetry-paint" tone={.borderless} onClick={vm.symmetry_paint}/>
+          <IconButton id="command-grid" iconName="grid" accessibilityName="grid" tone={.borderless} onClick={vm.toggle_grid}/>
+          <IconButton id="command-rulers" iconName="rulers" accessibilityName="rulers" tone={.borderless} onClick={vm.toggle_rulers}/>
+          <IconButton id="command-snap" iconName="snap" accessibilityName="snap" tone={.borderless} onClick={vm.toggle_snap}/>
+          <Spacer/>
+          <ComboBox id="document-color-mode" text="sRGB / 8-bit" tone={.borderless} arrow={.down} width={Metric.size160} onClick={vm.show_document_options}/>
+          <IconButton id="brush-color" iconName="color-picker" accessibilityName="color-picker" tone={.borderless} onClick={vm.open_color}/>
+          <IconButton id="export" iconName="generalexport" accessibilityName="generalexport" tone={.borderless} onClick={vm.export_document}/>
+          <IconButton id="preferences" iconName="settings" accessibilityName="settings" tone={.borderless} onClick={vm.preferences}/>
+          </div>
+          <div style="width: Metric.space4"/>
+        </div>
+        <MenuDivider thickness={Metric.stroke1} crossPadding={Metric.space0} dividerColor={Color.canvas}/>
+      </div>
+      <div id="workspace-body" style="display: flex; flex-direction: row; gap: Metric.space0; align-items: stretch; flex: 1">
+        <div id="tool-rail" visible={vm.chrome_visible} width={2 * vm.tool_button_extent + Metric.space2 + 2 * Metric.space4} style="display: flex; flex-direction: row; gap: Metric.space0; align-items: stretch">
+          <div width={2 * vm.tool_button_extent + Metric.space2 + 2 * Metric.space4 - Metric.stroke1} style="display: flex; flex-direction: column; gap: Metric.space2; padding: Metric.space4; align-items: stretch">
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="select" iconName="move" accessibilityName="move" tone={vm.selected_tool == "move" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_move}/>
+              <IconButton id="tool-rect-marquee" iconName="rect-marquee" accessibilityName="rect-marquee" tone={vm.selected_tool == "rect-marquee" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_rect_marquee}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-ellipse-marquee" iconName="ellipse-marquee" accessibilityName="ellipse-marquee" tone={vm.selected_tool == "ellipse-marquee" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_ellipse_marquee}/>
+              <IconButton id="tool-lasso" iconName="lasso" accessibilityName="lasso" tone={vm.selected_tool == "lasso" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_lasso}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-polygon-lasso" iconName="polygon-lasso" accessibilityName="polygon-lasso" tone={vm.selected_tool == "polygon-lasso" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_polygon_lasso}/>
+              <IconButton id="tool-magnetic-lasso" iconName="magnetic-lasso" accessibilityName="magnetic-lasso" tone={vm.selected_tool == "magnetic-lasso" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_magnetic_lasso}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-magic-wand" iconName="magic-wand" accessibilityName="magic-wand" tone={vm.selected_tool == "magic-wand" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_magic_wand}/>
+              <IconButton id="tool-crop" iconName="crop" accessibilityName="crop" tone={vm.selected_tool == "crop" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_crop}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-perspective-crop" iconName="perspective-crop" accessibilityName="perspective-crop" tone={vm.selected_tool == "perspective-crop" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_perspective_crop}/>
+              <IconButton id="tool-color-picker" iconName="color-picker" accessibilityName="color-picker" tone={vm.selected_tool == "color-picker" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_color_picker}/>
+            </div>
+            <MenuDivider lineLength={2 * vm.tool_button_extent + Metric.space2} dividerColor={Color.canvas}/>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="brush" iconName="brush" accessibilityName="brush" tone={vm.selected_tool == "brush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_brush}/>
+              <IconButton id="tool-pencil" iconName="pencil" accessibilityName="pencil" tone={vm.selected_tool == "pencil" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_pencil}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-airbrush" iconName="airbrush" accessibilityName="airbrush" tone={vm.selected_tool == "airbrush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_airbrush}/>
+              <IconButton id="tool-mixer-brush" iconName="mixer-brush" accessibilityName="mixer-brush" tone={vm.selected_tool == "mixer-brush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_mixer_brush}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-dry-brush" iconName="dry-brush" accessibilityName="dry-brush" tone={vm.selected_tool == "dry-brush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_dry_brush}/>
+              <IconButton id="tool-bristle-brush" iconName="bristle-brush" accessibilityName="bristle-brush" tone={vm.selected_tool == "bristle-brush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_bristle_brush}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="eraser" iconName="eraser" accessibilityName="eraser" tone={vm.selected_tool == "eraser" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_eraser}/>
+              <IconButton id="tool-gradient" iconName="gradient" accessibilityName="gradient" tone={vm.selected_tool == "gradient" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_gradient}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="fill" iconName="paint-bucket" accessibilityName="paint-bucket" tone={vm.selected_tool == "paint-bucket" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_paint_bucket}/>
+              <IconButton id="tool-smudge" iconName="smudge" accessibilityName="smudge" tone={vm.selected_tool == "smudge" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_smudge}/>
+            </div>
+            <MenuDivider lineLength={2 * vm.tool_button_extent + Metric.space2} dividerColor={Color.canvas}/>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-clone-stamp" iconName="clone-stamp" accessibilityName="clone-stamp" tone={vm.selected_tool == "clone-stamp" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_clone_stamp}/>
+              <IconButton id="tool-pattern-stamp" iconName="pattern-stamp" accessibilityName="pattern-stamp" tone={vm.selected_tool == "pattern-stamp" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_pattern_stamp}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-healing-brush" iconName="healing-brush" accessibilityName="healing-brush" tone={vm.selected_tool == "healing-brush" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_healing_brush}/>
+              <IconButton id="tool-spot-heal" iconName="spot-heal" accessibilityName="spot-heal" tone={vm.selected_tool == "spot-heal" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_spot_heal}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-blur" iconName="blur" accessibilityName="blur" tone={vm.selected_tool == "blur" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_blur}/>
+              <IconButton id="tool-sharpen" iconName="sharpen" accessibilityName="sharpen" tone={vm.selected_tool == "sharpen" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_sharpen}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-dodge" iconName="dodge" accessibilityName="dodge" tone={vm.selected_tool == "dodge" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_dodge}/>
+              <IconButton id="tool-burn" iconName="burn" accessibilityName="burn" tone={vm.selected_tool == "burn" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_burn}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-sponge" iconName="sponge" accessibilityName="sponge" tone={vm.selected_tool == "sponge" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_sponge}/>
+              <IconButton id="tool-liquify" iconName="liquify" accessibilityName="liquify" tone={vm.selected_tool == "liquify" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_liquify}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-warp" iconName="warp" accessibilityName="warp" tone={vm.selected_tool == "warp" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_warp}/>
+            </div>
+            <MenuDivider lineLength={2 * vm.tool_button_extent + Metric.space2} dividerColor={Color.canvas}/>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-pen" iconName="pen" accessibilityName="pen" tone={vm.selected_tool == "pen" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_pen}/>
+              <IconButton id="tool-curvature-pen" iconName="curvature-pen" accessibilityName="curvature-pen" tone={vm.selected_tool == "curvature-pen" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_curvature_pen}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-direct-select" iconName="direct-select" accessibilityName="direct-select" tone={vm.selected_tool == "direct-select" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_direct_select}/>
+              <IconButton id="tool-add-anchor" iconName="add-anchor" accessibilityName="add-anchor" tone={vm.selected_tool == "add-anchor" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_add_anchor}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-delete-anchor" iconName="delete-anchor" accessibilityName="delete-anchor" tone={vm.selected_tool == "delete-anchor" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_delete_anchor}/>
+              <IconButton id="shape" iconName="rectangle" accessibilityName="rectangle" tone={vm.selected_tool == "rectangle" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_rectangle}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-ellipse" iconName="ellipse" accessibilityName="ellipse" tone={vm.selected_tool == "ellipse" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_ellipse}/>
+              <IconButton id="tool-polygon" iconName="polygon" accessibilityName="polygon" tone={vm.selected_tool == "polygon" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_polygon}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="text" iconName="area-text" accessibilityName="area-text" tone={vm.selected_tool == "area-text" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_area_text}/>
+              <IconButton id="tool-path-text" iconName="path-text" accessibilityName="path-text" tone={vm.selected_tool == "path-text" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_path_text}/>
+            </div>
+            <MenuDivider lineLength={2 * vm.tool_button_extent + Metric.space2} dividerColor={Color.canvas}/>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="pan" iconName="hand" accessibilityName="hand" tone={vm.selected_tool == "hand" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_hand}/>
+              <IconButton id="tool-rotate-view" iconName="rotate-view" accessibilityName="rotate-view" tone={vm.selected_tool == "rotate-view" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_rotate_view}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <ColorPickerButton id="foreground-color" buttonSize={vm.tool_button_extent} model={vm.color_source} modelRevision={vm.color_revision} onClick={vm.open_color}/>
+              <IconButton id="tool-quick-mask" iconName="quick-mask" accessibilityName="quick-mask" tone={vm.quick_mask_mode ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_quick_mask}/>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="zoom-tool" iconName="imagezoomIn" accessibilityName="imagezoomIn" tone={vm.selected_tool == "imagezoomIn" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_imagezoomIn}/>
+              <IconButton id="tool-rulers" iconName="rulers" accessibilityName="rulers" tone={vm.selected_tool == "rulers" ? vm.active_tool_tone : vm.inactive_tool_tone} onClick={vm.choose_tool_rulers}/>
+            </div>
+            <Spacer/>
+            <div style="display: flex; flex-direction: row; gap: Metric.space2; align-items: center">
+              <IconButton id="tool-settings" iconName="settings" accessibilityName="settings" tone={.borderless} onClick={vm.preferences}/>
+              <IconButton id="tool-symmetry" iconName="symmetry-paint" accessibilityName="symmetry-paint" tone={.borderless} onClick={vm.symmetry_paint}/>
+            </div>
+          </div>
+          <MenuDivider axis={.vertical} thickness={Metric.stroke1} crossPadding={Metric.space0} dividerColor={Color.canvas}/>
+        </div>
+        <NativeView id="workspace-host" source={host.source} flex={1}/>
+      </div>
+      <div id="status-bar" style="display: flex; flex-direction: column; gap: Metric.space0; height: Metric.size20">
+        <MenuDivider thickness={Metric.stroke1} crossPadding={Metric.space0} dividerColor={Color.canvas}/>
+        <div height={Metric.size20 - Metric.stroke1} style="display: flex; flex-direction: row; gap: Metric.space8; padding: Metric.space4; align-items: center">
+          <Label id="document-status" text={vm.document_info} fontSize={Metric.textCaption}/>
+          <Spacer/>
+          <Label id="workspace-status" text={vm.status} fontSize={Metric.textCaption}/>
+          <Label text="Tool / Textured oil" fontSize={Metric.textCaption}/>
+          <Label id="timeline-status" text={vm.timeline_status(vm.timeline.state)} fontSize={Metric.textCaption}/>
+        </div>
+      </div>
     </div>
     <ContextMenu id="shape-menu" itemWidth={Metric.size180}>
       <MenuItem keyVisible={false} showChevron={false} id="rectangle" label="Rectangle" iconName="rectangle" onClick={vm.rectangle}/>
@@ -45,58 +204,60 @@ import vm congregation.ui.EditorBackend
       <MenuDivider/>
       <MenuItem keyVisible={false} showChevron={false} label="Place image…" onClick={vm.image}/>
     </ContextMenu>
-    <Popover id="color-popup" width={Metric.size320} height={Metric.size320} padding={Metric.space20} surfaceColor={Color.popup} cornerRadius={Metric.radius8}>
-      <ColorPickerSurface id="color-editor" model={vm.color} field={.wheel} width={Metric.size280} height={Metric.size280}/>
+    <Popover id="color-popup" width={Metric.size320} height={Metric.size320} padding={Metric.space20} surfaceColor={Color.surfaceSolid} cornerRadius={Metric.radius8}>
+      <ColorPickerSurface id="color-editor" model={vm.color_source} modelRevision={vm.color_revision} field={.wheel} width={Metric.size280} height={Metric.size280} onColorEdited={vm.color_edited}/>
     </Popover>
-    <Popover id="status-notice" width={Metric.size420} height={Metric.size98} padding={Metric.space12} focus={false} clip={true} surfaceColor={Color.popup} accessibilityName="Canvas error">
-      <div style="display: flex; flex-direction: row; gap: Metric.space8; align-items: center"><Label text={vm.status} fontSize={Metric.textDescription} flex={1}/><LabelButton text="×" tone={.borderless} height={Metric.size22} horizontalPadding={Metric.space4} accessibilityName="Dismiss message" onClick={vm.close_notice}/></div>
+    <Popover id="status-notice" width={Metric.size420} height={Metric.size98} padding={Metric.space12} focus={false} clip={true} surfaceColor={Color.surfaceSolid} accessibilityName="Canvas error">
+      <div style="display: flex; flex-direction: row; gap: Metric.space8; align-items: center"><Label text={vm.status} flex={1}/><LabelButton text="×" tone={.borderless} height={Metric.size22} horizontalPadding={Metric.space4} accessibilityName="Dismiss message" onClick={vm.close_notice}/></div>
     </Popover>
-    <Popover id="text-popup" width={Metric.size320} height={Metric.size118} padding={Metric.space12} surfaceColor={Color.popup} cornerRadius={Metric.radius8}>
+    <Popover id="text-popup" width={Metric.size320} height={Metric.size118} padding={Metric.space12} surfaceColor={Color.surfaceSolid} cornerRadius={Metric.radius8}>
       <div style="display: flex; flex-direction: column; gap: Metric.space8">
         <Label text="Text" fontSize={Metric.textBody} fontWeight={Metric.weightSemiBold}/>
-        <InputField id="text-value" multiline={true} height={Metric.size64} text={vm.text_value} placeholder="Text to place" width={Metric.size296} onEdited={vm.set_text}/>
+        <InputField id="text-value" multiline={true} height={Metric.size64} text={vm.text_value} placeholder="Text to place" width={Metric.size320 - 2 * Metric.space12} onEdited={vm.set_text}/>
       </div>
     </Popover>
-    <Popover id="brush-popup" width={Metric.size340} height={Metric.size574} padding={Metric.space12} clip={true} surfaceColor={Color.popup} cornerRadius={Metric.radius8}>
-      <div style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch">
-        <Label text="Brush" fontSize={Metric.textBody} fontWeight={Metric.weightBold}/>
+    <Popover id="brush-popup" width={Metric.size340} height={Metric.size574}>
+      <ScrollView id="brush-scroll" width={Metric.size340 - 2 * Metric.space12} height={Metric.size574 - 2 * Metric.space12}>
+      <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
+        <Label text="Brush" style={.body}/>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Size" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.size_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={1} to={48} value={vm.brush_size} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_brush_size}/>
+          <div style="display: flex; flex-direction: row"><Label text="Size"/><Spacer/><Label text={vm.size_label}/></div>
+          <Slider id="brush-size-popup" from={1} to={48} value={vm.brush_size} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_brush_size}/>
         </div>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Flow" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.flow_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0} to={1} value={vm.flow} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_flow}/>
+          <div style="display: flex; flex-direction: row"><Label text="Flow"/><Spacer/><Label text={vm.flow_label}/></div>
+          <Slider id="brush-flow-popup" from={0} to={1} value={vm.flow} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_flow}/>
         </div>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Opacity" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.opacity_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0} to={1} value={vm.opacity} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_opacity}/>
+          <div style="display: flex; flex-direction: row"><Label text="Opacity"/><Spacer/><Label text={vm.opacity_label}/></div>
+          <Slider id="brush-opacity-popup" from={0} to={1} value={vm.opacity} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_opacity}/>
         </div>
-        <div style="display: flex; flex-direction: row; align-items: center"><Label text="Pressure Opacity" fontSize={Metric.textDescription} flex={1}/><ToggleSwitch checked={vm.pressure_enabled} onToggled={vm.set_pressure_enabled}/></div>
+        <div style="display: flex; flex-direction: row; align-items: center"><Label text="Pressure Opacity" flex={1}/><ToggleSwitch checked={vm.pressure_enabled} onToggled={vm.set_pressure_enabled}/></div>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Hardness" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.hardness_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0.01} to={1} value={vm.hardness} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_hardness}/>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Spacing" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.spacing_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0} to={64} value={vm.spacing_pixels} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_spacing_pixels}/>
+          <div style="display: flex; flex-direction: row"><Label text="Hardness"/><Spacer/><Label text={vm.hardness_label}/></div>
+          <Slider id="brush-hardness-popup" from={0.01} to={1} value={vm.hardness} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_hardness}/>
         </div>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Spacing Ratio" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.spacing_ratio_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0} to={1} value={vm.spacing} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_spacing}/>
+          <div style="display: flex; flex-direction: row"><Label text="Spacing"/><Spacer/><Label text={vm.spacing_label}/></div>
+          <Slider id="brush-spacing-popup" from={0} to={64} value={vm.spacing_pixels} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_spacing_pixels}/>
         </div>
         <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
-          <div style="display: flex; flex-direction: row"><Label text="Stabilizer" fontSize={Metric.textDescription}/><Spacer/><Label text={vm.stabilizer_label} fontSize={Metric.textDescription}/></div>
-          <Slider from={0} to={1} value={vm.stabilizer} width={Metric.size316} height={Metric.size12} thumbDiameter={Metric.size12} trackHeight={Metric.size4} rangeInset={Metric.space6} onMoved={vm.set_stabilizer}/>
+          <div style="display: flex; flex-direction: row"><Label text="Spacing Ratio"/><Spacer/><Label text={vm.spacing_ratio_label}/></div>
+          <Slider id="brush-spacing-ratio-popup" from={0} to={1} value={vm.spacing} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_spacing}/>
         </div>
-        <div style="display: flex; flex-direction: column; gap: Metric.space8; align-items: stretch">
-          <Label text="Pressure Curve" fontSize={Metric.textDescription}/>
-          <EventListener id="pressure-curve" width={Metric.size316} height={Metric.size92} onInput={vm.pressure_curve_input}/>
-          <div style="display: flex; flex-direction: row"><Label text="Pressure Minimum" fontSize={Metric.textCaption}/><Spacer/><Label text={vm.pressure_min_label} fontSize={Metric.textCaption}/></div>
-          <div style="display: flex; flex-direction: row"><Label text="Pressure Center" fontSize={Metric.textCaption}/><Spacer/><Label text={vm.pressure_mid_label} fontSize={Metric.textCaption}/></div>
-          <div style="display: flex; flex-direction: row"><Label text="Pressure Maximum" fontSize={Metric.textCaption}/><Spacer/><Label text={vm.pressure_max_label} fontSize={Metric.textCaption}/></div>
+        <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
+          <div style="display: flex; flex-direction: row"><Label text="Stabilizer"/><Spacer/><Label text={vm.stabilizer_label}/></div>
+          <Slider id="brush-stabilizer-popup" from={0} to={1} value={vm.stabilizer} width={Metric.size340 - 2 * Metric.space12} size={.mini} onMoved={vm.set_stabilizer}/>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: Metric.space4; align-items: stretch">
+          <Label text="Pressure Curve"/>
+          <EventListener id="pressure-curve" width={Metric.size340 - 2 * Metric.space12} height={Metric.size92} onInput={vm.pressure_curve_input}/>
+          <div style="display: flex; flex-direction: row"><Label text="Pressure Minimum" style={.caption}/><Spacer/><Label text={vm.pressure_min_label} style={.caption}/></div>
+          <div style="display: flex; flex-direction: row"><Label text="Pressure Center" style={.caption}/><Spacer/><Label text={vm.pressure_mid_label} style={.caption}/></div>
+          <div style="display: flex; flex-direction: row"><Label id="pressure-maximum-label" text="Pressure Maximum" style={.caption}/><Spacer/><Label text={vm.pressure_max_label} style={.caption}/></div>
         </div>
       </div>
+      </ScrollView>
     </Popover>
   </div>
 </ApplicationWindow>

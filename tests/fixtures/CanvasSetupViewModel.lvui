@@ -1,0 +1,12 @@
+import vm congregation.native.CanvasSetupModel
+
+Window {
+    VStack {
+        Label(id: "selection", text: vm.view_selection())
+        Label(id: "dimensions", text: vm.view_dimensions())
+        Label(id: "background", text: vm.view_background())
+        Label(id: "results", text: vm.view_result_count())
+        InputField(id: "width", text: vm.view_width(), onEdited: vm.set_new_width)
+        PushButton(id: "create", text: "Create", enabled: vm.view_can_create())
+    }
+}

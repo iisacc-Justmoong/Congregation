@@ -25,7 +25,7 @@ class CanvasReferenceTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_dreamscapes_layout_is_expressed_as_metric_values(self):
-        theme = (ROOT / "App/Native/views/Theme.lvui").read_text(encoding="utf-8")
+        theme = (ROOT / "App/Native/views/Layout.lvui").read_text(encoding="utf-8")
         values = dict(re.findall(r"let (\w+): Metric = ([\d.]+)", theme))
         for name, expected in {"canvasChooserWidth": 1280, "canvasChooserHeight": 880,
                                "canvasChooserCompactThreshold": 1000, "canvasChooserCategories": 200,
@@ -41,7 +41,15 @@ class CanvasReferenceTests(unittest.TestCase):
         self.assertIn('<Window title="New canvas"', lvui)
         self.assertNotIn('<Modal', lvui)
         app = (ROOT / "App/Native/Application.cpp").read_text(encoding="utf-8")
-        self.assertIn('setup_host->show(', app)
+        start = app.find("void open_setup()")
+        end = app.find("\n    void start()", start)
+        self.assertGreaterEqual(start, 0, "New canvas opening handler is missing")
+        self.assertGreater(end, start, "Cannot identify the New canvas opening handler")
+        opening = app[start:end]
+        self.assertRegex(opening, r"setup_host\s*=\s*std::make_shared<ii::gui::Host>\(options\)")
+        alias = re.search(r"\bconst\s+auto\s+(\w+)\s*=\s*setup_host\s*;", opening)
+        self.assertIsNotNone(alias, "The child host must remain alive while opening")
+        self.assertRegex(opening, rf"\b{re.escape(alias.group(1))}\s*->\s*show\s*\(\s*\*host\s*,")
 
 
 if __name__ == "__main__":

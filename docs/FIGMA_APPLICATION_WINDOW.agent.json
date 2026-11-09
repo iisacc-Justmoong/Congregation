@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/FIGMA_APPLICATION_WINDOW.md",
-    "sha256": "a6fc138ee4fbc94e2c2ee044917ac9ee2237c13b584128c4934e72847d1a016b",
-    "bytes": 9566,
-    "line_count": 64,
+    "sha256": "9d3a6783955c8c90bf326b539a80e68cd88c9d493374f2a486f05a3b5b8c4131",
+    "bytes": 16689,
+    "line_count": 158,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -86,37 +86,65 @@
       "id": "b000009",
       "kind": "paragraph",
       "start_line": 9,
-      "end_line": 9,
-      "raw": "LVRS의 WindowMaterial, IconButton, LabelButton, ComboBox, SegmentedControl, Slider, ColorSurface, Card를 재사용한다. WindowMaterial의 공개 색상 옵션에 Figma ApplicationWindow를 측정한 대표 색을 사용하고 각 패널은 별도 배경을 그리지 않는다. 투명도 레일은 iiGUI의 그래픽과 포인터 입력을 사용하고 기존 색상 모델의 alpha 채널을 공유한다. 일반 패널은 투명하며 1px 경계선으로 구분한다. 타임라인의 격자·노출 번호·플레이헤드는 iiGUI의 보존된 그래픽으로 그린다. C++ 소유 객체와 구독은 위젯 세대에 귀속된다.\n"
+      "end_line": 28,
+      "raw": "`Preferences.lvui`는 멤버 목록을 `PresentationList`와 모델 리비전 및 항목 활성화\n콜백에 연결한다. 선택은 공유 목록을 수정하지 않으며, 탭의 선택 표시는 앱 상태를\n따른다. `CONGREGATION_TEST_INDEPENDENT_PREFERENCES=ON`은 실제 설정 뷰를 독립\nLVUI로 생성하고 헤드리스 위젯 트리에서 초기 목록, 갱신, 선택 키와 수명을 검사한다.\n테스트 바이너리의 직접 동적 의존성과 공개 심볼에서도 Qt·LVRS를 찾지 못했다.\n실제 앱 구성의 세 선언 화면과 작업 영역도 독립 LVUI를 사용한다. 이 검사는 실제 창\n실행의 증거는 아니다.\n도구 패널은 LVUI가 소유하는 버튼·체크박스·슬라이더·콤보박스를 사용한다.\n제품의 기존 도구 패널 상호작용 검사를 `CONGREGATION_TEST_INDEPENDENT_TOOL_PANEL=ON`으로\n재사용하며, 화면 구성은 `ToolPanel.cpp` 한 곳에서 관리한다. 포인터\n슬라이더, 도구별 표시, 아이콘 및 비활성 체크박스 갱신을 헤드리스 트리에서 검사했다.\n메인 작업 영역과 타임라인의 제품 소스도 독립 LVUI 컨트롤에 연결했으며 별도의\n`CONGREGATION_TEST_INDEPENDENT_WORKSPACE=ON` 검사에서 주요 조작을 확인한다.\n같은 옵션의 `independent_main_window`는 앱과 동일한 MainWindow 구성 함수를 호출해\n인증 전후 표시 전환, 도구 선택과 색상 모델 공유를 한 위젯 트리에서 검사한다.\n텍스트 도구의 여러 줄 필드에서는 자동 줄바꿈 뒤 줄 끝 이동과 편집 내용의\n`EditorBackend` 전달도 확인한다. 도형 메뉴에서는 포인터 이동이 항목에 초점을 주되\n실행하지 않고, 이어진 클릭이 도구 동작을 전달한 뒤 메뉴를 닫는지 검사한다. 이\n검사는 OS 창을 열지 않는다.\n여기서 인증 상태는 시험 모델이 지정하며 실제 계정이나 서버 확인을 뜻하지 않는다.\n"
     },
     {
       "id": "b000010",
       "kind": "blank",
-      "start_line": 10,
-      "end_line": 10,
+      "start_line": 29,
+      "end_line": 29,
       "raw": "\n"
     },
     {
       "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 30,
+      "end_line": 35,
+      "raw": "`EditorColor`는 LVUI `ColorSelection`과 하나의\n`ColorSelectionSurface`를 공유한다. 표면 편집 콜백이 돌아온 뒤 리비전을 발행해\n다른 표면과 제품 상태를 갱신하고, 외부 색상·알파 변경에도 같은 경로를 사용한다.\n소유 스레드가 아닌 접근, 잘못된 색상과 알파는 거부한다. 독립 색상 검사에는 두\n표면의 동기화, 연속 드래그, 이전 리비전 거부와 검정에서의 숨은 색조 보존을\n포함한다. 메인 뷰, 작업 영역과 제품 백엔드가 같은 색상 모델을 사용한다.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 37,
+      "end_line": 52,
+      "raw": "메인 창의 WindowMaterial, 버튼, 콤보박스, 세그먼트, 슬라이더와 색상 표면은 LVUI가\n소유한다. WindowMaterial에는 Figma ApplicationWindow를 측정한 대표 색을 사용하고\n블러·안쪽 하이라이트·그림자를 명시적으로 끈다. 이 단색 창은 LVUI가 불투명 패널\n그리기로 전달하며 각 패널은 별도 배경을 그리지 않는다. 창이 없는 검사에서 인증 전후와\n최소 크기의 배경색 및 그리기 명령을 확인하며 실제 GPU 픽셀·성능 검사는 포함하지 않는다.\n투명도 레일은 iiGUI의 그래픽과 포인터 입력을\n사용하고 LVUI 색상 선택의 alpha 채널을 공유한다. 일반 패널은 투명하며 1px\n경계선으로 구분한다. 타임라인의 격자·노출 번호·플레이헤드는 iiGUI의 보존된 그래픽으로\n그린다. C++ 소유 객체와 구독은 위젯 세대에 귀속된다. 새 캔버스 창의 검색·입력·\n드롭다운과 메뉴도 LVUI 경로로 옮겼으며, 동일한 제품 모델을 사용하는 헤드리스\n검사에서 프리셋·검색·단위·배경·생성 조건과 좁은 화면의 메뉴를 확인했다. 본문과\n갤러리는 새 위젯 세대를 확정하기 전에 함께 구성해 중첩 화면의 생성 경계를 지킨다.\n`Congregation.canvas_reference`는 새 캔버스 크기와 프리셋 원본, 모달이 아닌 선언,\n부모 호스트를 지정한 자식 창 연결을 소스 수준에서 검사한다. 이 검사는 실제 운영체제\n창이 열리거나 동작했음을 증명하지 않는다.\n앱 전체 빌드와 실제 OS 창의 검증 결과는 이 개별 검사와 구별한다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
       "kind": "heading",
-      "start_line": 11,
-      "end_line": 11,
+      "start_line": 54,
+      "end_line": 54,
       "raw": "## 배치\n",
       "level": 2,
       "title": "배치"
     },
     {
-      "id": "b000012",
+      "id": "b000016",
       "kind": "blank",
-      "start_line": 12,
-      "end_line": 12,
+      "start_line": 55,
+      "end_line": 55,
       "raw": "\n"
     },
     {
-      "id": "b000013",
+      "id": "b000017",
       "kind": "table",
-      "start_line": 13,
-      "end_line": 20,
+      "start_line": 56,
+      "end_line": 63,
       "raw": "| 영역 | 기준 치수 | 내용 |\n|---|---|---|\n| 상단 | 28px | 열기·저장·실행 취소·변형·정렬·보기 명령 |\n| 왼쪽 도구 막대 | 54px | 창의 왼쪽 끝에 배치한 두 열 아이콘 도구 |\n| 중앙 | 가변 | 픽셀 눈금자, 캔버스, 확대·보기 상태 |\n| 하단 도크 | 296px | 레이어와 시간 눈금, 재생·스크러빙 |\n| 오른쪽 | 352px | Tool·Doc·View·More 세그먼트 |\n| 상태 표시줄 | 20px | 실제 문서·작업·시간 상태 |\n",
       "columns": [
         "영역",
@@ -157,324 +185,396 @@
       ]
     },
     {
-      "id": "b000014",
-      "kind": "blank",
-      "start_line": 21,
-      "end_line": 21,
-      "raw": "\n"
-    },
-    {
-      "id": "b000015",
-      "kind": "paragraph",
-      "start_line": 22,
-      "end_line": 22,
-      "raw": "에셋 사이드바의 자리와 구분선은 남기지 않는다. 제거한 224px는 중앙 캔버스와 하단 타임라인에 배분한다. 기준 창에서 도구 막대는 x=0, 중앙 열은 x=54·너비 1593px, 캔버스는 세로 눈금자를 제외한 x=82·너비 1565px이다. 우측 상세 패널의 너비 352px와 타임라인 높이 296px는 유지한다.\n"
-    },
-    {
-      "id": "b000016",
-      "kind": "blank",
-      "start_line": 23,
-      "end_line": 23,
-      "raw": "\n"
-    },
-    {
-      "id": "b000017",
-      "kind": "paragraph",
-      "start_line": 24,
-      "end_line": 24,
-      "raw": "창을 줄이거나 늘리면 중앙과 스크롤 뷰가 남는 공간을 사용한다. 오른쪽 Tool의 프리셋과 동작 행은 고정하고, 22개 파라미터가 있는 본문만 스크롤한다. 값은 이름과 분리한 17px 표시, 이름은 13px, 범위는 11px이다. 각 항목의 슬라이더 높이는 32px이며 버튼은 LVRS의 22px 기준을 따른다.\n"
-    },
-    {
       "id": "b000018",
       "kind": "blank",
-      "start_line": 25,
-      "end_line": 25,
+      "start_line": 64,
+      "end_line": 64,
       "raw": "\n"
     },
     {
       "id": "b000019",
-      "kind": "heading",
-      "start_line": 26,
-      "end_line": 26,
-      "raw": "## 패널 색과 경계선 합성\n",
-      "level": 2,
-      "title": "패널 색과 경계선 합성"
+      "kind": "paragraph",
+      "start_line": 65,
+      "end_line": 65,
+      "raw": "에셋 사이드바의 자리와 구분선은 남기지 않는다. 제거한 224px는 중앙 캔버스와 하단 타임라인에 배분한다. 기준 창에서 도구 막대는 x=0, 중앙 열은 x=54·너비 1593px, 캔버스는 세로 눈금자를 제외한 x=82·너비 1565px이다. 우측 상세 패널의 너비 352px와 타임라인 높이 296px는 유지한다.\n"
     },
     {
       "id": "b000020",
       "kind": "blank",
-      "start_line": 27,
-      "end_line": 27,
+      "start_line": 66,
+      "end_line": 66,
       "raw": "\n"
     },
     {
       "id": "b000021",
       "kind": "paragraph",
-      "start_line": 28,
-      "end_line": 28,
-      "raw": "2026-10-25에 Figma의 실제 paint·변수·개별 stroke 변과 최신 PNG를 다시 확인했다. 원본 `Panel/window`는 #141414이고 2% 강조색과 미세 그레인을 합성한다. 현재 창 배경의 측정 중앙값은 **#141719**(20,23,25)이며, 앱의 불투명한 대표 배경색도 이 값으로 맞춘다. 일반 패널은 별도 배경을 추가하지 않는다.\n"
+      "start_line": 67,
+      "end_line": 67,
+      "raw": "창을 줄이거나 늘리면 중앙과 스크롤 뷰가 남는 공간을 사용한다. 오른쪽 Tool의 프리셋과 동작 행은 고정하고, 22개 파라미터가 있는 본문만 스크롤한다. 값은 이름과 분리한 17px 표시, 이름은 13px, 범위는 11px이다. 각 항목의 슬라이더 높이는 32px이며 버튼은 LVRS의 22px 기준을 따른다.\n"
     },
     {
       "id": "b000022",
       "kind": "blank",
-      "start_line": 29,
-      "end_line": 29,
+      "start_line": 68,
+      "end_line": 68,
       "raw": "\n"
     },
     {
       "id": "b000023",
-      "kind": "paragraph",
-      "start_line": 30,
-      "end_line": 30,
-      "raw": "앱의 `panelEdgeResolved` 패널 외곽선 토큰은 불투명한 **#0C0C0C**, 두께 **1px**이다. 타임라인 내부 선과 눈금자는 기존 `Surface/Dense/Edge` 흰색 12%를 대표 바탕에 sRGB 합성한 (48.2,50.84,52.6)을 유지한다. 이 값과 새 외곽선 색은 각각 iiGUI의 선형광 그래픽 색으로 변환한다. SDK의 일반 GPU 합성과 선택·호버·포커스 색은 변경하지 않는다. Figma의 기존 캔버스·타임라인·도구 패널 경계도 로컬 의미 변수 `Panel/Border`를 사용하며, 이 변수는 같은 값을 가진 `Color/Neutral/12`를 참조한다. 앱과 Figma 변수는 별도 정의이므로 변경 시 함께 갱신한다.\n"
+      "kind": "heading",
+      "start_line": 69,
+      "end_line": 69,
+      "raw": "## 패널 색과 경계선 합성\n",
+      "level": 2,
+      "title": "패널 색과 경계선 합성"
     },
     {
       "id": "b000024",
       "kind": "blank",
-      "start_line": 31,
-      "end_line": 31,
+      "start_line": 70,
+      "end_line": 70,
       "raw": "\n"
     },
     {
       "id": "b000025",
       "kind": "paragraph",
-      "start_line": 32,
-      "end_line": 32,
-      "raw": "전용 Color picker 구분선 `77:19369`는 `Panel/surfacePanel`의 **#232424**를 사용한다. 캔버스와 타임라인이 오른쪽 경계선을 소유하며 우측 패널에서 중복하여 그리지 않는다. 값과 합성 규칙은 `EditorPalette`에 모아 유지한다.\n"
+      "start_line": 71,
+      "end_line": 71,
+      "raw": "LVUI의 `Panel/window`와 파랑 악센트 토큰을 기존과 같은 비율로 합성한 창 배경을 사용하며 일반 패널은 투명하다. 합성된 sRGB 값은 `#1A1B1D`이고 별도의 LVRS `Theme` 타입은 필요하지 않다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 2026-10-25와 2026-10-31의 제품별 대표 색상 및 경계 변수는 당시의 기록이며 현재 구현의 별도 토큰이 아니다.\n"
     },
     {
       "id": "b000026",
       "kind": "blank",
-      "start_line": 33,
-      "end_line": 33,
+      "start_line": 72,
+      "end_line": 72,
       "raw": "\n"
     },
     {
       "id": "b000027",
-      "kind": "paragraph",
-      "start_line": 34,
-      "end_line": 34,
-      "raw": "GPU 캡처의 창 바탕·상단·양쪽 열·타임라인·전용 구분선 픽셀을 검사한다. Figma 그레인에 따른 ±1~2 단계의 변동과 고정 대표 바탕의 차이는 허용하며 전체 화면 스크린샷을 실행 자산으로 사용하지 않는다. Figma의 미세 그레인은 현재 대표 색으로 취급하며, 노이즈 텍스처 자체의 구현은 이번 색상 보정 범위에 포함하지 않는다.\n"
-    },
-    {
-      "id": "b000028",
-      "kind": "blank",
-      "start_line": 35,
-      "end_line": 35,
-      "raw": "\n"
-    },
-    {
-      "id": "b000029",
       "kind": "heading",
-      "start_line": 36,
-      "end_line": 36,
+      "start_line": 73,
+      "end_line": 73,
       "raw": "## 도구 설정 모델\n",
       "level": 2,
       "title": "도구 설정 모델"
     },
     {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "`ToolSettings`의 단일 카탈로그가 22개 이름·단위·범위·기본값·증감 단위와 위젯 구성을 제공한다. 크기는 1..1024px의 로그 축을 사용한다. 버튼은 실제 값의 한 단위를 바꾸며, 슬라이더는 정규화 값과 실제 값을 변환한다. 비정상 수치는 거부하고 범위를 넘는 유한 값은 제한한다. 기존 Figma 표시값을 기본값으로 유지한다.\n"
+    },
+    {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 37,
-      "end_line": 37,
+      "start_line": 76,
+      "end_line": 76,
       "raw": "\n"
     },
     {
       "id": "b000031",
       "kind": "paragraph",
-      "start_line": 38,
-      "end_line": 38,
-      "raw": "`ToolSettings`의 단일 카탈로그가 22개 이름·단위·범위·기본값·증감 단위와 위젯 구성을 제공한다. 크기는 1..1024px의 로그 축을 사용한다. 버튼은 실제 값의 한 단위를 바꾸며, 슬라이더는 정규화 값과 실제 값을 변환한다. 비정상 수치는 거부하고 범위를 넘는 유한 값은 제한한다. 기존 Figma 표시값을 기본값으로 유지한다.\n"
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "설정은 문서 리비전·저장 이력과 분리된다. 저장 버튼은 `tools.ini`를 FileProvider의 스테이징·원자적 발행으로 저장한다. 불완전하거나 잘못된 설정을 읽으면 전체 적용을 거부한다.\n"
     },
     {
       "id": "b000032",
       "kind": "blank",
-      "start_line": 39,
-      "end_line": 39,
+      "start_line": 78,
+      "end_line": 78,
       "raw": "\n"
     },
     {
       "id": "b000033",
       "kind": "paragraph",
-      "start_line": 40,
-      "end_line": 40,
-      "raw": "설정은 문서 리비전·저장 이력과 분리된다. 저장 버튼은 `tools.ini`를 FileProvider의 스테이징·원자적 발행으로 저장한다. 불완전하거나 잘못된 설정을 읽으면 전체 적용을 거부한다.\n"
+      "start_line": 79,
+      "end_line": 79,
+      "raw": "크기·불투명도·흐름·경도·간격은 BitmapBrush로, 각도·둥글기·압력·기울기·속도·산포·안정화는 iiPaintEngine의 해당 상태로 전달한다. 혼합·물기·부하·희석과 모 수는 혼합/브리슬 도구의 조건부 설정이다. 이 값의 전달과 엔진의 모든 물리 효과 재현은 별도 검증 범위이다. End 값은 설정 모델에 보존되며 현재 스트로크 엔진에는 대응하는 후단 테이퍼 계약이 없다. Start·Taper strength는 도입 거리, Minimum size는 도입 최소 크기에 대응한다.\n"
     },
     {
       "id": "b000034",
       "kind": "blank",
-      "start_line": 41,
-      "end_line": 41,
+      "start_line": 80,
+      "end_line": 80,
       "raw": "\n"
     },
     {
       "id": "b000035",
-      "kind": "paragraph",
-      "start_line": 42,
-      "end_line": 42,
-      "raw": "크기·불투명도·흐름·경도·간격은 BitmapBrush로, 각도·둥글기·압력·기울기·속도·산포·안정화는 iiPaintEngine의 해당 상태로 전달한다. 혼합·물기·부하·희석과 모 수는 혼합/브리슬 도구의 조건부 설정이다. 이 값의 전달과 엔진의 모든 물리 효과 재현은 별도 검증 범위이다. End 값은 설정 모델에 보존되며 현재 스트로크 엔진에는 대응하는 후단 테이퍼 계약이 없다. Start·Taper strength는 도입 거리, Minimum size는 도입 최소 크기에 대응한다.\n"
-    },
-    {
-      "id": "b000036",
-      "kind": "blank",
-      "start_line": 43,
-      "end_line": 43,
-      "raw": "\n"
-    },
-    {
-      "id": "b000037",
       "kind": "heading",
-      "start_line": 44,
-      "end_line": 44,
+      "start_line": 81,
+      "end_line": 81,
       "raw": "## 타임라인과 문서 변경\n",
       "level": 2,
       "title": "타임라인과 문서 변경"
     },
     {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 82,
+      "end_line": 82,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 83,
+      "end_line": 83,
+      "raw": "화면의 위치는 `MM:SS.mmm`로 표시하며 눈금은 현재 프레임 간격을 나타낸다. 드래그와 좌우 방향키는 프레임 경계로 이동한다. 재생은 같은 Core 프레임 루프를 사용한다. 시간 이동·선택·스크롤·탭 변경은 문서를 수정하지 않는다. 손잡이에서 Alt를 누르고 세로로 드래그하면 프레임 레이트를 조절하고, 놓을 때 문서의 시간 설정을 갱신한다.\n"
+    },
+    {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 45,
-      "end_line": 45,
+      "start_line": 84,
+      "end_line": 84,
       "raw": "\n"
     },
     {
       "id": "b000039",
       "kind": "paragraph",
-      "start_line": 46,
-      "end_line": 46,
-      "raw": "화면의 위치는 `MM:SS.mmm`로 표시하며 눈금은 현재 프레임 간격을 나타낸다. 드래그와 좌우 방향키는 프레임 경계로 이동한다. 재생은 같은 Core 프레임 루프를 사용한다. 시간 이동·선택·스크롤·탭 변경은 문서를 수정하지 않는다. 손잡이에서 Alt를 누르고 세로로 드래그하면 프레임 레이트를 조절하고, 놓을 때 문서의 시간 설정을 갱신한다.\n"
+      "start_line": 85,
+      "end_line": 85,
+      "raw": "레이어 가시성·불투명도·혼합 모드·이름·순서 변경은 Artwork를 경유하는 실제 편집이다. 이름은 레이어 행에 포커스를 둔 상태에서 Enter로 편집하고, 순서는 이름 영역을 드래그하여 바꾼다. 좌우 반전과 90도 회전은 SDK의 아핀 행렬 관례에 맞춰 캔버스 중심에 합성한다. 메뉴와 도구를 표시했다는 사실을 모든 전문 페인팅·애니메이션 기능의 구현으로 간주하지 않는다. 현재 편집기에 연결되지 않은 도구는 문서를 바꾸지 않고 지원 범위를 알리며 기존 도구 선택을 유지한다. 그룹·마스크·클리핑·레이어 잠금·키프레임 편집·어니언 스킨은 이 화면에서 비활성 상태이다. 정렬·분배·워프 등 아직 구현되지 않은 상단 명령도 문서를 수정하지 않는다.\n"
     },
     {
       "id": "b000040",
       "kind": "blank",
-      "start_line": 47,
-      "end_line": 47,
+      "start_line": 86,
+      "end_line": 86,
       "raw": "\n"
     },
     {
       "id": "b000041",
-      "kind": "paragraph",
-      "start_line": 48,
-      "end_line": 48,
-      "raw": "레이어 가시성·불투명도·혼합 모드·이름·순서 변경은 Artwork를 경유하는 실제 편집이다. 이름은 레이어 행에 포커스를 둔 상태에서 Enter로 편집하고, 순서는 이름 영역을 드래그하여 바꾼다. 좌우 반전과 90도 회전은 SDK의 아핀 행렬 관례에 맞춰 캔버스 중심에 합성한다. 메뉴와 도구를 표시했다는 사실을 모든 전문 페인팅·애니메이션 기능의 구현으로 간주하지 않는다. 현재 편집기에 연결되지 않은 도구는 문서를 바꾸지 않고 지원 범위를 알리며 기존 도구 선택을 유지한다. 그룹·마스크·클리핑·레이어 잠금·키프레임 편집·어니언 스킨은 이 화면에서 비활성 상태이다. 정렬·분배·워프 등 아직 구현되지 않은 상단 명령도 문서를 수정하지 않는다.\n"
-    },
-    {
-      "id": "b000042",
-      "kind": "blank",
-      "start_line": 49,
-      "end_line": 49,
-      "raw": "\n"
-    },
-    {
-      "id": "b000043",
       "kind": "heading",
-      "start_line": 50,
-      "end_line": 50,
+      "start_line": 87,
+      "end_line": 87,
       "raw": "## 에셋과 독립 실행\n",
       "level": 2,
       "title": "에셋과 독립 실행"
     },
     {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 88,
+      "end_line": 88,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 89,
+      "end_line": 89,
+      "raw": "두 PNG는 Figma의 개별 콘텐츠 이미지이다. 전체 화면 스크린샷은 코드나 배경으로 사용하지 않는다. 플레이헤드도 원본의 두 SVG 레이어와 알파 마스크를 그대로 합성한다. 아이콘은 LVUI에 이식된 같은 이름의 원본 자산을 사용한다. `palette-menu`는 원본 컴포넌트 이름인 `generalmoreVertical`, 이미지 표식은 `fileTypesimage`에 대응한다.\n"
+    },
+    {
       "id": "b000044",
       "kind": "blank",
-      "start_line": 51,
-      "end_line": 51,
+      "start_line": 90,
+      "end_line": 90,
       "raw": "\n"
     },
     {
       "id": "b000045",
       "kind": "paragraph",
-      "start_line": 52,
-      "end_line": 52,
-      "raw": "두 PNG는 Figma의 개별 콘텐츠 이미지이다. 전체 화면 스크린샷은 코드나 배경으로 사용하지 않는다. 플레이헤드도 원본의 두 SVG 레이어와 알파 마스크를 그대로 합성한다. 아이콘은 같은 이름의 LVRS 원본 자산을 사용한다. `palette-menu`는 원본 컴포넌트 이름인 `generalmoreVertical`, 이미지 표식은 `fileTypesimage`에 대응한다.\n"
+      "start_line": 91,
+      "end_line": 91,
+      "raw": "원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. 기존 `AssetLibraryView` 소스는 LVUI 카드·아이콘으로 이전하고 별도로 검사하지만 현재 창에 구성하지 않으며 활성 타깃에서도 제외한다. 라이브러리 경로 설정과 Society 연동 서비스는 별도 기능으로 유지한다. 사이드바 제거 과정에서 원본 에셋과 사용자 라이브러리 폴더는 수정하지 않는다.\n"
     },
     {
       "id": "b000046",
       "kind": "blank",
-      "start_line": 53,
-      "end_line": 53,
+      "start_line": 92,
+      "end_line": 92,
       "raw": "\n"
     },
     {
       "id": "b000047",
-      "kind": "paragraph",
-      "start_line": 54,
-      "end_line": 54,
-      "raw": "원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. 기존 `AssetLibraryView` 소스는 보존하지만 현재 창에 구성하지 않으며 활성 타깃에서도 제외한다. 라이브러리 경로 설정과 Society 연동 서비스는 별도 기능으로 유지한다. 사이드바 제거 과정에서 원본 에셋과 사용자 라이브러리 폴더는 수정하지 않는다.\n"
-    },
-    {
-      "id": "b000048",
-      "kind": "blank",
-      "start_line": 55,
-      "end_line": 55,
-      "raw": "\n"
-    },
-    {
-      "id": "b000049",
       "kind": "heading",
-      "start_line": 56,
-      "end_line": 56,
+      "start_line": 93,
+      "end_line": 93,
       "raw": "## 검증\n",
       "level": 2,
       "title": "검증"
     },
     {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 94,
+      "end_line": 94,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 95,
+      "end_line": 99,
+      "raw": "2026-11-01에 Qt5·Qt6·LVRS 패키지 탐색을 끈 구성으로 macOS 앱 대상을 빌드했다.\n번들 안의 Mach-O 이미지 7개와 동적 의존성 70개에서 Qt·LVRS 링크를 찾지 못했고\n번들 그래프와 임시 서명을 검사했다. 이는 OS 창 실행, 렌더러별 화면 일치 또는\n서명·공증된 배포 결과를 뜻하지 않는다. 독립 LVUI 화면의 창 없는 검사는 각 화면의\n모델 연결과 위젯 상호작용을 검증한다.\n"
+    },
+    {
       "id": "b000050",
       "kind": "blank",
-      "start_line": 57,
-      "end_line": 57,
+      "start_line": 100,
+      "end_line": 100,
       "raw": "\n"
     },
     {
       "id": "b000051",
       "kind": "paragraph",
-      "start_line": 58,
-      "end_line": 58,
-      "raw": "`Congregation.tool_settings`는 값 보존·로그 변환·증감·범위·설정 왕복·엔진 연결·시간 경계를 검사한다. `Congregation.editor_layout`은 캔버스 맞춤과 좌표를 검사한다. `Congregation.native_window_contract`와 `Congregation.native_window_colors_vulkan`은 기준 크기·최소 크기에서 사이드바가 없고 세로 도구 막대가 왼쪽 끝에 있는지, 도구 선택이 작동하는지, 캔버스와 타임라인이 빈 공간 없이 확장되는지 검사한다. `Congregation.figma_ui_native`와 `Congregation.figma_ui_vulkan`은 변경된 실제 창의 조작과 캡처를 검사한다. 기존 네이티브 편집 회귀 검사와 macOS 번들 재배치 검사를 함께 수행한다.\n"
+      "start_line": 101,
+      "end_line": 106,
+      "raw": "2026-11-02에는 단색 창 설정과 하위 트리 장면 API를 포함한 iiGUI를 반영해 앱 전체\n개발 빌드와 관련 헤드리스 검사 12건이 통과했다. 인증 전후와 1999×1080·1200×720 호스트에서 불투명 창 색상과\n효과 없는 그리기 명령을 확인했다. 개발 번들의 Mach-O 7개와 동적 의존성 항목\n70개에서 Qt·LVRS 링크를 찾지 못하고 로컬 임시 서명을 확인했다. 주 실행 파일의\nSHA-256은 `f73b3b658fbbec8fb67a4642dc48048d12a3f16e2919bcea6c973dc165fb5b67`이다.\n기존 빌드 캐시를 재사용했으며 GUI와 GPU를 실행한 결과는 아니다.\n"
     },
     {
       "id": "b000052",
       "kind": "blank",
-      "start_line": 59,
-      "end_line": 59,
+      "start_line": 107,
+      "end_line": 107,
       "raw": "\n"
     },
     {
       "id": "b000053",
       "kind": "paragraph",
-      "start_line": 60,
-      "end_line": 60,
-      "raw": "실제 수행 결과와 화면은 FIGMA_UI_VERIFICATION.md에 기록한다. macOS의 결과로 Windows·Linux의 실행 성공을 주장하지 않는다.\n"
+      "start_line": 108,
+      "end_line": 114,
+      "raw": "이어지는 iiGUI 장면 그래프·Metal 소스 변경을 반영한 전체 개발 빌드와 관련\n헤드리스 검사 12건도 통과했다. 개발 번들의 Mach-O 7개와 동적 의존성 70개,\n주 실행 파일 공개 심볼 10,200개에서 Qt·LVRS 링크나 해당 공개 이름을 찾지 못했고\n로컬 임시 서명을 확인했다. 이 빌드의 주 실행 파일 SHA-256은\n`4cabb1800b37f1432869b770d38256927e22a9fdf8d714510c8da4627d76b595`이다.\n이 검사는 사용자에게 설치된 앱, 실제 창·GPU 픽셀 또는 숨겨진 정적 코드 전체의\n부재를 증명하지 않는다. 기존 빌드 캐시를 재사용했다.\n"
     },
     {
       "id": "b000054",
       "kind": "blank",
-      "start_line": 61,
-      "end_line": 61,
+      "start_line": 115,
+      "end_line": 115,
       "raw": "\n"
     },
     {
       "id": "b000055",
-      "kind": "heading",
-      "start_line": 62,
-      "end_line": 62,
-      "raw": "## Color·Metric 전환\n",
-      "level": 2,
-      "title": "Color·Metric 전환"
+      "kind": "paragraph",
+      "start_line": 116,
+      "end_line": 122,
+      "raw": "이후 Vulkan 장면 합성 및 자동 렌더러 선택 변경을 반영해 전체 개발 빌드와 관련\n헤드리스 검사 12건이 통과했다. 개발 번들의 Mach-O 7개, 동적 의존성 항목 70개와\n주 실행 파일의 공개 심볼 10,200개에서 Qt·LVRS 링크나 해당 공개 이름을 찾지\n못했으며 로컬 임시 서명을 확인했다. 주 실행 파일의 SHA-256은\n`6aa40ca6beca76741201f18d1f71e7ed44149ff925c36b183e2a7344c63d00f0`이다.\n기존 빌드 캐시를 재사용했으며 설치된 앱, 숨겨진 정적 코드 전체의 부재, 실제 창이나\nGPU 출력을 검증한 결과는 아니다.\n"
     },
     {
       "id": "b000056",
       "kind": "blank",
-      "start_line": 63,
-      "end_line": 63,
+      "start_line": 123,
+      "end_line": 123,
       "raw": "\n"
     },
     {
       "id": "b000057",
       "kind": "paragraph",
-      "start_line": 64,
-      "end_line": 64,
-      "raw": "현재 화면의 색상·간격·크기는 [공통 스타일 프로필](UI_STYLE_TOKENS.md)을 따른다. 기존 배치 치수는 유지하고 패널 외곽선은 위에 명시한 앱 전용 색상을 사용한다. 프로필 변경은 LVUI 뷰와 네이티브 C++ 패널에 함께 반영된다.\n"
+      "start_line": 124,
+      "end_line": 131,
+      "raw": "위젯의 자동 재질 소스 연결을 포함한 iiGUI·LVUI 스테이징으로 다시 빌드한\n개발 앱과 관련 헤드리스 검사 12건이 통과했다. 개발 번들의 Mach-O 7개,\n동적 의존성 항목 70개와 주 실행 파일 공개 심볼 10,200개에서 Qt·LVRS 링크나\n해당 공개 이름을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일의\nSHA-256은 `c61ff5a44733ac85ab6e408e80b3287295a481a4dfad7096f35da41488cccdc2`이다.\n현재 제품 화면에서 새 재질 소스 입력을 직접 사용하는 곳은 찾지 못했으므로 이\n검사는 기존 화면의 회귀 검사다. 기존 빌드 캐시를 사용했으며 실제 창·GPU 출력,\n설치된 앱이나 숨겨진 정적 코드 전체의 부재를 검증하지 않았다.\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 132,
+      "end_line": 132,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "paragraph",
+      "start_line": 133,
+      "end_line": 141,
+      "raw": "Direct3D 11의 장면 합성을 추가한 iiGUI 스테이징으로 개발 앱을 다시 빌드하고\n관련 헤드리스 검사 12건을 통과했다. 개발 번들의 Mach-O 7개, 동적 의존성 항목\n70개와 주 실행 파일 공개 심볼 10,200개에서 Qt·LVRS 이름을 찾지 못했으며 로컬\n임시 서명을 확인했다. 주 실행 파일 SHA-256은\n`c61ff5a44733ac85ab6e408e80b3287295a481a4dfad7096f35da41488cccdc2`이다.\n기존 빌드 캐시를 재사용했고 Xcode가 중복 실행 검색 경로를 경고했다. 이 결과는\n설치된 앱의 갱신, 숨겨진 정적 코드 전체의 부재, 실제 창·GPU 또는 Windows 실행을\n증명하지 않는다. Direct3D 소스의 교차 컴파일과 장면 검사는\n[iiGUI 장면 문서](../../../SDK/iiGUI/docs/SubtreeScenes.md)에 기록한다.\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 142,
+      "end_line": 142,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "paragraph",
+      "start_line": 143,
+      "end_line": 143,
+      "raw": "`Congregation.tool_settings`는 값 보존·로그 변환·증감·범위·설정 왕복·엔진 연결·시간 경계를 검사한다. `Congregation.editor_layout`은 캔버스 맞춤과 좌표를 검사한다. `Congregation.native_window_contract`와 `Congregation.native_window_colors_vulkan`은 기준 크기·최소 크기에서 사이드바가 없고 세로 도구 막대가 왼쪽 끝에 있는지, 도구 선택이 작동하는지, 캔버스와 타임라인이 빈 공간 없이 확장되는지 검사한다. `Congregation.figma_ui_native`와 `Congregation.figma_ui_vulkan`은 변경된 실제 창의 조작과 캡처를 검사한다. 기존 네이티브 편집 회귀 검사와 macOS 번들 재배치 검사를 함께 수행한다.\n"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 144,
+      "end_line": 144,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "paragraph",
+      "start_line": 145,
+      "end_line": 145,
+      "raw": "실제 수행 결과와 화면은 FIGMA_UI_VERIFICATION.md에 기록한다. macOS의 결과로 Windows·Linux의 실행 성공을 주장하지 않는다.\n"
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 146,
+      "end_line": 146,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "heading",
+      "start_line": 147,
+      "end_line": 147,
+      "raw": "## Color·Metric 전환\n",
+      "level": 2,
+      "title": "Color·Metric 전환"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 148,
+      "end_line": 148,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "paragraph",
+      "start_line": 149,
+      "end_line": 149,
+      "raw": "현재 화면은 [LVUI 공통 스타일](UI_STYLE_TOKENS.md)을 따른다. 제품별 배치 치수만 별도로 보존하며 색상은 LVUI 뷰와 네이티브 C++에서 같은 공유 토큰을 참조한다.\n"
+    },
+    {
+      "id": "b000068",
+      "kind": "blank",
+      "start_line": 150,
+      "end_line": 150,
+      "raw": "\n"
+    },
+    {
+      "id": "b000069",
+      "kind": "heading",
+      "start_line": 151,
+      "end_line": 151,
+      "raw": "## 환경설정 프로필의 콘텐츠 기준 크기\n",
+      "level": 2,
+      "title": "환경설정 프로필의 콘텐츠 기준 크기"
+    },
+    {
+      "id": "b000070",
+      "kind": "blank",
+      "start_line": 152,
+      "end_line": 152,
+      "raw": "\n"
+    },
+    {
+      "id": "b000071",
+      "kind": "paragraph",
+      "start_line": 153,
+      "end_line": 158,
+      "raw": "Figma [Profile](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2664)은\n시작점 정렬이며 공통 Large Avatar의 자연 크기는 64×64이다. 프로필 입력 리스너는\n공통 Avatar 자식의 크기를 따르고, 이름 입력은 원본처럼 432×22를 유지한다.\n프로필 사진 선택·삭제와 입력 영역의 클릭 전달은 기존 동작을 유지한다. 실제\n위젯 트리를 사용한 창 없는 검사에서 리스너의 64×64 크기와 영역 밖 클릭의 무시,\n사진 선택·삭제, 이름 입력 크기 및 프로필 메뉴 열기를 확인했다.\n"
     }
   ],
   "outline": [
@@ -495,60 +595,68 @@
       "start_line": 3
     },
     {
-      "block_id": "b000011",
+      "block_id": "b000015",
       "parent_id": "b000001",
       "level": 2,
       "title": "배치",
       "anchor": "배치",
-      "start_line": 11
+      "start_line": 54
     },
     {
-      "block_id": "b000019",
+      "block_id": "b000023",
       "parent_id": "b000001",
       "level": 2,
       "title": "패널 색과 경계선 합성",
       "anchor": "패널-색과-경계선-합성",
-      "start_line": 26
+      "start_line": 69
     },
     {
-      "block_id": "b000029",
+      "block_id": "b000027",
       "parent_id": "b000001",
       "level": 2,
       "title": "도구 설정 모델",
       "anchor": "도구-설정-모델",
-      "start_line": 36
+      "start_line": 73
     },
     {
-      "block_id": "b000037",
+      "block_id": "b000035",
       "parent_id": "b000001",
       "level": 2,
       "title": "타임라인과 문서 변경",
       "anchor": "타임라인과-문서-변경",
-      "start_line": 44
+      "start_line": 81
     },
     {
-      "block_id": "b000043",
+      "block_id": "b000041",
       "parent_id": "b000001",
       "level": 2,
       "title": "에셋과 독립 실행",
       "anchor": "에셋과-독립-실행",
-      "start_line": 50
+      "start_line": 87
     },
     {
-      "block_id": "b000049",
+      "block_id": "b000047",
       "parent_id": "b000001",
       "level": 2,
       "title": "검증",
       "anchor": "검증",
-      "start_line": 56
+      "start_line": 93
     },
     {
-      "block_id": "b000055",
+      "block_id": "b000065",
       "parent_id": "b000001",
       "level": 2,
       "title": "Color·Metric 전환",
       "anchor": "colormetric-전환",
-      "start_line": 62
+      "start_line": 147
+    },
+    {
+      "block_id": "b000069",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "환경설정 프로필의 콘텐츠 기준 크기",
+      "anchor": "환경설정-프로필의-콘텐츠-기준-크기",
+      "start_line": 151
     }
   ],
   "indexes": {
@@ -568,57 +676,78 @@
         "context": "paragraph"
       },
       {
-        "block_id": "b000021",
+        "block_id": "b000009",
         "line": 28,
-        "text": "2026-10-25에 Figma의 실제 paint·변수·개별 stroke 변과 최신 PNG를 다시 확인했다. 원본 `Panel/window`는 #141414이고 2% 강조색과 미세 그레인을 합성한다. 현재 창 배경의 측정 중앙값은 **#141719**(20,23,25)이며, 앱의 불투명한 대표 배경색도 이 값으로 맞춘다. 일반 패널은 별도 배경을 추가하지 않는다.",
+        "text": "여기서 인증 상태는 시험 모델이 지정하며 실제 계정이나 서버 확인을 뜻하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000023",
-        "line": 30,
-        "text": "앱의 `panelEdgeResolved` 패널 외곽선 토큰은 불투명한 **#0C0C0C**, 두께 **1px**이다. 타임라인 내부 선과 눈금자는 기존 `Surface/Dense/Edge` 흰색 12%를 대표 바탕에 sRGB 합성한 (48.2,50.84,52.6)을 유지한다. 이 값과 새 외곽선 색은 각각 iiGUI의 선형광 그래픽 색으로 변환한다. SDK의 일반 GPU 합성과 선택·호버·포커스 색은 변경하지 않는다. Figma의 기존 캔버스·타임라인·도구 패널 경계도 로컬 의미 변수 `Panel/Border`를 사용하며, 이 변수는 같은 값을 가진 `Color/Neutral/12`를 참조한다. 앱과 Figma 변수는 별도 정의이므로 변경 시 함께 갱신한다.",
+        "block_id": "b000013",
+        "line": 41,
+        "text": "최소 크기의 배경색 및 그리기 명령을 확인하며 실제 GPU 픽셀·성능 검사는 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000027",
-        "line": 34,
-        "text": "GPU 캡처의 창 바탕·상단·양쪽 열·타임라인·전용 구분선 픽셀을 검사한다. Figma 그레인에 따른 ±1~2 단계의 변동과 고정 대표 바탕의 차이는 허용하며 전체 화면 스크린샷을 실행 자산으로 사용하지 않는다. Figma의 미세 그레인은 현재 대표 색으로 취급하며, 노이즈 텍스처 자체의 구현은 이번 색상 보정 범위에 포함하지 않는다.",
+        "block_id": "b000013",
+        "line": 51,
+        "text": "창이 열리거나 동작했음을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000039",
-        "line": 46,
+        "block_id": "b000037",
+        "line": 83,
         "text": "화면의 위치는 `MM:SS.mmm`로 표시하며 눈금은 현재 프레임 간격을 나타낸다. 드래그와 좌우 방향키는 프레임 경계로 이동한다. 재생은 같은 Core 프레임 루프를 사용한다. 시간 이동·선택·스크롤·탭 변경은 문서를 수정하지 않는다. 손잡이에서 Alt를 누르고 세로로 드래그하면 프레임 레이트를 조절하고, 놓을 때 문서의 시간 설정을 갱신한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000041",
-        "line": 48,
+        "block_id": "b000039",
+        "line": 85,
         "text": "레이어 가시성·불투명도·혼합 모드·이름·순서 변경은 Artwork를 경유하는 실제 편집이다. 이름은 레이어 행에 포커스를 둔 상태에서 Enter로 편집하고, 순서는 이름 영역을 드래그하여 바꾼다. 좌우 반전과 90도 회전은 SDK의 아핀 행렬 관례에 맞춰 캔버스 중심에 합성한다. 메뉴와 도구를 표시했다는 사실을 모든 전문 페인팅·애니메이션 기능의 구현으로 간주하지 않는다. 현재 편집기에 연결되지 않은 도구는 문서를 바꾸지 않고 지원 범위를 알리며 기존 도구 선택을 유지한다. 그룹·마스크·클리핑·레이어 잠금·키프레임 편집·어니언 스킨은 이 화면에서 비활성 상태이다. 정렬·분배·워프 등 아직 구현되지 않은 상단 명령도 문서를 수정하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000045",
-        "line": 52,
-        "text": "두 PNG는 Figma의 개별 콘텐츠 이미지이다. 전체 화면 스크린샷은 코드나 배경으로 사용하지 않는다. 플레이헤드도 원본의 두 SVG 레이어와 알파 마스크를 그대로 합성한다. 아이콘은 같은 이름의 LVRS 원본 자산을 사용한다. `palette-menu`는 원본 컴포넌트 이름인 `generalmoreVertical`, 이미지 표식은 `fileTypesimage`에 대응한다.",
+        "block_id": "b000043",
+        "line": 89,
+        "text": "두 PNG는 Figma의 개별 콘텐츠 이미지이다. 전체 화면 스크린샷은 코드나 배경으로 사용하지 않는다. 플레이헤드도 원본의 두 SVG 레이어와 알파 마스크를 그대로 합성한다. 아이콘은 LVUI에 이식된 같은 이름의 원본 자산을 사용한다. `palette-menu`는 원본 컴포넌트 이름인 `generalmoreVertical`, 이미지 표식은 `fileTypesimage`에 대응한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000047",
-        "line": 54,
-        "text": "원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. 기존 `AssetLibraryView` 소스는 보존하지만 현재 창에 구성하지 않으며 활성 타깃에서도 제외한다. 라이브러리 경로 설정과 Society 연동 서비스는 별도 기능으로 유지한다. 사이드바 제거 과정에서 원본 에셋과 사용자 라이브러리 폴더는 수정하지 않는다.",
+        "block_id": "b000045",
+        "line": 91,
+        "text": "원본 자산은 `resources/figma`에 있고 번들의 `Contents/Resources/figma`에 복사한다. 실행 중 소스 체크아웃이나 임시 Figma 다운로드 URL을 사용하지 않는다. 다른 플랫폼은 실행 파일 옆 `resources`를 사용한다. 기존 `AssetLibraryView` 소스는 LVUI 카드·아이콘으로 이전하고 별도로 검사하지만 현재 창에 구성하지 않으며 활성 타깃에서도 제외한다. 라이브러리 경로 설정과 Society 연동 서비스는 별도 기능으로 유지한다. 사이드바 제거 과정에서 원본 에셋과 사용자 라이브러리 폴더는 수정하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000049",
+        "line": 98,
+        "text": "서명·공증된 배포 결과를 뜻하지 않는다. 독립 LVUI 화면의 창 없는 검사는 각 화면의",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000053",
-        "line": 60,
+        "line": 114,
+        "text": "부재를 증명하지 않는다. 기존 빌드 캐시를 재사용했다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000059",
+        "line": 140,
+        "text": "증명하지 않는다. Direct3D 소스의 교차 컴파일과 장면 검사는",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000063",
+        "line": 145,
         "text": "실제 수행 결과와 화면은 FIGMA_UI_VERIFICATION.md에 기록한다. macOS의 결과로 Windows·Linux의 실행 성공을 주장하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -627,16 +756,30 @@
     "commands": [],
     "links": [
       {
-        "block_id": "b000057",
-        "label": "공통 스타일 프로필",
+        "block_id": "b000059",
+        "label": "iiGUI 장면 문서",
+        "target": "../../../SDK/iiGUI/docs/SubtreeScenes.md",
+        "kind": "relative",
+        "line": 141
+      },
+      {
+        "block_id": "b000067",
+        "label": "LVUI 공통 스타일",
         "target": "UI_STYLE_TOKENS.md",
         "kind": "relative",
-        "line": 64
+        "line": 149
+      },
+      {
+        "block_id": "b000071",
+        "label": "Profile",
+        "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2664",
+        "kind": "external",
+        "line": 153
       }
     ],
     "tables": [
       {
-        "block_id": "b000013",
+        "block_id": "b000017",
         "columns": [
           "영역",
           "기준 치수",

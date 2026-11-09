@@ -18,7 +18,7 @@ void fill(ii::gui::Widget widget, ii::gui::Rect bounds, ii::gui::WidgetColor col
     ii::gui::WidgetDrawing drawing;
     if (bounds.width > 0 && bounds.height > 0)
         drawing.panels.push_back(
-            {{0, 0, bounds.width, bounds.height}, linear(color), linear(color), Metric::radius0});
+            {{0, 0, bounds.width, bounds.height}, linear(color), linear(color), Metric::space0});
     good(widget.set_drawing(std::move(drawing)));
 }
 } // namespace
@@ -60,9 +60,9 @@ void brush_preview(ii::gui::Widget widget, double size, ii::gui::WidgetColor col
     const auto diameter = Metric::brushPreviewMinDiameter +
                           std::clamp((size - 1) / 47, 0., 1.) * Metric::brushPreviewDiameterSpan;
     drawing.panels.push_back({{0, 0, Metric::size28, Metric::size28},
-                              linear(Color::brushOutlineTop),
-                              linear(Color::brushOutlineBottom),
-                              Metric::radius14,
+                              linear(Color::materialTextFieldReflection),
+                              linear(Color::materialSurfaceDenseEdge),
+                              Metric::radius16,
                               Metric::stroke1});
     drawing.panels.push_back(
         {{float((Metric::size28 - diameter) / 2), float((Metric::size28 - diameter) / 2),
@@ -72,9 +72,12 @@ void brush_preview(ii::gui::Widget widget, double size, ii::gui::WidgetColor col
          float(diameter / 2)});
     good(widget.set_drawing(std::move(drawing)));
 }
-double pressure_value(double y)
+double pressure_value(double y, double height)
 {
-    return std::clamp(1 - (y - Metric::pressureGraphInset) / Metric::pressureGraphHeight, 0., 1.);
+    const double graph_height = height - 2 * Metric::space6;
+    if (!std::isfinite(y) || !std::isfinite(height) || graph_height <= 0)
+        return 0;
+    return std::clamp(1 - (y - Metric::space6) / graph_height, 0., 1.);
 }
 int pressure_point(double x, double width) { return x < width / 4 ? 0 : x > width * 3 / 4 ? 2 : 1; }
 void pressure_curve(ii::gui::Widget widget, double minimum, double center, double maximum)
@@ -82,15 +85,23 @@ void pressure_curve(ii::gui::Widget widget, double minimum, double center, doubl
     const auto snapshot = widget.snapshot();
     if (!snapshot)
         return;
-    const double width = snapshot->bounds.width > Metric::space12 ? snapshot->bounds.width
-                                                                  : Metric::size316,
-                 left = Metric::pressureGraphInset, right = width - Metric::pressureGraphInset;
+    const double width = snapshot->bounds.width > 0 ? snapshot->bounds.width
+                                                     : Metric::size340 - 2 * Metric::space12;
+    const double height = snapshot->bounds.height > 0 ? snapshot->bounds.height : Metric::size92;
+    const double left = Metric::space6, right = width - Metric::space6;
+    const double graph_height = height - 2 * Metric::space6;
     const double values[]{minimum, center, maximum};
-    const auto primary = linear(Color::curveAccent);
+    const auto primary = linear(Color::purple);
     ii::gui::WidgetDrawing drawing;
-    for (int i = 0; i < 5; ++i)
+    if (right <= left || graph_height <= 0)
+    {
+        good(widget.set_drawing(std::move(drawing)));
+        return;
+    }
+    constexpr int grid_intervals = 4;
+    for (int i = 0; i <= grid_intervals; ++i)
         drawing.panels.push_back(
-            {{Metric::space6, float(Metric::pressureGraphInset + i * Metric::pressureGridStep),
+            {{Metric::space6, float(Metric::space6 + i * graph_height / grid_intervals),
               float(width - Metric::space12), Metric::stroke1},
              linear(Color::materialSurfaceDenseEdge),
              linear(Color::materialSurfaceDenseEdge)});
@@ -100,22 +111,22 @@ void pressure_curve(ii::gui::Widget widget, double minimum, double center, doubl
                      t = position * 2 - segment;
         const double value = values[int(segment)] * (1 - t) + values[int(segment) + 1] * t;
         drawing.panels.push_back(
-            {{float(left + i - Metric::size1_5),
-              float(Metric::pressureGraphInset + (1 - value) * Metric::pressureGraphHeight -
-                    Metric::size1_5),
-              Metric::size3, Metric::size3},
+            {{float(left + i - Metric::stroke2 / 2.0),
+              float(Metric::space6 + (1 - value) * graph_height -
+                    Metric::stroke2 / 2.0),
+              Metric::stroke2, Metric::stroke2},
              primary,
              primary,
-             Metric::radius1_5});
+             Metric::stroke2 / 2.0f});
     }
     for (int i = 0; i < 3; ++i)
     {
         const auto x = left + i * (right - left) / 2,
-                   y = Metric::pressureGraphInset + (1 - values[i]) * Metric::pressureGraphHeight;
+                   y = Metric::space6 + (1 - values[i]) * graph_height;
         drawing.panels.push_back({{float(x - Metric::space6), float(y - Metric::space6),
                                    Metric::space12, Metric::space12},
-                                  linear(Color::curveHandle),
-                                  linear(Color::curveHandle),
+                                  linear(Color::textTitleHeader),
+                                  linear(Color::textTitleHeader),
                                   Metric::radius6});
         drawing.panels.push_back({{float(x - Metric::space6), float(y - Metric::space6),
                                    Metric::space12, Metric::space12},
@@ -125,11 +136,5 @@ void pressure_curve(ii::gui::Widget widget, double minimum, double center, doubl
                                   Metric::stroke2});
     }
     good(widget.set_drawing(std::move(drawing)));
-}
-void tool_button(ii::gui::Widget widget, bool selected)
-{
-    good(widget.set_button_style({.fill = selected ? Color::toolSelected : Color::transparent,
-                                  .hover_fill = Color::toolHover,
-                                  .pressed_fill = Color::toolPressed}));
 }
 } // namespace congregation::native::editor

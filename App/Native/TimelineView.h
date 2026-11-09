@@ -1,6 +1,11 @@
 #pragma once
 #include "EditorBackend.h"
+#include "OwnedWidgetStyle.h"
 #include <filesystem>
+namespace iiSharedCanvas
+{
+struct Document;
+}
 namespace congregation::native
 {
 class TimelineView final : public std::enable_shared_from_this<TimelineView>
@@ -9,6 +14,7 @@ class TimelineView final : public std::enable_shared_from_this<TimelineView>
     TimelineView(std::shared_ptr<congregation::ui::EditorBackend>, std::filesystem::path);
     ii::gui::Widget build(ii::gui::WidgetBuilder&, ii::gui::Widget);
     void refresh_document(const iiSharedCanvas::Document&, const std::string&);
+    void select_layer(const std::string&);
 
   private:
     struct Row
@@ -26,8 +32,8 @@ class TimelineView final : public std::enable_shared_from_this<TimelineView>
     std::filesystem::path assets_;
     std::vector<Row> rows_;
     std::string selected_;
-    ii::gui::Widget ruler_, body_, scroll_, time_, play_;
-    ii::gui::Widget rename_, rename_field_;
+    ii::gui::Widget ruler_, body_, scroll_, play_, rename_;
+    std::optional<owned_widgets::InputHandle> time_, rename_field_;
     std::string rename_text_, rename_key_, drag_layer_;
     double drag_start_y_ = 0;
     std::shared_ptr<ii::gui::BindingScope> bindings_ = std::make_shared<ii::gui::BindingScope>();

@@ -1,0 +1,14 @@
+import vm congregation.ui.EditorBackend
+
+Window {
+    VStack {
+        Label(id: "status", text: vm.status)
+        List(id: "layers", model: vm.layer_source, modelRevision: vm.layer_revision,
+             width: 240, height: 80, footerVisible: false, onItemActivated: vm.activate_layer)
+        List(id: "members", model: vm.member_source, modelRevision: vm.member_revision,
+             width: 240, height: 120, footerVisible: false, onItemActivated: vm.activate_member)
+        ColorPickerButton(id: "color", currentColor: vm.current_color)
+        Slider(id: "brush-size", from: 1, to: 1024, value: vm.brush_size,
+               onMoved: vm.set_brush_size)
+    }
+}

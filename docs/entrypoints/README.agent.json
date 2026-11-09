@@ -10,14 +10,14 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "55e686b6d8ff246dfc3d54f28393aac5ebae038126e349f0a5a8350bd0af1f6b",
-    "bytes": 7877,
-    "line_count": 75,
+    "sha256": "a6a75e4f798dc6d57e104f6c391dd2254bef1daaf31c613c576ea70e97195bbf",
+    "bytes": 8239,
+    "line_count": 77,
     "encoding": "utf-8",
     "language": "en"
   },
   "document": {
-    "title": "Congregation 1.0.0",
+    "title": "Congregation 1.0.2",
     "role": "overview",
     "authority": "markdown_source"
   },
@@ -27,9 +27,9 @@
       "kind": "heading",
       "start_line": 1,
       "end_line": 1,
-      "raw": "# Congregation 1.0.0\n",
+      "raw": "# Congregation 1.0.2\n",
       "level": 1,
-      "title": "Congregation 1.0.0"
+      "title": "Congregation 1.0.2"
     },
     {
       "id": "b000002",
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 3,
-      "raw": "Congregation is a local canvas editor built with the native iiSDK platform. Its application lifecycle and asynchronous services use iiSDKCore; its views use LVUI and LVRS native widgets on iiGUI. The active application has no Qt, QML engine, browser engine, or WebView dependency.\n"
+      "raw": "Congregation is a local canvas editor built with the native iiSDK platform. Its application lifecycle and asynchronous services use iiSDKCore; its views use LVUI-owned native widgets hosted by iiGUI. The active application does not link LVRS, Qt, QML, a browser engine, or a WebView.\n"
     },
     {
       "id": "b000004",
@@ -101,11 +101,11 @@
       "kind": "list",
       "start_line": 11,
       "end_line": 17,
-      "raw": "- Finite or infinite canvases, pressure-aware painting and erasing, flow, opacity, hardness, spacing, stabilization, and pressure response.\n- Native layer lists, selection, renaming, visibility, reordering, duplication, and deletion.\n- Vector lines and shapes, native font text placement, imported images, undo/redo, and tile-based viewport rendering.\n- Canonical `.iisc` documents, independent recovery files, and migration of earlier `.vrc` canvas containers.\n- PNG/JPEG/BMP/GIF/TGA/WebP/TIFF, layered PSD, and OpenRaster input. PNG/JPEG/BMP/TGA/WebP/TIFF and layered PSD output.\n- Native file dialogs, clipboard images, file/image drops, application menus, shortcuts, preferences, and collaboration windows.\n- Browser sign-in at iisacc.com, scoped app sessions and Society execution authorization. iiAccountManager owns the licensing implementation; Society manages accounts, app connections and local signed tokens; the app never asks for a password or license key. Signed updates, LAN discovery and shared-canvas services remain native.\n",
+      "raw": "- Finite canvases, pressure-aware painting and erasing, flow, opacity, hardness, spacing, stabilization, and pressure response.\n- Native layer lists, selection, renaming, visibility, reordering, duplication, and deletion.\n- Vector lines and shapes, native font text placement, imported images, undo/redo, and tile-based viewport rendering.\n- Canonical `.iisc` documents, independent recovery files, and migration of earlier `.vrc` canvas containers.\n- PNG/JPEG/BMP/GIF/TGA/WebP/TIFF, layered PSD, and OpenRaster input. PNG/JPEG/BMP/TGA/WebP/TIFF and layered PSD output.\n- Native file dialogs, clipboard images, file/image drops, application menus, shortcuts, preferences, and collaboration windows.\n- Browser sign-in at iisacc.com and online product-license checks use a device-scoped iiAccountManager session; the app never asks for a password or license key. The web-account migration and its update path are still being validated. LAN discovery and shared-canvas services remain native.\n",
       "items": [
         {
           "marker": "-",
-          "text": "Finite or infinite canvases, pressure-aware painting and erasing, flow, opacity, hardness, spacing, stabilization, and pressure response.",
+          "text": "Finite canvases, pressure-aware painting and erasing, flow, opacity, hardness, spacing, stabilization, and pressure response.",
           "checked": null
         },
         {
@@ -135,7 +135,7 @@
         },
         {
           "marker": "-",
-          "text": "Browser sign-in at iisacc.com, scoped app sessions and Society execution authorization. iiAccountManager owns the licensing implementation; Society manages accounts, app connections and local signed tokens; the app never asks for a password or license key. Signed updates, LAN discovery and shared-canvas services remain native.",
+          "text": "Browser sign-in at iisacc.com and online product-license checks use a device-scoped iiAccountManager session; the app never asks for a password or license key. The web-account migration and its update path are still being validated. LAN discovery and shared-canvas services remain native.",
           "checked": null
         }
       ]
@@ -166,7 +166,7 @@
       "kind": "paragraph",
       "start_line": 21,
       "end_line": 21,
-      "raw": "UI colors and geometry use the shared LVUI `Color` and `Metric` types. `App/Native/views/Theme.lvui` supplies application-specific values to all three compiled views and the generated native C++ style header. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.\n"
+      "raw": "UI colors and control styles use LVUI `Color` and `Metric` tokens, including the shared Figma-derived values migrated from LVRS. `App/Native/views/Layout.lvui` contains product layout dimensions for all three compiled views and the generated native C++ header; it defines no color palette. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.\n"
     },
     {
       "id": "b000016",
@@ -177,12 +177,10 @@
     },
     {
       "id": "b000017",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 23,
       "end_line": 23,
-      "raw": "## Build\n",
-      "level": 2,
-      "title": "Build"
+      "raw": "The editor's native view model exposes LVUI-compatible, revisioned list sources and a shared observable color alongside its existing commands. The current screens use those sources directly. See [the view-model contract](docs/LVUI_VIEWMODELS.md).\n"
     },
     {
       "id": "b000018",
@@ -193,10 +191,12 @@
     },
     {
       "id": "b000019",
-      "kind": "paragraph",
+      "kind": "heading",
       "start_line": 25,
       "end_line": 25,
-      "raw": "A C++23 compiler, CMake 3.31+, Python 3.9+, and an installed native iiSDK kit are required. Build the SDK packages before the app; the staged kit used by this workspace is `../../SDK/build/congregation-native/prefix`.\n"
+      "raw": "## Build\n",
+      "level": 2,
+      "title": "Build"
     },
     {
       "id": "b000020",
@@ -207,27 +207,27 @@
     },
     {
       "id": "b000021",
-      "kind": "fenced_code",
+      "kind": "paragraph",
       "start_line": 27,
-      "end_line": 29,
-      "raw": "```sh\n./build.sh local\n```\n",
-      "language": "sh",
-      "code": "./build.sh local\n",
-      "closed": true
+      "end_line": 27,
+      "raw": "A C++23 compiler, CMake 3.31+, Python 3.9+, and an installed native iiSDK kit are required. Build the SDK packages before the app; the staged kit used by this workspace is `../../SDK/build/congregation-native/prefix`.\n"
     },
     {
       "id": "b000022",
       "kind": "blank",
-      "start_line": 30,
-      "end_line": 30,
+      "start_line": 28,
+      "end_line": 28,
       "raw": "\n"
     },
     {
       "id": "b000023",
-      "kind": "paragraph",
-      "start_line": 31,
+      "kind": "fenced_code",
+      "start_line": 29,
       "end_line": 31,
-      "raw": "`CONGREGATION_SDK_PREFIX` selects another installed kit. All product build output stays in `build/`. The canonical macOS application is `build/Congregation.app`. Its post-build packaging step closes the runtime dependency graph, includes third-party notices, removes absolute runtime search paths, checks the macOS 12.0 deployment declarations, and verifies an ad-hoc code signature. Notarization and Store publication are separate release steps.\n"
+      "raw": "```sh\n./build.sh local\n```\n",
+      "language": "sh",
+      "code": "./build.sh local\n",
+      "closed": true
     },
     {
       "id": "b000024",
@@ -241,7 +241,7 @@
       "kind": "paragraph",
       "start_line": 33,
       "end_line": 33,
-      "raw": "On Windows, use `build-windows.ps1 -SdkPrefix <native-kit>`. The source requires an appropriate native kit for the target architecture. Existing Qt-era Store/MSI authoring material remains historical and is not a verified release path for this native migration.\n"
+      "raw": "`CONGREGATION_SDK_PREFIX` selects another installed kit. All product build output stays in `build/`. The canonical macOS application is `build/Congregation.app`. Its post-build packaging step closes the runtime dependency graph, includes third-party notices, removes absolute runtime search paths, checks the macOS 12.0 deployment declarations, and verifies an ad-hoc code signature. Notarization and Store publication are separate release steps.\n"
     },
     {
       "id": "b000026",
@@ -255,7 +255,7 @@
       "kind": "paragraph",
       "start_line": 35,
       "end_line": 35,
-      "raw": "For a connected iPad, build the isolated iPhoneOS SDK kit with `python3 -B tools/build_ipados_sdk.py all`, then use `python3 -B tools/build_ipados.py --device <iPad-UDID> --install --launch`. The UIKit/Metal app shares the C++ document engine and LVUI/LVRS views. The same canonical `build/Congregation.app` output slot is used; the previous macOS bundle is preserved in a verified ZIP before switching platforms. See [the iPadOS build and device checks](docs/IPADOS.md).\n"
+      "raw": "On Windows, use `build-windows.ps1 -SdkPrefix <native-kit>`. The source requires an appropriate native kit for the target architecture. Existing Qt-era Store/MSI authoring material remains historical and is not a verified release path for this native migration.\n"
     },
     {
       "id": "b000028",
@@ -269,7 +269,7 @@
       "kind": "paragraph",
       "start_line": 37,
       "end_line": 37,
-      "raw": "See [the build guide](docs/BUILD.md), [native runtime contracts](docs/NATIVE_RUNTIME.md), and [migration verification](docs/NATIVE_VERIFICATION.md).\n"
+      "raw": "For a connected iPad, build the isolated iPhoneOS SDK kit with `python3 -B tools/build_ipados_sdk.py all`, then use `python3 -B tools/build_ipados.py --device <iPad-UDID> --install --launch`. The UIKit/Metal source shares the C++ document engine and LVUI views. The independent LVUI migration has not yet been validated on an iPad. The same canonical `build/Congregation.app` output slot is used; the previous macOS bundle is preserved in a verified ZIP before switching platforms. See [the iPadOS build and device checks](docs/IPADOS.md).\n"
     },
     {
       "id": "b000030",
@@ -283,7 +283,7 @@
       "kind": "paragraph",
       "start_line": 39,
       "end_line": 39,
-      "raw": "For a macOS installer, run `cmake --build build --target CongregationInstaller` after building and testing. It signs the canonical native app and creates `build/Congregation.pkg` for `/Applications/Congregation.app`, with a checksum and payload verification report. See [installer signing and notarization](docs/MACOS_INSTALLER.md); a signed package is ready for public distribution only after notarization and Gatekeeper validation pass.\n"
+      "raw": "See [the build guide](docs/BUILD.md), [native runtime contracts](docs/NATIVE_RUNTIME.md), and [migration verification](docs/NATIVE_VERIFICATION.md).\n"
     },
     {
       "id": "b000032",
@@ -294,12 +294,10 @@
     },
     {
       "id": "b000033",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 41,
       "end_line": 41,
-      "raw": "## Test\n",
-      "level": 2,
-      "title": "Test"
+      "raw": "For a macOS installer, run `cmake --build build --target CongregationInstaller` after building and testing. It signs the canonical native app and creates `build/Congregation.pkg` for `/Applications/Congregation.app`, with a checksum and payload verification report. See [installer signing and notarization](docs/MACOS_INSTALLER.md); a signed package is ready for public distribution only after notarization and Gatekeeper validation pass.\n"
     },
     {
       "id": "b000034",
@@ -310,27 +308,29 @@
     },
     {
       "id": "b000035",
-      "kind": "fenced_code",
+      "kind": "heading",
       "start_line": 43,
-      "end_line": 46,
-      "raw": "```sh\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n```\n",
-      "language": "sh",
-      "code": "cmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n",
-      "closed": true
+      "end_line": 43,
+      "raw": "## Test\n",
+      "level": 2,
+      "title": "Test"
     },
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 47,
-      "end_line": 47,
+      "start_line": 44,
+      "end_line": 44,
       "raw": "\n"
     },
     {
       "id": "b000037",
-      "kind": "paragraph",
-      "start_line": 48,
+      "kind": "fenced_code",
+      "start_line": 45,
       "end_line": 48,
-      "raw": "The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `resources/` (also linked from `build/native-tests` when available), close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.\n"
+      "raw": "```sh\ncmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n```\n",
+      "language": "sh",
+      "code": "cmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n",
+      "closed": true
     },
     {
       "id": "b000038",
@@ -344,7 +344,7 @@
       "kind": "paragraph",
       "start_line": 50,
       "end_line": 50,
-      "raw": "The window tests verify the absence of the asset sidebar, the left-edge toolbar and tool selection, canvas/timeline expansion at full and minimum window sizes, 22 parameter controls, scroll clipping, time-based timeline navigation, and inspector tabs. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.\n"
+      "raw": "The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `resources/` (also linked from `build/native-tests` when available), close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.\n"
     },
     {
       "id": "b000040",
@@ -355,12 +355,10 @@
     },
     {
       "id": "b000041",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 52,
       "end_line": 52,
-      "raw": "## Controls\n",
-      "level": 2,
-      "title": "Controls"
+      "raw": "The window tests verify the absence of the asset sidebar, the left-edge toolbar and tool selection, canvas/timeline expansion at full and minimum window sizes, 22 parameter controls, scroll clipping, time-based timeline navigation, and inspector tabs. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.\n"
     },
     {
       "id": "b000042",
@@ -371,10 +369,12 @@
     },
     {
       "id": "b000043",
-      "kind": "paragraph",
+      "kind": "heading",
       "start_line": 54,
       "end_line": 54,
-      "raw": "The New canvas child window shares Dreamscapes’ catalogue, layout, search, units, PPI, and background controls while keeping the main editor interactive. See [the native chooser contract](docs/NEW_CANVAS_WINDOW.md).\n"
+      "raw": "## Controls\n",
+      "level": 2,
+      "title": "Controls"
     },
     {
       "id": "b000044",
@@ -388,7 +388,7 @@
       "kind": "paragraph",
       "start_line": 56,
       "end_line": 56,
-      "raw": "Use B for brush, E for eraser, T for text, V for selection, and H for pan. Space or the middle pointer button temporarily pans the view. Selection drag moves a layer; Shift drag scales it and Alt drag rotates it. Text editors retain their own keyboard input instead of invoking canvas shortcuts.\n"
+      "raw": "The New canvas child window shares Dreamscapes’ catalogue, layout, search, units, PPI, and background controls while keeping the main editor interactive. See [the native chooser contract](docs/NEW_CANVAS_WINDOW.md).\n"
     },
     {
       "id": "b000046",
@@ -402,7 +402,7 @@
       "kind": "paragraph",
       "start_line": 58,
       "end_line": 58,
-      "raw": "Focus a timeline layer and press Enter to rename it; drag its name to reorder it. Drag the timeline playhead to scrub elapsed time, or hold Alt and drag its frame ticks vertically to change the document rate.\n"
+      "raw": "Use B for brush, E for eraser, T for text, V for selection, and H for pan. Space or the middle pointer button temporarily pans the view. Selection drag moves a layer; Shift drag scales it and Alt drag rotates it. Text editors retain their own keyboard input instead of invoking canvas shortcuts.\n"
     },
     {
       "id": "b000048",
@@ -416,7 +416,7 @@
       "kind": "paragraph",
       "start_line": 60,
       "end_line": 60,
-      "raw": "Navigation and selection do not change document revisions. Each finished stroke is one durable edit; focus loss or Escape cancels its preview. The recent-canvas preference records only regular recovery files inside the app's own managed directory.\n"
+      "raw": "Focus a timeline layer and press Enter to rename it; drag its name to reorder it. Drag the timeline playhead to scrub elapsed time, or hold Alt and drag its frame ticks vertically to change the document rate.\n"
     },
     {
       "id": "b000050",
@@ -427,12 +427,10 @@
     },
     {
       "id": "b000051",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 62,
       "end_line": 62,
-      "raw": "## Source organization\n",
-      "level": 2,
-      "title": "Source organization"
+      "raw": "Navigation and selection do not change document revisions. Each finished stroke is one durable edit; focus loss or Escape cancels its preview. The recent-canvas preference records only regular recovery files inside the app's own managed directory.\n"
     },
     {
       "id": "b000052",
@@ -443,10 +441,12 @@
     },
     {
       "id": "b000053",
-      "kind": "paragraph",
+      "kind": "heading",
       "start_line": 64,
       "end_line": 64,
-      "raw": "`App/Engine` owns product services and policies. `App/Native` owns native editor integration, and `App/Native/views` contains declarative LVUI views. `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.\n"
+      "raw": "## Source organization\n",
+      "level": 2,
+      "title": "Source organization"
     },
     {
       "id": "b000054",
@@ -460,7 +460,7 @@
       "kind": "paragraph",
       "start_line": 66,
       "end_line": 66,
-      "raw": "Version 1.0.0 and bundle build 1 are preserved. A successful local build does not establish Windows/Linux runtime compatibility, physical-tablet validation, execution on an older macOS machine, or production account/update-server behavior.\n"
+      "raw": "`App/Engine` owns product services and policies. `App/Native` owns native editor integration, and `App/Native/views` contains declarative LVUI views. `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.\n"
     },
     {
       "id": "b000056",
@@ -471,32 +471,46 @@
     },
     {
       "id": "b000057",
-      "kind": "html",
+      "kind": "paragraph",
       "start_line": 68,
       "end_line": 68,
-      "raw": "<!-- workspace-docs:readme:start -->\n"
+      "raw": "The current source declares version 1.0.2 and bundle build 3. A successful local build does not establish Windows/Linux runtime compatibility, physical-tablet validation, execution on an older macOS machine, or production account/update-server behavior.\n"
     },
     {
       "id": "b000058",
-      "kind": "heading",
+      "kind": "blank",
       "start_line": 69,
       "end_line": 69,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "html",
+      "start_line": 70,
+      "end_line": 70,
+      "raw": "<!-- workspace-docs:readme:start -->\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "heading",
+      "start_line": 71,
+      "end_line": 71,
       "raw": "## Documentation entry points\n",
       "level": 2,
       "title": "Documentation entry points"
     },
     {
-      "id": "b000059",
+      "id": "b000061",
       "kind": "blank",
-      "start_line": 70,
-      "end_line": 70,
+      "start_line": 72,
+      "end_line": 72,
       "raw": "\n"
     },
     {
-      "id": "b000060",
+      "id": "b000062",
       "kind": "list",
-      "start_line": 71,
-      "end_line": 74,
+      "start_line": 73,
+      "end_line": 76,
       "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](docs/README.md).\n- Structured agent documentation: [agent index](docs/agent-index.json).\n",
       "items": [
         {
@@ -522,10 +536,10 @@
       ]
     },
     {
-      "id": "b000061",
+      "id": "b000063",
       "kind": "html",
-      "start_line": 75,
-      "end_line": 75,
+      "start_line": 77,
+      "end_line": 77,
       "raw": "<!-- workspace-docs:readme:end -->\n"
     }
   ],
@@ -534,8 +548,8 @@
       "block_id": "b000001",
       "parent_id": null,
       "level": 1,
-      "title": "Congregation 1.0.0",
-      "anchor": "congregation-100",
+      "title": "Congregation 1.0.2",
+      "anchor": "congregation-102",
       "start_line": 1
     },
     {
@@ -547,44 +561,44 @@
       "start_line": 9
     },
     {
-      "block_id": "b000017",
+      "block_id": "b000019",
       "parent_id": "b000001",
       "level": 2,
       "title": "Build",
       "anchor": "build",
-      "start_line": 23
+      "start_line": 25
     },
     {
-      "block_id": "b000033",
+      "block_id": "b000035",
       "parent_id": "b000001",
       "level": 2,
       "title": "Test",
       "anchor": "test",
-      "start_line": 41
+      "start_line": 43
     },
     {
-      "block_id": "b000041",
+      "block_id": "b000043",
       "parent_id": "b000001",
       "level": 2,
       "title": "Controls",
       "anchor": "controls",
-      "start_line": 52
+      "start_line": 54
     },
     {
-      "block_id": "b000051",
+      "block_id": "b000053",
       "parent_id": "b000001",
       "level": 2,
       "title": "Source organization",
       "anchor": "source-organization",
-      "start_line": 62
+      "start_line": 64
     },
     {
-      "block_id": "b000058",
+      "block_id": "b000060",
       "parent_id": "b000001",
       "level": 2,
       "title": "Documentation entry points",
       "anchor": "documentation-entry-points",
-      "start_line": 69
+      "start_line": 71
     }
   ],
   "indexes": {
@@ -592,34 +606,34 @@
       {
         "block_id": "b000011",
         "line": 17,
-        "text": "- Browser sign-in at iisacc.com, scoped app sessions and Society execution authorization. iiAccountManager owns the licensing implementation; Society manages accounts, app connections and local signed tokens; the app never asks for a password or license key. Signed updates, LAN discovery and shared-canvas services remain native.",
+        "text": "- Browser sign-in at iisacc.com and online product-license checks use a device-scoped iiAccountManager session; the app never asks for a password or license key. The web-account migration and its update path are still being validated. LAN discovery and shared-canvas services remain native.",
         "basis": "lexical_match",
         "context": "list"
       },
       {
-        "block_id": "b000019",
-        "line": 25,
+        "block_id": "b000021",
+        "line": 27,
         "text": "A C++23 compiler, CMake 3.31+, Python 3.9+, and an installed native iiSDK kit are required. Build the SDK packages before the app; the staged kit used by this workspace is `../../SDK/build/congregation-native/prefix`.",
-        "basis": "lexical_match",
-        "context": "paragraph"
-      },
-      {
-        "block_id": "b000037",
-        "line": 48,
-        "text": "The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `resources/` (also linked from `build/native-tests` when available), close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000039",
         "line": 50,
+        "text": "The suite covers the Core engine, native services, document editing and file compatibility, and real native-window runs with Metal and forced Vulkan. GUI self-tests use an isolated directory under `resources/` (also linked from `build/native-tests` when available), close automatically, and do not use the user's saved credentials or canvases. Runtime library override variables are removed from the test environment.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000041",
+        "line": 52,
         "text": "The window tests verify the absence of the asset sidebar, the left-edge toolbar and tool selection, canvas/timeline expansion at full and minimum window sizes, 22 parameter controls, scroll clipping, time-based timeline navigation, and inspector tabs. Run `ctest --test-dir build -R figma_ui --output-on-failure` to reproduce the native-window captures. Tests use the original Figma artwork as document content; the whole-screen reference screenshot is never used as an implementation asset.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000049",
-        "line": 60,
+        "block_id": "b000051",
+        "line": 62,
         "text": "Navigation and selection do not change document revisions. Each finished stroke is one durable edit; focus loss or Escape cancels its preview. The recent-canvas preference records only regular recovery files inside the app's own managed directory.",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -627,12 +641,12 @@
     ],
     "commands": [
       {
-        "block_id": "b000021",
+        "block_id": "b000023",
         "language": "sh",
         "code": "./build.sh local\n"
       },
       {
-        "block_id": "b000035",
+        "block_id": "b000037",
         "language": "sh",
         "code": "cmake --build build --parallel 6\nctest --test-dir build --output-on-failure\n"
       }
@@ -660,67 +674,74 @@
         "line": 21
       },
       {
-        "block_id": "b000027",
+        "block_id": "b000017",
+        "label": "the view-model contract",
+        "target": "docs/LVUI_VIEWMODELS.md",
+        "kind": "relative",
+        "line": 23
+      },
+      {
+        "block_id": "b000029",
         "label": "the iPadOS build and device checks",
         "target": "docs/IPADOS.md",
-        "kind": "relative",
-        "line": 35
-      },
-      {
-        "block_id": "b000029",
-        "label": "the build guide",
-        "target": "docs/BUILD.md",
-        "kind": "relative",
-        "line": 37
-      },
-      {
-        "block_id": "b000029",
-        "label": "native runtime contracts",
-        "target": "docs/NATIVE_RUNTIME.md",
-        "kind": "relative",
-        "line": 37
-      },
-      {
-        "block_id": "b000029",
-        "label": "migration verification",
-        "target": "docs/NATIVE_VERIFICATION.md",
         "kind": "relative",
         "line": 37
       },
       {
         "block_id": "b000031",
-        "label": "installer signing and notarization",
-        "target": "docs/MACOS_INSTALLER.md",
+        "label": "the build guide",
+        "target": "docs/BUILD.md",
         "kind": "relative",
         "line": 39
       },
       {
-        "block_id": "b000043",
+        "block_id": "b000031",
+        "label": "native runtime contracts",
+        "target": "docs/NATIVE_RUNTIME.md",
+        "kind": "relative",
+        "line": 39
+      },
+      {
+        "block_id": "b000031",
+        "label": "migration verification",
+        "target": "docs/NATIVE_VERIFICATION.md",
+        "kind": "relative",
+        "line": 39
+      },
+      {
+        "block_id": "b000033",
+        "label": "installer signing and notarization",
+        "target": "docs/MACOS_INSTALLER.md",
+        "kind": "relative",
+        "line": 41
+      },
+      {
+        "block_id": "b000045",
         "label": "the native chooser contract",
         "target": "docs/NEW_CANVAS_WINDOW.md",
         "kind": "relative",
-        "line": 54
+        "line": 56
       },
       {
-        "block_id": "b000060",
+        "block_id": "b000062",
         "label": "AGENT.md",
         "target": "AGENT.md",
         "kind": "relative",
-        "line": 72
+        "line": 74
       },
       {
-        "block_id": "b000060",
+        "block_id": "b000062",
         "label": "documentation index",
         "target": "docs/README.md",
         "kind": "relative",
-        "line": 73
+        "line": 75
       },
       {
-        "block_id": "b000060",
+        "block_id": "b000062",
         "label": "agent index",
         "target": "docs/agent-index.json",
         "kind": "relative",
-        "line": 74
+        "line": 76
       }
     ],
     "tables": []

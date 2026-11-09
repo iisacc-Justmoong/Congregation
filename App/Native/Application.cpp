@@ -1,18 +1,21 @@
 #include "Artwork.h"
+#include "AppMenu.h"
 #include "CanvasView.h"
+#include "ChildWindowGeneration.h"
 #include "EditorBackend.h"
 #include "EditorLayout.h"
-#include "EditorIcons.h"
 #include "MainWindow.h"
 #include "Style.h"
 #include "PreferencesView.generated.h"
 #include "CanvasSetupWindow.h"
+#include <LVUI/NativeAuthoredIcons.h>
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
 #include <Engine/ApplicationEngine.h>
 #include <Engine/Preferences.h>
 #include <Engine/LicenseService.h>
+#include <Engine/SocietyUpdateFeed.h>
 #include <Engine/CanvasSession.h>
 #include <Engine/NearbyDiscovery.h>
 #include <iiGUI/Application.h>
@@ -24,6 +27,7 @@
 #include <iiSDKCore/Core/Text/Number.h>
 #include <algorithm>
 #include <charconv>
+#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <utility>
@@ -66,14 +70,7 @@ void good(ii::core::Result<void> result)
         throw std::runtime_error(result.error().message);
     }
 }
-iisacc::accounts::native::SessionPersistence session_store(
-    const std::shared_ptr<iisacc::accounts::native::SecureStore>& store, bool test)
-{
-    if(test) return {};
-    return {.read=[store]{return store->read();}, .write=[store](auto bytes){return store->write(bytes);},
-            .remove=[store]{return store->remove();}};
-}
-iisacc::accounts::native::BrowserSessionOptions account_options(const std::filesystem::path& directory,bool test)
+iisacc::accounts::native::SocietySessionOptions account_options(const std::filesystem::path& directory,bool test)
 {
     using namespace iisacc::accounts::native;
     std::string fallback(64,'a');
@@ -88,42 +85,54 @@ iisacc::accounts::native::BrowserSessionOptions account_options(const std::files
     }
     return {.product_id="congregation",.device=detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,fallback)};
 }
+LicenseService::Authority account_authority()
+{
+#if defined(__APPLE__) && TARGET_OS_IOS
+    return LicenseService::Authority::web;
+#else
+    return LicenseService::Authority::society;
+#endif
+}
+iisacc::accounts::native::SessionPersistence account_store(bool test)
+{
+#if defined(__APPLE__) && TARGET_OS_IOS
+    if(!test) {
+        auto store=std::make_shared<iisacc::accounts::native::SecureStore>(
+            "com.iisacc.congregation.painter","web-app-session-v1");
+        return {.read=[store]{return store->read();},
+                .write=[store](std::string_view bytes){return store->write(bytes);},
+                .remove=[store]{return store->remove();}};
+    }
+#else
+    (void)test;
+#endif
+    return {};
+}
 std::string account_message(const LicenseService& license)
 {
-    if(license.code=="waiting_for_browser") return "Finish signing in through your browser, then return.";
-    if(license.code=="society_unavailable") return "Open Society to authorize Congregation on this device.";
-    if(license.code=="society_account_required") return "Connect the same account in Society to authorize this app.";
-    if(license.code=="checking_license") return "Requesting authorization from Society…";
-    if(license.code=="license_not_owned") return "No Congregation license. Manage licenses in Society.";
-    if(license.code=="licensed_offline") return "Authorized by Society. Using your verified local license token.";
+    if(license.code=="waiting_for_browser") return "Finish connecting this iPad in your browser, then return.";
+#if defined(__APPLE__) && TARGET_OS_IOS
+    if(license.code=="sign_in_required" || license.code=="unauthenticated" ||
+       license.code=="saved_session_invalid") return "Sign in with your iisacc account.";
+    if(license.code=="checking_license") return "Checking your Congregation license…";
+#endif
+    if(license.code=="society_unavailable") return "Open Society and sign in to check your license.";
+    if(license.code=="society_account_required" || license.code=="sign_in_required") return "Sign in to Society with your iisacc account.";
+    if(license.code=="checking_license") return "Checking your license through Society…";
+    if(license.code=="license_not_owned") return "Your account does not have access to Congregation.";
     if(license.code=="licensed") return "Congregation license verified.";
     if(license.code=="secure_storage_unavailable") return "Signed in for this run. Secure session storage is unavailable.";
     if(license.code=="sign_in_cancelled") return "Sign-in cancelled.";
     if(license.code=="unauthenticated"||license.code=="saved_session_invalid") return "Your session has expired. Sign in again.";
     if(license.code=="app_request_expired") return "Sign-in expired. Start a new sign-in request.";
-    if(license.code=="device_limit_reached") return "This device limit was reached. Manage connected devices in Society.";
+    if(license.code=="device_limit_reached") return "This device limit was reached. Manage connected devices in your account.";
     if(!license.code.empty()) return "Verification unavailable. Check your connection and retry.";
-    return "Sign in at iisacc.com to check your Congregation license.";
+#if defined(__APPLE__) && TARGET_OS_IOS
+    return "Sign in with your iisacc account to check your license.";
+#else
+    return "Open Society to check your Congregation license.";
+#endif
 }
-class UpdateCredentials final : public iisacc::updates::native::UpdateCredentialProvider
-{
-  public:
-    explicit UpdateCredentials(LicenseService& value) : license_(value) {}
-    void requestCredentials(Completion completion) override
-    {
-        auto token=license_.access_token();
-        if(token.empty()) { completion(std::nullopt,"Sign in at iisacc.com before updating"); return; }
-        iisacc::updates::native::UpdateCredentials out;
-        out.accessToken=std::move(token);
-        completion(std::move(out), {});
-    }
-    void cancel() noexcept override { ++*generation_; }
-    ~UpdateCredentials() override { cancel(); }
-
-  private:
-    LicenseService& license_;
-    std::shared_ptr<unsigned> generation_ = std::make_shared<unsigned>(0);
-};
 } // namespace
 struct State final : std::enable_shared_from_this<State>
 {
@@ -137,40 +146,41 @@ struct State final : std::enable_shared_from_this<State>
     Artwork artwork;
     CanvasView canvas;
     std::shared_ptr<ii::gui::Host> host, preferences_host, setup_host;
+    ChildWindowGeneration preferences_generation, setup_generation;
     std::shared_ptr<CanvasSetupView> setup_view;
     CanvasSetupModel* setup = nullptr;
     std::shared_ptr<const ii::gui::RasterImage> avatar;
     std::shared_ptr<MainView> view = std::make_shared<MainView>();
     std::shared_ptr<PreferencesView> preferences_view;
-    std::shared_ptr<lvrs::ListModel> layers = std::make_shared<lvrs::ListModel>(),
-                                     members = std::make_shared<lvrs::ListModel>();
-    std::shared_ptr<ii::gui::ColorPickerModel> color =
-        std::make_shared<ii::gui::ColorPickerModel>();
-    std::shared_ptr<const ii::gui::ColorChangePort> color_port;
+    std::shared_ptr<ui::PresentationList> layer_source = std::make_shared<ui::PresentationList>(),
+                                          member_source = std::make_shared<ui::PresentationList>();
+    std::shared_ptr<ui::EditorColor> color = std::make_shared<ui::EditorColor>();
+    ii::core::ObservableSubscription color_subscription;
     ui::EditorBackend* main = nullptr;
     ui::EditorBackend* secondary = nullptr;
-    std::shared_ptr<iisacc::accounts::native::SecureStore> store =
-        std::make_shared<iisacc::accounts::native::SecureStore>("com.iisacc.congregation.painter",
-                                                                "web-app-session-v1");
+    iisacc::accounts::native::SocietySessionOptions account_config;
     LicenseService license;
-    UpdateCredentials update_credentials;
+    SocietyUpdateFeed update_feed;
     iisacc::updates::native::UpdateManager updater;
     ii::network::Http image_http;
     std::string selected_member;
     NearbyDiscovery discovery;
     CanvasSession session;
-    ii::runtime::TaskToken deadline, notice_deadline;
+    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer;
+    std::uint64_t airbrush_timer_generation = 0;
     std::shared_ptr<ToolSettings> tool_settings = std::make_shared<ToolSettings>();
     std::shared_ptr<TimelineModel> timeline_model = std::make_shared<TimelineModel>();
     ii::core::ObservableSubscription timeline_subscription;
     std::function<void()> after_setup, after_preferences;
+    std::size_t self_test_preference_round = 0;
     State(ii::runtime::Application& application, bool self_test, std::filesystem::path data)
         : app(application), test(self_test), directory(std::move(data)), engine(app.event_loop()),
           preferences(test ? directory / "preferences.ini" : std::filesystem::path{},
                       directory / "recovery"),
           artwork(directory / "recovery"), canvas(artwork),
-          license(app.event_loop(), account_options(directory,test), !test, session_store(store,test)),
-          update_credentials(license),
+          account_config(account_options(directory,test)),
+          license(app.event_loop(), account_config, !test, account_authority(), account_store(test)),
+          update_feed(app.event_loop(), account_config.device.id),
           updater(app.event_loop(), "congregation", CONGREGATION_VERSION),
           image_http(app.event_loop()),
           discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
@@ -189,6 +199,32 @@ struct State final : std::enable_shared_from_this<State>
             (void) tool_settings->restore(
                 iiFileProvider::native::File::read(directory / "tools.ini", 8192));
     }
+    ~State() { (void)airbrush_timer.cancel(); }
+    void synchronize_airbrush_timer()
+    {
+        if (!canvas.airbrush_active()) { (void)airbrush_timer.cancel(); airbrush_timer = {}; return; }
+        const auto generation = canvas.airbrush_generation();
+        if (airbrush_timer.pending() && airbrush_timer_generation == generation) return;
+        (void)airbrush_timer.cancel();
+        airbrush_timer_generation = generation;
+        const auto started = ii::runtime::Clock::now();
+        const auto weak = weak_from_this();
+        auto scheduled = host->executor().every(std::chrono::milliseconds(33), [weak, started, generation] {
+            if (auto p = weak.lock()) {
+                if (!p->test && !p->license.licensed && p->canvas.airbrush_active()) {
+                    p->canvas.cancel_airbrush_stroke();
+                    p->status("Sign in to verify your Congregation license");
+                }
+                if (!p->canvas.airbrush_active() || p->canvas.airbrush_generation() != generation) {
+                    (void)p->airbrush_timer.cancel(); p->airbrush_timer = {}; return;
+                }
+                const auto elapsed = std::chrono::duration<double>(ii::runtime::Clock::now() - started).count();
+                if (!p->canvas.airbrush_tick(elapsed)) { (void)p->airbrush_timer.cancel(); p->airbrush_timer = {}; }
+            }
+        });
+        if (scheduled) airbrush_timer = scheduled.token;
+        else status("Airbrush preview timer is unavailable");
+    }
     void status(std::string value)
     {
         if(setup)setup->status.set(value);
@@ -205,8 +241,8 @@ struct State final : std::enable_shared_from_this<State>
                 auto mount=view->widgets();auto anchor=mount.find("canvas");auto notice=mount.find("status-notice");
                 if (anchor && notice)
                 {
-                    good(notice->open_for(
-                        *anchor, Metric::space16,
+                    good(open_scoped_popup_for(take(mount.find("root")), *notice, *anchor,
+                        Metric::space16,
                         std::max(0.f, take(anchor->snapshot()).bounds.height - Metric::size108)));
                     (void)notice_deadline.cancel();
                     const auto weak=weak_from_this();
@@ -218,6 +254,12 @@ struct State final : std::enable_shared_from_this<State>
         else if (!success.empty())
             status(std::move(success));
     }
+    void publish_rows(const std::shared_ptr<ui::PresentationList>& source,
+                      std::vector<ui::PresentationRow> rows)
+    {
+        if (auto published = source->replace(std::move(rows)); !published)
+            throw std::runtime_error(published.error().message);
+    }
     void refresh()
     {
         const auto& timing = artwork.document().timeline;
@@ -225,16 +267,14 @@ struct State final : std::enable_shared_from_this<State>
                                                      std::max(1u, timing.frameRate.denominator))));
         timeline_model->set_rate(rate);
         timeline_model->set_duration(double(timing.frameCount) / rate);
-        std::vector<lvrs::ListRowData> rows;
+        std::vector<ui::PresentationRow> rows;
         for (auto it = artwork.document().layers.rbegin(); it != artwork.document().layers.rend();
              ++it)
         {
             const auto& p = layerProperties(*it);
-            rows.push_back({p.id, p.name, "", true, true, p.visible});
+            rows.push_back({p.id, p.name, "", true, true, p.visible, true});
         }
-        take(layers->set_rows(std::move(rows)));
-        if (!artwork.selected().empty())
-            take(layers->select(artwork.selected()));
+        publish_rows(layer_source, std::move(rows));
         const auto title =
             artwork.source().empty() ? "Untitled" : path_text(artwork.source().filename());
         if (main)
@@ -278,9 +318,8 @@ struct State final : std::enable_shared_from_this<State>
             secondary = &backend;
         else
             main = &backend;
-        backend.layers = layers;
-        backend.members = members;
-        backend.color = color;
+        backend.set_presentation_lists(layer_source, member_source);
+        backend.set_color_model(color);
         backend.parameters = tool_settings;
         backend.timeline = timeline_model;
         backend.sync_parameter_fields();
@@ -298,7 +337,15 @@ struct State final : std::enable_shared_from_this<State>
         backend.can_invite.set(preferences.invitations_allowed);
         backend.discover.set(preferences.discover_nearby);
         backend.display_name.set(preferences.profile_name);
-        backend.account_email.set(license.email.empty() ? "Not connected" : license.email);
+        if (auxiliary) backend.profile_avatar.set(avatar);
+        backend.account_email.set(license.signed_in ? license.email : "Not connected");
+#if defined(__APPLE__) && TARGET_OS_IOS
+        backend.account_title.set("Connect your iisacc account");
+        backend.account_description.set("Sign in to verify your Congregation license.");
+        backend.account_button.set("Sign in with iisacc");
+        backend.account_guide.set("Your iisacc account verifies your Congregation license.");
+        backend.account_status.set(account_message(license));
+#endif
         if (auxiliary && main)
         {
             backend.spacing_pixels.set(main->spacing_pixels.get());
@@ -410,7 +457,7 @@ struct State final : std::enable_shared_from_this<State>
             if(e.kind==K::pointer_down){p->pressure_handle=editor::pressure_point(x,bounds.width);good(widget.focus());}
             if(e.kind==K::focus_lost||e.kind==K::pointer_leave){p->pressure_handle=-1;return false;}
             if((e.kind==K::pointer_down||e.kind==K::pointer_move||e.kind==K::pointer_up)&&p->pressure_handle>=0){
-                const auto value=editor::pressure_value(y);
+                const auto value=editor::pressure_value(y,bounds.height);
                 if(p->pressure_handle==0)p->main->set_pressure_min(value);
                 else if(p->pressure_handle==1)p->main->set_pressure_mid(value);
                 else p->main->set_pressure_max(value);
@@ -430,10 +477,38 @@ struct State final : std::enable_shared_from_this<State>
                     p->canvas.brush_size = p->main->brush_size.get();
                     p->canvas.opacity = p->main->opacity.get();
                     p->canvas.text = p->main->text_value.get();
+                    p->canvas.selection_feather = p->main->selection_feather.get();
+                    p->canvas.magnetic_radius = p->main->magnetic_radius.get();
+                    p->canvas.clone_aligned = p->main->clone_aligned.get();
+                    p->canvas.clone_current_layer = p->main->clone_current_layer.get();
+                    p->canvas.polygon_options.sides=static_cast<int>(std::clamp<std::int64_t>(p->main->polygon_sides.get(),3,64));
+                    p->canvas.polygon_options.rotation_degrees=p->main->polygon_rotation.get();
+                    p->canvas.polygon_options.from_center=p->main->polygon_center.get();
+                    p->canvas.polygon_options.fill=p->main->polygon_fill.get();
+                    p->canvas.polygon_options.outline=p->main->polygon_outline.get();
+                    p->canvas.polygon_options.stroke_width=p->main->polygon_stroke_width.get();
+                    p->canvas.polygon_options.opacity=p->main->polygon_opacity.get();
+                    const auto ratio=p->main->crop_aspect.get();
+                    p->canvas.crop_aspect=ratio==1 ? 1. : ratio==2 ? 4./3. : ratio==3 ? 16./9. : 0.;
+                    p->canvas.crop_destructive=p->main->crop_destructive.get();
+                    p->canvas.selection_antialias = p->main->selection_antialias.get();
+                    p->canvas.wand_tolerance = p->main->wand_tolerance.get();
+                    p->canvas.wand_contiguous = p->main->wand_contiguous.get();
+                    p->canvas.wand_current_layer = p->main->wand_current_layer.get();
+                    p->canvas.fill_tolerance = p->main->fill_tolerance.get();
+                    p->canvas.fill_contiguous = p->main->fill_contiguous.get();
+                    p->canvas.fill_current_layer = p->main->fill_current_layer.get();
+                    p->canvas.fill_target_current = p->main->fill_target_current.get();
+                    p->canvas.fill_preserve_alpha = p->main->fill_preserve_alpha.get();
+                    p->canvas.fill_antialias = p->main->fill_antialias.get();
+                    auto& gradient = *p->main->gradient_settings;
+                    gradient.set_default_start(p->canvas.color);
+                    p->canvas.gradient_stops = gradient.stops();
+                    p->canvas.gradient_kind = gradient.kind();
+                    p->canvas.gradient_spread = gradient.spread();
+                    p->canvas.gradient_blend = gradient.blend();
                 }
-                auto local=event;
-                const auto bounds=take(take(p->view->widgets().find("canvas")).snapshot()).bounds;
-                local.x-=bounds.x;local.y-=bounds.y;
+                auto local = p->canvas.localize_input(event);
                 if (event.kind == ii::gui::WidgetInputKind::drop && event.content &&
                     !event.content->url.empty() && event.content->image.empty() &&
                     event.content->files.empty())
@@ -444,6 +519,7 @@ struct State final : std::enable_shared_from_this<State>
                     return true;
                 }
                 auto result = p->canvas.input(local);
+                p->synchronize_airbrush_timer();
                 if (p->main)
                     p->main->zoom.set(
                         ii::core::format_decimal(std::round(p->canvas.viewport().scale * 100)) +
@@ -524,6 +600,23 @@ struct State final : std::enable_shared_from_this<State>
     }
     void select_native_tool(std::string name)
     {
+        if (name == "quick-mask") {
+            if (!test && !license.licensed) { license.open_society(); status("Sign in to verify your Congregation license"); return; }
+            if (canvas.quick_mask_active()) {
+                if (canvas.commit_quick_mask()) status("Quick mask applied");
+            } else {
+                if (canvas.tool != "brush" && canvas.tool != "eraser") {
+                    canvas.cancel_interaction(); canvas.tool="brush"; main->selected_tool.set("brush"); apply_brush(*main);
+                }
+                if (canvas.begin_quick_mask()) status("Quick mask: paint to exclude; erase to restore");
+            }
+            return;
+        }
+        if (canvas.quick_mask_active() && name != "brush" && name != "pencil" && name != "dry-brush" &&
+            name != "airbrush" && name != "mixer-brush" && name != "bristle-brush" && name != "smudge" &&
+            name != "eraser" && name != "hand" && name != "imagezoomIn" && name != "rulers") {
+            status("Apply or cancel quick mask before selecting another tool"); return;
+        }
         const std::map<std::string, Action, std::less<>> actions{
             {"brush", Action::brush},
             {"pencil", Action::brush},
@@ -542,6 +635,14 @@ struct State final : std::enable_shared_from_this<State>
             {"hand", Action::pan},
             {"imagezoomIn", Action::zoom_tool},
             {"color-picker", Action::eyedropper}};
+        if (name == "clone-stamp" || name == "rect-marquee" || name == "ellipse-marquee" || name == "lasso" || name == "polygon-lasso" || name == "magnetic-lasso" || name == "crop" || name == "perspective-crop" || name == "magic-wand" || name == "gradient" || name == "polygon") {
+            if (!test && !license.licensed) {
+                license.open_society();
+                status("Sign in to verify your Congregation license");
+                return;
+            }
+            canvas.cancel_interaction(); canvas.tool = name; main->selected_tool.set(name); if(name=="clone-stamp")apply_brush(*main); return;
+        }
         if (name == "rulers")
         {
             main->rulers_visible.set(!main->rulers_visible.get());
@@ -549,6 +650,11 @@ struct State final : std::enable_shared_from_this<State>
         }
         if (auto item = actions.find(name); item != actions.end())
         {
+            if (!test && !license.licensed) {
+                license.open_society();
+                status("Sign in to verify your Congregation license");
+                return;
+            }
             act(item->second);
             main->selected_tool.set(std::move(name));
             apply_brush(*main);
@@ -671,7 +777,9 @@ struct State final : std::enable_shared_from_this<State>
         backend.parameters->set(P::hardness, backend.hardness.get() * 100);
         backend.parameters->set(P::spacing, backend.spacing.get() * 100);
         backend.parameters->set(P::stabilization, backend.stabilizer.get() * 100);
-        canvas.settings = backend.parameters->brush();
+        canvas.settings = backend.parameters->brush(backend.selected_tool.get());
+        canvas.taper = {backend.parameters->value(P::start) / 100., backend.parameters->value(P::end) / 100.,
+                        backend.parameters->value(P::minimum_size) / 100., backend.parameters->value(P::taper) / 100.};
         canvas.brush_size = backend.brush_size.get();
         canvas.opacity = backend.opacity.get();
         canvas.settings.spacing=backend.spacing_pixels.get();
@@ -681,8 +789,6 @@ struct State final : std::enable_shared_from_this<State>
         canvas.settings.spacingRatio = backend.spacing.get();
         canvas.settings.pressureToOpacityEnabled = backend.pressure_enabled.get();
         BrushState engine = *canvas.settings.engineState;
-        engine.rasterizer.smoothingEnabled =
-            backend.stabilizer.get() > 0 || backend.parameters->value(P::post) > 0;
         engine.rasterizer.smoothing = backend.stabilizer.get();
         engine.dynamics.pressureToOpacity = 0;
         auto& response = engine.dynamics.opacityResponse;
@@ -691,13 +797,6 @@ struct State final : std::enable_shared_from_this<State>
                              std::clamp(backend.pressure_mid.get(), 0., 1.),
                              std::clamp(backend.pressure_max.get(), 0., 1.)};
         canvas.settings.engineState = std::move(engine);
-        const auto selected = backend.selected_tool.get();
-        auto& material = canvas.settings.engineState->material;
-        material.simulation.enabled = selected == "mixer-brush" || selected == "smudge";
-        material.simulation.model =
-            selected == "smudge" ? BrushSimulationModel::Smudge : BrushSimulationModel::Mixer;
-        material.bristle.enabled = selected == "bristle-brush";
-        canvas.settings.engineState->rasterizer.airbrushEnabled = selected == "airbrush";
         if (main && &backend != main)
         {
             main->spacing_pixels.set(backend.spacing_pixels.get());
@@ -755,17 +854,9 @@ struct State final : std::enable_shared_from_this<State>
                 }))
             status("The image download could not start");
     }
-    void draw_avatar()
+    void publish_avatar()
     {
-        if (!preferences_view)
-            return;
-        auto widget = take(preferences_view->widgets().find("profile-image"));
-        ii::gui::WidgetDrawing drawing;
-        if (avatar)
-            drawing.images.push_back({{0, 0, Metric::size64, Metric::size64}, avatar});
-        else if(auto icon=lvrs::Icons::image("user"))
-            drawing.images.push_back({{Metric::space10,Metric::space10,Metric::size44,Metric::size44},*icon});
-        good(widget.set_drawing(std::move(drawing)));
+        if (preferences_view && secondary) secondary->profile_avatar.set(avatar);
     }
     void set_avatar(const std::filesystem::path& path)
     {
@@ -799,7 +890,7 @@ struct State final : std::enable_shared_from_this<State>
             directory / "profile.png", {reinterpret_cast<const char*>(png->data()), png->size()});
         avatar = take(
             ii::gui::rgba_image(converted->width, converted->height, std::move(converted->rgba)));
-        draw_avatar();
+        publish_avatar();
         status("Profile photo updated");
     }
     void open_setup()
@@ -813,34 +904,48 @@ struct State final : std::enable_shared_from_this<State>
                 return;
             }
         }
+        const auto generation = setup_generation.begin();
+        setup = nullptr;
+        // Detach both slots before releasing either previous owner.
+        [[maybe_unused]] auto previous_view = std::move(setup_view);
+        [[maybe_unused]] auto previous_host = std::move(setup_host);
         setup_view = std::make_shared<CanvasSetupView>();
         auto options = CanvasSetupView::options();
         options.renderer = renderer;
         options.event_loop = &app.event_loop();
         setup_host = std::make_shared<ii::gui::Host>(options);
+        const auto opening_host = setup_host;
         const auto weak = weak_from_this();
-        good(setup_host->show(
+        auto shown = opening_host->show(
             *host, {.opened =
-                        [weak]
+                        [weak, generation]
                     {
-                        if (auto p = weak.lock())
+                        if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
                         {
-                            good(p->setup_view->attach(*p->setup_host,
-                                                       [p, weak](CanvasSetupView::Scope& scope)
+                            auto window = p->setup_host;
+                            auto view = p->setup_view;
+                            if (!window || !view) return;
+                            auto attached = view->attach(*window,
+                                                       [weak, generation](CanvasSetupView::Scope& scope)
                                                        {
+                                                           auto p = weak.lock();
+                                                           if (!p || !p->setup_generation.accepts(generation)) return;
                                                            p->setup = &scope.backend_0;
                                                            scope.backend_0.status.set("");
-                                                           scope.backend_0.create_requested = [weak]
+                                                           scope.backend_0.create_requested = [weak, generation]
                                                            {
-                                                               if (auto p = weak.lock())
+                                                               if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
                                                                    p->act(Action::create_canvas);
                                                            };
-                                                           scope.backend_0.close_requested = [weak]
+                                                           scope.backend_0.close_requested = [weak, generation]
                                                            {
-                                                               if (auto p = weak.lock())
+                                                               if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
                                                                    p->act(Action::cancel_canvas);
                                                            };
-                                                       }));
+                                                       });
+                            if (!attached && p->setup_generation.owns(generation)) p->setup = nullptr;
+                            good(std::move(attached));
+                            if (!p->setup_generation.accepts(generation)) return;
                             if (p->test && p->after_setup)
                             {
                                 auto call = std::exchange(p->after_setup, {});
@@ -850,11 +955,19 @@ struct State final : std::enable_shared_from_this<State>
                         }
                     },
                     .closed =
-                        [weak]
+                        [weak, generation]
                     {
-                        if (auto p = weak.lock())
+                        if (auto p = weak.lock(); p && p->setup_generation.close(generation)) {
                             p->setup = nullptr;
-                    }}));
+                            (void)p->setup_generation.retire(generation);
+                        }
+                    }});
+        if (!shown && setup_generation.retire(generation)) {
+            setup = nullptr;
+            [[maybe_unused]] auto failed_view = std::move(setup_view);
+            [[maybe_unused]] auto failed_host = std::move(setup_host);
+        }
+        good(std::move(shown));
     }
 
     void start()
@@ -868,28 +981,27 @@ struct State final : std::enable_shared_from_this<State>
         artwork.selection_changed = [weak]
         {
             if (auto p = weak.lock())
-                if (!p->artwork.selected().empty())
-                    take(p->layers->select(p->artwork.selected()));
+                p->view->select_layer(p->artwork.selected());
         };
         canvas.status = [weak](std::string message)
         {
             if (auto p = weak.lock())
                 p->status(std::move(message));
         };
-        color_port = std::make_shared<ii::gui::ColorChangePort>(
-            [weak](const ii::gui::ColorPickerChange&)
+        canvas.quick_mask_changed = [weak](bool active) { if (auto p=weak.lock(); p && p->main) p->main->quick_mask_mode.set(active); };
+        color_subscription = color->revision.observe(
+            [weak](const std::int64_t&, std::uint64_t)
             {
                 if (auto p = weak.lock())
                 {
-                    auto value = take(p->color->state()).color;
+                    auto value = p->color->current();
                     p->canvas.color = (std::uint32_t(std::lround(value.alpha * 255)) << 24) |
                                       (std::uint32_t(std::lround(value.red * 255)) << 16) |
                                       (std::uint32_t(std::lround(value.green * 255)) << 8) |
                                       std::uint32_t(std::lround(value.blue * 255));
-                    p->paint_tools();
+                    if (p->main) p->main->gradient_settings->set_default_start(p->canvas.color);
                 }
             });
-        good(color->observe(color_port));
         good(color->set_color({.36, .18, 1, 1}));
         canvas.color_picked = [weak](std::uint32_t value)
         {
@@ -904,17 +1016,22 @@ struct State final : std::enable_shared_from_this<State>
             }
         };
         const auto mounted=view->widgets();
-        good(take(mounted.find("shape")).set_context_menu(take(mounted.find("shape-menu"))));
-        good(take(mounted.find("brush-color"))
-                 .set_context_menu(take(mounted.find("color-actions"))));
-        good(take(mounted.find("layers")).set_context_menu(take(mounted.find("layer-menu"))));
+        good(bind_scoped_context_menus(
+            take(mounted.find("workspace")), take(mounted.find("root")),
+            {{"layers", take(mounted.find("layer-menu"))}}));
+        good(bind_scoped_context_menus(
+            take(mounted.find("tool-rail")), take(mounted.find("root")),
+            {{"shape", take(mounted.find("shape-menu"))}}));
+        good(bind_scoped_context_menus(
+            take(mounted.find("toolbar")), take(mounted.find("root")),
+            {{"brush-color", take(mounted.find("color-actions"))}}));
         timeline_subscription = timeline_model->state.observe(
             [weak](const TimelinePosition& value, std::uint64_t)
             {
                 if (auto p = weak.lock())
                     p->canvas.set_frame(value.frame);
             });
-        canvas.attach(take(mounted.find("canvas")));
+        canvas.attach(take(mounted.find("canvas")), take(mounted.find("canvas-paint-layers")));
         refresh();
         good(take(view->widgets().find("root"))
                  .set_input_handler(
@@ -941,7 +1058,13 @@ struct State final : std::enable_shared_from_this<State>
                     status(error.what());
                 }
         }
-        license.open_browser = [weak](std::string url) {
+        license.open_society_action = [weak] {
+            if(auto p=weak.lock()) {
+                auto opened=ii::gui::open_external_url("society://");
+                if(!opened) p->status("Could not open Society. Open it on this device and try again.");
+            }
+        };
+        license.open_browser_action = [weak](std::string url) {
             if(auto p=weak.lock()) {
                 auto opened=ii::gui::open_external_url(url);
                 if(!opened) { p->license.cancel(); p->status("The sign-in page could not be opened."); }
@@ -954,14 +1077,17 @@ struct State final : std::enable_shared_from_this<State>
                 backend->can_activate.set(!p->license.verifying);
                 backend->signing_in.set(p->license.verifying);
                 backend->signed_in.set(p->license.signed_in);
-                backend->account_email.set(p->license.email.empty()?"Not connected":p->license.email);
+                backend->account_email.set(p->license.signed_in?p->license.email:"Not connected");
                 backend->account_status.set(account_message(p->license));
             }
         };
         license.validated = [weak](bool valid) {
-            if(auto p=weak.lock();p&&valid) {p->canvas.fit();p->status("Congregation license verified");}
+            if(auto p=weak.lock()) {
+                if(valid) {p->canvas.fit();p->status("Congregation license verified");}
+                else {p->canvas.cancel_interaction();p->status("Sign in to verify your Congregation license");}
+            }
         };
-        updater.setCredentialProvider(&update_credentials);
+        updater.setUpdateFeed(&update_feed);
         updater.upToDate = [weak](std::string version)
         {
             if (auto p = weak.lock())
@@ -1084,7 +1210,7 @@ struct State final : std::enable_shared_from_this<State>
     }
     void participants()
     {
-        std::vector<lvrs::ListRowData> rows;
+        std::vector<ui::PresentationRow> rows;
         rows.push_back({session.peer_id, preferences.profile_name + " (you)", "", false, false});
         for (const auto& item : session.profiles)
         {
@@ -1100,7 +1226,7 @@ struct State final : std::enable_shared_from_this<State>
                                 std::to_string(int(number(field(peer, "port")))),
                             "", true, false});
         }
-        take(members->set_rows(std::move(rows)));
+        publish_rows(member_source, std::move(rows));
         if (!session.error.empty())
             status(session.error);
     }
@@ -1114,28 +1240,39 @@ struct State final : std::enable_shared_from_this<State>
                 good(preferences_host->window_action(ii::gui::WindowAction::raise));
                 return;
             }
-            secondary = nullptr;
-            preferences_view.reset();
-            preferences_host.reset();
         }
+        const auto generation = preferences_generation.begin();
+        secondary = nullptr;
+        [[maybe_unused]] auto previous_view = std::move(preferences_view);
+        [[maybe_unused]] auto previous_host = std::move(preferences_host);
         auto options = PreferencesView::options();
         options.renderer = renderer;
         options.event_loop = &app.event_loop();
         preferences_host = std::make_shared<ii::gui::Host>(options);
         preferences_view = std::make_shared<PreferencesView>();
+        const auto opening_host = preferences_host;
         auto weak = weak_from_this();
-        good(preferences_host->show(
+        auto shown = opening_host->show(
             *host, {.opened =
-                        [weak]
+                        [weak, generation]
                     {
-                        if (auto p = weak.lock())
+                        if (auto p = weak.lock(); p && p->preferences_generation.accepts(generation))
                         {
-                            good(p->preferences_view->attach(*p->preferences_host,
-                                                             [p](PreferencesView::Scope& scope)
-                                                             { p->bind(scope.backend_0, true); }));
-                            editor::panel(take(p->preferences_view->widgets().find("preferences-root")),editor::workspace);
+                            auto window = p->preferences_host;
+                            auto view = p->preferences_view;
+                            if (!window || !view) return;
+                            auto attached = view->attach(*window,
+                                [weak, generation](PreferencesView::Scope& scope) {
+                                    if (auto p = weak.lock(); p && p->preferences_generation.accepts(generation))
+                                        p->bind(scope.backend_0, true);
+                                });
+                            if (!attached && p->preferences_generation.owns(generation)) p->secondary = nullptr;
+                            good(std::move(attached));
+                            if (!p->preferences_generation.accepts(generation)) return;
+                            editor::panel(take(view->widgets().find("preferences-root")),editor::workspace);
+                            if (!p->preferences_generation.accepts(generation)) return;
                             p->preference_tab(Action::general_tab);
-                            p->draw_avatar();
+                            if (!p->preferences_generation.accepts(generation)) return;
                             if (p->test && p->after_preferences)
                             {
                                 auto call = std::exchange(p->after_preferences, {});
@@ -1144,25 +1281,31 @@ struct State final : std::enable_shared_from_this<State>
                             }
                         }
                     },
-                    .resized = [weak](ii::gui::Size size) { if(auto p=weak.lock();p&&p->preferences_view) if(auto root=p->preferences_view->widgets().find("preferences-root"))good(root->set_extent(size)); },
+                    .resized = [weak, generation](ii::gui::Size size) { if(auto p=weak.lock();p&&p->preferences_generation.accepts(generation)&&p->preferences_view) if(auto root=p->preferences_view->widgets().find("preferences-root"))good(root->set_extent(size)); },
                     .closed =
-                        [weak]
+                        [weak, generation]
                     {
-                        if (auto p = weak.lock())
+                        if (auto p = weak.lock(); p && p->preferences_generation.close(generation))
                         {
                             p->secondary = nullptr;
                             auto submitted = p->host->executor().post(
-                                [weak]
+                                [weak, generation]
                                 {
-                                    if (auto p = weak.lock())
+                                    if (auto p = weak.lock(); p && p->preferences_generation.retire(generation))
                                     {
-                                        p->preferences_view.reset();
-                                        p->preferences_host.reset();
+                                        [[maybe_unused]] auto retired_view = std::move(p->preferences_view);
+                                        [[maybe_unused]] auto retired_host = std::move(p->preferences_host);
                                     }
                                 });
                             (void) submitted;
                         }
-                    }}));
+                    }});
+        if (!shown && preferences_generation.retire(generation)) {
+            secondary = nullptr;
+            [[maybe_unused]] auto failed_view = std::move(preferences_view);
+            [[maybe_unused]] auto failed_host = std::move(preferences_host);
+        }
+        good(std::move(shown));
     }
     void choose(bool export_file, bool save_as = false)
     {
@@ -1219,14 +1362,18 @@ struct State final : std::enable_shared_from_this<State>
     {
         if (event.kind != ii::gui::WidgetInputKind::key_down || event.text_input_active)
             return false;
+        if ((canvas.polygon_active() || canvas.crop_active()) && (event.key == ii::gui::WidgetKey::enter || event.key == ii::gui::WidgetKey::escape))
+            return canvas.input(event);
         if (event.key == ii::gui::WidgetKey::delete_forward ||
             event.key == ii::gui::WidgetKey::backspace)
         {
+            if (canvas.polygon_active()) return canvas.input(event);
             act(Action::delete_layer);
             return true;
         }
         if (event.key == ii::gui::WidgetKey::escape)
         {
+            if (canvas.quick_mask_active()) { canvas.cancel_interaction(); status("Quick mask canceled"); return true; }
             if(canvas.presentation) { act(Action::presentation); return true; }
             artwork.cancel();
             canvas.refresh();
@@ -1243,6 +1390,10 @@ struct State final : std::enable_shared_from_this<State>
                 act(event.shift ? Action::save_as : Action::save);
             else if (key == "z")
                 act(event.shift ? Action::redo : Action::undo);
+            else if (key == "d")
+                act(Action::clear_selection);
+            else if (key == "i" && event.shift)
+                act(Action::invert_selection);
             else if (key == "c")
                 act(Action::copy);
             else if (key == "v")
@@ -1274,44 +1425,9 @@ struct State final : std::enable_shared_from_this<State>
     void install_menu()
     {
         auto weak = weak_from_this();
-        auto item = [&](std::string id, std::string title, Action action, std::string key = {})
-        {
-            ii::gui::AppMenuItem value{.id = std::move(id), .title = std::move(title)};
-            if (!key.empty())
-                value.shortcut = ii::gui::AppShortcut{key};
-            value.triggered = [weak, action]
-            {
-                if (auto p = weak.lock())
-                    p->act(action);
-            };
-            return value;
-        };
-        good(host->set_app_menu(
-            {{.id = "app",
-              .title = "Congregation",
-              .children = {item("preferences", "Preferences…", Action::preferences, ","),
-                           item("quit", "Quit Congregation", Action::quit, "q")}},
-             {.id = "file",
-              .title = "File",
-              .children = {item("new", "New", Action::new_document, "n"),
-                           item("open", "Open…", Action::open, "o"),
-                           item("save", "Save", Action::save, "s"),
-                           item("save-as", "Save As…", Action::save_as),
-                           item("export", "Export…", Action::export_document)}},
-             {.id = "edit",
-              .title = "Edit",
-              .children = {item("undo", "Undo", Action::undo, "z"),
-                           item("redo", "Redo", Action::redo),
-                           item("copy", "Copy canvas", Action::copy),
-                           item("paste", "Paste image", Action::paste)}},
-             {.id = "canvas",
-              .title = "Window",
-              .children = {item("fit", "Fit", Action::fit),
-                           item("zoom-in", "Zoom In", Action::zoom_in, "+"),
-                           item("zoom-out", "Zoom Out", Action::zoom_out, "-"),
-                           item("presentation", "Presentation", Action::presentation),
-                           item("place-image", "Place image…", Action::image),
-                           item("line", "Draw line", Action::line)}}}));
+        good(host->set_app_menu(application_menu([weak](Action action) {
+            if (auto p = weak.lock()) p->act(action);
+        })));
     }
     void act(Action action)
     {
@@ -1319,13 +1435,13 @@ struct State final : std::enable_shared_from_this<State>
             action == Action::paste)
         {
             for (const auto& current :
-                 {view->widgets(),
+                 {view->widgets().native(),
                   preferences_view ? preferences_view->widgets() : ii::gui::WidgetMount{}})
             {
                 auto snapshots = current.snapshot();
                 if (snapshots)
                     for (const auto& widget : *snapshots)
-                        if (widget.focused && widget.kind == ii::gui::WidgetKind::input_field)
+                        if (widget.focused && widget.text_input)
                             return;
             }
         }
@@ -1346,14 +1462,18 @@ struct State final : std::enable_shared_from_this<State>
         if(action==Action::cancel_sign_in) { license.cancel(); return; }
         if (action == Action::profile)
         {
-            good(ii::gui::open_external_url("https://iisacc.com/Account/Dashboard"));
+            license.open_society();
             return;
         }
         if (!test && !license.licensed)
         {
-            status("Sign in at iisacc.com with a Congregation license to edit this canvas");
+            status("Sign in to verify your Congregation license");
             return;
         }
+        if (canvas.quick_mask_active() && action != Action::brush && action != Action::eraser &&
+            action != Action::pan && action != Action::zoom_tool && action != Action::zoom_in &&
+            action != Action::zoom_out && action != Action::fit && action != Action::undo && action != Action::redo &&
+            action != Action::save_tool_settings) { status("Apply or cancel quick mask before editing the document"); return; }
         const std::map<Action, const char*> active_tools{{Action::brush, "brush"},
                                                          {Action::eraser, "eraser"},
                                                          {Action::fill, "paint-bucket"},
@@ -1364,10 +1484,12 @@ struct State final : std::enable_shared_from_this<State>
                                                          {Action::text, "area-text"},
                                                          {Action::rectangle, "rectangle"},
                                                          {Action::ellipse, "ellipse"},
-                                                         {Action::triangle, "polygon"}};
+                                                         {Action::triangle, "triangle"}};
         if (main)
             if (const auto tool = active_tools.find(action); tool != active_tools.end())
             {
+                if (canvas.airbrush_active()) canvas.cancel_airbrush_stroke();
+                if (canvas.polygon_active() || canvas.crop_active()) canvas.cancel_interaction();
                 main->selected_tool.set(tool->second);
                 apply_brush(*main);
             }
@@ -1377,6 +1499,32 @@ struct State final : std::enable_shared_from_this<State>
             save_tool_preferences();
             status("Tool settings saved");
             break;
+        case Action::choose_texture:
+        {
+            ii::gui::FileDialogOptions options;
+            options.title = "Choose brush texture";
+            options.filters = {{"Images", {"png", "jpg", "jpeg", "bmp", "webp", "tif", "tiff"}}};
+            auto weak = weak_from_this();
+            good(host->choose_file(std::move(options), [weak](auto result) {
+                if (auto p = weak.lock(); p && result && !result->canceled && !result->paths.empty() && p->main) {
+                    try {
+                        auto path = native_path(result->paths[0]);
+                        auto bytes = iiFileProvider::native::File::read(path, 64 * 1024 * 1024);
+                        auto image = take(ii::image::to_srgb(take(ii::image::decode(
+                            {reinterpret_cast<const std::uint8_t*>(bytes.data()), bytes.size()}))));
+                        std::vector<std::uint8_t> mask(std::size_t(image.width) * image.height);
+                        for (std::size_t i = 0; i < mask.size(); ++i) {
+                            const auto* px = image.rgba.data() + 4 * i;
+                            mask[i] = std::uint8_t(((std::uint32_t(px[0])*54 + std::uint32_t(px[1])*183 + std::uint32_t(px[2])*19) * px[3]) / (256 * 255));
+                        }
+                        p->main->parameters->set_texture(path_text(path.filename()), image.width, image.height, std::move(mask));
+                        p->apply_brush(*p->main);
+                        p->status("Brush texture loaded");
+                    } catch (const std::exception& error) { p->status(error.what()); }
+                }
+            }));
+            break;
+        }
         case Action::choose_asset_library:
             choose_asset_library();
             break;
@@ -1408,7 +1556,7 @@ struct State final : std::enable_shared_from_this<State>
             if(preferences_view) {
                 auto mount = preferences_view->widgets();
                 auto anchor = take(mount.find("profile-image"));
-                good(take(mount.find("avatar-menu")).open_for(anchor, 0, Metric::size64));
+                good(take(mount.find("avatar-menu")).open_for(anchor, 0, take(anchor.snapshot()).bounds.height));
             }
             break;
         case Action::size_minus: main->set_brush_size(std::max(1.,main->brush_size.get()-1));break;
@@ -1436,8 +1584,8 @@ struct State final : std::enable_shared_from_this<State>
         {
             auto mount = view->widgets();
             auto anchor = take(mount.find("brush-color"));
-            good(take(mount.find("color-popup"))
-                     .open_for(anchor, 0, take(anchor.snapshot()).bounds.height));
+            good(open_scoped_popup_for(take(mount.find("root")), take(mount.find("color-popup")),
+                                      anchor, 0, take(anchor.snapshot()).bounds.height));
             break;
         }
         case Action::close_color:
@@ -1491,7 +1639,7 @@ struct State final : std::enable_shared_from_this<State>
             std::error_code ec;
             if (std::filesystem::exists(directory / "profile.png", ec))
                 (void) iiFileProvider::native::File::remove(directory / "profile.png");
-            draw_avatar();
+            publish_avatar();
             break;
         }
         case Action::diamond:
@@ -1522,10 +1670,26 @@ struct State final : std::enable_shared_from_this<State>
             choose(true);
             break;
         case Action::undo:
-            result(artwork.undo());
+            if (canvas.quick_mask_active()) { if (!canvas.quick_mask_undo()) status("No quick mask undo available"); }
+            else { result(artwork.undo()); canvas.refresh(false); }
             break;
         case Action::redo:
-            result(artwork.redo());
+            if (canvas.quick_mask_active()) { if (!canvas.quick_mask_redo()) status("No quick mask redo available"); }
+            else { result(artwork.redo()); canvas.refresh(false); }
+            break;
+        case Action::apply_crop:
+            canvas.crop_destructive=main->crop_destructive.get();
+            { const auto ratio=main->crop_aspect.get();canvas.crop_aspect=ratio==1 ? 1. : ratio==2 ? 4./3. : ratio==3 ? 16./9. : 0.; }
+            canvas.apply_crop();
+            break;
+        case Action::cancel_crop:
+            canvas.cancel_crop();
+            break;
+        case Action::clear_selection:
+            result(artwork.clear_selection()); canvas.refresh(false);
+            break;
+        case Action::invert_selection:
+            result(artwork.invert_selection()); canvas.refresh(false);
             break;
         case Action::add_layer:
             result(artwork.add_layer());
@@ -1630,12 +1794,12 @@ struct State final : std::enable_shared_from_this<State>
             break;
         }
         case Action::check_update:
-            if (!updater.checkForUpdates())
-                update_status("An update check is already running");
+            if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            else if (!updater.checkForUpdates()) update_status("An update request is already in progress.");
             break;
         case Action::install_update:
-            if (!updater.updateNow())
-                update_status("Check for an available update first");
+            if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            else if (!updater.updateNow()) update_status("Check for an update first.");
             break;
         case Action::host_session:
             if (session.host(secondary ? secondary->display_name.get() : "Host"))
@@ -1731,26 +1895,26 @@ struct State final : std::enable_shared_from_this<State>
     void popup(std::string_view id,std::string_view anchor_id)
     {
         auto mount=view->widgets();auto anchor=take(mount.find(anchor_id));
-        good(take(mount.find(id)).open_for(anchor,0,take(anchor.snapshot()).bounds.height));
+        good(open_scoped_popup_for(take(mount.find("root")), take(mount.find(id)),
+                                   anchor, 0, take(anchor.snapshot()).bounds.height));
     }
     void paint_tools()
     {
         if(!main)return;
         auto mount=view->widgets();
         if(auto curve=mount.find("pressure-curve"))editor::pressure_curve(*curve,main->pressure_min.get(),main->pressure_mid.get(),main->pressure_max.get());
-        if(auto preview=mount.find("brush-preview"))
-            editor::brush_preview(*preview,main->brush_size.get(),take(color->state()).color);
     }
     void preference_tab(Action action)
     {
         if(!secondary||!preferences_view)return;
-        secondary->general_visible.set(action==Action::general_tab);
-        secondary->profile_visible.set(action==Action::profile_tab);
-        secondary->members_visible.set(action==Action::members_tab);
-        auto mount=preferences_view->widgets();
-        for(auto [id,tab]:{std::pair{"general-tab",Action::general_tab},{"profile-tab",Action::profile_tab},{"members-tab",Action::members_tab}})
-            editor::tool_button(take(mount.find(id)),tab==action);
-        draw_avatar();
+        auto view = preferences_view;
+        auto* backend = secondary;
+        backend->general_visible.set(action==Action::general_tab);
+        if (preferences_view != view || secondary != backend) return;
+        backend->profile_visible.set(action==Action::profile_tab);
+        if (preferences_view != view || secondary != backend) return;
+        backend->members_visible.set(action==Action::members_tab);
+        if (preferences_view != view || secondary != backend) return;
     }
     void capture(ii::gui::Host& window,std::string name)
     {
@@ -2064,9 +2228,26 @@ struct State final : std::enable_shared_from_this<State>
                                         .device_id = 42,
                                         .buttons = 1};
         };
+        const auto loop_before = app.event_loop().stats();
+        const auto status_before = main->status.stats();
         good(mount.dispatch_input(point(12, 12, ii::gui::WidgetInputKind::pointer_down)));
-        good(mount.dispatch_input(point(35, 24, ii::gui::WidgetInputKind::pointer_move)));
+        for (int sample = 1; sample < 32; ++sample)
+        {
+            const double progress = double(sample) / 32;
+            auto move = point(12 + 36 * progress, 12 + 18 * progress, ii::gui::WidgetInputKind::pointer_move);
+            move.pressure = .2 + .6 * progress;
+            move.timestamp = progress;
+            good(mount.dispatch_input(move));
+        }
         good(mount.dispatch_input(point(48, 30, ii::gui::WidgetInputKind::pointer_up)));
+        const auto loop_after = app.event_loop().stats();
+        const auto status_after = main->status.stats();
+        std::cout << "NATIVE_INPUT_TRACE synthetic_events=33 loop_executed_delta="
+                  << loop_after.executed - loop_before.executed
+                  << " loop_submitted_delta=" << loop_after.submitted - loop_before.submitted
+                  << " status_revision_delta=" << status_after.revision - status_before.revision
+                  << " status_pending=" << status_after.pending
+                  << " status_dispatching=" << status_after.dispatching << std::endl;
         check(artwork.revision() == revision + 1,
               "Native pen stroke did not produce one durable edit");
         auto pixels = renderFrame(artwork.document(), 0).pixels.pixels;
@@ -2074,6 +2255,7 @@ struct State final : std::enable_shared_from_this<State>
               "Native canvas did not paint over its white background");
         const auto stroke_pixels=renderFrame(artwork.document(),0).pixels;
         check(stroke_pixels.pixels[12*stroke_pixels.width+12] != 0xffffffffU,"Surface coordinates were not mapped to the canvas stroke origin");
+        check(stroke_pixels.pixels[21*stroke_pixels.width+30] != 0xffffffffU,"Repeated pen input did not paint along the stroke");
         auto canceled = artwork.snapshot();
         auto canceled_revision = artwork.revision();
         good(mount.dispatch_input(point(60, 35, ii::gui::WidgetInputKind::pointer_down)));
@@ -2132,7 +2314,8 @@ struct State final : std::enable_shared_from_this<State>
         act(Action::add_layer);
         check(artwork.document().layers.size() == initial_layers + 1, "Layer action failed");
         result(artwork.rename(artwork.selected(), "검증 레이어"));
-        check(layers->rows().front().text == "검증 레이어", "Reactive layer list did not update");
+        check(!layer_source->rows()->empty() && layer_source->rows()->front().label == "검증 레이어",
+              "Reactive layer list did not update");
         auto placed = encodeBitmap(makeRasterLayer(2, 2, 0xff22cc66));
         check(placed.ok(), placed.result.message);
         auto dropped = std::make_shared<ii::gui::ClipboardContent>();
@@ -2183,6 +2366,16 @@ struct State final : std::enable_shared_from_this<State>
                   preferences.profile_name == "Native Artist 한글" && canvas.settings.flow == .7,
               "Native profile or brush preferences failed");
         check(artwork.revision() == preferences_revision, "Preferences changed saved artwork");
+        ++self_test_preference_round;
+        if (self_test_preference_round < 6)
+        {
+            const auto weak = weak_from_this();
+            after_preferences = [weak] { if (auto p = weak.lock()) p->self_test_finish(); };
+            good(preferences_host->request_close());
+            act(Action::preferences);
+            return;
+        }
+        std::cout << "NATIVE_VIEWMODEL_TRACE preference_openings=" << self_test_preference_round << std::endl;
         good(preferences_host->request_close());
         auto capture = take(host->capture_canvas());
         const auto graphics = take(host->graphics_info());
@@ -2204,7 +2397,7 @@ struct State final : std::enable_shared_from_this<State>
             {"adapter", Value(graphics.adapter)}, {"hardware", Value(graphics.hardware)},
             {"pixel_width", Value(capture.width)}, {"pixel_height", Value(capture.height)},
             {"presentations", Value(graphics.presentations)}})));
-        std::cout << "CONGREGATION_NATIVE_OK qt=false lvui=html-inline lvrs=true core_loop=shared "
+        std::cout << "CONGREGATION_NATIVE_OK qt=false lvui=html-inline lvrs=false core_loop=shared "
                      "pen=true cancel=true undo=true layers=true navigation_readonly=true "
                      "save_reopen=true png=true psd=true secondary=true setup=true popup=true "
                      "profile=true image_drop=true text=true eyedropper=true "

@@ -149,7 +149,10 @@ int main(int argc, char** argv)
                 };
                 pixel(16, 16, {36, 36, 36});
                 pixel(16, 112, {32, 32, 32});
-                pixel(0, 112, {90, 93, 99});
+                pixel(0, 112, {32, 32, 32});
+                pixel(1279, 112, {32, 32, 32});
+                pixel(16, 0, {32, 32, 32});
+                pixel(16, 879, {32, 32, 32});
                 capture(child, output / "desktop.png");
                 stage = "card selection";
                 good(find(mount, "canvasPresetCard_01-01-02").activate());

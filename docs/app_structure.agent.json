@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/app_structure.md",
-    "sha256": "14795ac656d733a5b25aae9c763289ad30b21e54f4d0d90e44bb1ab42aa38e33",
-    "bytes": 2379,
+    "sha256": "d3b1a5ceeaa8513e8a67d97f7a4ab6196d1ebdda761e751e2980a998a52913e9",
+    "bytes": 2359,
     "line_count": 23,
     "encoding": "utf-8",
     "language": "ko"
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 3,
-      "raw": "실행 소스는 `App/`이다. C++23과 iiSDKCore, LVUI, LVRS Native, iiGUI를 사용한다. 화면은 브라우저나 WebView 없이 네이티브 창의 GPU 표면에 그린다.\n"
+      "raw": "실행 소스는 `App/`이다. C++23과 iiSDKCore, LVUI, iiGUI를 사용한다. 화면은 브라우저나 WebView 없이 네이티브 창의 GPU 표면에 그린다.\n"
     },
     {
       "id": "b000004",
@@ -121,7 +121,7 @@
       "kind": "paragraph",
       "start_line": 19,
       "end_line": 19,
-      "raw": "하위 SDK는 제품 정책을 알지 않는다. 파일·잠금·SQLite는 iiFileProvider, 문서·합성은 iiSharedCanvas Native, 브러시 엔진은 iiPaintEngine, 코덱·ICC는 iiImageCodec에 둔다. Core는 이벤트 루프·작업·관측 값을 제공하고 iiGUI는 OS 창·입력·텍스트·GPU 표시·운영체제 서비스를 제공한다. LVRS는 위젯과 모델, LVUI는 선언 구문과 C++ 생성을 담당한다.\n"
+      "raw": "하위 SDK는 제품 정책을 알지 않는다. 파일·잠금·SQLite는 iiFileProvider, 문서·합성은 iiSharedCanvas Native, 브러시 엔진은 iiPaintEngine, 코덱·ICC는 iiImageCodec에 둔다. Core는 이벤트 루프·작업·관측 값을 제공하고 iiGUI는 OS 창·입력·텍스트·GPU 표시·운영체제 서비스를 제공한다. LVUI는 위젯과 모델, 선언 구문 및 C++ 생성을 담당한다.\n"
     },
     {
       "id": "b000008",

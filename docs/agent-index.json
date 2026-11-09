@@ -14,7 +14,7 @@
       "document_id": "urn:iisacc:document:ef8c573667502a1b2d48319475d569fa41e27dd96fef8c96a0740a938208f3f5",
       "source": "AGENT.md",
       "agent_json": "docs/entrypoints/AGENT.agent.json",
-      "source_sha256": "d219f1c72c31b06ba951a10b9e3f96ce447db41ce0ff3d3f011fae2d5a69d85c",
+      "source_sha256": "c54531295eead239f6716ad872e7e18ff10ac2dcdac16111a560b5733dc0ec71",
       "role": "instructions"
     },
     {
@@ -42,7 +42,7 @@
       "document_id": "urn:iisacc:document:6c378fe07f847e0922f26b171278b812de8a16ddf6d88c5f42bded4ec0c429e3",
       "source": "README.md",
       "agent_json": "docs/entrypoints/README.agent.json",
-      "source_sha256": "55e686b6d8ff246dfc3d54f28393aac5ebae038126e349f0a5a8350bd0af1f6b",
+      "source_sha256": "a6a75e4f798dc6d57e104f6c391dd2254bef1daaf31c613c576ea70e97195bbf",
       "role": "overview"
     },
     {
@@ -70,14 +70,14 @@
       "document_id": "urn:iisacc:document:43fc32ce06aeba458e4548781623a6ad6eeaaf0ba821a109b4cb0ec01c40cf13",
       "source": "docs/BUILD.md",
       "agent_json": "docs/BUILD.agent.json",
-      "source_sha256": "7a5778e95d776b245e9d96b62ddf0639a141c608998fa682fa6c1881a95e5f88",
+      "source_sha256": "f242f203b31751f90ed35415350de479a17b3d63bbf02cf60a62686ae50999c4",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:3274205c75e9dca87bd837ae21f18bb94c9cffd909665de2e5b05fad5d7b52ba",
       "source": "docs/CONTRIBUTING.md",
       "agent_json": "docs/CONTRIBUTING.agent.json",
-      "source_sha256": "cfbd4660dc6c74712aeceaf25e46342769f5f119a78d920bad1f11937d0cbf98",
+      "source_sha256": "3e4da4c3b25a19cb855c94faaefd504022888c085309ac4fa945bb31feaac66c",
       "role": "guide"
     },
     {
@@ -98,14 +98,14 @@
       "document_id": "urn:iisacc:document:31bd58b16c6311ea2a68cc6ea6c8ec4192bb43215cbfdc502b209398400cd7d1",
       "source": "docs/FIGMA_APPLICATION_WINDOW.md",
       "agent_json": "docs/FIGMA_APPLICATION_WINDOW.agent.json",
-      "source_sha256": "a6fc138ee4fbc94e2c2ee044917ac9ee2237c13b584128c4934e72847d1a016b",
+      "source_sha256": "9d3a6783955c8c90bf326b539a80e68cd88c9d493374f2a486f05a3b5b8c4131",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:7e9f4ac1237ea452e3fb0cdd8c30537a13bba4c0dd8bef0301b35e6e44498790",
       "source": "docs/FIGMA_UI_VERIFICATION.md",
       "agent_json": "docs/FIGMA_UI_VERIFICATION.agent.json",
-      "source_sha256": "da52d2ea6081392d413062dce0465952c6176aaebea8989cb4a46f59e14a79fa",
+      "source_sha256": "8c9085c06126b487d0d75873c5a8f4013ee3a47d5113e87120df77a536806d34",
       "role": "evidence"
     },
     {
@@ -119,42 +119,77 @@
       "document_id": "urn:iisacc:document:c9df94e756f539f00eab4b8ca0c641bdfab7295a5089a046d1bed1b477c03d95",
       "source": "docs/IPADOS.md",
       "agent_json": "docs/IPADOS.agent.json",
-      "source_sha256": "c15079ce771f471a05a9dfe2361b34cb8c68cc1ca2a8425235d9ed6eeb5f0c11",
+      "source_sha256": "d6ab01e07660dd5f73b59c93c6eaeb178af47e1aceca8d403a8e8485938ade30",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:764387d860e5bb2bd1301f8a6a31b37ab873b648c2e04268aff65bfd1c05fa1a",
+      "source": "docs/IPADOS_BRUSH_PROFILE_2026-11-09.md",
+      "agent_json": "docs/IPADOS_BRUSH_PROFILE_2026-11-09.agent.json",
+      "source_sha256": "f0bf7fe7cb11c779cce866efbe45fbcf7346826b78a00154b274d4171fd4d3a4",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:916e1c68368e5077dfb1311c4292012cf053401027cd38e69004878f0f8ee497",
+      "source": "docs/IPADOS_INCREMENTAL_UPDATES_2026-11-08.md",
+      "agent_json": "docs/IPADOS_INCREMENTAL_UPDATES_2026-11-08.agent.json",
+      "source_sha256": "3d600f245034f10854e02c557b360bc609fc624f3ac966f5d385fc2dd2786207",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:8c51ce570e691cc773ce47199eaa8b7e88d638a21df086873054e694046bc71c",
+      "source": "docs/LVUI_VIEWMODELS.md",
+      "agent_json": "docs/LVUI_VIEWMODELS.agent.json",
+      "source_sha256": "dd76f9e58096b7097195d6b46e6ab49bd0edba51edcdbeb07e4a9da0daec8be1",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:3985499d7f690079610cdfad7eb15e37eaebf266678c1c659e70788e4612e020",
+      "source": "docs/LVUI_VIEW_MIGRATION.md",
+      "agent_json": "docs/LVUI_VIEW_MIGRATION.agent.json",
+      "source_sha256": "1a64d7ba97e2da9f61829c1aa6a1880795bb1c3f573b66be03be513746bb872d",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:c01dec5c9ea2660845a497c9ae224ff13890deb9bb76239ebfcc09ea75acab3c",
       "source": "docs/MACOS_INSTALLER.md",
       "agent_json": "docs/MACOS_INSTALLER.agent.json",
-      "source_sha256": "1e9cbb9ec1ca3b205e39a1fa6ae820fe19b59a411449dd4f45610203e6fec87d",
+      "source_sha256": "14a5be36483c78fe805c2d48f319cef34597aa5da0a75d0777c7ff20e62062f0",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:ce7bf1337644cb048a20a5a6891d31b5cc90764d58e622f1db6377f82ed69ad3",
       "source": "docs/NATIVE_RUNTIME.md",
       "agent_json": "docs/NATIVE_RUNTIME.agent.json",
-      "source_sha256": "74497e3a7c388351f94cd544db368bb81d99a2494536aa708e6238288c3acea8",
+      "source_sha256": "79a9689cc9fec7245427fe47ececfa2a6898434503b022785fe0bf1d695a3e3c",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:f8ba7ff132019a628f22dbb98aeb5c0f54db4c545753507a9c63dcc4d9efd7a3",
       "source": "docs/NATIVE_UI.md",
       "agent_json": "docs/NATIVE_UI.agent.json",
-      "source_sha256": "49cccf6b330054c85b873f41ca180a52f393a4dd8da78bb3790f131fde83cc59",
+      "source_sha256": "059c398da13ce56f7d7620103a448021109c3a1d60d936bc47bc3327d61561fb",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:6f99ddd07363bb2fdb2e7220c5a7bb21d26d51f287a1b448263f6335b01e7331",
       "source": "docs/NATIVE_VERIFICATION.md",
       "agent_json": "docs/NATIVE_VERIFICATION.agent.json",
-      "source_sha256": "e76a480d47af72e66503f2df7a2bf9dc2aaa8764fdff24667ed15b27b371c22b",
+      "source_sha256": "337e51546d3cee75df52812624d304a28a20645db98837d46df3b9ca6cfafb33",
       "role": "evidence"
     },
     {
       "document_id": "urn:iisacc:document:ff8f547be53bedc86211f9adc3747eab9729b9f56d36498b996d94264337597b",
       "source": "docs/NEW_CANVAS_WINDOW.md",
       "agent_json": "docs/NEW_CANVAS_WINDOW.agent.json",
-      "source_sha256": "07159278063c1cb4aa41723dbb9a3cea1a3ab1dc433e2fac3475e5a265bb08f7",
+      "source_sha256": "6765f7be1dfa1d8cceb4322aa0b20fbadabb46649fbac420c772ae9424d92310",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:2d1a1a6fb7e602965a130d26c43ac2e500091c5b397640c3270d1b356f7eaa3f",
+      "source": "docs/PAINTING_INCREMENTAL_RENDERING.md",
+      "agent_json": "docs/PAINTING_INCREMENTAL_RENDERING.agent.json",
+      "source_sha256": "77114cce68dbccb0a06e94a36818f249fc25d743091cbf0bce21d7720f6fb02d",
       "role": "guide"
     },
     {
@@ -168,7 +203,7 @@
       "document_id": "urn:iisacc:document:49223109d0b9ad68cf14eb96d3dfab1be34e1d01a89486a4b4612688d2a98e60",
       "source": "docs/README.md",
       "agent_json": "docs/README.agent.json",
-      "source_sha256": "b148c40afd337870747a0344eb965f942edfd40bd8071e58de6a03a996fd0f76",
+      "source_sha256": "9b2facb9a7a8de4ae7b1283f2b0e20b0ec6ac05d72f17bd084d07c7ae5325380",
       "role": "overview"
     },
     {
@@ -196,35 +231,42 @@
       "document_id": "urn:iisacc:document:5e7912d517cafa5ecf2f5edda2238ef359178df77a77e04bb81aec1dc7432a01",
       "source": "docs/SHARED_CANVAS.md",
       "agent_json": "docs/SHARED_CANVAS.agent.json",
-      "source_sha256": "e56ee2e1191ce9fef07347f179996bd63e68d4f2a98037c40256c438c19a8f22",
+      "source_sha256": "754fd388e60c56c9a52a52834f9b70b2191e33dcfb6d64a214bd540cea5d9c44",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:b867ad74aec81e01bc8903e8cbdfa7c711204af6dd223bb6711f3e536ad47932",
       "source": "docs/SingleAppBuild.md",
       "agent_json": "docs/SingleAppBuild.agent.json",
-      "source_sha256": "3700ea136bc8b7e0c1a884161e2132f88064c60e61d228ac316562eca3447423",
+      "source_sha256": "2094367b9c06245b7b18445d919118527b8c68249f920ddff735c597066c5968",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:366c24869fbfb91b4c21d0cc499203de1b378ad3a011bb8ad5c5b7668843160e",
+      "source": "docs/TOOLBAR_FUNCTIONAL_SPEC_2026-10-30.md",
+      "agent_json": "docs/TOOLBAR_FUNCTIONAL_SPEC_2026-10-30.agent.json",
+      "source_sha256": "e0ac34c52b056a4819539133da0de24ca8ef82023a837de5053def31fc1c131e",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:904a3033c7b340f37bda1968d52969b1be8f6587c689063293409b2af52de798",
       "source": "docs/UI_STYLE_TOKENS.md",
       "agent_json": "docs/UI_STYLE_TOKENS.agent.json",
-      "source_sha256": "2bc8b2431aca20acf7ff673cf5cc1779783f59d10e0c9a6740bf8ddab8aea6d2",
+      "source_sha256": "a9d581a5b73afbeca4f464eea77a721a6d78b73fc67fea0d304e871b23ac14d6",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:8f1139b7810b750749360bc801ac03a1bfb8ebec9e88505250be1f5d463b1e4a",
       "source": "docs/VINCENT_UI.md",
       "agent_json": "docs/VINCENT_UI.agent.json",
-      "source_sha256": "98a9ab7418139a5311b8bd4c9dd381c5f88062956c48c7bea878a61677e97493",
+      "source_sha256": "895d53aaf555a27d8caa1bbf05a36305483d0cea8e9152ff1d4a83e0c9fa5a60",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:2ff9781f3da3b4be0a515494cdb5a72141dd01ce6941a421d8268846101b080d",
       "source": "docs/WEB_ACCOUNT.md",
       "agent_json": "docs/WEB_ACCOUNT.agent.json",
-      "source_sha256": "7352d752088ef72ea0f58626f7b3da0bd110dae1852b7e13019f7ac9ce010ad6",
+      "source_sha256": "32bf3a0b8cd4ce351e7e3169615c64b966a6c198e50578f3d66514c450ce4bf6",
       "role": "guide"
     },
     {
@@ -238,14 +280,14 @@
       "document_id": "urn:iisacc:document:2d8b546997d00802c7d090da732eac6ea32b4cac1aa9a02c5910ae94131ae936",
       "source": "docs/app_structure.md",
       "agent_json": "docs/app_structure.agent.json",
-      "source_sha256": "14795ac656d733a5b25aae9c763289ad30b21e54f4d0d90e44bb1ab42aa38e33",
+      "source_sha256": "d3b1a5ceeaa8513e8a67d97f7a4ab6196d1ebdda761e751e2980a998a52913e9",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:570dfb8f4144f036f112a4b542075cd441a488b6e2c0cc51f4c719f65cbf852e",
       "source": "docs/design-qa.md",
       "agent_json": "docs/design-qa.agent.json",
-      "source_sha256": "a660206727923cc98fb4abeb0382085c2c3f48b83bf6a9d37d95ea8923a29990",
+      "source_sha256": "59f738154816770dd481378aa9fb3f7e59b26d6c1d39043d538e7ad36acf79d2",
       "role": "reference"
     },
     {
@@ -308,7 +350,7 @@
       "document_id": "urn:iisacc:document:6054083ed60b5a2357b6c054da0314056874224e320818834a3486580b01402c",
       "source": "resources/icons/README.md",
       "agent_json": "docs/mirrors/resources/icons/README.agent.json",
-      "source_sha256": "198879282e0abb275350c0080aafaa305631ca9e5680ce4ac81767ff4c12753f",
+      "source_sha256": "8939298d88d176efb0ba876eac5b2a0dd934bc25a4c36d52ab7769fb0a3aa143",
       "role": "overview"
     }
   ],

@@ -5,6 +5,10 @@ import pathlib
 import re
 import shutil
 import subprocess
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from native_dependency_policy import forbidden_ui_dependency
 
 
 def run(*args):
@@ -28,12 +32,58 @@ def system(name):
     return name.startswith(("/System/Library/", "/usr/lib/"))
 
 
+def trusted_library(path, prefix, frameworks, library_dirs):
+    resolved = path.resolve()
+    return (resolved.is_relative_to(prefix) or resolved.is_relative_to(frameworks)
+            or any(resolved.parent == directory for directory in library_dirs))
+
+
+def validate_selected_library(path, prefix, frameworks, library_dirs):
+    resolved = path.resolve()
+    if forbidden_ui_dependency(resolved):
+        raise RuntimeError("Qt or LVRS dependency selected from: " + str(resolved))
+    if not trusted_library(resolved, prefix, frameworks, library_dirs):
+        raise RuntimeError("Dependency escapes the installed native kit: " + str(resolved))
+    return resolved
+
+
+def library_candidates(filename, prefix, frameworks, library_dirs, linked_libraries=()):
+    # A directory can contain stale copies of other SDKs; exact linked targets
+    # must win even when another selected directory appears earlier.
+    return ([path for alias, path in linked_libraries if alias == filename]
+            + [directory / filename for directory in library_dirs]
+            + [prefix / "lib" / filename, frameworks / filename])
+
+
+def copy_license_notices(prefix, bundle, additional):
+    destination = bundle / "Contents/Resources/licenses"
+    notices = prefix / "share/licenses"
+    if notices.is_dir():
+        shutil.copytree(notices, destination, dirs_exist_ok=True)
+    for notices in additional:
+        if not notices.is_dir():
+            raise RuntimeError("Required license directory is missing: " + str(notices))
+        shutil.copytree(notices, destination, dirs_exist_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundle", type=pathlib.Path, required=True)
     parser.add_argument("--prefix", type=pathlib.Path, required=True)
+    parser.add_argument("--library-dir", action="append", type=pathlib.Path, default=[])
+    parser.add_argument("--library", action="append", type=pathlib.Path, default=[])
+    parser.add_argument("--license-dir", action="append", type=pathlib.Path, default=[])
     args = parser.parse_args()
     bundle, prefix = args.bundle.resolve(), args.prefix.resolve()
+    library_dirs = [path.resolve() for path in args.library_dir]
+    linked_libraries = []
+    for path in args.library:
+        path = path.resolve()
+        identities = dependencies(path)
+        if not identities:
+            raise RuntimeError("Linked library has no install name: " + str(path))
+        linked_libraries.append((path.name, path))
+        linked_libraries.append((pathlib.Path(identities[0]).name, path))
     executable = bundle / "Contents/MacOS/Congregation"
     frameworks = bundle / "Contents/Frameworks"
     frameworks.mkdir(parents=True, exist_ok=True)
@@ -48,14 +98,14 @@ def main():
         source_paths = rpaths(source)
         linked = dependencies(binary)
         for dependency in linked:
+            if forbidden_ui_dependency(dependency):
+                raise RuntimeError("Qt or LVRS dependency in native bundle: " + dependency)
             if system(dependency):
                 continue
-            if "Qt" in dependency:
-                raise RuntimeError("Qt dependency in native bundle: " + dependency)
             filename = pathlib.Path(dependency).name
             if binary != executable and filename == binary.name:
                 continue  # dylib install id, not another dependency
-            candidates = [prefix / "lib" / filename, frameworks / filename]
+            candidates = library_candidates(filename, prefix, frameworks, library_dirs, linked_libraries)
             if dependency.startswith("@loader_path/"):
                 candidates.insert(0, source.parent / dependency.removeprefix("@loader_path/"))
             elif dependency.startswith("@executable_path/"):
@@ -67,11 +117,10 @@ def main():
                     candidates.append(pathlib.Path(entry) / suffix)
             elif dependency.startswith("/"):
                 candidates.insert(0, pathlib.Path(dependency))
-            located = next((path.resolve() for path in candidates if path.is_file()), None)
+            located = next((path for path in candidates if path.is_file()), None)
             if located is None:
                 raise RuntimeError("Unresolved native dependency: " + dependency)
-            if not located.is_relative_to(prefix) and not located.is_relative_to(frameworks):
-                raise RuntimeError("Dependency escapes the installed native kit: " + str(located))
+            located = validate_selected_library(located, prefix, frameworks, library_dirs)
             destination = frameworks / filename
             if located != destination.resolve() or not destination.exists():
                 shutil.copy2(located, destination)
@@ -91,15 +140,13 @@ def main():
         if any((tuple(map(int, version.split("."))) + (0,0))[:3] > (12, 0, 0) for version in versions):
             raise RuntimeError("A native dependency requires a newer OS: " + str(binary) + " " + str(versions))
         report.append({"binary": str(binary.relative_to(bundle)), "minos": versions, "dependencies": dependencies(binary), "rpaths": rpaths(binary)})
-    notices = prefix / "share/licenses"
-    if notices.is_dir():
-        shutil.copytree(notices, bundle / "Contents/Resources/licenses", dirs_exist_ok=True)
+    copy_license_notices(prefix, bundle, [path.resolve() for path in args.license_dir])
     for binary in sorted(completed - {executable}):
         subprocess.run(["codesign", "--force", "--sign", "-", str(binary)], check=True, capture_output=True)
     subprocess.run(["codesign", "--force", "--sign", "-", str(bundle)], check=True, capture_output=True)
     subprocess.run(["codesign", "--verify", "--deep", "--strict", str(bundle)], check=True, capture_output=True)
     output = bundle.parent / "native-bundle-dependencies.json"
-    output.write_text(json.dumps({"qt": False, "minimum_macos": "12.0", "binaries": report}, indent=2) + "\n")
+    output.write_text(json.dumps({"qt": False, "lvrs": False, "minimum_macos": "12.0", "binaries": report}, indent=2) + "\n")
     print("NATIVE_BUNDLE_OK", len(report), "Mach-O images; closed dependency graph; ad-hoc signature verified")
 
 

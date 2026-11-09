@@ -1,0 +1,9 @@
+import vm congregation.native.TimelineModel
+
+Window {
+    VStack {
+        Label(id: "time", text: vm.time_text())
+        Slider(id: "position", from: 0, to: 2, value: vm.seconds(), onMoved: vm.scrub)
+        PushButton(id: "advance", text: "Next frame", onClick: vm.advance)
+    }
+}

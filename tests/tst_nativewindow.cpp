@@ -124,6 +124,16 @@ int main(int argc, char** argv)
                  checkColor(playhead, layers.y + 50, {84, 138, 247});
                  for (const auto& p : ToolSettings::specs())
                  {
+                     if (p.checkbox) {
+                         require(bool(mount.find(std::string(p.key))), "Parameter checkbox missing");
+                         continue;
+                     }
+                     if (p.dynamics_choice) {
+                         auto choice = take(mount.find("adjust-" + std::string(p.key)));
+                         require(take(choice.snapshot()).text == vm->parameters->label(p.id),
+                                 "Displayed dynamics control differs from the model");
+                         continue;
+                     }
                      auto slider = take(mount.find(p.id == ToolParameter::size
                                                        ? "brush-size"
                                                        : "adjust-" + std::string(p.key)));
@@ -155,9 +165,9 @@ int main(int argc, char** argv)
                  good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::pointer_up,
                                             .x = rail.x + 11,
                                             .y = rail.y + rail.height / 2}));
-                 require(take(vm->color->state()).color.alpha == .5,
+                 require(vm->color->current().alpha == .5,
                          "The transparency rail does not edit the shared color model");
-                 good(vm->color->edit_channel(ii::gui::ColorChannel::alpha, 100));
+                 good(vm->color->set_alpha(1));
                  good(host.set_content_size({1200, 720}));
                  const auto small = take(take(mount.find("canvas")).snapshot());
                  require(small.bounds.width > 0 && small.bounds.height > 0,
@@ -169,7 +179,8 @@ int main(int argc, char** argv)
                  settings->set(ToolParameter::size, 66);
                  good(host.request_close());
              }}));
-        std::cout << "NATIVE_WINDOW_CONTRACT_OK sidebar=false tool_rail=true parameters=22 geometry=true input=true scroll=true "
+        std::cout << "NATIVE_WINDOW_CONTRACT_OK sidebar=false tool_rail=true parameters="
+                  << ToolSettings::specs().size() << " geometry=true input=true scroll=true "
                      "generation=true figma_colors=true qt=false\n";
     }
     catch (const std::exception& e)

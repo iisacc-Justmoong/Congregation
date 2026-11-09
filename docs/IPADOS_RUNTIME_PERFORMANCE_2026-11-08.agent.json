@@ -1,0 +1,142 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:congregation:ipados-runtime-performance-2026-11-08",
+  "source": {
+    "path": "docs/IPADOS_RUNTIME_PERFORMANCE_2026-11-08.md",
+    "sha256": "9d6c9ef7ef7613c54cc9f07a5593fde06b297e54a93f7df30f1e3e2e1f50b704",
+    "bytes": 10480,
+    "line_count": 179,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "iPadOS runtime performance and black-screen investigation",
+    "role": "investigation",
+    "authority": "markdown_source"
+  },
+  "device": {
+    "model": "iPad Pro 12.9-inch (fourth generation)",
+    "os": "iPadOS 27.2",
+    "app_version": "1.0.2 (3)",
+    "configuration": "iPhoneOS arm64 Release",
+    "date_local": "2026-11-08"
+  },
+  "capture": {
+    "template": "Time Profiler",
+    "duration_s_approx": 46.2,
+    "sample_interval_ms_nominal": 1,
+    "running_threads_only": true,
+    "actions": [
+      "canvas brush",
+      "color picker",
+      "rapid tool switching"
+    ],
+    "actions_individually_timestamped": false,
+    "main_thread_samples": 27183,
+    "main_thread_samples_first_15_s": 671,
+    "main_thread_samples_seconds_20_to_45": 24935,
+    "hang_intervals_s": [
+      0.256,
+      0.686,
+      1.91,
+      4.289,
+      19.101
+    ],
+    "last_hang_right_censored": true,
+    "inclusive_stack_samples_lower_bounds": {
+      "WidgetState::snapshots": 22483,
+      "WidgetState::accessibility_snapshots": 21757,
+      "BasicNativeColorSurface::input": 17172
+    },
+    "stack_counts_overlap": true,
+    "stack_symbolication_scope": "limited set of frequent instruction addresses",
+    "artifacts": [
+      "build/ipados/performance-20261108/interaction-cpu.trace",
+      "build/ipados/performance-20261108/interaction-cpu.xml",
+      "build/ipados/performance-20261108/interaction-hangs.xml",
+      "build/ipados/performance-20261108/black-screen.png",
+      "build/ipados/performance-20261108/reproduced-black.png",
+      "build/ipados/performance-20261108/restored-screen.png"
+    ]
+  },
+  "findings": [
+    {
+      "id": "ios-input-snapshot-amplification",
+      "evidence": "device CPU samples and source",
+      "status": "confirmed hot path",
+      "source": [
+        "SDK/iiGUI/src/Widgets/NativeWidgetsIOS.mm:39",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:2148",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:2270",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:2459"
+      ],
+      "remediation": "efficient focused-editor lookup, stable-revision layout and notification batching; preserve accessibility and input samples"
+    },
+    {
+      "id": "color-observer-amplification",
+      "evidence": "device inclusive call stacks and source",
+      "status": "associated, individual observer costs not isolated",
+      "source": [
+        "Product/Congregation/App/Native/WorkspaceView.cpp:68",
+        "Product/Congregation/App/Native/EditorBackend.cpp:36",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:1663"
+      ]
+    },
+    {
+      "id": "black-screen-non-actionable-target",
+      "evidence": "device console, screenshot, live process, iOS host source and independent headless reproduction",
+      "status": "error and host-close mechanism confirmed; exact device target and call stack unconfirmed",
+      "console_cause": "Widget has no action",
+      "source": [
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:1001",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:2978",
+        "SDK/iiGUI/src/Widgets/WidgetState.cpp:3867",
+        "SDK/iiGUI/src/Platform/HostIOS.mm:162",
+        "SDK/iiGUI/src/Platform/HostIOS.mm:386"
+      ]
+    },
+    {
+      "id": "core-pump-nonpreemption",
+      "evidence": "source",
+      "status": "architectural constraint, scheduler not proven cause",
+      "default_budget": {
+        "max_callbacks": 64,
+        "max_time_ms": 4
+      },
+      "source": [
+        "SDK/iiSDKCore/src/Runtime/Execution.h:61",
+        "SDK/iiSDKCore/src/Runtime/EventLoop.cpp:911",
+        "SDK/iiGUI/src/Platform/HostIOS.mm:277"
+      ]
+    },
+    {
+      "id": "other-candidates",
+      "evidence": "source and earlier idle samples",
+      "status": "unquantified",
+      "candidates": [
+        "continuous frame loop",
+        "nearby discovery synchronous interface refresh",
+        "tile recomposition and image conversion",
+        "feature-dependent brush rasterization and bitmap copies"
+      ]
+    }
+  ],
+  "not_verified": [
+    "individual action latency",
+    "isolated brush path",
+    "frame rate and input-to-display latency",
+    "GPU utilization",
+    "memory pressure",
+    "thermal throttling",
+    "worker queue health and contention",
+    "Apple Pencil input",
+    "exact widget and stack for device exception",
+    "post-fix validation"
+  ],
+  "work_done": {
+    "source_changed": false,
+    "performance_fixes_applied": false,
+    "application_restarted_and_left_running": true
+  }
+}

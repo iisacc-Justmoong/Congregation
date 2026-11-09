@@ -11,13 +11,15 @@ import shutil
 import subprocess
 import sys
 import zipfile
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ipados_sdk_coherence import verify as verify_sdk_coherence
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT.parents[1]
 BUILD = ROOT / "build"
 EVIDENCE = BUILD / "ipados"
 PREFIX = WORKSPACE / "SDK/build/congregation-ipados/prefix"
-HOST_COMPILER = WORKSPACE / "SDK/build/congregation-native/prefix/bin/lvui-compile"
+HOST_COMPILER = Path(os.environ.get("LVUI_HOST_COMPILER", WORKSPACE / "SDK/LVUI/build/lvui-compile"))
 BUNDLE = BUILD / "Congregation.app"
 BUNDLE_ID = "com.iisacc.congregation.painter"
 
@@ -77,10 +79,21 @@ def preserve_previous_platform():
 
 def build(team, device):
     required = [PREFIX / "lib/libiiGUI.a", PREFIX / "lib/libiiSharedCanvasNative.a",
-                PREFIX / "lib/libiiNetwork.a", HOST_COMPILER]
+                PREFIX / "lib/libiiNetwork.a", PREFIX / "lib/libiiColorManager.a",
+                PREFIX / "share/LVUI/examples/Integrations/App/ColorSelectionSurface.cpp", PREFIX / "lib/libiiGraphicAdjust.a",
+                PREFIX / "lib/libiiPaintEngineBrushTools.a", HOST_COMPILER,
+                PREFIX / "lib/cmake/LVUI/LVUIConfig.cmake", PREFIX / "lib/cmake/LVUI/LVUIColorTargets.cmake",
+                PREFIX / "lib/cmake/iiColorManager/iiColorManagerConfig.cmake",
+                PREFIX / "lib/cmake/iiGraphicAdjust/iiGraphicAdjustConfig.cmake",
+                PREFIX / "lib/cmake/iiBrushTools/iiBrushToolsConfig.cmake",
+                PREFIX / "lib/cmake/iiGUI/iiGUIConfig.cmake"]
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise SystemExit("Build the SDK first with tools/build_ipados_sdk.py all: " + ", ".join(missing))
+    try:
+        verify_sdk_coherence(PREFIX, WORKSPACE / "SDK/build/congregation-ipados")
+    except RuntimeError as error:
+        raise SystemExit(str(error) + "; rebuild the affected iPad SDK stages in dependency order") from error
     preserve_previous_platform()
     sysroot = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
     run(["cmake", "--fresh", "-S", ROOT, "-B", BUILD, "-G", "Xcode",
@@ -92,6 +105,11 @@ def build(team, device):
          "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH", "-DCMAKE_FIND_FRAMEWORK=LAST",
          "-DCMAKE_FIND_ROOT_PATH=" + str(PREFIX),
          "-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON", "-DCONGREGATION_SDK_PREFIX=" + str(PREFIX),
+         "-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON", "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON",
+         "-DCMAKE_DISABLE_FIND_PACKAGE_LVRS=ON",
+         "-DLVUI_DIR=" + str(PREFIX / "lib/cmake/LVUI"),
+         "-DiiColorManager_DIR=" + str(PREFIX / "lib/cmake/iiColorManager"),
+         "-DiiGraphicAdjust_DIR=" + str(PREFIX / "lib/cmake/iiGraphicAdjust"),
          "-DLVUI_HOST_COMPILER=" + str(HOST_COMPILER), "-DCONGREGATION_APPLE_TEAM=" + team,
          "-DOPENSSL_ROOT_DIR=" + str(PREFIX), "-DOPENSSL_USE_STATIC_LIBS=ON",
          "-DOPENSSL_INCLUDE_DIR=" + str(PREFIX / "include"),

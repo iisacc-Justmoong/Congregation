@@ -1,8 +1,19 @@
 # Congregation 작업 지침
 
-현재 실행 소스는 `App/`이며 `src/App`은 빌드하지 않는 이행 참고 자료이다. C++23, iiSDKCore, LVUI, LVRS와 iiGUI Native를 사용한다. Qt 의존성을 현재 타깃에 추가하지 않는다.
+현재 실행 소스는 `App/`이다. 과거의 `src/App` Qt 소스는 현재 작업 트리에서
+삭제 상태이며 Git 기록에 남아 있다. C++23, iiSDKCore, LVUI와 iiGUI Native를
+사용한다. 현재 타깃에 Qt·QML·LVRS 의존성을 추가하지 않는다.
+
+`EditorBackend`의 독립적인 목록·색상 표시 상태는 LVUI에서 사용할 수 있으며
+Qt·QML·LVRS 타입을 요구하지 않는다. 세 선언 화면과 작업 영역은 독립 LVUI 경로를
+사용하며 제품 모델과 연결하는 방법은 [뷰모델 계약](docs/LVUI_VIEWMODELS.md)을
+따른다. 메인의 명령 막대·도구 레일·상태 표시줄은 LVUI에서 직접 구성한다.
+타임라인, 상세 패널과 새 캔버스 선택기는 아직 C++ `NativeView` 위젯 구성에
+남아 있으므로 전체 뷰의 선언형 전환 및 플랫폼 동등성은 별도로 확인한다.
 
 출력은 저장소의 `build/`만 사용하고 Mac 앱은 `build/Congregation.app` 하나로 유지한다. 문서·테스트를 소스와 함께 갱신하고, 사용자 파일 및 다른 작업의 변경을 보존한다. 운영체제별 소스 구현, 빌드, 실행, 설치, 실운영 검증을 구분하여 기록한다.
+2026-11-01 검사에서는 이 정책과 달리 이전 백업·작업 사본에 앱 번들 19개가 남아
+있었다. 기존 작업을 보존하고 [단일 앱 빌드 기록](docs/SingleAppBuild.md)을 따른다.
 
 실행과 검사는 `docs/NATIVE_RUNTIME.md`, `docs/BUILD.md`, `tests/`에 있다. README.md는 영어로, docs/ 문서는 한국어로 작성한다.
 

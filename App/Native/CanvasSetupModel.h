@@ -52,6 +52,15 @@ enum class CanvasSetupChange
     background,
     error
 };
+// A single published snapshot lets LVUI observe a consistent setup draft.
+struct CanvasSetupViewState final
+{
+    std::string query, unit, resolution, background, selected_id, selection_name;
+    std::string width, height, dimensions, aspect_ratio, status;
+    std::size_t category_index = 0, result_count = 0;
+    bool custom = false, can_create = false;
+    friend bool operator==(const CanvasSetupViewState&, const CanvasSetupViewState&) = default;
+};
 class CanvasSetupModel final
 {
   public:
@@ -75,17 +84,30 @@ class CanvasSetupModel final
     std::vector<CanvasSection> sections() const;
     std::size_t result_count() const;
     const CanvasCatalogue& catalogue() const { return CanvasCatalogue::bundled(); }
+    [[nodiscard]] std::string view_selection() const { return view_state.get().selection_name; }
+    [[nodiscard]] std::string view_dimensions() const { return view_state.get().dimensions; }
+    [[nodiscard]] std::string view_background() const { return view_state.get().background; }
+    [[nodiscard]] std::string view_unit() const { return view_state.get().unit; }
+    [[nodiscard]] std::string view_resolution() const { return view_state.get().resolution; }
+    [[nodiscard]] std::string view_query() const { return view_state.get().query; }
+    [[nodiscard]] std::string view_width() const { return view_state.get().width; }
+    [[nodiscard]] std::string view_height() const { return view_state.get().height; }
+    [[nodiscard]] std::string view_aspect_ratio() const { return view_state.get().aspect_ratio; }
+    [[nodiscard]] bool view_can_create() const { return view_state.get().can_create; }
+    [[nodiscard]] std::size_t view_result_count() const { return view_state.get().result_count; }
     std::size_t category_index = 0;
     std::string query, unit = "px", resolution = "300", background = "White";
     bool custom = false;
     const CanvasPreset* selected = nullptr;
     ii::core::Observable<std::string> new_width{"1080"}, new_height{"1080"}, status{""};
     ii::core::Observable<bool> can_create{true};
+    ii::core::Observable<CanvasSetupViewState> view_state{CanvasSetupViewState{}};
     std::function<void(CanvasSetupChange)> changed;
     std::function<void()> create_requested, close_requested;
 
   private:
     void notify(CanvasSetupChange);
+    void publish_view_state(bool gallery_changed);
     void select(const CanvasPreset&);
 };
 } // namespace congregation::native

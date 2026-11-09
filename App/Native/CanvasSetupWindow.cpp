@@ -1,7 +1,8 @@
 #include "CanvasSetupWindow.h"
 #include "EditorLayout.h"
 #include "Style.h"
-#include "WidgetStyle.h"
+#include "OwnedWidgetStyle.h"
+#include <LVUI/NativeSearchField.h>
 #include <algorithm>
 #include <cmath>
 #include <iiGUI/Text.h>
@@ -13,7 +14,7 @@ namespace congregation::native
 {
 namespace
 {
-using namespace widgets;
+using namespace owned_widgets;
 using ii::gui::Rect;
 using ii::gui::Widget;
 void checked(ii::core::Result<void> result)
@@ -45,7 +46,7 @@ Widget label(ii::gui::WidgetBuilder& raw, Widget parent, std::string id, std::st
                      : size == Metric::textCaption     ? Color::textCaption
                      : size == Metric::textDescription ? Color::textDescription
                                                        : Color::textBody;
-    return take(lvrs::Widgets(raw).label(parent, id,
+    return take(raw.label(parent, id,
                                          {.text = std::move(text),
                                           .font_size = size,
                                           .selectable = false,
@@ -58,6 +59,17 @@ void set_text(Widget widget, const std::string& text)
 {
     if (auto s = widget.snapshot(); s && s->text != text)
         checked(widget.set_text(text));
+}
+template<class Control> void set_control_text(const Control& control, const std::string& text)
+{
+    if (auto state = control.root().snapshot(); state && state->text != text)
+        checked(control.set_text(text));
+}
+void set_control_text(const lvui_host::SearchField& control, const std::string& text)
+{
+    auto options = take(control.options());
+    options.text = text;
+    checked(control.set_options(std::move(options)));
 }
 double text_width(const std::string& text, double font, unsigned weight = Metric::weightRegular)
 {
@@ -117,8 +129,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
 {
     std::shared_ptr<CanvasSetupModel> model;
     Widget root, header, footer, body_host, body, compact_content;
-    Widget title, subtitle, search, compact_search, search_icon, compact_search_icon, search_clear,
-        compact_search_clear, custom, close, category_dropdown;
+    Widget title, subtitle, search, compact_search, custom, close, category_dropdown;
     Widget summary, background_summary, cancel, create;
     Widget categories_scroll, categories_column, gallery_scroll, gallery_backdrop, details_scroll,
         details_background, gallery_host, gallery, details, detail_column;
@@ -128,6 +139,10 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
     Widget category_menu, units_menu, background_menu;
     std::vector<Widget> category_items, quick_buttons;
     Widget category_custom;
+    std::optional<lvui_host::SearchField> search_control, compact_search_control;
+    std::optional<InputHandle> width_control, height_control, ppi_control;
+    std::optional<DropdownHandle> category_dropdown_control, units_control, background_control;
+    std::optional<ButtonHandle> custom_control, create_control, category_custom_control;
     std::vector<std::shared_ptr<ii::gui::WidgetInteractionPort>> focus_ports, category_ports;
     struct Card
     {
@@ -227,11 +242,10 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
             if (!painter->refresh())
                 std::erase(painters, painter);
     }
-    void surface(Widget w, ii::gui::WidgetColor color, double radius = Metric::radius0,
-                 bool border = false)
+    void surface(Widget w, ii::gui::WidgetColor color, double radius = Metric::space0)
     {
         paint(w,
-              [color, radius, border](const ii::gui::WidgetPaintState& s)
+              [color, radius](const ii::gui::WidgetPaintState& s)
                   -> ii::core::Result<std::shared_ptr<const ii::gui::WidgetDrawing>>
               {
                   auto d = std::make_shared<ii::gui::WidgetDrawing>();
@@ -241,15 +255,6 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                   d->panels.push_back(
                       {rect(0, 0, s.size.width, s.size.height), c, c,
                        float(std::min(radius, std::min(s.size.width, s.size.height) / 2))});
-                  if (border)
-                  {
-                      const auto edge = editor::linear(Color::canvasChooserBorder);
-                      d->panels.push_back(
-                          {rect(0, 0, s.size.width, s.size.height), edge, edge,
-                           float(std::min(radius, std::min(s.size.width, s.size.height) / 2)),
-                           float(std::min<double>(Metric::stroke1,
-                                                  std::min(s.size.width, s.size.height) / 2))});
-                  }
                   return std::shared_ptr<const ii::gui::WidgetDrawing>(std::move(d));
               });
     }
@@ -257,7 +262,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
     Widget preview(ii::gui::WidgetBuilder& raw, Widget parent, std::string id, double height,
                    std::function<Preview()> state, bool draw = true)
     {
-        auto w = take(lvrs::Widgets(raw).event_listener(parent, id, {0, height}));
+        auto w = take(Controls(raw).event_listener(parent, id, {0, height}));
         if (!draw)
             return w;
         paint(w,
@@ -268,9 +273,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                   if (paint.size.width <= 0 || paint.size.height <= 0)
                       return std::shared_ptr<const ii::gui::WidgetDrawing>(std::move(d));
                   const auto value = state();
-                  const auto bg = editor::linear(Color::workspace),
+                  const auto bg = editor::linear(Color::canvas),
                              fg = editor::linear(value.selected ? Color::primary
-                                                                : Color::canvasChooserPaper);
+                                                                : Color::textBase);
                   d->panels.push_back(
                       {rect(0, 0, paint.size.width, paint.size.height), bg, bg,
                        float(std::min<double>(Metric::radius8,
@@ -314,20 +319,20 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                 checked(popup.close_popup());
                                 return true;
                             }
-                        if (s->model->close_requested)
-                            s->model->close_requested();
+                        if (auto callback = s->model->close_requested)
+                            callback();
                         return true;
                     }
                     if ((e.meta || e.control) && e.key == ii::gui::WidgetKey::character &&
                         (e.text == "f" || e.text == "F"))
                     {
-                        checked((s->compact ? s->compact_search : s->search).focus());
+                        checked((s->compact ? s->compact_search_control : s->search_control)->editor().focus());
                         return true;
                     }
                     if ((e.meta || e.control) && e.key == ii::gui::WidgetKey::enter)
                     {
-                        if (s->model->can_create.get() && s->model->create_requested)
-                            s->model->create_requested();
+                        if (s->model->can_create.get())
+                            if (auto callback = s->model->create_requested) callback();
                         return true;
                     }
                 }
@@ -336,95 +341,56 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
         checked(widget.set_escape_action(
             [weak]
             {
-                if (auto s = weak.lock(); s && s->model->close_requested)
-                    s->model->close_requested();
+                if (auto s = weak.lock())
+                    if (auto callback = s->model->close_requested) callback();
             }));
     }
     void build(ii::gui::WidgetBuilder& raw, Widget parent)
     {
         root = take(raw.absolute_stack(parent, "setup-root",
                                        {Metric::canvasChooserWidth, Metric::canvasChooserHeight}));
-        surface(root, Color::canvasChooserWindow, Metric::radius0, true);
+        surface(root, Color::window);
         header = take(raw.absolute_stack(root, "canvasHeader", {}));
-        surface(header, Color::canvasChooserSurface);
+        surface(header, Color::surfaceSolid);
         footer = take(raw.absolute_stack(root, "canvasFooter", {}));
-        surface(footer, Color::canvasChooserSurface);
+        surface(footer, Color::surfaceSolid);
         body_host = take(raw.content_host(root, "canvasBody"));
         title = label(raw, header, "canvasTitle", "New canvas", Metric::textSubtitle);
         subtitle = label(raw, header, "canvasSubtitle", "Start with a size. Make it your own.");
         const auto weak = weak_from_this();
         Builder b(raw, "canvas/");
-        const auto search_options = ii::gui::InputOptions{
-            .placeholder = "Search sizes or formats",
-            .width = Metric::canvasChooserSearch,
-            .accessibility_name = "Search sizes or formats",
-            .style = ii::gui::InputStyle{.height = Metric::size22,
-                                         .horizontal_padding = Metric::space24}};
-        search = take(b.controls.input_field(header, "canvasPresetSearch", search_options,
-                                             [weak](std::string text)
-                                             {
-                                                 if (auto s = weak.lock())
-                                                     s->model->search(std::move(text));
-                                             }));
-        compact_search =
-            take(b.controls.input_field(header, "canvasPresetSearchCompact", search_options,
-                                        [weak](std::string text)
-                                        {
-                                            if (auto s = weak.lock())
-                                                s->model->search(std::move(text));
-                                        }));
-        auto image = lvrs::Icons::image("inputFieldSearch", Metric::size24);
-        if (!image)
-            image = lvrs::Icons::image("generalsearch", Metric::size24);
-        const auto search_image = take(std::move(image));
-        search_icon = take(raw.image(
-            header, "canvasSearchIcon",
-            {.image = search_image, .width = Metric::space12, .height = Metric::space12}));
-        compact_search_icon = take(raw.image(
-            header, "canvasSearchIconCompact",
-            {.image = search_image, .width = Metric::space12, .height = Metric::space12}));
-        const auto clear_search = [weak]
+        lvui::SearchFieldConfiguration search_options;
+        search_options.placeholder = "Search sizes or formats";
+        search_options.width = Metric::canvasChooserSearch;
+        search_options.accessibility_name = "Search sizes or formats";
+        const auto edited = [weak](std::string text)
         {
             if (auto s = weak.lock())
-            {
-                s->model->search("");
-                checked((s->compact ? s->compact_search : s->search).focus());
-            }
+                s->model->search(std::move(text));
         };
-        const auto clear_button = [&](std::string_view id)
-        {
-            return take(b.controls.button(
-                header, id,
-                {.text = "×",
-                 .tone = ii::gui::ButtonTone::borderless,
-                 .accessibility_name = "Clear search",
-                 .height = Metric::space12,
-                 .corner_radius = Metric::radius6,
-                 .horizontal_padding = Metric::space0,
-                 .style = ii::gui::ButtonStyle{.fill = Color::textDescription,
-                                               .hover_fill = Color::textDescription,
-                                               .pressed_fill = Color::canvasChooserClearPressed,
-                                               .text = Color::surfaceInput,
-                                               .line_height = Metric::space12,
-                                               .font_size = Metric::space12},
-                 .width = Metric::space12},
-                clear_search));
-        };
-        search_clear = clear_button("canvasSearchClear");
-        compact_search_clear = clear_button("canvasSearchClearCompact");
-        custom = b.button(header, "canvasCustomButton", "Custom size",
+        search_control = take(lvui_host::SearchField::create(
+            raw, header, "canvasSearch", search_options, {.edited = edited},
+            {.editor = "canvasPresetSearch", .search_icon = "canvasSearchIcon", .clear = "canvasSearchClear"}));
+        search = search_control->root();
+        compact_search_control = take(lvui_host::SearchField::create(
+            raw, header, "canvasSearchCompact", search_options, {.edited = edited},
+            {.editor = "canvasPresetSearchCompact", .search_icon = "canvasSearchIconCompact",
+             .clear = "canvasSearchClearCompact"}));
+        compact_search = compact_search_control->root();
+        custom_control = b.button(header, "canvasCustomButton", "Custom size",
                           [weak]
                           {
                               if (auto s = weak.lock())
                                   s->model->custom_size();
                           });
+        custom = custom_control->root();
         close = b.button(header, "canvasCloseButton", "Close",
                          [weak]
                          {
-                             if (auto s = weak.lock(); s && s->model->close_requested)
-                                 s->model->close_requested();
+                             if (auto s = weak.lock())
+                                 if (auto callback = s->model->close_requested) callback();
                          });
-        category_dropdown = take(b.controls.dropdown_button(
+        category_dropdown_control = take(b.controls.dropdown_button(
             header, "canvasCategoryDropdown",
             {.text = "Social media", .tone = ii::gui::ButtonTone::normal},
             [weak]
@@ -434,28 +400,30 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                         s->category_dropdown, 0,
                         take(s->category_dropdown.snapshot()).bounds.height + Metric::space2));
             }));
+        category_dropdown = category_dropdown_control->root();
         summary = label(raw, footer, "canvasSelectionSummary", "", Metric::textDescription, true);
         background_summary =
             label(raw, footer, "canvasBackgroundSummary", "", Metric::textCaption, true);
         cancel = b.button(footer, "canvasCancelButton", "Cancel",
                           [weak]
                           {
-                              if (auto s = weak.lock(); s && s->model->close_requested)
-                                  s->model->close_requested();
+                              if (auto s = weak.lock())
+                                  if (auto callback = s->model->close_requested) callback();
                           });
-        create = b.button(
+        create_control = b.button(
             footer, "create-canvas", "Create canvas",
             [weak]
             {
-                if (auto s = weak.lock();
-                    s && s->model->can_create.get() && s->model->create_requested)
-                    s->model->create_requested();
+                if (auto s = weak.lock(); s && s->model->can_create.get())
+                    if (auto callback = s->model->create_requested) callback();
             },
             0, ii::gui::ButtonTone::primary);
-        category_menu = take(b.controls.context_menu(
+        create = create_control->root();
+        auto category_menu_handle = take(b.controls.context_menu(
             root, "canvasCategoryMenu", {.item_width = Metric::canvasChooserCategories}));
+        category_menu = category_menu_handle.root();
         for (std::size_t i = 0; i < model->catalogue().categories().size(); ++i)
-            take(b.controls.context_menu_item(category_menu,
+            take(b.controls.context_menu_item(category_menu_handle,
                                               "canvasCategoryChoice-" + std::to_string(i),
                                               {.label = model->catalogue().categories()[i].name,
                                                .key_visible = false,
@@ -467,6 +435,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                                   if (auto s = weak.lock())
                                                       s->model->choose_category(i);
                                               }));
+        checked(category_menu_handle.finalize());
         install_input(root);
         checked(root.set_layout_handler(
             [weak](Rect r)
@@ -485,12 +454,15 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
     {
         Builder b(raw, "chooser-body/");
         const auto weak = weak_from_this();
+        category_custom_control.reset();
+        category_custom = {};
         body = take(raw.absolute_stack({}, "canvasBodyLayout", {}));
-        units_menu = take(b.controls.context_menu(body, "canvasUnitsMenu",
+        auto units_menu_handle = take(b.controls.context_menu(body, "canvasUnitsMenu",
                                                   {.item_width = Metric::canvasChooserCategories}));
+        units_menu = units_menu_handle.root();
         for (const auto& [name, value] : std::initializer_list<std::pair<const char*, const char*>>{
                  {"Pixels (px)", "px"}, {"Millimeters (mm)", "mm"}, {"Inches (in)", "in"}})
-            take(b.controls.context_menu_item(units_menu, "canvasUnit-" + std::string(value),
+            take(b.controls.context_menu_item(units_menu_handle, "canvasUnit-" + std::string(value),
                                               {.label = name,
                                                .key_visible = false,
                                                .show_icon_slot = false,
@@ -501,10 +473,12 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                                   if (auto s = weak.lock())
                                                       s->model->change_unit(value);
                                               }));
-        background_menu = take(b.controls.context_menu(
+        checked(units_menu_handle.finalize());
+        auto background_menu_handle = take(b.controls.context_menu(
             body, "canvasBackgroundMenu", {.item_width = Metric::canvasChooserCategories}));
+        background_menu = background_menu_handle.root();
         for (const auto* name : {"White", "Transparent", "Black"})
-            take(b.controls.context_menu_item(background_menu,
+            take(b.controls.context_menu_item(background_menu_handle,
                                               "canvasBackground-" + std::string(name),
                                               {.label = name,
                                                .key_visible = false,
@@ -516,6 +490,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                                   if (auto s = weak.lock())
                                                       s->model->set_background(name);
                                               }));
+        checked(background_menu_handle.finalize());
         category_items.clear();
         category_ports.clear();
         install_input(body);
@@ -539,7 +514,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                               if (box.y + box.height <= 0 || box.y >= paint.size.height ||
                                   box.width <= 0)
                                   continue;
-                              const auto bg = editor::linear(Color::canvasChooserSurface),
+                              const auto bg = editor::linear(Color::surfaceSolid),
                                          edge = editor::linear(Color::primary);
                               d->panels.push_back({box, bg, bg, Metric::radius8});
                               const auto interaction = card.root.interaction();
@@ -554,9 +529,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                   rect(box.x + Metric::space12, box.y + Metric::space12,
                                        box.width - 2 * Metric::space12,
                                        Metric::canvasChooserCardPreview);
-                              const auto preview_bg = editor::linear(Color::workspace),
+                              const auto preview_bg = editor::linear(Color::canvas),
                                          preview_fg = editor::linear(
-                                             selected ? Color::primary : Color::canvasChooserPaper);
+                                             selected ? Color::primary : Color::textBase);
                               d->panels.push_back({area, preview_bg, preview_bg, Metric::radius8});
                               const auto ratio = double(card.width) / card.height;
                               const auto w = std::min<double>(
@@ -607,8 +582,8 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                   if (!selected && !state->hovered && !state->pressed)
                                       continue;
                                   const auto fill =
-                                      editor::linear(selected         ? Color::canvasChooserSelected
-                                                     : state->pressed ? Color::canvasChooserPressed
+                                      editor::linear(selected         ? Color::blueSelected
+                                                     : state->pressed ? Color::bluePressed
                                                                       : Color::surfaceAlt);
                                   const auto r = rect(state->bounds.x - parent->bounds.x,
                                                       state->bounds.y - parent->bounds.y,
@@ -653,16 +628,17 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
             b.column(column, {}, 0, Metric::space8);
             label(raw, column, "canvasPresetTotal",
                   std::to_string(model->catalogue().presets().size()) + " canvas presets");
-            category_custom = b.button(column, "canvasCustomDimensions", "Custom dimensions",
+            category_custom_control = b.button(column, "canvasCustomDimensions", "Custom dimensions",
                                        [weak]
                                        {
                                            if (auto s = weak.lock())
                                                s->model->custom_size();
                                        });
+            category_custom = category_custom_control->root();
             gallery_scroll = take(raw.scroll_view(body, "canvasGalleryScroll"));
             gallery_host = take(raw.content_host(gallery_scroll, "canvasGalleryHost"));
             details_background = take(raw.absolute_stack(body, "canvasDetailsPanel", {}));
-            surface(details_background, Color::canvasChooserSurface);
+            surface(details_background, Color::surfaceSolid);
             details_scroll = take(raw.scroll_view(details_background, "canvasDetailsScroll",
                                                   {.width = Metric::canvasChooserDetails}));
         }
@@ -673,7 +649,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                     s->redraw();
             }));
         details = b.column(compact ? compact_content : details_scroll, "canvasDetails");
-        surface(details, Color::canvasChooserSurface);
+        surface(details, Color::surfaceSolid);
         detail_column =
             b.column(details, "canvasDetailsContent", 0, 0, Metric::space12, Metric::space16);
         label(raw, detail_column, "canvasDetailsHeading", "CANVAS DETAILS");
@@ -698,29 +674,30 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
         auto width = b.column(dimensions, "canvasWidthGroup", 0, 0, Metric::space4);
         checked(width.set_flex(1));
         label(raw, width, "canvasWidthLabel", "Width");
-        width_field = take(b.controls.input_field(
+        width_control = take(b.controls.input_field(
             width, "canvas-width",
-            {.accessibility_name = "Width", .style = ii::gui::InputStyle{.height = Metric::size22}},
+            {.accessibility_name = "Width"},
             [weak](std::string value)
             {
                 if (auto s = weak.lock())
                     s->model->set_new_width(std::move(value));
             }));
+        width_field = width_control->root();
         auto height = b.column(dimensions, "canvasHeightGroup", 0, 0, Metric::space4);
         checked(height.set_flex(1));
         label(raw, height, "canvasHeightLabel", "Height");
-        height_field =
+        height_control =
             take(b.controls.input_field(height, "canvas-height",
-                                        {.accessibility_name = "Height",
-                                         .style = ii::gui::InputStyle{.height = Metric::size22}},
+                                        {.accessibility_name = "Height"},
                                         [weak](std::string value)
                                         {
                                             if (auto s = weak.lock())
                                                 s->model->set_new_height(std::move(value));
                                         }));
+        height_field = height_control->root();
         auto group = b.column(detail_column, "canvasUnitsGroup", 0, 0, Metric::space4);
         label(raw, group, "canvasUnitsLabel", "Units");
-        units = take(b.controls.dropdown_button(
+        units_control = take(b.controls.dropdown_button(
             group, "canvasUnitsButton",
             {.text = "Pixels (px)", .tone = ii::gui::ButtonTone::normal},
             [weak]
@@ -729,22 +706,23 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                     checked(s->units_menu.open_for(
                         s->units, 0, take(s->units.snapshot()).bounds.height + Metric::space2));
             }));
+        units = units_control->root();
         ppi_group = b.column(detail_column, "canvasResolutionGroup", 0, 0, Metric::space4);
         label(raw, ppi_group, "canvasResolutionLabel", "Print resolution (PPI)");
-        ppi_field =
+        ppi_control =
             take(b.controls.input_field(ppi_group, "canvasPpiInput",
-                                        {.accessibility_name = "Print resolution (PPI)",
-                                         .style = ii::gui::InputStyle{.height = Metric::size22}},
+                                        {.accessibility_name = "Print resolution (PPI)"},
                                         [weak](std::string value)
                                         {
                                             if (auto s = weak.lock())
                                                 s->model->set_resolution(std::move(value));
                                         }));
+        ppi_field = ppi_control->root();
         pixels = label(raw, ppi_group, "canvasPixelExtent", "");
         aspect = label(raw, detail_column, "canvasAspectRatio", "");
         group = b.column(detail_column, "canvasBackgroundGroup", 0, 0, Metric::space4);
         label(raw, group, "canvasBackgroundLabel", "Background");
-        background = take(b.controls.dropdown_button(
+        background_control = take(b.controls.dropdown_button(
             group, "canvasBackgroundButton", {.text = "White", .tone = ii::gui::ButtonTone::normal},
             [weak]
             {
@@ -753,6 +731,7 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                         s->background, 0,
                         take(s->background.snapshot()).bounds.height + Metric::space2));
             }));
+        background = background_control->root();
         error = take(b.controls.label(detail_column, "canvasValidationError",
                                       {.font_size = Metric::textCaption,
                                        .selectable = false,
@@ -760,6 +739,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                        .line_height = Metric::textCaption,
                                        .font_weight = Metric::weightRegular}));
         help = label(raw, detail_column, "canvasDetailsHelp", "", Metric::textCaption, true);
+        // Populate this newly constructed content host before its enclosing
+        // body generation is committed, so nested mounts remain transactional.
+        rebuild_gallery();
     }
 
     void build_gallery(ii::gui::WidgetBuilder& raw)
@@ -983,33 +965,13 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                   Metric::size22);
         place(compact_search, pad, pad + Metric::size22 + Metric::space8, width - 2 * pad,
               Metric::size22);
-        const auto desktop_search_x =
-            right - close_width - custom_width - 2 * Metric::space12 - Metric::canvasChooserSearch;
-        const auto desktop_search_y = pad + (row_height - Metric::size22) / 2;
-        if (!compact)
-            place(search_icon, desktop_search_x + Metric::space8,
-                  desktop_search_y + (Metric::size22 - Metric::space12) / 2, Metric::space12,
-                  Metric::space12);
-        place(compact_search_icon, pad + Metric::space8,
-              pad + Metric::size22 + Metric::space8 + (Metric::size22 - Metric::space12) / 2,
-              Metric::space12, Metric::space12);
-        if (!compact)
-            place(search_clear,
-                  desktop_search_x + Metric::canvasChooserSearch - Metric::space8 - Metric::space12,
-                  desktop_search_y + (Metric::size22 - Metric::space12) / 2, Metric::space12,
-                  Metric::space12);
-        place(compact_search_clear, width - pad - Metric::space8 - Metric::space12,
-              pad + Metric::size22 + Metric::space8 + (Metric::size22 - Metric::space12) / 2,
-              Metric::space12, Metric::space12);
         place(category_dropdown, pad, pad + 2 * (Metric::size22 + Metric::space8), width - 2 * pad,
               Metric::size22);
         checked(search.set_visible(!compact));
         checked(compact_search.set_visible(compact));
         checked(subtitle.set_visible(!compact));
         checked(category_dropdown.set_visible(compact));
-        set_text(custom, compact ? "Custom" : "Custom size");
-        checked(search_icon.set_visible(!compact));
-        checked(compact_search_icon.set_visible(compact));
+        set_control_text(*custom_control, compact ? "Custom" : "Custom size");
         const auto cancel_width =
             compact ? Metric::canvasChooserCompactCancel : Metric::canvasChooserCancel;
         const auto create_width =
@@ -1035,7 +997,6 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                     return {};
                 }));
             body_ready = true;
-            rebuild_gallery();
         }
         layout_body();
         updating = false;
@@ -1234,11 +1195,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
             rebuild_gallery();
         const auto& m = *model;
         const auto spec = m.specification();
-        set_text(search, m.query);
-        set_text(compact_search, m.query);
-        checked(search_clear.set_visible(!compact && !m.query.empty()));
-        checked(compact_search_clear.set_visible(compact && !m.query.empty()));
-        set_text(category_dropdown, m.custom ? "Custom dimensions"
+        set_control_text(*search_control, m.query);
+        set_control_text(*compact_search_control, m.query);
+        set_control_text(*category_dropdown_control, m.custom ? "Custom dimensions"
                                              : m.catalogue().categories()[m.category_index].name);
         set_text(gallery_title, m.custom ? "Custom dimensions"
                                 : !m.query.empty()
@@ -1254,12 +1213,12 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
         set_text(selection_path, m.custom     ? "Custom size · Your dimensions"
                                  : m.selected ? m.selected->category + " · " + m.selected->section
                                               : "Select a format or set custom dimensions.");
-        set_text(width_field, m.new_width.get());
-        set_text(height_field, m.new_height.get());
-        set_text(ppi_field, m.resolution);
-        checked(width_field.set_enabled(m.custom || m.selected));
-        checked(height_field.set_enabled(m.custom || m.selected));
-        set_text(units, m.unit == "px"   ? "Pixels (px)"
+        set_control_text(*width_control, m.new_width.get());
+        set_control_text(*height_control, m.new_height.get());
+        set_control_text(*ppi_control, m.resolution);
+        checked(width_control->set_enabled(m.custom || m.selected));
+        checked(height_control->set_enabled(m.custom || m.selected));
+        set_control_text(*units_control, m.unit == "px"   ? "Pixels (px)"
                         : m.unit == "mm" ? "Millimeters (mm)"
                                          : "Inches (in)");
         checked(ppi_group.set_visible(m.unit != "px"));
@@ -1268,9 +1227,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                                     std::to_string(spec->pixel_height) + " px"
                               : "—");
         set_text(aspect, "Aspect ratio: " + m.aspect_ratio());
-        set_text(background, m.background);
+        set_control_text(*background_control, m.background);
         checked(error.set_visible(!m.status.get().empty()));
-        checked(create.set_enabled(bool(spec)));
+        checked(create_control->set_enabled(bool(spec)));
         set_text(summary,
                  spec ? m.selection_name() + " · " + m.dimension_text() : "Choose a canvas size");
         auto background_name = m.background;
@@ -1286,14 +1245,9 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
                 checked(card.root.request_repaint());
                 checked(card.preview.request_repaint());
             }
-        if (!compact)
-            if (auto state = category_custom.snapshot();
-                state && state->tone != (m.custom ? ii::gui::ButtonTone::primary
-                                                  : ii::gui::ButtonTone::normal))
-                checked(category_custom.set_button_options(
-                    {.text = "Custom dimensions",
-                     .tone = m.custom ? ii::gui::ButtonTone::primary : ii::gui::ButtonTone::normal,
-                     .height = Metric::size22}));
+        if (!compact && category_custom_control)
+            checked(category_custom_control->set_tone(m.custom ? ii::gui::ButtonTone::primary
+                                                                 : ii::gui::ButtonTone::normal));
         for (std::size_t i = 0; i < category_items.size(); ++i)
         {
             checked(category_items[i].request_repaint());
@@ -1313,27 +1267,77 @@ struct CanvasSetupWindow::Content final : std::enable_shared_from_this<Content>
     }
 };
 
+ii::core::Result<void> CanvasSetupWindow::create_content(ii::gui::WidgetBuilder& raw, ii::gui::Widget parent,
+                                                         std::shared_ptr<CanvasSetupModel> model,
+                                                         std::shared_ptr<Content>* result)
+{
+    if (!model) return ii::core::fail(ii::core::ErrorCode::invalid_argument, "Canvas setup model is required");
+    try
+    {
+        auto content = std::make_shared<Content>();
+        content->model = std::move(model);
+        content->build(raw, parent);
+        if (auto retained = raw.retain(content); !retained) return retained;
+        if (result) *result = std::move(content);
+        return {};
+    }
+    catch (...)
+    {
+        return ii::core::fail(ii::core::ErrorCode::failed, "Cannot construct New canvas content", std::current_exception());
+    }
+}
+ii::core::Result<void> CanvasSetupWindow::build_view(ii::gui::WidgetBuilder& raw, ii::gui::Widget parent,
+                                                     const std::function<void(Scope&)>& configure)
+{
+    try
+    {
+        std::shared_ptr<Scope> candidate_scope;
+        if (auto built = lvui_generated::CanvasSetupView::build(raw, parent, configure, &candidate_scope); !built)
+            return built;
+        auto mounted = std::make_shared<std::weak_ptr<Content>>();
+        auto source = std::make_shared<NativeSurfaceSource>(
+            [weak_scope = std::weak_ptr(candidate_scope), mounted](ii::gui::WidgetBuilder& builder)
+                -> ii::core::Result<void>
+            {
+                auto scope = weak_scope.lock();
+                if (!scope)
+                    return ii::core::fail(ii::core::ErrorCode::closed, "Canvas setup scope has retired");
+                std::shared_ptr<Content> content;
+                auto model = std::shared_ptr<CanvasSetupModel>(scope, &scope->backend_0);
+                if (auto built = create_content(builder, {}, std::move(model), &content); !built)
+                    return built;
+                *mounted = content;
+                return {};
+            });
+        candidate_scope->backend_1.source.set(std::move(source));
+        auto candidate_content = mounted->lock();
+        if (!candidate_content)
+            return ii::core::fail(ii::core::ErrorCode::failed, "LVUI canvas setup surface was not mounted");
+        scope_ = std::move(candidate_scope);
+        content_ = std::move(candidate_content);
+        return {};
+    }
+    catch (...)
+    {
+        return ii::core::fail(ii::core::ErrorCode::failed, "Cannot build the LVUI canvas setup view",
+                              std::current_exception());
+    }
+}
+
 ii::core::Result<void> CanvasSetupWindow::attach(ii::gui::Host& host,
                                                  const std::function<void(Scope&)>& configure)
 {
     auto appearance = lvui_generated::CanvasSetupView::appearance();
-    appearance.window = Color::canvasChooserWindow;
+    appearance.window = Color::window;
     auto result = host.mount_widgets(
         [&](ii::gui::WidgetBuilder& raw) -> ii::core::Result<void>
         {
             try
             {
-                auto root = widgets::take(raw.zstack(
+                auto root = owned_widgets::take(raw.zstack(
                     {}, "canvasWindow",
                     {.spacing = Metric::space0, .alignment = ii::gui::StackAlignment::stretch}));
-                auto built = lvui_generated::CanvasSetupView::build(raw, root, configure, &scope_);
-                if (!built)
-                    return built;
-                content_ = std::make_shared<Content>();
-                content_->model = std::shared_ptr<CanvasSetupModel>(scope_, &scope_->backend_0);
-                content_->build(raw, root);
-                checked(raw.retain(content_));
-                return {};
+                return build_view(raw, root, configure);
             }
             catch (...)
             {

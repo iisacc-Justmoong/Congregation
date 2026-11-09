@@ -15,6 +15,12 @@ build_type="${BUILD_TYPE:-Release}"
 run_tests="${RUN_TESTS:-1}"
 configure_only=0
 native_flags=(-DCMAKE_FIND_FRAMEWORK=LAST -DOPENSSL_ROOT_DIR="$sdk_prefix" -DOPENSSL_USE_STATIC_LIBS=ON)
+for variable in CONGREGATION_LVUI_PREFIX CONGREGATION_IIGUI_PREFIX CONGREGATION_COLOR_MANAGER_PREFIX CONGREGATION_CORE_PREFIX \
+  CONGREGATION_ACCOUNT_MANAGER_PREFIX CONGREGATION_UPDATE_MANAGER_PREFIX CONGREGATION_PAINT_ENGINE_PREFIX \
+  CONGREGATION_GRAPHIC_ADJUST_PREFIX CONGREGATION_SHARED_CANVAS_PREFIX CONGREGATION_FILE_PROVIDER_PREFIX \
+  LVUI_HOST_COMPILER; do
+  if [[ -n "${!variable:-}" ]]; then native_flags+=("-D${variable}=${!variable}"); fi
+done
 if [[ "$(uname -s)" == Darwin ]]; then
   system_sdk="$(xcrun --show-sdk-path)"
   native_flags+=(-DCURL_LIBRARY="$system_sdk/usr/lib/libcurl.tbd" -DCURL_INCLUDE_DIR="$system_sdk/usr/include" -DLIBXML2_LIBRARY="$system_sdk/usr/lib/libxml2.tbd" -DLIBXML2_INCLUDE_DIR="$system_sdk/usr/include/libxml2")
@@ -31,7 +37,7 @@ for option in "$@"; do
     *) printf 'Unknown option: %s\n' "$option" >&2; exit 2 ;;
   esac
 done
-cmake -S "$root_dir" -B "$root_dir/build" -DCMAKE_BUILD_TYPE="$build_type" -DCONGREGATION_SDK_PREFIX="$sdk_prefix" -DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DBUILD_TESTING=ON "${native_flags[@]}"
+cmake -S "$root_dir" -B "$root_dir/build" -DCMAKE_BUILD_TYPE="$build_type" -DCONGREGATION_SDK_PREFIX="$sdk_prefix" -DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=ON -DCMAKE_DISABLE_FIND_PACKAGE_LVRS=ON -DBUILD_TESTING=ON "${native_flags[@]}"
 if [[ "$configure_only" == 1 ]]; then exit 0; fi
 cmake --build "$root_dir/build" --parallel "${BUILD_JOBS:-6}"
 if [[ "$run_tests" == 1 ]]; then ctest --test-dir "$root_dir/build" --output-on-failure; fi

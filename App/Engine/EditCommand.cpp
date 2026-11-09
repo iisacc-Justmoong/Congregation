@@ -278,7 +278,7 @@ std::optional<Object> normalize_command(const Object& command)
         const std::optional<int> height = boundedInteger(field(command, "height"), 1, 8192);
         const std::optional<bool> infinite = strictBoolean(field(command, "infinite"));
         if (!hasExactKeys(command, {"type", "width", "height", "infinite"}) || !width || !height ||
-            !infinite)
+            !infinite || *infinite)
         {
             return std::nullopt;
         }
@@ -286,28 +286,6 @@ std::optional<Object> normalize_command(const Object& command)
                       {"width", Value(*width)},
                       {"height", Value(*height)},
                       {"infinite", Value(*infinite)}};
-    }
-
-    if (*type == "ensure-region")
-    {
-        const std::optional<int> x =
-            boundedInteger(field(command, "x"), std::numeric_limits<int>::min() + 1,
-                           std::numeric_limits<int>::max());
-        const std::optional<int> y =
-            boundedInteger(field(command, "y"), std::numeric_limits<int>::min() + 1,
-                           std::numeric_limits<int>::max());
-        const std::optional<int> width = boundedInteger(field(command, "width"), 1, 10000000);
-        const std::optional<int> height = boundedInteger(field(command, "height"), 1, 10000000);
-        if (!hasExactKeys(command, {"type", "x", "y", "width", "height"}) || !x || !y || !width ||
-            !height)
-        {
-            return std::nullopt;
-        }
-        return Object{{"type", Value(*type)},
-                      {"x", Value(*x)},
-                      {"y", Value(*y)},
-                      {"width", Value(*width)},
-                      {"height", Value(*height)}};
     }
 
     if (*type == "clear-canvas" || *type == "add-layer")

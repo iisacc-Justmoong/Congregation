@@ -1,0 +1,630 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:2d1a1a6fb7e602965a130d26c43ac2e500091c5b397640c3270d1b356f7eaa3f",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/PAINTING_INCREMENTAL_RENDERING.md",
+    "sha256": "77114cce68dbccb0a06e94a36818f249fc25d743091cbf0bce21d7720f6fb02d",
+    "bytes": 13536,
+    "line_count": 98,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "필기 입력과 부분 캔버스 합성",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 필기 입력과 부분 캔버스 합성\n",
+      "level": 1,
+      "title": "필기 입력과 부분 캔버스 합성"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "## 계약\n",
+      "level": 2,
+      "title": "계약"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "list",
+      "start_line": 5,
+      "end_line": 11,
+      "raw": "- 브러시와 지우개는 입력 표본의 좌표, 시간, 압력과 방향을 빠짐없이 순서대로 편집 엔진에 전달한다.\n- LVUI `NativeView` 등 중첩 위젯을 거친 입력도 캔버스 자신의 좌표계로 변환한다. 누름부터 이동과 놓기까지 실제 입력 경로를 통해 전달하고, 중간 픽셀과 확정된 획을 검증한다.\n- 입력이 짧은 시간에 연속되거나 처리 중 재진입해도 애플리케이션이 종료되지 않아야 한다. 입력 대기 한도를 넘으면 진행 중인 획을 안전하게 취소하고 이후 입력을 다시 받을 수 있어야 한다.\n- 실시간 미리보기는 실제로 변경된 픽셀을 문서 좌표로 변환하여 겹치는 가시 타일만 무효화한다. 화면 프레임 전의 여러 입력은 하나의 합성 요청으로 모은다.\n- 표시 단계에서도 타일을 독립적인 보유 레이어로 전달하여 한 타일의 변경으로 다른 타일의 전경 이미지 전체를 다시 래스터화하지 않는다. 운영체제의 최종 화면 프레임 표시는 별도의 과정이다.\n- 레이어 변환, 선택 마스크, 테이퍼, 프레임 전환, 취소, 에어브러시 및 Undo/Redo의 픽셀 결과는 기존 동작과 같아야 한다. 비지역 효과 등 안전한 부분 무효화를 보장할 수 없을 때는 보수적인 전체 무효화를 허용한다.\n- 화면 프레임 스케줄러가 없는 환경에서는 동기식 표시로 폴백하며, 예약된 콜백은 뷰 수명을 넘어 접근하지 않는다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "브러시와 지우개는 입력 표본의 좌표, 시간, 압력과 방향을 빠짐없이 순서대로 편집 엔진에 전달한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "LVUI `NativeView` 등 중첩 위젯을 거친 입력도 캔버스 자신의 좌표계로 변환한다. 누름부터 이동과 놓기까지 실제 입력 경로를 통해 전달하고, 중간 픽셀과 확정된 획을 검증한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "입력이 짧은 시간에 연속되거나 처리 중 재진입해도 애플리케이션이 종료되지 않아야 한다. 입력 대기 한도를 넘으면 진행 중인 획을 안전하게 취소하고 이후 입력을 다시 받을 수 있어야 한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "실시간 미리보기는 실제로 변경된 픽셀을 문서 좌표로 변환하여 겹치는 가시 타일만 무효화한다. 화면 프레임 전의 여러 입력은 하나의 합성 요청으로 모은다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "표시 단계에서도 타일을 독립적인 보유 레이어로 전달하여 한 타일의 변경으로 다른 타일의 전경 이미지 전체를 다시 래스터화하지 않는다. 운영체제의 최종 화면 프레임 표시는 별도의 과정이다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "레이어 변환, 선택 마스크, 테이퍼, 프레임 전환, 취소, 에어브러시 및 Undo/Redo의 픽셀 결과는 기존 동작과 같아야 한다. 비지역 효과 등 안전한 부분 무효화를 보장할 수 없을 때는 보수적인 전체 무효화를 허용한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "화면 프레임 스케줄러가 없는 환경에서는 동기식 표시로 폴백하며, 예약된 콜백은 뷰 수명을 넘어 접근하지 않는다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "heading",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "## 검증\n",
+      "level": 2,
+      "title": "검증"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "입력 묶음 전후 타일 생성 수와 픽셀 결과를 검사하고, 여러 타일을 가로지르는 획, 선택 마스크와 변형 레이어, 취소, 테이퍼, 에어브러시 및 실행 취소·재실행을 회귀 검증한다. 빌드와 테스트 결과를 실행 기기 성능 측정과 구분한다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "heading",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "## 구현 경계\n",
+      "level": 2,
+      "title": "구현 경계"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "iiGUI 입력 디스패처가 제공하는 `local_position`은 이벤트를 받은 캔버스 위젯을 원점으로 하는 좌표이다. 중첩 콘텐츠에서 이벤트의 `x`, `y`는 콘텐츠 범위의 좌표이지만 위젯 스냅샷의 경계는 창 기준이므로 이 둘을 빼면 획이 어긋날 수 있다. `CanvasView::localize_input`은 디스패처가 제공한 위젯 좌표를 우선하고, 이를 갖지 않는 직접 주입 입력에만 창 기준 경계로 변환한다. 드롭 입력도 동일한 변환을 사용한다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "`Artwork`는 iiSharedCanvas 비트맵 편집기의 변경 픽셀 경계를 입력마다 수거한다. 현재 표시에 필요한 변경 영역과 전체 획의 누적 영역을 별도로 보관하므로 선택 마스크의 이전 미리보기와 청크 획의 커밋 범위를 유지한다. 편집기 좌표는 획 시작 시 확정한 레이어 변환으로 문서 좌표에 투영하고, 보간에 필요한 인접 픽셀을 포함한다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "`CanvasView`는 해당 영역과 겹치는 현재 프레임의 캐시 타일만 제거한다. iiGUI 위젯의 프레임 요청은 여러 입력을 한 번의 표시 갱신으로 묶는다. 선택 마스크 미리보기도 다시 합성할 가시 타일과 그 보간 여유에 필요한 부분만 계산한다. 프레임 소스가 없으면 같은 변경 영역을 즉시 합성한다. 레이어 필터처럼 영향 범위가 국소적이라고 보장할 수 없는 경우에는 전체 캐시와 미리보기를 사용한다.\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "캔버스의 내부 콘텐츠 호스트는 가시 타일마다 별도의 보유 표시 레이어를 유지한다. 변화가 없는 타일에는 기존 이미지와 레이어를 그대로 사용하고 선택 경계 등의 장식은 별도 레이어에 둔다. 호스트는 포인터 입력을 캔버스에 전달한다. 확대나 창 크기 변경으로 필요한 타일 수가 늘면 레이어 묶음을 다시 구성한다. 이 방식은 iiGUI의 전경 래스터화가 변경 타일 이외의 이미지를 포함하지 않게 하며, 네이티브 렌더러가 최종 화면 프레임을 표시하는 동작은 유지한다. 독립 레이어용 호스트가 없는 임베딩 환경은 기존 단일 표시 경로를 사용한다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "다른 UI를 위한 레이어 여유를 남기도록 캔버스의 레이어 예산을 iiGUI 전체 상한의 절반으로 제한한다. 초대형 뷰에서 가시 타일이 예산을 넘으면 가까운 순서의 타일을 한 레이어에 묶으므로 해당 묶음은 함께 래스터화된다. 캐시는 일반 상한을 넘더라도 현재 보이는 타일을 제거하지 않고 화면 밖의 타일부터 정리한다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "이 변경은 일반 브러시·지우개와 그 에어브러시 입력 경로에 적용된다. Quick Mask는 별도의 화면 크기 마스크 미리보기를 생성하며 Clone Stamp는 별도의 전체 캐시 갱신 경로를 사용한다. 두 특수 미리보기에는 위의 부분 합성 보장이 적용되지 않는다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "획 확정 중 문서 변경 알림은 별도의 전체 캔버스 갱신을 일으키지 않는다. 선택·테이퍼 재계산과 취소는 기존 획 영역과 새 재계산 결과를 무효화한다. Undo/Redo 및 독립적인 문서 변경은 기존의 전체 새로 고침 경로를 유지한다.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "입력 종료 이벤트가 누락되어 다음 획이 시작되면 진행 중이던 획을 취소한다. 이전 획의 변형 정보를 버리기 전에 그 변경 영역을 복원 대상으로 예약하고, 새 획의 변경 영역과 같은 프레임에 함께 표시한다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "`Congregation.painting_damage_integration`은 실제 펜 입력 경로와 프레임 루프를 헤드리스 위젯에 연결한다. 이 검사는 링크한 iiGUI 라이브러리와 일치하는 내부 테스트 헤더 오버레이를 `CONGREGATION_IIGUI_TEST_HEADERS`로 제공한 구성에서 활성화된다. 타일의 RGBA 데이터를 전체 참조 합성과 비교하므로 생성 횟수만 확인하는 검사가 아니다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "`Congregation.native_canvas_stroke_integration`은 LVUI 메인 화면과 중첩 콘텐츠 호스트를 통과하는 마우스·펜·터치 입력을 검증한다. 흰 배경을 가진 새 캔버스와 투명 캔버스에서 시작점과 이동 중간의 문서 픽셀, 프레임 루프가 표시한 RGBA 픽셀, 획 확정, 실행 취소·재실행 및 캔버스 밖의 입력 캡처를 검사한다. 마우스 표본 256개와 기본 브러시·테이퍼 표본 96개를 연속 전달하고 그동안 생성된 네이티브 장면의 유효성을 확인한다. 입력 처리 중 300개를 재진입시키는 경우에는 진행 중인 획의 안전한 취소와 다음 획의 복구를 검사한다. 브러시 크기 증가·감소 버튼을 각각 32회 연속 입력하고, 도구·색상·레이어 컨텍스트 메뉴와 색상 팝업이 중첩 콘텐츠에서 열리는지도 확인한다. 테스트용 호스트를 창 원점에서 떨어뜨려 좌표계 혼용을 탐지한다. 자동 테스트는 합성 입력이며 실제 앱·GPU·물리 장치의 실행 결과를 뜻하지 않는다.\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "## 필압 불투명도\n",
+      "level": 2,
+      "title": "필압 불투명도"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 40,
+      "end_line": 40,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "브러시의 기본 Opacity는 전체 획의 불투명도 상한이다. Dynamics의 Minimum opacity와 Maximum opacity는 필압 0과 1에 대응하는 배율이며, 두 값 사이를 선형 보간한다. 기본 범위는 0–100%이다. 최소값을 최대값보다 높이면 최대값도 함께 올리고, 최대값을 최소값보다 낮추면 최소값도 함께 낮춘다. 마우스는 필압 1로 처리한다. 붓의 이동 속도와 가속도는 이 불투명도 배율에 영향을 주지 않는다. 크기·유량의 필압 반응과 캔버스의 색상, 선택 마스크 및 합성은 별도의 설정이다.\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "기존 도구 설정의 `velocity` 항목은 호환성을 위해 읽고 폐기하며, 새 범위의 기본값 0–100%를 적용한다. 새로운 설정은 `minimum-opacity`와 `maximum-opacity`를 저장한다. 손상되거나 역전된 저장 범위는 기존 설정을 변경하지 않고 거부한다. 범위, 속도 독립성, 저장·복원 및 기존 설정 이행은 `Congregation.tool_settings`에서 검증한다.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "heading",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "## 도구 패널 이행: 포즈와 일부 동역학\n",
+      "level": 2,
+      "title": "도구 패널 이행: 포즈와 일부 동역학"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 46,
+      "end_line": 46,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "paragraph",
+      "start_line": 47,
+      "end_line": 47,
+      "raw": "Figma Tool 패널 이행 중인 부분 구현이다. Brush Pose의 Tilt X/Y, Rotation, Pressure와 각 Override를 `BrushDynamics::pose`로 전달하며 선택한 채널만 입력을 대체한다. 산포의 Both Axes, Count, Count Jitter와 제어 입력은 기존 `BrushScatter`에 연결한다. Noise의 활성화와 Amount, Wet Edges의 활성화와 Edge Strength는 기존 래스터라이저 효과에 연결한다. Shape Dynamics의 Size·Angle·Roundness Jitter, 제어 입력, 최소 직경·원형도, Flip X/Y Jitter와 Brush Projection 및 Color Dynamics의 Hue·Saturation·Brightness Jitter, Purity, Apply Per Tip은 기존 엔진 옵션에 연결한다. 이전 버전 도구 설정에서 새 항목이 빠져 있어도 안전한 기본값으로 복원한다.\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "이 항목들의 UI는 기존 도구 패널에 추가한 중간 단계이며 Figma 전체의 배치와 동일하지 않다. Figma에 있는 텍스처 선택, 텍스처·색상·전송 지터의 Control 선택, 필압 곡선 및 나머지 Shape·Scattering·Color·Transfer 설정과 Noise 입자 크기, Wet Edges 폭·확산, Build-up 설정은 이 변경에서 완성되지 않았다. 일부는 엔진에 기반이 있지만 앱에 연결되지 않았고 일부는 엔진 자체의 추가 구현과 검증이 필요하다. 테스트 결과와 실제 펜·장치 검증은 별도로 기록한다.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 50,
+      "end_line": 50,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "paragraph",
+      "start_line": 51,
+      "end_line": 51,
+      "raw": "형상과 산포의 제어 입력은 현재 선택 상자를 클릭할 때 순서대로 전환한다. Figma의 펼침 선택 메뉴 동작은 아직 이행되지 않았다.\n"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 52,
+      "end_line": 52,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "heading",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "## 도구 패널 간격\n",
+      "level": 2,
+      "title": "도구 패널 간격"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "도구 패널은 LVUI 간격 토큰 `space16`으로 섹션을 분리하고, 같은 섹션의 파라미터 내부 여백은 `space2`로 유지한다. Brush 팝오버의 항목과 필압 곡선 설명에는 `space4`를 사용한다. 확장 패널의 콘텐츠 높이는 실제 섹션 수에 따른 구분 간격을 포함한다. 도구 패널의 상호작용과 설정값은 간격 변경으로 바뀌지 않는다.\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "heading",
+      "start_line": 56,
+      "end_line": 56,
+      "raw": "## 실시간 브러시 획 입력\n",
+      "level": 2,
+      "title": "실시간 브러시 획 입력"
+    },
+    {
+      "id": "b000051",
+      "kind": "blank",
+      "start_line": 57,
+      "end_line": 57,
+      "raw": "\n"
+    },
+    {
+      "id": "b000052",
+      "kind": "paragraph",
+      "start_line": 58,
+      "end_line": 63,
+      "raw": "입력은 필압과 순서를 유지해 브러시 엔진으로 즉시 전달하고, 새 표본이 바꾼\n타일만 문서 미리보기에 반영한다. 일반 단일 프레임 래스터 획과 내부 이력이\n필요한 대형 청크 문서는 입력 중 타일 합성을 사용하고, 놓을 때 조건에 따라\n변경 타일로 하나의 Undo 항목을 만든다. 선택·테이퍼·공유 프레임처럼 별도\n처리가 필요하거나 이력 예산이 너무 작은 경우는 기존 문서 스냅샷 이력을\n사용한다. 취소하면 원래 문서로 돌아간다.\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "blank",
+      "start_line": 64,
+      "end_line": 64,
+      "raw": "\n"
+    },
+    {
+      "id": "b000054",
+      "kind": "heading",
+      "start_line": 65,
+      "end_line": 65,
+      "raw": "## 성능 측정 계약\n",
+      "level": 2,
+      "title": "성능 측정 계약"
+    },
+    {
+      "id": "b000055",
+      "kind": "blank",
+      "start_line": 66,
+      "end_line": 66,
+      "raw": "\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "paragraph",
+      "start_line": 67,
+      "end_line": 77,
+      "raw": "헤드리스 부하 검사는 같은 문서에서 전체 직렬화, 획 시작, 이동 입력, 512픽셀과\n256픽셀 표시 영역의 CPU 합성, 획 종료를 각각 계측한다. 작은 영역의 픽셀은\n큰 영역의 대응 픽셀과 비교한다. 작은 붓과 큰 붓을 구분하고,\n필압을 포함한 입력과 중간 픽셀, Undo/Redo 결과를 함께 확인한다. 출력의 시간은\n해당 구간의 벽시계 시간이며 합성 입력과 호스트의 파일 저장 비용을 포함한다.\n이를 iPad의 펜 접촉부터 실제 화면 표시까지의 지연이나 GPU 처리 시간으로\n해석하지 않는다. 재현 실행은 `Congregation.stroke_performance` 검사로 수행한다.\nmacOS 검사 프로세스는 `DYLD_*` 라이브러리 검색 경로를 제거해 CMake에서\n선택한 iiPaintEngine이 다른 설치본으로 대체되지 않도록 한다. 할당량은 측정\n스레드에서 일반 C++ `new`로 요청한 바이트의 합이며 최대 상주 메모리가 아니다.\n`--extended`는 4K와 8K 합성 부하를 추가한다.\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "blank",
+      "start_line": 78,
+      "end_line": 78,
+      "raw": "\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "paragraph",
+      "start_line": 79,
+      "end_line": 91,
+      "raw": "단일 프레임에서 공유되지 않는 일반 래스터 레이어에 선택 영역이나 전체 획\n테이퍼 없이 그리는 획은 이력 예산이 64×64 타일 한 장의 전후 픽셀을 담을\n수 있는 경우 변경 타일의 전후 픽셀을 이력으로 보유한다. 이때 전체 문서가\n이력 예산보다 커도 변경 타일이 예산 안에 들면 한 획을 허용한다. 이력 예산이\n그보다 작으면 기존 문서 스냅샷 경로를 사용한다.\n취소와 변경 없는 획은 기존 Redo를 보존하고, 저장이나 이력 예산이 실패하면\n확정 전 문서와 이력으로 되돌린다. 이력에는 변경 전후의 저작 정보와 문서\n형식 버전도 보관해 Undo/Redo가 전체 문서 스냅샷과 동일한 메타데이터를\n복원한다. 공유 프레임·선택·테이퍼 등 별도 구조\n변경이 필요한 획은 기존 문서 스냅샷 경로를 유지한다.\n이 변경은 저장 트랜잭션 자체를 비동기로 옮기지 않는다. 현재\n`DocumentFile::edit`에 전달하는 문서 복사와 동기 저장은 획 종료에 남으므로\n종료 지연 및 전체 메모리 사용량이 없어졌다는 의미는 아니다.\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "blank",
+      "start_line": 92,
+      "end_line": 92,
+      "raw": "\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "paragraph",
+      "start_line": 93,
+      "end_line": 97,
+      "raw": "색상 모델의 변경은 캔버스의 현재 색과 그라디언트 기본색에 반영하며,\n색과 무관한 필압 곡선을 다시 그리지 않는다. 현재 LVUI 화면에는\n`brush-preview` 위젯이 없으므로 없는 위젯을 찾기 위해 매번 전체 트리\n스냅샷을 생성하지 않는다. 필압 설정이 바뀔 때는 기존 곡선 갱신 경로를\n유지한다. 색상 변경과 곡선의 표시 유지 여부를 메인 창 검사에서 확인한다.\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "blank",
+      "start_line": 98,
+      "end_line": 98,
+      "raw": "\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "필기 입력과 부분 캔버스 합성",
+      "anchor": "필기-입력과-부분-캔버스-합성",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000003",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "계약",
+      "anchor": "계약",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000007",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "검증",
+      "anchor": "검증",
+      "start_line": 13
+    },
+    {
+      "block_id": "b000011",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "구현 경계",
+      "anchor": "구현-경계",
+      "start_line": 17
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "필압 불투명도",
+      "anchor": "필압-불투명도",
+      "start_line": 39
+    },
+    {
+      "block_id": "b000039",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "도구 패널 이행: 포즈와 일부 동역학",
+      "anchor": "도구-패널-이행-포즈와-일부-동역학",
+      "start_line": 45
+    },
+    {
+      "block_id": "b000047",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "도구 패널 간격",
+      "anchor": "도구-패널-간격",
+      "start_line": 53
+    },
+    {
+      "block_id": "b000050",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "실시간 브러시 획 입력",
+      "anchor": "실시간-브러시-획-입력",
+      "start_line": 56
+    },
+    {
+      "block_id": "b000054",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "성능 측정 계약",
+      "anchor": "성능-측정-계약",
+      "start_line": 65
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000005",
+        "line": 9,
+        "text": "- 표시 단계에서도 타일을 독립적인 보유 레이어로 전달하여 한 타일의 변경으로 다른 타일의 전경 이미지 전체를 다시 래스터화하지 않는다. 운영체제의 최종 화면 프레임 표시는 별도의 과정이다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000005",
+        "line": 11,
+        "text": "- 화면 프레임 스케줄러가 없는 환경에서는 동기식 표시로 폴백하며, 예약된 콜백은 뷰 수명을 넘어 접근하지 않는다.",
+        "basis": "lexical_match",
+        "context": "list"
+      },
+      {
+        "block_id": "b000031",
+        "line": 37,
+        "text": "`Congregation.native_canvas_stroke_integration`은 LVUI 메인 화면과 중첩 콘텐츠 호스트를 통과하는 마우스·펜·터치 입력을 검증한다. 흰 배경을 가진 새 캔버스와 투명 캔버스에서 시작점과 이동 중간의 문서 픽셀, 프레임 루프가 표시한 RGBA 픽셀, 획 확정, 실행 취소·재실행 및 캔버스 밖의 입력 캡처를 검사한다. 마우스 표본 256개와 기본 브러시·테이퍼 표본 96개를 연속 전달하고 그동안 생성된 네이티브 장면의 유효성을 확인한다. 입력 처리 중 300개를 재진입시키는 경우에는 진행 중인 획의 안전한 취소와 다음 획의 복구를 검사한다. 브러시 크기 증가·감소 버튼을 각각 32회 연속 입력하고, 도구·색상·레이어 컨텍스트 메뉴와 색상 팝업이 중첩 콘텐츠에서 열리는지도 확인한다. 테스트용 호스트를 창 원점에서 떨어뜨려 좌표계 혼용을 탐지한다. 자동 테스트는 합성 입력이며 실제 앱·GPU·물리 장치의 실행 결과를 뜻하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000056",
+        "line": 73,
+        "text": "해석하지 않는다. 재현 실행은 `Congregation.stroke_performance` 검사로 수행한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000060",
+        "line": 96,
+        "text": "스냅샷을 생성하지 않는다. 필압 설정이 바뀔 때는 기존 곡선 갱신 경로를",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

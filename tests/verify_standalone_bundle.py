@@ -6,8 +6,12 @@ from pathlib import Path
 import re
 import signal
 import subprocess
+import sys
 import tempfile
 import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "cmake"))
+from native_dependency_policy import forbidden_ui_dependency
 
 MACHO = {bytes.fromhex(value) for value in
          ("feedface", "feedfacf", "cefaedfe", "cffaedfe", "cafebabe", "bebafeca", "cafebabf", "bfbafeca")}
@@ -58,8 +62,10 @@ def audit_images(images, bundle, expected):
         raise RuntimeError("Missing loaded-image evidence: " + repr(missing))
     escaped = [path for path in images if not system_image(path)
                and not Path(path).resolve().is_relative_to(bundle.resolve())]
-    if escaped or any("Qt" in path for path in images):
-        raise RuntimeError("Runtime dependency escaped the bundle: " + repr(escaped))
+    forbidden = [path for path in images if forbidden_ui_dependency(path)
+                 or forbidden_ui_dependency(Path(path).resolve())]
+    if escaped or forbidden:
+        raise RuntimeError("Qt or LVRS or external runtime dependency: " + repr({"escaped": escaped, "forbidden": forbidden}))
 
 
 def observe_process(command, working, environment):
@@ -104,7 +110,8 @@ def main():
     signal.signal(signal.SIGTERM, interrupted)
     signal.signal(signal.SIGINT, interrupted)
     report = {"canonical_bundle": str(bundle), "renderers": []}
-    with tempfile.TemporaryDirectory(prefix="standalone-relocation-", dir=build) as temporary:
+    resources = Path(__file__).resolve().parents[1] / "resources"
+    with tempfile.TemporaryDirectory(prefix="standalone-relocation-", dir=resources) as temporary:
         root = Path(temporary)
         moved = root / bundle.name
         working = root / "empty-working-directory"

@@ -3,6 +3,9 @@
 #include <Engine/EditCommand.h>
 #include <Engine/NearbyDiscovery.h>
 #include <Engine/LicenseService.h>
+#include <Engine/WebLicenseService.h>
+#include <Engine/SocietyUpdateFeed.h>
+#include <iiAccountManager/LocalChannel.h>
 #include "LicenseTokenFixture.h"
 #include <Engine/Preferences.h>
 #include <Engine/DocumentMetadata.h>
@@ -13,10 +16,13 @@
 #include <iiSharedCanvasNative.h>
 #include <chrono>
 #include <iostream>
+#include <mutex>
 #include <thread>
 #include <stdexcept>
 #ifndef _WIN32
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <poll.h>
 #include <unistd.h>
 #endif
 using namespace congregation;
@@ -81,6 +87,115 @@ struct Server final
         return "http://127.0.0.1:" + std::to_string(listener.port()) + "/" + suffix;
     }
 };
+void web_license()
+{
+    using namespace ii::network::wire;
+    using namespace iisacc::accounts::native;
+    ii::runtime::EventLoop loop;
+    Server server(loop);
+    const auto now = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    const std::string token(128, 'T'), device(64, 'a');
+    std::string saved, scenario="denied";
+    std::mutex mutex;
+    int license_requests=0;
+    server.response=[&](const std::string& request) {
+        auto body=parse_json(request.substr(request.find("\r\n\r\n")+4));
+        require(bool(body),"Web license request was not JSON");
+        const auto input=object(field(field(*body,"variables"),"input"));
+        const auto operation=text(field(input,"operation"));
+        Object reply;
+        if(operation=="start") {
+            reply={{"requestId",Value(std::string(32,'c'))},
+                   {"authorizationUrl",Value("https://iisacc.com/Account/Apps/Connect?request="+std::string(32,'c'))},
+                   {"expiresAt",Value(now+300)}};
+        } else if(operation=="exchange" || operation=="refresh") {
+            reply={{"status",Value("connected")},
+                   {"account",Value(Object{{"sub",Value("fixture-owner")},{"email",Value("owner@example.invalid")}})},
+                   {"productId",Value("congregation")},{"deviceId",Value(device)},
+                   {"sessionId",Value(std::string(32,'b'))},{"expiresAt",Value(now+3600)},
+                   {"manager",Value("society")},{"accessToken",Value(token)}};
+        } else if(operation=="license") {
+            ++license_requests;
+            require(request.find("Authorization: Bearer "+token)!=request.npos,
+                    "Web license request omitted its scoped session");
+            require(text(field(input,"productId"))=="congregation","Wrong license product requested");
+            reply={{"productId",Value(scenario=="foreign_product"?"vincent":"congregation")},
+                   {"subject",Value(scenario=="foreign_account"?"other-owner":"fixture-owner")},
+                   {"licensed",Value(scenario!="denied")},{"checkedAt",Value(now)},
+                   {"expiresAt",scenario=="expired"?Value(now-1):Value{}}};
+            if(scenario=="invalid_flag")reply.insert_or_assign("licensed",Value("true"));
+            if(scenario=="missing_expiry")reply.erase("expiresAt");
+        } else throw std::runtime_error("Unexpected web license operation");
+        return json(Value(Object{{"data",Value(Object{{"appAccess",Value(std::move(reply))}})}}));
+    };
+    SessionPersistence store{
+        .read=[&]{std::lock_guard lock(mutex);return SecretResult{saved.empty()?SecretResult::Status::not_found:SecretResult::Status::found,saved};},
+        .write=[&](std::string_view bytes){std::lock_guard lock(mutex);saved=bytes;return true;},
+        .remove=[&]{std::lock_guard lock(mutex);saved.clear();return true;}};
+    BrowserSessionOptions options{.product_id="congregation",.origin=server.endpoint().substr(0,server.endpoint().size()-1),
+        .device={device,"tablet","Fixture iPad","ios","27.0","com.iisacc.congregation.painter","1.0.2"},.allow_loopback=true};
+    WebLicenseService license(loop,options,store);
+    bool opened=false;
+    license.open_browser=[&](const auto& url){opened=url.starts_with("https://iisacc.com/Account/Apps/Connect?");};
+    license.sign_in();
+    until(loop,[&]{return license_requests>=1 && !license.verifying;},std::chrono::seconds(8));
+    require(opened&&license.signed_in&&!license.licensed&&license.code=="license_not_owned",
+            "A web login or denied license granted access");
+    for(const auto* invalid:{"foreign_product","foreign_account","invalid_flag","expired","missing_expiry"}) {
+        scenario=invalid;const auto previous=license_requests;license.retry();
+        until(loop,[&]{return license_requests>previous&&!license.verifying;},std::chrono::seconds(8));
+        require(!license.licensed&&license.code=="invalid_license_response","Invalid web license response granted access");
+    }
+    scenario="allowed";const auto previous=license_requests;license.retry();
+    until(loop,[&]{return license_requests>previous&&!license.verifying;},std::chrono::seconds(8));
+    require(license.licensed&&license.code=="licensed","Verified web license was not accepted");
+    until(loop,[&]{std::lock_guard lock(mutex);return !saved.empty();},std::chrono::seconds(8));
+    WebLicenseService restored(loop,options,store);
+    bool reopened=false;restored.open_browser=[&](const auto&){reopened=true;};
+    const auto before_restore=license_requests;
+    restored.restore();
+    require(!restored.licensed,"Stored web session granted access without a server check");
+    until(loop,[&]{return license_requests>before_restore&&!restored.verifying;},std::chrono::seconds(8));
+    require(restored.licensed&&!reopened,"Stored web session did not recheck the server");
+}
+void society_update_feed(const std::filesystem::path& root)
+{
+#if defined(__unix__) || defined(__APPLE__)
+    using namespace ii::network::wire;
+    using namespace iisacc::accounts::local;
+    auto pattern=(root.parent_path()/"society-u-XXXXXX").string();
+    auto* created=::mkdtemp(pattern.data()); require(created!=nullptr,"Cannot create update fixture");
+    const std::filesystem::path directory(created);
+    struct Cleanup { std::filesystem::path path; ~Cleanup() { std::error_code ec; std::filesystem::remove_all(path,ec); } } cleanup{directory};
+    auto listener=Listener::listen(directory/"broker.sock"); require(bool(listener),"Cannot open update fixture");
+    ii::runtime::EventLoop loop; SocietyUpdateFeed feed(loop,std::string(64,'a'),directory/"broker.sock");
+    std::string error;
+    std::thread server([&] {
+        pollfd descriptor{listener->native_handle(),POLLIN,0};
+        if(::poll(&descriptor,1,5000)<=0){error="no update request";return;}
+        auto peer=listener->accept();if(!peer){error="accept failed";return;}
+        auto bytes=peer->receive(std::chrono::seconds(3)); auto input=bytes?parse_json(*bytes):std::nullopt;
+        if(!input || text(field(*input,"operation"))!="update" || text(field(*input,"action"))!="check" ||
+           text(field(*input,"productId"))!="congregation" || text(field(*input,"currentVersion"))!="1.0.0" ||
+           !text(field(*input,"accessToken")).empty()) {error="bad update request";return;}
+        auto body=json(Value(Object{{"requestId",field(*input,"requestId")},
+            {"result",Value(Object{{"status",Value("release_unavailable")}})}}));
+        if(!peer->send(body,std::chrono::seconds(3)))error="send failed";
+    });
+    bool done=false,valid=false;
+    feed.check("congregation","macos-arm64","1.0.0",[&](auto result,auto){
+        done=true;if(result){auto parsed=parse_json(*result);valid=parsed && text(field(*parsed,"status"))=="release_unavailable";}
+    });
+    auto deadline=ii::runtime::Clock::now()+std::chrono::seconds(6);
+    while(!done&&ii::runtime::Clock::now()<deadline){loop.poll();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+    server.join();
+    require(error.empty()&&done&&valid,"Society update did not use the local channel");
+#else
+    (void)root;
+#endif
+}
+
 void container_and_commands()
 {
     require(percent_decode("file%20name.png") == std::optional<std::string>("file name.png") &&
@@ -356,61 +471,78 @@ void http_deadlines()
     ii::network::Listener rejected_listener(saturated);
     require(!rejected_listener.listen(), "Listener admitted without a Core dispatch slot");
 }
-void license()
+void license(const std::filesystem::path& root)
 {
-    using namespace iisacc::accounts::native;
-    ii::runtime::EventLoop loop;Server server(loop),society(loop);std::string persisted,opened;bool owned=true,foreign=false,tampered=false,society_offline=false;
-    const auto now=[] { return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count(); };
-    server.response=[&](std::string request) {
-        require(request.find("password")==request.npos&&request.find("licenseKey")==request.npos,"App sent legacy credentials");
-        const auto body=request.substr(request.find("\r\n\r\n")+4);auto root=parse_json(body);require(bool(root),"Invalid app access document");
-        const auto input=object(field(field(*root,"variables"),"input"));const auto operation=text(field(input,"operation"));Object result;
-        if(operation=="start") result={{"requestId",Value(std::string(32,'c'))},{"authorizationUrl",Value("https://iisacc.com/Account/Apps/Connect?request="+std::string(32,'c'))},{"expiresAt",Value(now()+300)}};
-        else if(operation=="license") throw std::runtime_error("App bypassed Society and queried the license server");
-        else result={{"status",Value("connected")},{"account",Value(Object{{"sub",Value("fixture-owner")},{"email",Value("owner@example.invalid")}})},
-            {"productId",Value("congregation")},{"deviceId",Value(std::string(64,'a'))},{"sessionId",Value(std::string(32,'b'))},{"expiresAt",Value(now()+3600)},
-            {"manager",Value("society")},{"accessToken",Value(std::string(128,'T'))}};
-        return json(Value(Object{{"data",Value(Object{{"appAccess",Value(result)}})}}));
-    };
-    society.response=[&](std::string request) {
-        if(society_offline)return std::string("unavailable");
-        require(request.find("Authorization:")==request.npos,"App leaked a session credential to loopback");
-        auto input=parse_json(request.substr(request.find("\r\n\r\n")+4));require(bool(input),"Invalid Society request");
-        const auto timestamp=now();
-        const Object payload{{"v",Value(1)},{"iss",Value("https://iisacc.com")},{"aud",Value("society")},
-            {"sub",Value(foreign?"wrong-account":"fixture-owner")},{"deviceId",Value(std::string(64,'a'))},
-            {"issuedAt",Value(timestamp)},{"expiresAt",Value(timestamp+3600)},
-            {"licenses",Value(Array{Value(Object{{"productId",Value("congregation")},{"licensed",Value(owned)},{"expiresAt",Value{}}})})}};
-        auto token=license_fixture::sign(json(Value(payload)));if(tampered)token.back()=token.back()=='A'?'B':'A';
-        return json(Value(Object{{"allowed",Value(owned)},{"requestId",field(*input,"requestId")},{"licenseToken",Value(token)}}));
-    };
-    const auto broker=society.endpoint()+"v1/authorize";
-    const std::vector<iisacc::licensing::owned::TrustedKey> keys{{"fixture-owned-license",license_fixture::public_key()}};
-    SessionPersistence store{.read=[&]{return SecretResult{persisted.empty()?SecretResult::Status::not_found:SecretResult::Status::found,persisted};},
-        .write=[&](std::string_view value){persisted=value;return true;},.remove=[&]{persisted.clear();return true;}};
-    BrowserSessionOptions options{.product_id="congregation",.origin=server.endpoint().substr(0,server.endpoint().size()-1),
-        .device={std::string(64,'a'),"tablet","Fixture iPad","ios","27.0","com.iisacc.congregation.painter","1.0.0"},.allow_loopback=true};
     {
-        LicenseService license(loop,options,true,store,broker,keys);license.open_browser=[&](auto url){opened=std::move(url);};
-        require(server.requests==0,"License service construction performed network access");license.sign_in();
-        until(loop,[&]{return license.licensed;},std::chrono::seconds(6));
-        require(!opened.empty()&&license.signed_in&&license.stored&&license.email=="owner@example.invalid","Browser session did not unlock after ownership verification");
-        require(persisted.find("licenseKey")==persisted.npos&&persisted.find("password")==persisted.npos,"Legacy credentials persisted");
-        owned=false;license.retry();require(!license.licensed,"Recheck retained old authorization");
-        until(loop,[&]{return !license.verifying;});require(!license.licensed&&license.code=="license_not_owned","Revocation was not reflected");
-        foreign=true;license.retry();until(loop,[&]{return !license.verifying;});require(!license.licensed&&license.code=="invalid_society_response","Another account's license unlocked the app");
-        foreign=false;tampered=true;license.retry();until(loop,[&]{return !license.verifying;});require(!license.licensed,"Forged Society decision unlocked the app");
-        tampered=false;owned=true;license.retry();until(loop,[&]{return license.licensed;});
-        int repeated_unlocks=0;license.validated=[&](bool valid){if(valid)++repeated_unlocks;};
-        license.retry();until(loop,[&]{return !license.verifying;});require(license.licensed&&repeated_unlocks==0,"A repeated permission check reset the canvas viewport");
+        ii::runtime::EventLoop loop;
+        iisacc::accounts::native::SocietySessionOptions invalid;
+        LicenseService unavailable(loop,std::move(invalid),true);
+        require(!unavailable.licensed && unavailable.code=="society_unavailable",
+                "Unavailable local transport did not fail closed");
+        unavailable.restore(); unavailable.retry(); unavailable.cancel();
     }
-    foreign=false;owned=true;tampered=false;society_offline=true;const auto auth_requests=server.requests;
-    LicenseService restored(loop,options,true,store,broker,keys);restored.restore();require(restored.licensed,"Verified Society delegation did not restore locally");
-    until(loop,[&]{return !restored.verifying;});require(restored.licensed&&restored.code=="licensed_offline","Suspended Society invalidated an unexpired delegation");
-    require(server.requests==auth_requests,"Local restart contacted the account/license server");
-    const auto valid_saved=persisted;auto record=parse_json(persisted);auto broken=object(*record);broken["licenseToken"]=Value("tampered");persisted=json(Value(broken));
-    LicenseService invalid(loop,options,true,store,broker,keys);invalid.restore();until(loop,[&]{return !invalid.verifying;});require(!invalid.licensed,"A tampered saved delegation unlocked the app");
-    persisted=valid_saved;restored.forget();require(persisted.empty()&&!restored.licensed&&restored.access_token().empty(),"Sign-out retained authorization");
+#if defined(__unix__) || defined(__APPLE__)
+    using namespace iisacc::accounts::native;
+    using namespace iisacc::accounts::local;
+    using namespace ii::network::wire;
+    auto pattern = (root.parent_path() / "society-l-XXXXXX").string();
+    auto* created = ::mkdtemp(pattern.data());
+    require(created != nullptr, "Cannot create local license fixture");
+    const std::filesystem::path directory(created);
+    struct Cleanup { std::filesystem::path path; ~Cleanup() { std::error_code ec; std::filesystem::remove_all(path, ec); } } cleanup{directory};
+    auto listener = Listener::listen(directory / "broker.sock");
+    require(bool(listener), "Cannot open local license fixture");
+    ii::runtime::EventLoop loop;
+    SocietySessionOptions options{.product_id="congregation",
+        .device={std::string(64,'a'),"pc","Fixture","macos","1","com.iisacc.congregation.painter","1"},
+        .socket_path=directory / "broker.sock",.timeout=std::chrono::seconds(2),
+        .keys={{"fixture-owned-license",license_fixture::public_key()}}};
+    LicenseService license(loop,options,true);
+    bool opened=false; license.open_society_action=[&]{opened=true;};
+    auto run=[&](bool owned, bool foreign, bool open) {
+        std::string error;
+        std::thread server([&] {
+            pollfd descriptor{listener->native_handle(), POLLIN, 0};
+            if (::poll(&descriptor, 1, 5000) <= 0) { error="no local request"; return; }
+            auto peer=listener->accept(); if(!peer) { error="accept failed"; return; }
+            auto bytes=peer->receive(std::chrono::seconds(3));
+            auto input=bytes ? parse_json(*bytes) : std::nullopt;
+            if(!input || text(field(*input,"productId"))!="congregation" ||
+               text(field(*input,"appId"))!="com.iisacc.congregation.painter" ||
+               !text(field(*input,"accessToken")).empty()) { error="bad local request"; return; }
+            const auto now=std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            Object payload{{"v",Value(1)},{"iss",Value("https://iisacc.com")},{"aud",Value("society")},
+                {"sub",Value("fixture-owner")},{"deviceId",Value(std::string(64,foreign?'b':'a'))},
+                {"issuedAt",Value(now)},{"expiresAt",Value(now+2)},
+                {"licenses",Value(Array{Value(Object{{"productId",Value("congregation")},
+                    {"licensed",Value(owned)},{"expiresAt",Value{}}})})}};
+            const auto response=json(Value(Object{{"requestId",field(*input,"requestId")},{"allowed",Value(owned)},
+                {"licenseToken",Value(license_fixture::sign(json(Value(payload))))}}));
+            if(!peer->send(response,std::chrono::seconds(3))) error="send failed";
+        });
+        if(open) license.sign_in(); else license.retry();
+        const auto deadline=ii::runtime::Clock::now()+std::chrono::seconds(6);
+        while(license.verifying && ii::runtime::Clock::now()<deadline) { loop.poll(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+        server.join();
+        require(error.empty(),"local license fixture failed");
+        require(!license.verifying,"local license timed out");
+    };
+    run(false,false,true);
+    require(opened,"Society account action was not forwarded");
+    require(license.signed_in && !license.licensed && license.code=="license_not_owned","signed denial was ignored");
+    run(true,true,false);
+    require(!license.licensed && !license.signed_in,"foreign-device token was accepted");
+    run(true,false,false);
+    require(license.licensed,"valid local authorization did not recover");
+    int repeated=0; license.validated=[&](bool valid){if(valid)++repeated;};
+    license.retry();
+    const auto afterExpiry=ii::runtime::Clock::now()+std::chrono::milliseconds(2500);
+    while(ii::runtime::Clock::now()<afterExpiry) { loop.poll(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+    require(license.licensed && repeated==0,"the launch grant was revoked during the current run");
+    license.cancel(); require(license.licensed,"cancelling a later check revoked the launch grant");
+#else
+    (void)root; // Native Society local channel is not yet available on Windows.
+#endif
 }
 
 struct Provider final : iisacc::updates::native::UpdateCredentialProvider
@@ -552,7 +684,9 @@ int main(int argc, char** argv)
         session();
         native_session();
         http_deadlines();
-        license();
+        web_license();
+        license(root);
+        society_update_feed(root);
         updates();
         (void) iiFileProvider::native::Presentation::waitForIdle(std::chrono::seconds(5));
         std::cout << "Qt-free native backend contracts: PASS\n";

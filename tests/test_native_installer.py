@@ -26,6 +26,12 @@ def odc(name, data=b"", mode=stat.S_IFREG | 0o644):
 
 
 class PayloadTests(unittest.TestCase):
+    def test_fixture_root_is_inside_resources(self):
+        root = Path(sys.argv[1]).resolve()
+        resources = (ROOT / "resources").resolve()
+        self.assertTrue(root.is_dir() and root != resources and root.is_relative_to(resources),
+                        "installer fixtures must use a private resources directory")
+
     def test_protected_os_state_is_data_but_unreadable_external_code_fails(self):
         data = ["/private/var/db/analyticsd/events.allowlist",
                 "/private/var/folders/test/0/com.apple.LaunchServices.dv/cache.csstore"]
@@ -52,6 +58,96 @@ class PayloadTests(unittest.TestCase):
                 runtime_audit.audit_images(images[:-1], bundle, [executable, library])
             with self.assertRaises(RuntimeError):
                 runtime_audit.audit_images(images + [str(foreign)], bundle, [executable, library])
+
+    def test_bundled_lvrs_images_are_rejected_by_installer(self):
+        with tempfile.TemporaryDirectory(prefix="legacy-runtime-", dir=Path(sys.argv[1])) as temp:
+            bundle = Path(temp) / "fixture.app"
+            executable = bundle / "Contents/MacOS/Congregation"
+            frameworks = bundle / "Contents/Frameworks"
+            executable.parent.mkdir(parents=True)
+            frameworks.mkdir(parents=True)
+            executable.write_bytes(bytes.fromhex("cffaedfe") + b"native")
+            library = frameworks / "libLVRSCore.dylib"
+            library.write_bytes(bytes.fromhex("cffaedfe") + b"legacy")
+
+            def fake_otool(*args):
+                self.assertEqual(args[:2], ("otool", "-L"))
+                return f"{args[2]}:\n\t@rpath/{library.name} (compatibility version 1.0.0, current version 1.0.0)\n"
+
+            with patch.object(installer, "APP", bundle), patch.object(installer, "run", side_effect=fake_otool):
+                with self.assertRaisesRegex(ValueError, "Qt or LVRS"):
+                    installer.check_native_bundle()
+
+    def test_bundled_lvrs_images_are_rejected_by_runtime_audit(self):
+        with tempfile.TemporaryDirectory(prefix="legacy-runtime-", dir=Path(sys.argv[1])) as temp:
+            bundle = Path(temp) / "fixture.app"
+            bundle.mkdir()
+            executable = bundle / "Congregation"
+            library = bundle / "libLVRSCore.dylib"
+            executable.write_bytes(bytes.fromhex("cffaedfe") + b"native")
+            library.write_bytes(bytes.fromhex("cffaedfe") + b"legacy")
+            images = [str(executable), str(library)]
+            with self.assertRaisesRegex(RuntimeError, "Qt or LVRS"):
+                runtime_audit.audit_images(images, bundle, [executable, library])
+
+    def test_bundled_alias_cannot_hide_an_lvrs_image(self):
+        with tempfile.TemporaryDirectory(prefix="legacy-alias-", dir=Path(sys.argv[1])) as temp:
+            bundle = Path(temp) / "fixture.app"
+            executable = bundle / "Contents/MacOS/Congregation"
+            frameworks = bundle / "Contents/Frameworks"
+            executable.parent.mkdir(parents=True)
+            frameworks.mkdir(parents=True)
+            executable.write_bytes(bytes.fromhex("cffaedfe") + b"native")
+            library = frameworks / "libLVRSCore.dylib"
+            library.write_bytes(bytes.fromhex("cffaedfe") + b"legacy")
+            alias = frameworks / "libpainting.dylib"
+            alias.symlink_to(library.name)
+
+            def fake_otool(*args):
+                return f"{args[2]}:\n\t@rpath/{alias.name} (compatibility version 1.0.0, current version 1.0.0)\n"
+
+            with patch.object(installer, "APP", bundle), patch.object(installer, "run", side_effect=fake_otool):
+                with self.assertRaisesRegex(ValueError, "Qt or LVRS"):
+                    installer.check_native_bundle()
+            with self.assertRaisesRegex(RuntimeError, "Qt or LVRS"):
+                runtime_audit.audit_images([str(executable), str(alias)], bundle, [executable, alias])
+
+    def test_installer_rejects_framework_symlinks_outside_the_bundle(self):
+        with tempfile.TemporaryDirectory(prefix="external-framework-", dir=Path(sys.argv[1])) as temp:
+            root = Path(temp)
+            bundle = root / "fixture.app"
+            executable = bundle / "Contents/MacOS/Congregation"
+            frameworks = bundle / "Contents/Frameworks"
+            executable.parent.mkdir(parents=True)
+            frameworks.mkdir(parents=True)
+            executable.write_bytes(bytes.fromhex("cffaedfe") + b"native")
+            outside = root / "libpainting.dylib"
+            outside.write_bytes(bytes.fromhex("cffaedfe") + b"outside")
+            (frameworks / outside.name).symlink_to(outside)
+            line = f"{executable}:\n\t@rpath/{outside.name} (compatibility version 1.0.0, current version 1.0.0)\n"
+            with patch.object(installer, "APP", bundle), patch.object(installer, "run", return_value=line):
+                with self.assertRaisesRegex(ValueError, "outside the bundle"):
+                    installer.check_native_bundle()
+
+    def test_compatible_library_and_internal_symlink_remain_valid(self):
+        with tempfile.TemporaryDirectory(prefix="compatible-runtime-", dir=Path(sys.argv[1])) as temp:
+            bundle = Path(temp) / "fixture.app"
+            executable = bundle / "Contents/MacOS/Congregation"
+            frameworks = bundle / "Contents/Frameworks"
+            executable.parent.mkdir(parents=True)
+            frameworks.mkdir(parents=True)
+            executable.write_bytes(bytes.fromhex("cffaedfe") + b"native")
+            library = frameworks / "libLVRSCompatible.dylib"
+            library.write_bytes(bytes.fromhex("cffaedfe") + b"independent")
+            alias = frameworks / "libpainting.dylib"
+            alias.symlink_to(library.name)
+
+            def fake_otool(*args):
+                return f"{args[2]}:\n\t@rpath/{alias.name} (compatibility version 1.0.0, current version 1.0.0)\n"
+
+            with patch.object(installer, "APP", bundle), patch.object(installer, "run", side_effect=fake_otool):
+                self.assertTrue(installer.check_native_bundle())
+            runtime_audit.audit_images([str(executable), str(alias)], bundle, [executable, alias])
 
     def test_failed_xcode_operation_restores_signed_source(self):
         with tempfile.TemporaryDirectory(prefix="xcode-contract-", dir=Path(sys.argv[1])) as temp:

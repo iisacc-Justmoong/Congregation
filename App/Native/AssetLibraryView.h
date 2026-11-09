@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorBackend.h"
+#include "LVUIHostBindings.h"
 #include <filesystem>
 #include <map>
 #include <set>
@@ -28,11 +29,12 @@ class AssetLibraryView final : public std::enable_shared_from_this<AssetLibraryV
     std::vector<ii::gui::Widget> entry_rows_;
     std::shared_ptr<ii::gui::BindingScope> bindings_ = std::make_shared<ii::gui::BindingScope>();
     ii::gui::Widget results_, count_, preview_, name_, metadata_, location_;
-    lvrs::Card preview_card_;
+    std::optional<lvui_host::Card> preview_card_;
     std::map<std::string, ii::gui::Widget> collection_counts_;
     std::set<std::string> recent_, saved_;
     std::string scope_ = "All";
     std::string filter_, category_ = "All assets";
     std::size_t selected_ = 0;
+    bool published_ = false;
 };
 } // namespace congregation::native

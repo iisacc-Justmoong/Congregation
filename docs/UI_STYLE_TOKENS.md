@@ -1,51 +1,75 @@
-# Congregation UI의 Color·Metric
+# Congregation UI의 LVUI 토큰
 
-Congregation의 활성 UI는 LVUI 기본 LVRS 토큰과 앱 전용 `App/Native/views/Theme.lvui`를 함께 사용한다. 색상은 Color, 간격·크기·테두리·글자 크기·굵기는 Metric으로 선택한다. Figma의 현재 배치와 색상을 유지하며, 기본 토큰이 없는 앱 고유 값만 프로필에 선언한다.
+타임라인의 두 슬라이더, 색상 불투명도와 브러시 팝오버의 일곱 슬라이더는 개별
+손잡이·트랙 치수를 지정하지 않고 LVUI의 `SliderSize::mini` 또는 선언형
+`size={.mini}`를 사용한다. 크기와 포커스 표시는 LVUI가 소유하며 앱은 값 범위·
+폭·접근성 이름 등을 전달한다. 브러시 팝오버는 LVUI `ScrollView`로 넘치는 압력
+설정을 보존한다. 기준은 기존 LVUI 인스턴스로 구성한
+[스크롤 뷰포트](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=281-4112)와
+[전체 내용](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=281-4303)이다.
+슬라이더의 트랙 색상도 제품이 지정하지 않고 원본과 일치하도록 수정한 LVUI의
+`Panel/surfaceSolid` 기본값을 따른다. 브러시 팝오버의 흐림·방사형 악센트·
+테두리·안쪽 광택·그림자는 LVUI의 공통 Popover 재질이 제공한다. 악센트는 원본의
+여러 색상 정지점을 단일 강조색으로 근사한다. 불투명 폴백도 악센트와 안쪽 광택을
+유지한다. 팝오버는 공통 창 강조색을 상속하고 경계 밖 악센트도 흐림 입력으로
+제공한다. 실제 GPU 표시의 동등성은 확인하지 않았다.
 
-## 변경 위치
+Congregation의 활성 UI 색상과 컨트롤 표현은 LVUI가 소유하는 공유 토큰을 사용한다. LVUI 뷰는 `Color.surfaceSolid`, `Color.text.description`, `Color.blue.selected` 등을 직접 참조하고 네이티브 C++은 같은 생성 카탈로그의 `Color::surfaceSolid`, `Color::textDescription`, `Color::blueSelected` 등을 사용한다. 이 카탈로그는 LVRS/Figma에서 도입한 값을 포함한다. 앱 전용 Color 선언과 `Panel/Border` Figma 변수는 제거했다.
 
-```text
-// 앱 전용 프로필의 예
-let window: Color = Color("#141719")
-let inspectorWidth: Metric = 352
-let panelEdgeResolved: Color = Color("#0c0c0c")
-let detailLineResolved: Color = composite(.material.surface.dense.edge, .window)
-```
+패널 경계는 두 제품과 Figma에서 공통 `Panel/canvas`이며 1 논리 픽셀이다. 타임라인의 눈금·플레이헤드·선택 영역은 각각 공통 텍스트 및 파랑 역할을 사용한다. 창과 팝오버·새 캔버스 창도 `Panel/window`, `Panel/surfaceSolid`를 사용한다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경 위에 합성한 뒤 네이티브 렌더러에 전달한다. 메인 창의 2% 악센트 합성은 같은 LVUI 색상 토큰으로 계산한다.
 
-`Color.window` 변경은 해당 앱의 기본 appearance에도 적용된다. 패널 경계선은 불투명한 `#0C0C0C`이며 두께는 `Metric.stroke1`이다. 타임라인 내부 선과 눈금자는 별도 `detailLineResolved`를 사용하여 LVRS Dense/Edge 흰색 12%를 창 배경 위에 encoded sRGB로 합성한 기존 값을 유지한다. 실제 렌더링에서는 각 결과를 선형 색으로 변환한다. 선택·호버·포커스 색은 변경하지 않는다.
+네이티브 컨트롤과 타임라인의 아이콘 이름은 LVUI 디자인 카탈로그에서 해석한다.
+현재 Figma Main에서 캡처한 100종과 Avatar 기본 심벌은 해당 벡터를 사용하고, 나머지 이름은 LVUI가
+소유한 이전 자산으로 폴백한다. 동일 이름의 이전 카탈로그는 호환용으로 유지한다.
+사용되지 않던
+Vincent 시절의 고정 색상 SVG와 이를 실행 파일에 포함하던 생성 코드는
+제거했다. 공통 아이콘의 색상과 형태를 제품별 사본으로 고정하지 않는다.
 
-| 대상 | 선택 방법 |
-|---|---|
-| LVUI 색상 | `color={Color.text.body}`, `surfaceColor={Color.popup}` |
-| LVUI 수치 | `height={Metric.size22}`, `style="gap:Metric.space8"` |
-| C++ 색상 | `Color::textBody`, `Color::panelEdgeResolved` |
-| C++ 수치 | `Metric::size22`, `Metric::inspectorWidth` |
-| 앱 창 배치 | `Metric.windowWidth/windowHeight`, `toolbarHeight`, `sidebarWidth`, `toolRailWidth`, `inspectorWidth`, `timelineHeight` |
+`App/Native/views/Layout.lvui`는 창 크기와 작업 영역 비율 등을 포함한 제품별
+`Metric` 선언 107개를 보유한다. 브러시 슬라이더를 공통 변형으로 바꾸며
+더 이상 사용하지 않는 크기 선언 두 개를 제거했다. 두 열의 도구
+레일은 별도 제품 크기 선언 없이 LVUI 아이콘 버튼의 공통 치수와 공통 간격으로
+계산한다. 타임라인 레이어 행도 원본처럼 공통 아이콘 버튼의 고유 높이를 따른다.
+키프레임은 원본과 같이 공통 18px 아이콘을 각 22px 행의 프레임 셀 중앙에 놓으며,
+별도 5px 위치 토큰 대신 행·아이콘·셀의 크기에서 위치를 계산한다.
+구분선 두께와 보조·본문 글자의 행 높이는 각각 LVUI의 스트로크 및 타이포그래피
+토큰을 사용하며, 타임라인 손잡이의 중심은 손잡이 폭에서 계산한다.
+타임라인과 확장 도구 패널의 전체 높이, 개별 파라미터 행의 높이는 원본의 자식
+요소·공통 컨트롤 크기·여백에서 계산한다. 레이어 이름은 원본과 같은 본문 행
+높이로 중앙 정렬한다. 둥근 표시의 반지름도 실제 표시 크기에서 계산한다.
+전체 파라미터 높이는 현재 도구 사양의 그룹과 행에서 계산하며, 빠른 이동은
+고정 좌표 대신 해당 파라미터의 현재 위치를 따른다.
+도구와 색상 패널의 내부 폭은 Figma에서 확인한 패널 폭과 공통 여백으로,
+팝오버와 Profile 입력 폭은 각 컨테이너 폭과 공통 안쪽 여백으로 계산한다.
+도구 패널 하단 높이는 공통 아이콘 버튼·세그먼트의 고유 크기와 여백에서
+계산한다. 이 관계로 중복된 제품 크기 선언 여섯 개를 제거했다.
+압력 곡선의 안쪽 여백은 공통 `space6`을 사용하며, 격자 간격과 압력 좌표 범위는
+뷰의 높이에서 안쪽 여백을 뺀 뒤 네 구간으로 나누어 계산한다. 이 관계로 별도
+그래프 여백·높이·격자 간격 선언 세 개를 제거했다. 곡선 굵기는 Figma 기준과
+같은 공통 `stroke2`를 사용한다. 메인과 설정 화면의 설명 글자는 동일한 크기와
+색상을 반복 지정하지 않고 LVUI의 기본 Description 스타일을 따른다.
+독립 아이콘의 기본 크기와 래스터 해상도는 LVUI 구성요소가 결정하며,
+타임라인의 사용자 데이터 그리기도 같은 LVUI 아이콘 공급자를 사용한다.
+아이콘형·레이블형 세그먼트의 기본 여백과 표면·테두리 색상도 제품 어댑터가
+덮어쓰지 않고 각 LVUI 공통 구성을 사용한다.
+환경설정 Profile의 [Figma 기준 화면](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2635)은
+LVUI Avatar와 둥근 TextField 인스턴스를 사용한다. 소스의 Profile 사진과 이름
+입력도 공통 Avatar와 compact·rounded 입력 및 지우기 동작을 사용한다. 설정 탭은
+공통 세그먼트의 29px 배치와 22px 버튼을 따르며 `selectionStyle={.segmented}`로
+선택 항목의 기본 버튼 상태를 표현한다. 탭의 크기·여백·선택색은 제품에서
+재정의하지 않는다. 다른 설정 화면의 개별 스타일, 창 전체의 시각 동등성과 실제
+기기 표시는 아직 별도다.
+CMake는 이 파일을 세 LVUI 뷰와
+`lvui_generate_styles`에 전달한다. 현재 사용자 규칙은 앱 전용 스타일 토큰을
+금지하므로, 이 선언들은 레이아웃 책임과 LVUI 공통 토큰으로 분리해야 하는 미완료
+항목이다. 사용자 그림, 브러시 값, 선택한 문서 색상 및 미리보기 데이터는 디자인
+토큰과 구분한다.
 
-기본 Color/Metric 목록은 LVUI의 `docs/StyleTokenMembers.md`를 따른다. C++에서는 점으로 구분한 멤버를 lowerCamelCase로 합친다. 예를 들어 `Color.material.surface.dense.edge`는 `Color::materialSurfaceDenseEdge`이다. 앱에 필요한 이름을 프로필에 추가하면 두 언어에서 같은 이름으로 사용할 수 있다. 프로필 내 수치를 바꿀 때 화면의 고정 기준을 검증하는 독립 테스트의 예상값도 함께 검토한다.
+## 생성과 검증
 
-타임라인 손잡이는 원본 SVG의 모양·알파 마스크를 사용하되 최종 RGBA는 `Color.playhead`로 지정한다. 따라서 손잡이 이미지와 본문의 세로선 색상도 프로필 하나를 따른다. 원본 SVG paint는 실행 화면의 색상 결정에 사용하지 않는다.
+C++용 상수는 `build/CongregationStyle.generated.h`로 생성하며 직접 편집하지 않는다. 이전 LVRS 호환 스냅샷과 생성기는 현재 빌드의 입력이 아니다. `Congregation.ui_style_tokens`는 앱 전용 Color 선언과 UI 리터럴의 재유입을 검사한다. LVUI는 필터가 필요한 기존 아이콘 한 종에 자체 대체 자산을 사용한다. 범용 SVG 필터의 지원을 뜻하지는 않는다. 사용자 문서 픽셀과 색상은 검사 대상 UI 팔레트가 아니다.
 
-## 생성과 의존성
-
-CMake가 세 LVUI 뷰(Main, Preferences, CanvasSetup)에 동일한 `STYLE_FILE`을 전달한다. `lvui_generate_styles`는 같은 프로필을 `build/CongregationStyle.generated.h`로 생성한다. C++ 코드는 `App/Native/Style.h`를 통해 그 헤더의 Color·Metric을 사용한다. `CongregationStyle` 대상이 헤더 생성 순서와 include 경로를 전달하므로 병렬 빌드에서도 먼저 생성된다.
-
-프로필을 수정하면 세 뷰와 C++ 상수를 다시 생성한다. 잘못된 타입·정의·색상 범위·이름 충돌은 빌드 오류이며 이전 생성 결과를 덮어쓰지 않는다. 생성 헤더를 직접 편집하지 않는다. 생성된 앱은 네이티브 C++ 상수와 iiGUI만 사용하고 LVUI 스타일 파일·파서·카탈로그를 실행 중에 읽지 않는다.
-
-대상은 메인 창·활성화·메뉴·팝오버·환경설정·새 캔버스 화면과 네이티브 에셋 라이브러리·도구 패널·타임라인·캔버스 안내선·아바타이다. 문서 픽셀·브러시 색/크기·파라미터 범위·영상 시간/프레임·배율 계산·색공간 변환 계수는 문서 또는 알고리즘의 값으로 유지한다. `0`이 자동 크기나 좌표 원점인 경우도 수치 모델의 의미를 유지한다. 테스트의 고정 색상·배치 예상값은 구현 토큰과 독립적으로 두어 시각 회귀를 감지한다.
-
-## 재현
-
-LVUI SDK에서 빌드와 테스트를 완료하고 앱의 네이티브 kit에 설치한 후 manifest를 갱신한다. 활성 kit는 `SDK/build/congregation-native/prefix`이며 `~/.local`의 다른 SDK 패키지와 혼합하지 않는다.
-
-```sh
-./build.sh local --configure-only
-cmake --build build --parallel 4
-ctest --test-dir build --output-on-failure
-```
-
-`Congregation.ui_style_tokens`는 LVUI 속성/인라인 스타일, 네이티브 스타일 필드·빌더 인자·직접 그리기의 리터럴 재유입과 공통 프로필 연결을 검사한다. 검사기의 거부/허용 사례도 함께 실행한다. `editor_layout`은 독립된 좌표·색공간 기준을 유지하고, `native_window_contract`와 `native_window_colors_vulkan`은 실제 GPU 픽셀·폭·입력 높이·스크롤·파라미터 조작을 검사한다. 두 `figma_ui` 실행과 bundle relocation은 실제 앱과 이동된 단일 번들의 실행을 검증한다.
-
+아래는 과거 전환 시점의 기록이며 현재 앱에 별도 Color 프로필이 있다는 의미가 아니다.
 
 ## 2026-10-25 Color·Metric 전환 시점의 검증
 
@@ -60,3 +84,10 @@ Metal·Vulkan에서 창/패널 크기, 경계선·배경·타임라인 손잡이
 `build/` 안의 `.app`은 `Congregation.app` 하나이며 버전 1.0.0 / 빌드 1이다. ad-hoc 서명 검증, Qt 동적 링크 부재, LVUI 런타임 라이브러리 심볼 부재를 확인했다. 네이티브 kit manifest는 설치 파일 802개의 해시 검사를 통과했다.
 
 검증 산출물은 `build/ui-token-verification.json`, `build/ui-token-source-report.json`, `build/ui-token-tests.xml`, `build/ui-token-final-build.log`, `build/native-relocation-verification.json`이다. 실제 화면은 `build/ui-token-editor-metal.png`와 `build/ui-token-editor-vulkan.png`에 보관했다. SDK의 공통 프로필 구현·범위·검증은 `SDK/LVUI/docs/StyleProfiles.md`를 따른다.
+
+## LVUI 단추 스타일 경계
+
+제품의 단추 어댑터는 LVUI가 소유하는 기본 상태와 팔레트를 사용한다. 호스트의
+`ButtonOptions`에 별도 스타일이 들어오면 무시하거나 다른 모양으로 변환하지 않고
+지원하지 않는 입력으로 거절한다. 제품에서 단추 모양이 더 필요하면 먼저 LVUI
+라이브러리에 해당 상태나 변형을 정의해야 한다.

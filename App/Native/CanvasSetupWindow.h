@@ -1,5 +1,6 @@
 #pragma once
 #include "CanvasSetupView.generated.h"
+#include "ScopedWidgetMount.h"
 #include <functional>
 #include <memory>
 
@@ -14,10 +15,15 @@ class CanvasSetupWindow final
     static ii::gui::HostOptions options() { return lvui_generated::CanvasSetupView::options(); }
     ii::core::Result<void> attach(ii::gui::Host&, const std::function<void(Scope&)>& = {});
     ii::core::Result<void> detach(ii::gui::Host&);
-    ii::gui::WidgetMount widgets() const { return mount_; }
+    ScopedWidgetMount widgets() const { return {mount_, NativeSurfaceSlot::canvas_setup}; }
+    // Builds the LVUI-owned window body and its current scoped model.
+    ii::core::Result<void> build_view(ii::gui::WidgetBuilder&, ii::gui::Widget,
+                                     const std::function<void(Scope&)>& = {});
 
   private:
     struct Content;
+    static ii::core::Result<void> create_content(ii::gui::WidgetBuilder&, ii::gui::Widget,
+                                                 std::shared_ptr<CanvasSetupModel>, std::shared_ptr<Content>*);
     std::shared_ptr<Content> content_;
     std::shared_ptr<Scope> scope_;
     ii::gui::WidgetMount mount_;

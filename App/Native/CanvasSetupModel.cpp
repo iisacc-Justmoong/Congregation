@@ -14,7 +14,7 @@ namespace congregation::native
 {
 namespace
 {
-using Value = ii::core::Value;
+using Value = ii::json::Value;
 const Value& field(const Value& value, std::string_view name)
 {
     static const Value missing;
@@ -315,16 +315,38 @@ void CanvasSetupModel::quick_size(int width, int height)
 void CanvasSetupModel::creation_error(std::string value)
 {
     status.set(std::move(value));
-    if (changed)
-        changed(CanvasSetupChange::error);
+    publish_view_state(false);
+    if (auto callback = changed)
+        callback(CanvasSetupChange::error);
 }
 void CanvasSetupModel::notify(CanvasSetupChange change)
 {
     const auto spec = specification();
     can_create.set(bool(spec));
     status.set(spec ? "" : spec.error());
-    if (changed)
-        changed(change);
+    publish_view_state(change == CanvasSetupChange::gallery);
+    if (auto callback = changed)
+        callback(change);
+}
+void CanvasSetupModel::publish_view_state(bool gallery_changed)
+{
+    CanvasSetupViewState next;
+    next.query = query;
+    next.unit = unit;
+    next.resolution = resolution;
+    next.background = background;
+    next.selected_id = selected && !custom ? selected->id : "";
+    next.selection_name = selection_name();
+    next.width = new_width.get();
+    next.height = new_height.get();
+    next.dimensions = dimension_text();
+    next.aspect_ratio = aspect_ratio();
+    next.status = status.get();
+    next.category_index = category_index;
+    next.result_count = gallery_changed ? result_count() : view_state.get().result_count;
+    next.custom = custom;
+    next.can_create = can_create.get();
+    view_state.set(std::move(next));
 }
 std::expected<CanvasDefinition, std::string> CanvasSetupModel::specification() const
 {

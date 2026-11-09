@@ -1,6 +1,6 @@
 # Congregation 1.0.0 네이티브 앱 구조
 
-실행 소스는 `App/`이다. C++23과 iiSDKCore, LVUI, LVRS Native, iiGUI를 사용한다. 화면은 브라우저나 WebView 없이 네이티브 창의 GPU 표면에 그린다.
+실행 소스는 `App/`이다. C++23과 iiSDKCore, LVUI, iiGUI를 사용한다. 화면은 브라우저나 WebView 없이 네이티브 창의 GPU 표면에 그린다.
 
 | 경로 | 역할 |
 | --- | --- |
@@ -16,7 +16,7 @@
 | `resources/` | 앱 아이콘과 제품 자원 |
 | `build/` | 생성 C++·SDK 소비 결과·앱 하나·검사 자료 |
 
-하위 SDK는 제품 정책을 알지 않는다. 파일·잠금·SQLite는 iiFileProvider, 문서·합성은 iiSharedCanvas Native, 브러시 엔진은 iiPaintEngine, 코덱·ICC는 iiImageCodec에 둔다. Core는 이벤트 루프·작업·관측 값을 제공하고 iiGUI는 OS 창·입력·텍스트·GPU 표시·운영체제 서비스를 제공한다. LVRS는 위젯과 모델, LVUI는 선언 구문과 C++ 생성을 담당한다.
+하위 SDK는 제품 정책을 알지 않는다. 파일·잠금·SQLite는 iiFileProvider, 문서·합성은 iiSharedCanvas Native, 브러시 엔진은 iiPaintEngine, 코덱·ICC는 iiImageCodec에 둔다. Core는 이벤트 루프·작업·관측 값을 제공하고 iiGUI는 OS 창·입력·텍스트·GPU 표시·운영체제 서비스를 제공한다. LVUI는 위젯과 모델, 선언 구문 및 C++ 생성을 담당한다.
 
 주 창과 보조창은 Core 루프를 공유한다. 화면 이동·확대·선택과 문서 편집의 리비전을 분리한다. 문서 저장은 정규 IISC이며 내부 복구본·이전 VRC·PSD·ORA·비트맵을 경계에서 검증한다. 실제 제품 기능과 제한은 [NATIVE_RUNTIME.md](NATIVE_RUNTIME.md), 엔진 소유 관계는 [APP_ENGINE.md](APP_ENGINE.md), 빌드는 [BUILD.md](BUILD.md)에 있다.
 

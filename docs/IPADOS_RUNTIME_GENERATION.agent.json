@@ -1,0 +1,51 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:congregation:ipados-runtime-generation",
+  "source": {
+    "path": "docs/IPADOS_RUNTIME_GENERATION.md",
+    "sha256": "1d9b8920e5c446eead05ea3dde8805187f7c0f2fb016882fce60cab1a20850b4",
+    "bytes": 2819,
+    "line_count": 50,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "iPadOS runtime generation integrity",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "stages": [
+    "base",
+    "files",
+    "network",
+    "canvas",
+    "gui"
+  ],
+  "integrity_check": "tools/ipados_sdk_coherence.py",
+  "tests": [
+    "tests/test_ipados_sdk_coherence.py",
+    "tests/test_ipados_builder.py"
+  ],
+  "failure": {
+    "thread": "main",
+    "function": "ii::network::Udp::start_receiving",
+    "cause": "old iiNetwork and newer iiSDKCore Submission ABI mismatch",
+    "worker_observation": "four runtime workers waiting"
+  },
+  "validation": {
+    "date": "2026-11-08",
+    "device": "iPad Pro 12.9-inch 4th generation",
+    "configuration": "iPhoneOS arm64 Release",
+    "install": "installed over existing application",
+    "startup": "process remained alive past prior failure period; no new crash report",
+    "trace": "15-second system-wide Time Profiler captured host loop and file provider worker",
+    "debugger": "attach failed; run terminated by signal 9; normal launch restored",
+    "not_verified": [
+      "visual screen content",
+      "touch interaction",
+      "idle worker health",
+      "network exchange"
+    ]
+  }
+}

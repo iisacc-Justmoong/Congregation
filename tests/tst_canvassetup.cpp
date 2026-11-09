@@ -57,16 +57,30 @@ int main()
         CanvasSetupModel model;
         check(model.selected && model.selected->id == "01-01-01" && model.background == "White",
               "Initial selection differs from Dreamscapes");
+        check(model.view_state.get().selected_id == "01-01-01" &&
+                  model.view_state.get().background == "White" && model.view_state.get().can_create,
+              "Initial LVUI canvas setup state was not published");
         model.search("A4");
         check(model.result_count() == 11 && model.selected,
               "Search did not select its first result");
+        check(model.view_state.get().query == "A4" && model.view_state.get().result_count == 11 &&
+                  model.view_selection() == model.selection_name(),
+              "Search did not publish its complete LVUI view state");
+        const auto search_revision = model.view_state.revision();
+        model.search("A4");
+        check(model.view_state.revision() == search_revision,
+              "An unchanged setup draft published another view revision");
         model.search("not-a-format");
         check(!model.can_create.get() && !model.selected, "Empty results allowed creation");
+        check(!model.view_state.get().can_create && model.view_state.get().selected_id.empty(),
+              "Empty results left a stale LVUI selection");
         model.custom_size();
         check(model.custom && model.new_width.get() == "1800" && model.can_create.get(),
               "Custom size defaults changed");
         model.set_new_width("0");
         check(!model.can_create.get(), "Invalid draft allowed creation");
+        check(!model.view_state.get().can_create && !model.view_state.get().status.empty(),
+              "Invalid dimensions did not reach the LVUI view state");
         model.quick_size(1920, 1080);
         check(model.aspect_ratio() == "16:9", "Quick aspect ratio changed");
         model.change_unit("in");
@@ -76,6 +90,11 @@ int main()
         check(model.specification()->pixel_width == 1920, "Unit round trip changed pixels");
         model.set_background("Black");
         check(model.specification()->background == "Black", "Background selection ignored");
+        check(model.view_background() == "Black" && model.view_dimensions() == model.dimension_text(),
+              "LVUI setup summary did not update");
+        model.creation_error("Cannot create canvas");
+        check(model.view_state.get().status == "Cannot create canvas",
+              "Creation failure did not reach the LVUI view state");
         model.begin();
         check(model.background == "White" && model.selected->id == "01-01-01",
               "Reopen retained stale selection");

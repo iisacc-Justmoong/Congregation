@@ -2,6 +2,11 @@
 
 # iiSharedCanvas 통합
 
+아래 본문은 Qt/QML 기반 이행 시기의 보존 기록이다. 현재 제품은 유한 캔버스를
+사용하며 LVRS나 QML 화면에 의존하지 않는다. 현재 문서·저장 경계는
+[네이티브 실행 구조](NATIVE_RUNTIME.md)를 따른다. 아래의 무한 캔버스와
+`QSaveFile` 관련 내용은 현재 기능이나 빌드 지침이 아니다.
+
 Congregation 의 `DrawingSurfaceItem` 는 `iiSharedCanvas::CanvasItem` 를 네이티브 캔버스 기반으로 사용합니다. 문서 ViewModel 연결은 선택된 투명 래스터 레이어 하나를 생성하며, 기존 LVRS QML 페인팅 서페이스는 붓, 압력 곡선, 안정화 도구, 입력 상태, 및 취소/재실행 속성을 해당 항목에 바인딩합니다.
 
 새 캔버스 모달은 무한 캔버스용 LVRS `CheckBox` 를 노출합니다. 해당 경로는 iiSharedCanvas 1.1 `ChunkedRasterAsset` 문서와 256픽셀 덩어리 크기를 생성하며, 입력된 너비/높이를 작은 초기 할당 영역으로 사용합니다. 카메라 이동인 패닝과 줌은 고정 뷰포트 를 월드 좌표로 매핑하고 `ensureInfiniteCanvasRegion()` 에서 새로 표시된 영역을 요청합니다. 성장은 바깥쪽으로 덩어리 경계로 반올림되며, 페인팅된 덩어리만 픽셀을 저장합니다.

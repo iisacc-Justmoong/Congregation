@@ -1,0 +1,228 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:916e1c68368e5077dfb1311c4292012cf053401027cd38e69004878f0f8ee497",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/IPADOS_INCREMENTAL_UPDATES_2026-11-08.md",
+    "sha256": "3d600f245034f10854e02c557b360bc609fc624f3ac966f5d385fc2dd2786207",
+    "bytes": 3542,
+    "line_count": 59,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "iPadOS incremental update follow-up",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# iPadOS incremental update follow-up\n",
+      "level": 1,
+      "title": "iPadOS incremental update follow-up"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 5,
+      "raw": "This record follows the earlier iPadOS runtime investigation on 2026-11-08.\nIt separates implemented update paths and automated checks from observations\non the installed device; it is not a painting-latency benchmark.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "## Update paths\n",
+      "level": 2,
+      "title": "Update paths"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 14,
+      "raw": "iiGUI follows the focused editor path for iOS text-input synchronization.\nFull accessibility enumeration remains synchronous, but shares viewport and\nlayout synchronization within bounded groups. Unchanged action options do not\ninvalidate the view, custom widget drawings are retained per widget, and an\nexplicit repaint invalidates the requested subtree. A non-actionable input\ntarget no longer invokes a nonexistent action on release.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 16,
+      "end_line": 23,
+      "raw": "On Metal, opaque frames without nonlocal effects retain the previous scene\ntexture and recompose the changed, disjoint regions, with a limit of 16 region\npasses. Resize, background changes, scene sources, shadows and backdrops\nconservatively use full composition. The final drawable copy still covers the\nframe, and other renderers do not inherit Metal's partial composition. The\nwidget frame builder still traverses and assembles built-in drawing commands;\nthe retained widget drawing applies to custom providers. These boundaries do\nnot establish fully incremental behavior for every part of the application.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 25,
+      "end_line": 27,
+      "raw": "The LVUI color integration caches a color surface by the values its raster\nactually depends on. It keeps current selection and marker state while reusing\nunchanged pixels; the value-returning API still copies the RGBA buffer.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "heading",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "## Verification\n",
+      "level": 2,
+      "title": "Verification"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "list",
+      "start_line": 31,
+      "end_line": 52,
+      "raw": "- The final iiGUI focused update, damage, subtree and Metal checks passed 9/9.\n  The Metal check compared partial frames with fresh full compositions at the\n  pixel level, including two separated changed areas. The LVUI color tests\n  passed 3/3. A wider earlier iiGUI selection passed 89/90; the remaining\n  `iiGUI.self_widgets_compound` check reported a segmented-style contract\n  mismatch in the existing working tree.\n- The iPad SDK and Congregation arm64 Release were rebuilt, and the signed\n  1.0.2 (3) app was installed and launched on the connected fourth-generation\n  12.9-inch iPad Pro. The process remained present, and screenshots at launch\n  and after the recorded interval showed the same non-black application view.\n  In a later user exercise the canvas acquired visible brush marks, and the\n  selected tool, color and controls changed while the same process remained\n  alive. The visible changes appeared after the recorded interval; the timing\n  of any interactions without visible changes is not established.\n- A 46.3-second Time Profiler recording contained no potential-hang rows.\n  User interaction during the capture was not confirmed and the two\n  screenshots were byte-identical. The recording therefore does not validate\n  brush or panel interaction and is not comparable to the earlier mixed-input\n  trace. It does not prove that latency or the reported black screen is fixed.\n  A second recording attempted after the later user exercise timed out while\n  Instruments waited for the iPad to boot; CoreDevice still listed the app\n  process. No interaction profile was obtained from that attempt.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "The final iiGUI focused update, damage, subtree and Metal checks passed 9/9.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "The iPad SDK and Congregation arm64 Release were rebuilt, and the signed",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "A 46.3-second Time Profiler recording contained no potential-hang rows.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 54,
+      "end_line": 59,
+      "raw": "The local artifacts are in `build/ipados/performance-20261108/`, including\n`incremental-interaction.trace`, its exported tables, and\n`after-incremental.png`, `after-interaction.png` and `after-user-reply.png`.\nA further same-workload\ndevice recording is required to compare input latency, hangs, GPU work and\npanel scrolling against the earlier trace.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "iPadOS incremental update follow-up",
+      "anchor": "ipados-incremental-update-follow-up",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Update paths",
+      "anchor": "update-paths",
+      "start_line": 7
+    },
+    {
+      "block_id": "b000013",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Verification",
+      "anchor": "verification",
+      "start_line": 29
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000007",
+        "line": 11,
+        "text": "layout synchronization within bounded groups. Unchanged action options do not",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000009",
+        "line": 20,
+        "text": "frame, and other renderers do not inherit Metal's partial composition. The",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000017",
+        "line": 58,
+        "text": "device recording is required to compare input latency, hangs, GPU work and",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

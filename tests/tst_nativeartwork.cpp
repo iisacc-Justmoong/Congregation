@@ -243,31 +243,8 @@ int main(int argc, char** argv)
         iiFileProvider::native::File::write(old_file, *oversized);
         check(!reopened.open(old_file) && reopened.snapshot() == migrated,
               "Oversized legacy identifiers were not rejected safely");
-        check(reopened.create(64, 64, true), reopened.error());
-        auto infinite_revision = reopened.revision();
-        const auto infinite_original = reopened.snapshot();
-        auto invalid_brush = brush;
-        invalid_brush.size = 0;
-        check(!reopened.begin({-12, -12}, 1, invalid_brush) &&
-                  reopened.snapshot() == infinite_original,
-              "Rejected brush changed infinite canvas bounds");
-        check(reopened.begin({-12, -12}, 1, brush) && reopened.end({-4, -4}, 1), reopened.error());
-        check(reopened.revision() == infinite_revision + 1,
-              "Infinite canvas growth produced multiple durable edits");
-        auto negative = renderFrameRegion(reopened.document(), 0, {{-20, -20}, {24, 24}}, {24, 24});
-        if (!negative.ok() ||
-            !std::ranges::any_of(negative.pixels.pixels, [](auto pixel) { return pixel >> 24; }))
-        {
-            const auto& chunks = std::get<ChunkedRasterAsset>(reopened.document().assets[0]);
-            std::cerr << "negative region: " << negative.message
-                      << " chunks=" << chunks.chunks.size() << "\n";
-            for (const auto& chunk : chunks.chunks)
-                std::cerr << "chunk=" << chunk.column << "," << chunk.row << " painted="
-                          << std::ranges::count_if(chunk.pixels.pixels,
-                                                   [](auto pixel) { return pixel >> 24; })
-                          << "\n";
-            throw std::runtime_error("Infinite painting lost negative document coordinates");
-        }
+        check(!reopened.create(64, 64, true) && reopened.snapshot() == migrated,
+              "Retired infinite canvas creation changed the current document");
         std::cout << "NATIVE_ARTWORK_OK brush=true pressure=true cancel=true undo=true layers=true "
                      "vectors=true iisc=true png=true psd=true bounded=true\n";
         return 0;

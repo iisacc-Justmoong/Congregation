@@ -2,11 +2,23 @@
 
 현재 네이티브 실행 소스와 `build/Congregation.app`을 사용한다. 이전 `dist/`의 Qt 앱은
 패키징 입력으로 사용하지 않는다. 결과는 `build/Congregation.pkg`이며 설치 경로는
-`/Applications/Congregation.app`이다. 제품 버전과 번들 빌드 번호는 변경하지 않는다.
+`/Applications/Congregation.app`이다. 현재 소스의 제품 버전은 1.0.2, 번들 빌드 번호는
+3이다. Xcode의 Release 구성도 같은 정식 `build/Congregation.app`에 출력하므로,
+설치기가 이전 구성의 앱을 실수로 선택하지 않는다.
+
+2026-10-30 생성한 1.0.1 / 빌드 2 패키지는 Developer ID 서명, Apple 공증과
+Gatekeeper 설치 평가를 통과했다. `build/installer/verification.json`에 SHA-256과
+페이로드 검증 결과가 있다. 이 패키지에는 당시 작업 디렉터리의 다른 미커밋 편집기 변경도
+포함된다. 이 버전은 한때 업데이트 카탈로그에 등록됐다가 웹 로그인으로 방향을
+바꾸면서 제거됐다. 1.0.2 / 빌드 3은 Apple 공증과 Gatekeeper 검증을 통과했으며,
+2026-10-30 macOS ARM64 운영 업데이트 카탈로그에 등록됐다. 설치기는 23,248,683바이트,
+SHA-256은 `29001c86383ad7db9a33f5ef7df3ed818fe7cf22ed3099ea2dcba06e28e46d2c`이다.
+서버가 해당 객체의 무결성과 서명 URL 범위 다운로드를 확인했다. 실제 업데이트 설치는
+별도로 검증해야 한다.
 
 ## 2026-10-24 생성 결과
 
-`build/Congregation.pkg`는 버전 1.0.0 / 빌드 1의 Apple Silicon(arm64) 앱을 포함한다.
+2026-10-24에 생성한 `build/Congregation.pkg`는 버전 1.0.0 / 빌드 1의 Apple Silicon(arm64) 앱을 포함했다. 이는 1.0.1 릴리스의 증거가 아니다.
 설치 요구 조건은 macOS 12.0 이상이며 파일 크기는 19,434,089바이트이다.
 Developer ID Application·Installer 서명과 신뢰 타임스탬프를 적용했다. Xcode의
 로그인 계정으로 PKG 자체의 공증 티켓을 받아 부착했으며 `stapler validate`와
@@ -86,7 +98,8 @@ true일 때만 서명·공증이 모두 끝난 배포물로 취급한다. 공증
 
 `Congregation.native_installer_contract`는 cpio 형식·정렬, 잘린 파일, 중복·탈출 경로,
 오래된 실행 파일, 누락·추가 파일과 실행 권한, 설치 교체 정책, quarantine 차단과
-Xcode 실패 시 원본 복구를 검사한다. 실제 생성 과정은 Apple
+Xcode 실패 시 원본 복구를 검사한다. `Congregation.bundle_version`은 빌드된 Info.plist의
+제품 버전과 빌드 번호가 설정값에 일치하는지 검사한다. 실제 생성 과정은 Apple
 도구의 설치 메타데이터와 PKG 서명을 추가 확인한다. 패키지를 생성하는 작업은 이 Mac에
 앱을 설치하거나 현재 실행 중인 앱을 재시작하지 않는다.
 
@@ -94,6 +107,7 @@ Xcode 실패 시 원본 복구를 검사한다. 실제 생성 과정은 Apple
 실행 중 프로세스의 `lsof` 파일 매핑에서 실제 Mach-O를 읽어 앱과 포함된 모든 dylib를
 확인한다. 외부 SDK 경로가 없고 필수 번들 이미지가 모두 관측되어야 통과한다. 별도
 디버깅 권한이나 런타임 보안 완화는 필요하지 않다.
+재배치 실행의 임시 앱과 데이터는 `resources/`의 임시 디렉터리에 두고 검사 후 정리한다.
 OS가 매핑한 삭제된 임시 데이터와 보호된 `/private/var/db/`, `/private/var/folders/` 상태·캐시 파일은 코드로
 분류하지 않는다. 필수 앱 이미지 누락과 읽을 수 없는 외부 라이브러리는 실패로 유지한다.
 

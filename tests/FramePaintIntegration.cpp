@@ -1,0 +1,38 @@
+#include <Native/Artwork.h>
+#include <Native/CanvasView.h>
+#include <iiFileProviderNative.h>
+#include <iiSharedCanvasNative.h>
+#include <filesystem>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+using namespace congregation::native;using namespace iiSharedCanvas;
+void check(bool value,const char* message){if(!value)throw std::runtime_error(message);}
+Document fixture(){Document d;d.extent={16,8};d.timeline={{24,1},3};d.assets.emplace_back(RasterAsset{"shared",makeRasterLayer(16,8,0xff112233U)});d.layers.emplace_back(StaticBitmapLayer{{"base","Base"},StaticSource{"shared"}});d.layers.emplace_back(StaticBitmapLayer{{"paint","Paint"},StaticSource{"shared"}});return d;}
+std::vector<std::uint32_t> pixelsAt(const Artwork& a,std::string_view id,FrameIndex f){
+ for(const auto& layer:a.document().layers)if(layerProperties(layer).id==id){const auto* asset=resolveAssetAt(a.document(),layer,f);const auto* raster=asset?std::get_if<RasterAsset>(asset):nullptr;check(raster!=nullptr,"frame bitmap missing");return raster->pixels.pixels;}
+ throw std::runtime_error("layer missing");
+}
+void click(CanvasView& v,int frame,double x,double y){v.set_frame(frame);ii::gui::WidgetInput e;e.kind=ii::gui::WidgetInputKind::pointer_down;e.buttons=1;e.x=x;e.y=y;check(v.input(e).has_value(),"fill event failed");}
+StrokePoint point(double x,double y,double t){StrokePoint p;p.position={x,y};p.time=t;return p;}
+int main() try {
+ iiFileProvider::native::TemporaryDirectory dir(std::filesystem::temp_directory_path());check(dir.isValid(),"temp unavailable");
+ Artwork fill(dir.path());check(fill.replace(fixture())&&fill.select("paint")&&fill.set_selection(SelectionGeometry::Rectangle,{0,0},{8,8}),"fill setup failed");
+ const auto prior=pixelsAt(fill,"paint",0);const auto rev=fill.revision();CanvasView v(fill);v.tool="fill";v.color=0xff00ff00U;v.fill_current_layer=true;v.fill_target_current=true;std::string status;v.status=[&](std::string s){status=std::move(s);};click(v,1,2,2);
+ check(status.empty(),status.c_str());const auto changed=pixelsAt(fill,"paint",1);check(changed[2*16+2]==0xff00ff00U && changed[2*16+9]==prior[2*16+9],"frame fill or selection failed");
+ check(pixelsAt(fill,"paint",0)==prior&&pixelsAt(fill,"paint",2)==prior&&pixelsAt(fill,"base",1)==prior,"fill changed other frames or a shared layer");check(fill.revision()==rev+1,"fill is not a single document edit");
+ check(fill.undo()&&pixelsAt(fill,"paint",1)==prior&&fill.redo()&&pixelsAt(fill,"paint",1)==changed,"frame fill history failed");
+ auto path=dir.path()/"frame-fill.iisc";check(fill.save(path),"frame fill save failed");Artwork reopened(dir.path());check(reopened.open(path)&&pixelsAt(reopened,"paint",0)==prior&&pixelsAt(reopened,"paint",1)==changed&&pixelsAt(reopened,"paint",2)==prior,"frame fill reopen failed");
+ Artwork brushArt(dir.path());check(brushArt.replace(fixture())&&brushArt.select("paint")&&brushArt.set_selection(SelectionGeometry::Rectangle,{0,0},{8,8}),"frame brush setup failed");
+ BitmapBrush brush;brush.size=4;brush.argb=0xffff0000U;brush.pressureToOpacityEnabled=false;const auto brushBefore=pixelsAt(brushArt,"paint",0);auto a=point(3,4,0),b=point(6,4,.1);
+ check(brushArt.begin_input(a,brush,1)&&brushArt.end_input(b),"frame brush failed");const auto brushed=pixelsAt(brushArt,"paint",1);check(brushed!=brushBefore&&brushed[4*16+9]==brushBefore[4*16+9],"frame brush selection failed");check(pixelsAt(brushArt,"paint",0)==brushBefore&&pixelsAt(brushArt,"paint",2)==brushBefore&&pixelsAt(brushArt,"base",1)==brushBefore,"brush changed other frames or shared layer");
+ check(brushArt.undo()&&pixelsAt(brushArt,"paint",1)==brushBefore&&brushArt.redo()&&pixelsAt(brushArt,"paint",1)==brushed,"frame brush history failed");
+ auto eraser=brush;eraser.eraser=true;check(brushArt.begin_input(a,eraser,1,StrokeTaper{.25,.25,.25,1})&&brushArt.end_input(b),"dynamic tapered eraser failed");auto erased=pixelsAt(brushArt,"paint",1);check(erased!=brushed&&pixelsAt(brushArt,"paint",0)==brushBefore&&pixelsAt(brushArt,"paint",2)==brushBefore,"dynamic eraser changed other frames");check(brushArt.undo()&&pixelsAt(brushArt,"paint",1)==brushed&&brushArt.redo()&&pixelsAt(brushArt,"paint",1)==erased,"dynamic eraser history failed");
+ check(brushArt.undo(),"undo before no-op failed");auto noOpRevision=brushArt.revision();auto transparent=brush;transparent.opacity=0;check(brushArt.begin_input(a,transparent,1)&&brushArt.end_input(b),"frame no-op failed");check(brushArt.revision()==noOpRevision&&brushArt.can_redo()&&pixelsAt(brushArt,"paint",1)==brushed,"frame no-op discarded redo");
+ Document dynamic=fixture();DocumentEditor editor(dynamic);check(editor.insertRasterAsset("later",makeRasterLayer(16,8,0xffabcdefU)).ok() && editor.setKeyframedSource("paint",{{0,"shared"},{2,"later"}}).ok(),"dynamic fixture failed");Artwork tracked(dir.path());check(tracked.replace(std::move(dynamic))&&tracked.select("paint"),"dynamic setup failed");const auto old0=pixelsAt(tracked,"paint",0),old2=pixelsAt(tracked,"paint",2);
+ CanvasView dv(tracked);dv.tool="fill";dv.color=0xff00ff00U;dv.fill_current_layer=true;dv.fill_target_current=true;std::string error;dv.status=[&](std::string s){error=std::move(s);};click(dv,1,3,3);check(error.empty(),error.c_str());check(pixelsAt(tracked,"paint",1)[3*16+3]==0xff00ff00U&&pixelsAt(tracked,"paint",0)==old0&&pixelsAt(tracked,"paint",2)==old2,"dynamic fill damaged neighboring keyframe");check(tracked.undo()&&pixelsAt(tracked,"paint",1)==old0&&tracked.redo(),"dynamic fill history failed");
+ Document one=fixture();one.timeline.frameCount=1;Artwork sharedBrush(dir.path());check(sharedBrush.replace(std::move(one))&&sharedBrush.select("paint"),"single-frame shared brush setup failed");const auto sharedBefore=pixelsAt(sharedBrush,"base",0);check(sharedBrush.begin_input(a,brush,0)&&sharedBrush.end_input(b),"single-frame shared brush failed");const auto sharedAfter=pixelsAt(sharedBrush,"paint",0);check(sharedAfter!=sharedBefore&&pixelsAt(sharedBrush,"base",0)==sharedBefore,"single-frame brush modified a shared asset");check(sharedBrush.undo()&&pixelsAt(sharedBrush,"paint",0)==sharedBefore&&sharedBrush.redo()&&pixelsAt(sharedBrush,"paint",0)==sharedAfter,"single-frame shared brush history failed");check(sharedBrush.undo(),"shared brush undo before no-op failed");const auto sharedRevision=sharedBrush.revision();auto invisible=brush;invisible.opacity=0;check(sharedBrush.begin_input(a,invisible,0)&&sharedBrush.end_input(b),"shared no-op failed");check(sharedBrush.revision()==sharedRevision&&sharedBrush.can_redo()&&pixelsAt(sharedBrush,"paint",0)==sharedBefore,"shared no-op lost redo");
+ Document held=fixture();DocumentEditor heldEditor(held);check(heldEditor.setKeyframedSource("paint",{{0,"shared"}}).ok(),"held dynamic fixture failed");Artwork heldArt(dir.path());check(heldArt.replace(std::move(held))&&heldArt.select("paint"),"held dynamic setup failed");const auto heldPrior=pixelsAt(heldArt,"paint",0);
+ CanvasView heldView(heldArt);heldView.tool="fill";heldView.color=0xff00ff00U;heldView.fill_current_layer=true;heldView.fill_target_current=true;std::string heldError;heldView.status=[&](std::string s){heldError=std::move(s);};click(heldView,1,3,3);check(heldError.empty(),heldError.c_str());check(pixelsAt(heldArt,"paint",1)[3*16+3]==0xff00ff00U&&pixelsAt(heldArt,"paint",0)==heldPrior&&pixelsAt(heldArt,"paint",2)==heldPrior,"held dynamic content was not restored on the next frame");check(heldArt.undo()&&pixelsAt(heldArt,"paint",1)==heldPrior&&heldArt.redo(),"held dynamic fill history failed");
+ std::cout<<"FRAME_PAINT_INTEGRATION_OK\n";return 0;
+}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

@@ -4,11 +4,10 @@
 
 namespace congregation::native::editor
 {
-// Figma 83:6979: median rendered ApplicationWindow color, including its
-// 2% accent and fine grain. Structural panels inherit this opaque backdrop.
-inline constexpr ii::gui::WidgetColor window_background = Color::window;
+// Compose the LVUI window and accent tokens with the authored window tint.
+[[nodiscard]] ii::gui::WidgetColor window_background();
 // Panel edges and internal ruler/timeline details have separate color roles.
-inline constexpr ii::gui::WidgetColor panel_edge = Color::panelEdgeResolved;
+inline constexpr ii::gui::WidgetColor panel_edge = Color::canvas;
 // LVRS Panel/surfacePanel, used by the dedicated divider in 77:19369.
 inline constexpr ii::gui::WidgetColor surface_panel = Color::surfacePanel;
 

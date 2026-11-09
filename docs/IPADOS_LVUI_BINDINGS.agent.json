@@ -1,0 +1,37 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:congregation:ipados-lvui-bindings",
+  "source": {
+    "path": "docs/IPADOS_LVUI_BINDINGS.md",
+    "sha256": "168bca71591965ff98edf133c38477048e805ee654b3ad7660413e7ac62de6a0",
+    "bytes": 1358,
+    "line_count": 23,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "iPadOS LVUI host bindings",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "bindings": "App/Native/LVUIHostBindings.h",
+  "regression": "tests/test_lvui_ipados_bindings.py",
+  "sdk_prefix": "SDK/build/congregation-ipados/prefix",
+  "validation_limit": "A source boundary check does not verify device rendering or input.",
+  "color_adapter": "LVUI installed examples/Integrations/App/ColorSelectionSurface.cpp compiled into CongregationEditorColor and linked with iiColorManager",
+  "device_install": {
+    "date": "2026-11-08",
+    "model": "iPad Pro 12.9-inch 4th generation",
+    "configuration": "iPhoneOS arm64 Release",
+    "bundle_id": "com.iisacc.congregation.painter",
+    "version": "1.0.2",
+    "build": "3",
+    "verified": "devicectl installation and app listing",
+    "not_verified": [
+      "launch",
+      "touch input",
+      "rendering"
+    ]
+  }
+}

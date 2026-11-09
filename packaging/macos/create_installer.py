@@ -9,10 +9,13 @@ from pathlib import Path, PurePosixPath
 import plistlib
 import stat
 import struct
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
 from installer_support import APP, BUILD, IDENTIFIER, run
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cmake"))
+from native_dependency_policy import forbidden_ui_dependency
 MACHO = {bytes.fromhex(value) for value in
          ("feedface", "feedfacf", "cefaedfe", "cffaedfe", "cafebabe", "bebafeca", "cafebabf", "bfbafeca")}
 
@@ -128,14 +131,20 @@ def check_native_bundle():
             if not line.startswith("\t"):
                 continue
             dependency = line.strip().split(" (", 1)[0]
-            if "Qt" in dependency:
-                raise ValueError("Qt dependency in installer source: " + dependency)
+            if forbidden_ui_dependency(dependency):
+                raise ValueError("Qt or LVRS dependency in installer source: " + dependency)
             if dependency.startswith(("/System/Library/", "/usr/lib/")):
                 continue
             if not dependency.startswith(("@rpath/", "@loader_path/", "@executable_path/")):
                 raise ValueError("Non-system absolute runtime dependency: " + dependency)
-            if not (APP / "Contents/Frameworks" / Path(dependency).name).is_file():
+            library = APP / "Contents/Frameworks" / Path(dependency).name
+            if not library.is_file():
                 raise ValueError("Missing bundled runtime: " + dependency)
+            resolved = library.resolve()
+            if not resolved.is_relative_to(APP.resolve()):
+                raise ValueError("Bundled runtime resolves outside the bundle: " + str(resolved))
+            if forbidden_ui_dependency(resolved):
+                raise ValueError("Qt or LVRS dependency in installer source: " + str(resolved))
         binaries.append(path)
     if not binaries:
         raise ValueError("No native executables found")

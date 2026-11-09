@@ -1,11 +1,13 @@
 #include "TimelineView.h"
 #include "EditorLayout.h"
 #include "Style.h"
-#include "WidgetStyle.h"
+#include "OwnedWidgetStyle.h"
+#include <LVUI/NativeAuthoredIcons.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <iiFileProviderNative.h>
+#include <iiSharedCanvasNative.h>
 #include <iiSDKCore/Core/Text/Number.h>
 #include <tuple>
 #include <utility>
@@ -14,9 +16,17 @@ namespace congregation::native
 {
 namespace
 {
-using namespace widgets;
+using namespace owned_widgets;
 using ii::gui::Rect;
 constexpr double columns = Metric::timelineColumnsWidth;
+// Figma layer rows contain standard LVUI icon buttons at their intrinsic height.
+constexpr double row_height = lvui::icon_button_defaults::extent;
+constexpr double transport_height = Metric::size24;
+constexpr double ruler_height = Metric::size44;
+constexpr double timeline_padding = Metric::space4;
+constexpr double timeline_height = transport_height + ruler_height + Metric::timelineBodyHeight +
+                                   2 * timeline_padding;
+constexpr double body_text_inset = (row_height - Metric::textBodyLineHeight) / 2.0;
 void text(ii::gui::WidgetDrawing &d, Rect rect, std::string value,
           double size = Metric::textCaption, unsigned weight = Metric::weightRegular)
 {
@@ -25,7 +35,7 @@ void text(ii::gui::WidgetDrawing &d, Rect rect, std::string value,
 }
 void image(ii::gui::WidgetDrawing &d, Rect r, std::string_view name)
 {
-    d.images.push_back({r, take(lvrs::Icons::image(name, Metric::iconRasterSize))});
+    d.images.push_back({r, take(lvui::native::design_icon_image_for_logical_size<ii::gui::CachedSvgDecoder>(name))});
 }
 void line(ii::gui::WidgetDrawing &d, Rect r,
           ii::gui::WidgetColor color = editor::detail_line_color())
@@ -44,7 +54,7 @@ std::shared_ptr<const ii::gui::RasterImage> marker(const std::filesystem::path &
         Metric::size52));
     auto pixels = std::vector<std::uint8_t>(color->rgba().begin(), color->rgba().end());
     // Exported SVGs supply geometry/coverage; the app token owns their color.
-    const auto tint = Color::playhead;
+    const auto tint = Color::blue;
     const std::array channels{std::uint8_t(std::lround(tint.red * 255)),
                               std::uint8_t(std::lround(tint.green * 255)),
                               std::uint8_t(std::lround(tint.blue * 255))};
@@ -65,16 +75,16 @@ TimelineView::TimelineView(std::shared_ptr<congregation::ui::EditorBackend> vm,
 }
 ii::gui::Widget TimelineView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
 {
-    using namespace widgets;
+    using namespace owned_widgets;
     using A = congregation::ui::Action;
     Builder b(raw, "timeline/");
     const auto root =
-        b.column(parent, "timeline", 0, Metric::timelineHeight, Metric::space0, Metric::space4);
+        b.column(parent, "timeline", 0, timeline_height, Metric::space0, timeline_padding);
     borders(root, true, true);
     const auto weak = weak_from_this();
     good(raw.retain(bindings_));
     marker_ = marker(assets_);
-    auto transport = b.row(root, "timeline-transport", 0, Metric::size24, Metric::space4);
+    auto transport = b.row(root, "timeline-transport", 0, transport_height, Metric::space4);
     b.icon(transport, "timeline-undo", "generalundo", [vm = vm_] { vm->undo(); });
     b.icon(transport, "timeline-redo", "generalredo", [vm = vm_] { vm->redo(); });
     b.icon(transport, "previous-frame", "previous-frame",
@@ -90,25 +100,21 @@ ii::gui::Widget TimelineView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget
                        }
                    });
     b.icon(transport, "next-frame", "next-frame", [vm = vm_] { vm->timeline->advance(1); });
-    good(b.icon(transport, "onion-skin", "onion-skin").set_enabled(false));
-    good(b.icon(transport, "timeline-add-keyframe", "add-keyframe").set_enabled(false));
-    good(b.icon(transport, "timeline-remove-keyframe", "delete-keyframe").set_enabled(false));
+    b.icon(transport, "onion-skin", "onion-skin");
+    b.icon(transport, "timeline-add-keyframe", "add-keyframe");
+    b.icon(transport, "timeline-remove-keyframe", "delete-keyframe");
     time_ = take(b.controls.input_field(transport, "timeline-time",
                                         {.text = vm_->timeline->time_text(),
                                          .read_only = true,
                                          .width = Metric::size100,
-                                         .accessibility_name = "Elapsed time",
-                                         .style = ii::gui::InputStyle{.height = Metric::size22}}));
+                                         .accessibility_name = "Elapsed time"}));
     auto start = take(b.controls.slider(transport, "timeline-start",
                                         {.minimum = 0,
                                          .maximum = 1,
                                          .value = 0,
                                          .width = Metric::size160,
-                                         .thumb_diameter = Metric::size12,
-                                         .track_height = Metric::size4,
-                                         .range_inset = Metric::space6,
                                          .accessibility_name = "Timeline zoom",
-                                         .height = Metric::size22},
+                                         .size = lvui::SliderSize::mini},
                                         [weak](double v)
                                         {
                                             if (auto s = weak.lock())
@@ -124,16 +130,13 @@ ii::gui::Widget TimelineView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget
          .maximum = 1,
          .value = vm_->timeline->seconds() / vm_->timeline->state.get().duration,
          .width = Metric::size160,
-         .thumb_diameter = Metric::size12,
-         .track_height = Metric::size4,
-         .range_inset = Metric::space6,
          .accessibility_name = "Timeline position",
-         .height = Metric::size22},
+         .size = lvui::SliderSize::mini},
         [vm = vm_](double v) { vm->timeline->scrub(v * vm->timeline->state.get().duration); }));
     good(scale.set_flex(1));
     good(bindings_->bind(scale, vm_->timeline->state,
-                         [model = vm_->timeline](Widget w, const TimelinePosition &state)
-                         { return w.set_value(model->seconds() / state.duration); }));
+                         [model = vm_->timeline, scale](Widget, const TimelinePosition &state)
+                         { return scale.set_value(model->seconds() / state.duration); }));
     b.space(transport);
     b.icon(transport, "add-layer", "new-layer", [vm = vm_] { vm->add_layer(); });
     b.icon(transport, "duplicate-layer", "duplicate-layer", [vm = vm_] { vm->duplicate_layer(); });
@@ -142,22 +145,22 @@ ii::gui::Widget TimelineView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget
              {"layer-mask", "layer-mask"},
              {"clipping-mask", "clipping-mask"},
              {"layer-lock", "lock"}})
-        good(b.icon(transport, id, icon).set_enabled(false));
+        b.icon(transport, id, icon);
     b.icon(transport, "delete-layer", "delete", [vm = vm_] { vm->delete_layer(); });
-    good(b.icon(transport, "link-layers", "link-layers").set_enabled(false));
-    good(b.icon(transport, "timeline-snap", "snap").set_enabled(false));
+    b.icon(transport, "link-layers", "link-layers");
+    b.icon(transport, "timeline-snap", "snap");
     b.icon(transport, "layer-stack", "panel-layers-stack",
            [weak]
            {
                if (auto s = weak.lock())
                    good(s->scroll_.set_scroll_offset(0));
            });
-    good(b.icon(transport, "add-motion-keyframe", "add-keyframe").set_enabled(false));
-    good(b.icon(transport, "remove-motion-keyframe", "delete-keyframe").set_enabled(false));
+    b.icon(transport, "add-motion-keyframe", "add-keyframe");
+    b.icon(transport, "remove-motion-keyframe", "delete-keyframe");
     b.icon(transport, "timeline-menu", "generalmoreVertical",
-           [vm = vm_] { vm->option_tab.set(1); });
+           [vm = vm_] { vm->option_tab.set(2); });
     ruler_ = take(b.controls.event_listener(
-        root, "timeline-ruler", {Metric::size1361, Metric::size44},
+        root, "timeline-ruler", {Metric::size1361, ruler_height},
         [weak](const ii::gui::WidgetInput &e)
         {
             if (auto s = weak.lock())
@@ -202,8 +205,8 @@ ii::gui::Widget TimelineView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget
                          {
                              if (auto s = weak.lock())
                              {
-                                 if (!s->time_.is_null())
-                                     good(s->time_.set_text(s->vm_->timeline->time_text()));
+                                 if (s->time_)
+                                     good(s->time_->set_text(s->vm_->timeline->time_text()));
                                  s->paint();
                              }
                              return {};
@@ -260,15 +263,15 @@ void TimelineView::begin_rename()
         return;
     rename_key_ = found->id;
     rename_text_ = found->name;
-    widgets::good(rename_field_.set_text(rename_text_));
-    widgets::good(rename_.open_for(body_));
-    widgets::good(rename_field_.focus());
+    owned_widgets::good(rename_field_->set_text(rename_text_));
+    owned_widgets::good(rename_.open_for(body_));
+    owned_widgets::good(rename_field_->focus());
 }
 void TimelineView::commit_rename()
 {
     if (rename_text_.empty())
         return;
-    widgets::good(rename_.close_popup());
+    owned_widgets::good(rename_.close_popup());
     vm_->rename_layer(rename_key_, rename_text_);
 }
 void TimelineView::refresh_document(const iiSharedCanvas::Document &doc,
@@ -294,26 +297,35 @@ void TimelineView::refresh_document(const iiSharedCanvas::Document &doc,
     auto options = ii::gui::ScrollOptions{
         .height = Metric::timelineBodyHeight,
         .virtual_content_height = std::max<double>(
-            Metric::timelineBodyHeight, double(rows_.size() * Metric::timelineRowHeight))};
-    widgets::good(scroll_.set_scroll_options(options));
+            Metric::timelineBodyHeight, double(rows_.size() * row_height))};
+    owned_widgets::good(scroll_.set_scroll_options(options));
+    paint();
+}
+void TimelineView::select_layer(const std::string &selected)
+{
+    if (selected_ == selected) return;
+    selected_ = selected;
     paint();
 }
 void TimelineView::paint()
 {
-    using namespace widgets;
+    using namespace owned_widgets;
     const auto rs = ruler_.snapshot(), bs = body_.snapshot();
     if (!rs || !bs)
         return;
     const auto state = vm_->timeline->state.get();
     const double visible_duration = state.duration / zoom_;
     const double width = rs->bounds.width, time_width = std::max(1., width - columns);
-    const auto blue = Color::playhead;
+    const auto blue = Color::blue;
     ii::gui::WidgetDrawing header;
-    image(header, {0, Metric::size22, Metric::size18, Metric::size18}, "inspectionsEye");
+    image(header, {0, Metric::size22, lvui::design_icon_default_extent,
+                   lvui::design_icon_default_extent}, "inspectionsEye");
     text(header, {Metric::space24, Metric::space16, Metric::size185, Metric::size22},
          "Layer / Track", Metric::textDescription, Metric::weightMedium);
-    image(header, {Metric::size216, Metric::size22, Metric::size18, Metric::size18}, "layer-mask");
-    image(header, {Metric::size240, Metric::size22, Metric::size18, Metric::size18}, "lock");
+    image(header, {Metric::size216, Metric::size22, lvui::design_icon_default_extent,
+                   lvui::design_icon_default_extent}, "layer-mask");
+    image(header, {Metric::size240, Metric::size22, lvui::design_icon_default_extent,
+                   lvui::design_icon_default_extent}, "lock");
     text(header, {Metric::size264, Metric::space16, Metric::size90, Metric::size22}, "Mode");
     text(header, {Metric::size360, Metric::space16, Metric::size56, Metric::size22}, "Opacity");
     for (int i = 0; i <= 8; ++i)
@@ -332,32 +344,35 @@ void TimelineView::paint()
         line(header,
              {float(x), float(i % state.rate == 0 ? Metric::size18 : Metric::size26),
               Metric::stroke1, float(i % state.rate == 0 ? Metric::size26 : Metric::space10)},
-             Color::timelineTick);
+             Color::textCaption);
     }
     const auto play_x = columns + time_width * vm_->timeline->seconds() / visible_duration;
     header.images.push_back(
-        {{float(play_x - Metric::size11), Metric::size18, Metric::size22, Metric::size26},
+        {{float(play_x - Metric::size22 / 2.0), Metric::size18, Metric::size22, Metric::size26},
          marker_});
     good(ruler_.set_drawing(std::move(header)));
     ii::gui::WidgetDrawing body;
     for (std::size_t i = 0; i < rows_.size(); ++i)
     {
-        const auto y = double(i) * Metric::timelineRowHeight - offset_;
-        if (y + Metric::timelineRowHeight <= 0 || y >= bs->bounds.height)
+        const auto y = double(i) * row_height - offset_;
+        if (y + row_height <= 0 || y >= bs->bounds.height)
             continue;
         const auto &r = rows_[i];
         if (r.id == selected_)
             line(body, {Metric::space24, float(y), Metric::size190, Metric::size22},
-                 Color::timelineSelection);
-        image(body, {0, float(y + Metric::space2), Metric::size18, Metric::size18},
+                 Color::blueOverlay);
+        image(body, {0, float(y + Metric::space2), lvui::design_icon_default_extent,
+                     lvui::design_icon_default_extent},
               r.visible ? "inspectionsEye" : "lock");
-        image(body, {Metric::size32, float(y + Metric::space2), Metric::size18, Metric::size18},
+        image(body, {Metric::size32, float(y + Metric::space2), lvui::design_icon_default_extent,
+                     lvui::design_icon_default_extent},
               r.icon);
-        text(body, {Metric::size52, float(y + Metric::size5_5), Metric::size160, Metric::space12},
+        text(body, {Metric::size52, float(y + body_text_inset), Metric::size160, Metric::textBodyLineHeight},
              r.name, Metric::textBody, Metric::weightMedium);
-        image(body, {Metric::size216, float(y + Metric::space2), Metric::size18, Metric::size18},
+        image(body, {Metric::size216, float(y + Metric::space2), lvui::design_icon_default_extent,
+                     lvui::design_icon_default_extent},
               "layer-mask");
-        const auto control = editor::linear(Color::timelineControl);
+        const auto control = editor::linear(Color::surfaceControl);
         body.panels.push_back(
             {{Metric::size264, float(y + Metric::stroke1), Metric::size94, Metric::size20},
              control,
@@ -368,9 +383,9 @@ void TimelineView::paint()
              control,
              control,
              Metric::radius6});
-        text(body, {Metric::size272, float(y + Metric::size4_5), Metric::size84, Metric::size13},
+        text(body, {Metric::size272, float(y + body_text_inset), Metric::size84, Metric::textBodyLineHeight},
              r.mode, Metric::textBody, Metric::weightMedium);
-        text(body, {Metric::size366, float(y + Metric::size4_5), Metric::size48, Metric::size13},
+        text(body, {Metric::size366, float(y + body_text_inset), Metric::size48, Metric::textBodyLineHeight},
              ii::core::format_decimal(std::round(r.opacity * 100)) + "%", Metric::textBody,
              Metric::weightMedium);
         for (int f = 0; f < ticks; ++f)
@@ -386,10 +401,12 @@ void TimelineView::paint()
         }
         for (int key : r.keys)
         {
-            const auto x = columns + time_width * key / ticks;
+            const auto cell_width = time_width / ticks;
+            const auto x = columns + cell_width * (key + .5);
+            constexpr auto icon_extent = lvui::design_icon_default_extent;
             image(body,
-                  {float(x - Metric::space6), float(y + Metric::size5), Metric::space12,
-                   Metric::space12},
+                  {float(x - icon_extent / 2), float(y + (row_height - icon_extent) / 2),
+                   icon_extent, icon_extent},
                   "keyframe");
         }
     }
@@ -398,7 +415,7 @@ void TimelineView::paint()
 }
 ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool ruler)
 {
-    using namespace widgets;
+    using namespace owned_widgets;
     using K = ii::gui::WidgetInputKind;
     auto widget = ruler ? ruler_ : body_;
     auto bounds = take(widget.snapshot()).bounds;
@@ -441,7 +458,7 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
         else if (!ruler)
         {
             const auto index =
-                std::size_t(std::max(0., std::floor((y + offset_) / Metric::timelineRowHeight)));
+                std::size_t(std::max(0., std::floor((y + offset_) / row_height)));
             if (index >= rows_.size())
                 return false;
             const auto row = rows_[index];
@@ -449,13 +466,13 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
                 vm_->check_layer(row.id, !row.visible);
             else if (x >= Metric::size360)
             {
-                if (vm_->layer_opacity_changed)
-                    vm_->layer_opacity_changed(row.id, row.opacity <= .1 ? 1 : row.opacity - .1);
+                if (auto callback = vm_->layer_opacity_changed)
+                    callback(row.id, row.opacity <= .1 ? 1 : row.opacity - .1);
             }
             else if (x >= Metric::size264)
             {
-                if (vm_->layer_mode_changed)
-                    vm_->layer_mode_changed(row.id);
+                if (auto callback = vm_->layer_mode_changed)
+                    callback(row.id);
             }
             else
             {
@@ -469,7 +486,7 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
     if (!drag_layer_.empty() && e.kind == K::pointer_up)
     {
         const auto from = std::ranges::find(rows_, drag_layer_, &Row::id);
-        auto target = std::size_t(std::clamp(std::floor((y + offset_) / Metric::timelineRowHeight),
+        auto target = std::size_t(std::clamp(std::floor((y + offset_) / row_height),
                                              0., double(rows_.size())));
         if (from != rows_.end() && target < rows_.size() &&
             std::size_t(from - rows_.begin()) < target)
@@ -487,8 +504,8 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
             const auto rate =
                 std::clamp(down_rate_ + int(std::round((down_y_ - e.y) / Metric::space4)), 1, 240);
             vm_->timeline->set_rate(rate);
-            if (e.kind == K::pointer_up && vm_->frame_rate_changed)
-                vm_->frame_rate_changed(rate);
+            if (e.kind == K::pointer_up)
+                if (auto callback = vm_->frame_rate_changed) callback(rate);
         }
         else
             vm_->timeline->scrub((x - columns) / std::max(1., double(bounds.width) - columns) *
