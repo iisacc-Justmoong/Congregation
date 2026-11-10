@@ -25,6 +25,7 @@ iiSharedCanvas::BitmapBrush ToolSettings::brush(std::string_view tool) const
     e.rasterizer.wetEdgesEnabled = value(P::wet_edges_enabled) != 0;
     e.rasterizer.wetEdgesStrength = ratio(P::wet_edges_strength);
     e.rasterizer.noise.size = value(P::noise_grain_size);
+    e.rasterizer.noise.monochrome = value(P::noise_monochrome) != 0;
     e.rasterizer.wetEdges.width = value(P::wet_edges_width);
     e.rasterizer.wetEdges.diffusion = ratio(P::wet_edges_diffusion);
     e.rasterizer.buildUp.enabled = value(P::build_up_enabled) != 0;
@@ -71,6 +72,11 @@ iiSharedCanvas::BitmapBrush ToolSettings::brush(std::string_view tool) const
         v.enabled = v.enabled || v.control != BrushDynamicsControl::Off;
     };
     configure(e.dynamics.sizeVariation, P::shape_size_control);
+    if (e.dynamics.sizeVariation.control == BrushDynamicsControl::PenTilt) {
+        const auto amount=ratio(P::shape_tilt_scale);
+        e.dynamics.sizeResponse.enabled = true;
+        e.dynamics.sizeResponse.tilt = {true, 1, 1 + amount * .5, 1 + amount};
+    }
     configure(e.dynamics.angleVariation, P::shape_angle_control);
     configure(e.dynamics.roundnessVariation, P::shape_roundness_control);
     e.dynamics.sizeVariation.minimum = ratio(P::shape_minimum_diameter);
@@ -88,6 +94,7 @@ iiSharedCanvas::BitmapBrush ToolSettings::brush(std::string_view tool) const
         v.minimum = ratio(minimum);
     };
     transfer(e.dynamics.flowVariation, P::transfer_flow_jitter, P::transfer_flow_control, P::transfer_flow_minimum);
+    variation(e.dynamics.opacityVariation, P::transfer_opacity_jitter);
     if (e.dynamics.flowVariation.control == BrushDynamicsControl::PenPressure)
         e.dynamics.pressureToFlow = 0;
     transfer(e.dynamics.wetnessVariation, P::transfer_wetness_jitter, P::transfer_wetness_control, P::transfer_wetness_minimum);

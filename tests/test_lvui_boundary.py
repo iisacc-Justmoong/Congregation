@@ -2,6 +2,7 @@
 from pathlib import Path
 import re
 import sys
+from lvui_source_contract import component, components, contains_html_syntax
 
 root = Path(sys.argv[1])
 source = root / "App" / "Native"
@@ -25,6 +26,10 @@ for path in source.rglob("*"):
         for number, line in enumerate(path.read_text().splitlines(), 1):
             if any(pattern.search(line) for pattern in patterns):
                 violations.append(f"{path.relative_to(root)}:{number}")
+for path in (source / "views").glob("*.lvui"):
+    content = path.read_text(encoding="utf-8")
+    if contains_html_syntax(content):
+        violations.append(f"{path.relative_to(root)}: HTML-style markup is not LVUI view syntax")
 layout = (source / "views/Layout.lvui").read_text()
 for name in ("toolRailWidth", "size46", "timelineRowHeight", "size1369", "size1341", "size460", "iconBitmapSize", "size1", "size4", "size5", "size11", "size12", "size13", "iconSize", "iconRasterSize", "timelineHeight", "toolExpandedHeight", "toolExpandedScrollHeight", "toolDynamicsScrollOffset", "toolParameterHeight", "pressureGraphInset", "pressureGraphHeight", "pressureGridStep", "size1_5", "radius1_5", "size4_5", "size5_5", "size38", "size296", "size316", "size336", "size344", "size432"):
     if re.search(rf"\blet\s+{name}\s*:\s*Metric\b", layout):
@@ -46,22 +51,24 @@ main = (source / "views/Main.lvui").read_text()
 setup = (source / "views/CanvasSetup.lvui").read_text()
 for name, content, host_id in (("Main", main, "workspace-host"),
                                ("CanvasSetup", setup, "canvas-setup-host")):
-    if not re.search(rf'<NativeView\b[^>]*\bid="{host_id}"[^>]*\bsource=\{{host\.source\}}', content):
+    native = component(content, "NativeView", host_id)
+    if not native or not re.search(r'\bsource\s*:\s*host\.source\b', native[0]):
         violations.append(f"{name}.lvui: native surface is not a child of the LVUI view")
-if re.search(r'id="setup-lvui-scope"\s+visible=\{false\}', setup):
+placeholder = component(setup, "NativeView", "setup-lvui-scope")
+if placeholder and re.search(r'\bvisible\s*:\s*false\b', placeholder[0]):
     violations.append("CanvasSetup.lvui: hidden placeholder instead of the active view")
 setup_implementation = (source / "CanvasSetupWindow.cpp").read_text()
 if re.search(r'CanvasSetupWindow::build_content\s*\(', setup_implementation):
     violations.append("CanvasSetupWindow.cpp: chooser bypasses the LVUI view")
-sections = re.search(r'<LabelSegmentedControl\b[^>]*id="preferences-sections"[^>]*>(.*?)</LabelSegmentedControl>', preferences, re.S)
+sections = component(preferences, "LabelSegmentedControl", "preferences-sections")
 if not sections:
     violations.append("Preferences.lvui: shared segmented control missing")
 else:
-    opening = sections.group().split(">", 1)[0]
-    tabs = re.findall(r'<LabelButton\b[^>]*/>', sections.group(1))
-    if (re.search(r"\b(?:spacing|horizontalPadding|verticalPadding|backgroundColor|borderColor)=", opening) or
-            len(tabs) != 3 or any("selectionStyle={.segmented}" not in tab or
-            re.search(r"\b(?:height|horizontalPadding|selectedColor|tone)=", tab) for tab in tabs)):
+    opening, body = sections
+    tabs = [arguments for arguments, _ in components(body, "LabelButton")]
+    if (re.search(r"\b(?:spacing|horizontalPadding|verticalPadding|backgroundColor|borderColor)\s*:", opening) or
+            len(tabs) != 3 or any(not re.search(r"\bselectionStyle\s*:\s*\.segmented\b", tab) or
+            re.search(r"\b(?:height|horizontalPadding|selectedColor|tone)\s*:", tab) for tab in tabs)):
         violations.append("Preferences.lvui: tabs override common LVUI appearance")
 timeline = (source / "TimelineView.cpp").read_text()
 if not re.search(r"row_height\s*=\s*lvui::icon_button_defaults::extent\b", timeline):

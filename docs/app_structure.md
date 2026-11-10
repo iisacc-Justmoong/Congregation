@@ -10,7 +10,7 @@
 | `App/Native/Artwork.*` | 문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기 |
 | `App/Native/CanvasView.*` | 화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시 |
 | `App/Native/Shapes.*`, `LegacyCanvas.cpp` | 벡터 도형 정책과 이전 문서의 검증·이행 |
-| `App/Native/views/` | HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI |
+| `App/Native/views/` | 직접 선언형 Main, Preferences, CanvasSetup LVUI와 공통 레이아웃 프로필 |
 | `cmake/` | Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징 |
 | `tests/` | 엔진·서비스·편집·실제 GUI·번들 재배치 검증 |
 | `resources/` | 앱 아이콘과 제품 자원 |

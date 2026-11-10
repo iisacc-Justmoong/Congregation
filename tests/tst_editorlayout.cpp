@@ -18,8 +18,11 @@ int main()
                   std::abs(f.y - 66) < 1e-9,
               "Figma reference paper framing changed");
         f = editor::fit(1142, 820, 128, 96);
-        check(f.scale == 1 && f.x == 493 && f.y == 362,
-              "Small documents must fit without upscaling");
+        check(f.scale > 1 && f.scale <= 32 && f.x > 0 && f.y > 0 &&
+                  f.x + 128 * f.scale <= 1142 && f.y + 96 * f.scale <= 820,
+              "Fit must enlarge a small document within the available viewport");
+        f = editor::fit(1142, 820, 1, 1);
+        check(f.scale == 32, "Fit must respect the maximum interactive zoom");
         f = editor::fit(640, 480, 640, 480);
         check(f.scale > 0 && f.scale < 1 && f.y >= 24, "Fit lost its canvas margins");
         f = editor::fit(1, 1, 100000, 100000);
@@ -60,7 +63,7 @@ int main()
               "A transparent overlay changed the window color");
         check(editor::over_window({1, 0, 0, 1}) == ii::gui::WidgetColor{1, 0, 0, 1},
               "An opaque overlay retained the background tint");
-        std::cout << "EDITOR_LAYOUT_OK fit=true no_upscale=true srgb=true\n";
+        std::cout << "EDITOR_LAYOUT_OK fit=true bounded_upscale=true srgb=true\n";
     }
     catch (const std::exception& e)
     {

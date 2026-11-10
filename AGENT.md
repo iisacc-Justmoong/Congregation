@@ -4,11 +4,16 @@
 삭제 상태이며 Git 기록에 남아 있다. C++23, iiSDKCore, LVUI와 iiGUI Native를
 사용한다. 현재 타깃에 Qt·QML·LVRS 의존성을 추가하지 않는다.
 
+LVUI 화면은 `HStack(...) { ... }`와 `VStack(...) { ... }`처럼 직접 선언한다.
+HTML 태그, `<script>`, CSS형 인라인 스타일은 현재 `.lvui` 문법이 아니다.
+애플리케이션 동작과 관측 가능한 상태는 C++ 뷰모델에서 import한다.
+
 `EditorBackend`의 독립적인 목록·색상 표시 상태는 LVUI에서 사용할 수 있으며
-Qt·QML·LVRS 타입을 요구하지 않는다. 세 선언 화면과 작업 영역은 독립 LVUI 경로를
+Qt·QML·LVRS 타입을 요구하지 않는다. 네 선언 화면과 작업 영역은 독립 LVUI 경로를
 사용하며 제품 모델과 연결하는 방법은 [뷰모델 계약](docs/LVUI_VIEWMODELS.md)을
 따른다. 메인의 명령 막대·도구 레일·상태 표시줄은 LVUI에서 직접 구성한다.
-타임라인, 상세 패널과 새 캔버스 선택기는 아직 C++ `NativeView` 위젯 구성에
+도구 속성은 `ToolPanel.lvui`와 `ToolPanelBackend`로 구성한다. 타임라인,
+나머지 상세 영역과 새 캔버스 선택기는 아직 C++ `NativeView` 위젯 구성에
 남아 있으므로 전체 뷰의 선언형 전환 및 플랫폼 동등성은 별도로 확인한다.
 
 출력은 저장소의 `build/`만 사용하고 Mac 앱은 `build/Congregation.app` 하나로 유지한다. 문서·테스트를 소스와 함께 갱신하고, 사용자 파일 및 다른 작업의 변경을 보존한다. 운영체제별 소스 구현, 빌드, 실행, 설치, 실운영 검증을 구분하여 기록한다.

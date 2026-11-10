@@ -13,13 +13,13 @@ LicenseService::LicenseService(ii::runtime::EventLoop& loop, SocietySessionOptio
                                      .device=std::move(options.device),
                                      .timeout=std::chrono::seconds(15)};
         try { web_=std::make_unique<WebLicenseService>(loop,std::move(config),std::move(store)); }
-        catch(const std::exception&) { code="verification_unavailable"; return; }
+        catch(const std::exception&) { code="verification_unavailable"; initial_verification_pending_=false; return; }
         web_->changed=[this]{web_changed();};
         web_->open_browser=[this](const std::string& url){if(open_browser_action)open_browser_action(url);};
         return;
     }
     try { session_ = std::make_unique<SocietySession>(loop, std::move(options)); }
-    catch (const std::exception&) { code = "society_unavailable"; return; }
+    catch (const std::exception&) { code = "society_unavailable"; initial_verification_pending_=false; return; }
     session_->changed = [this](auto snapshot) { session_changed(std::move(snapshot)); };
 }
 LicenseService::~LicenseService() { *alive_ = false; if (session_) session_->changed = {}; }
@@ -47,6 +47,7 @@ void LicenseService::web_changed() {
     notify_state();
 }
 void LicenseService::notify_state() {
+    if (!verifying) initial_verification_pending_ = false;
     const bool transition = licensed != last_validated_;
     last_validated_ = licensed;
     auto weak = std::weak_ptr(alive_);

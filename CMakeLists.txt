@@ -91,6 +91,9 @@ option(CONGREGATION_TEST_INDEPENDENT_ASSETS "Build the inactive independent asse
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
 find_package(iiSDKCore 0.18 CONFIG REQUIRED COMPONENTS Runtime)
 find_package(iiJson 0.1 CONFIG REQUIRED)
+set(CONGREGATION_SOCIETY_CONTAINER_SOURCE "${CMAKE_SOURCE_DIR}/../../SDK/iiSocietyContainer" CACHE PATH "iiSocietyContainer source root")
+include("${CONGREGATION_SOCIETY_CONTAINER_SOURCE}/cmake/MobileStorageTarget.cmake")
+iisociety_add_mobile_storage()
 find_package(iiFileProviderNative 0.9 CONFIG REQUIRED)
 find_package(iiFileProviderCoreIO CONFIG REQUIRED)
 find_package(iiFileProviderCompatibility 0.9 CONFIG REQUIRED)
@@ -103,7 +106,11 @@ find_package(iiUpdateManagerNative CONFIG REQUIRED)
 get_filename_component(_congregation_update_include "${iiUpdateManagerNative_DIR}/../../../include" ABSOLUTE)
 get_filename_component(_congregation_account_include "${iiAccountManagerNative_DIR}/../../../include" ABSOLUTE)
 find_package(iiBrushTools 0.1.2 CONFIG REQUIRED)
-find_package(iiSharedCanvasNative 0.35.38 CONFIG REQUIRED)
+find_package(iiSharedCanvasNative 0.35.39 CONFIG REQUIRED)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    include(cmake/RequireStaticIOSSDK.cmake)
+    congregation_require_static_ios_sdk(iiSharedCanvas::Native)
+endif()
 find_package(iiGraphicAdjust 0.6.2 CONFIG REQUIRED)
 get_filename_component(_congregation_graphic_notices "${iiGraphicAdjust_DIR}/../../../share/licenses" ABSOLUTE)
 foreach(_notice IN ITEMS iiGraphicAdjust/LICENSE iiGraphicAdjust/photocraft/LICENSE-MIT iiGraphicAdjust/lightcraft/LICENSE-MIT)
@@ -122,6 +129,8 @@ get_target_property(_lvui_native_include LVUI::Native INTERFACE_INCLUDE_DIRECTOR
 # The legacy aggregate kit also contains an older LVUI header tree. Prefer the
 # package selected above consistently in every native target.
 include_directories(BEFORE ${_lvui_native_include})
+# The aggregate LVUI prefix may also contain an older iiGUI header tree.
+include_directories(BEFORE ${_iigui_native_include})
 get_filename_component(_lvui_install_prefix "${LVUI_DIR}/../../.." ABSOLUTE)
 set(_lvui_icon_notices "${_lvui_install_prefix}/share/LVUI/licenses")
 if(NOT EXISTS "${_lvui_icon_notices}/LVRS-MIT.txt")
@@ -144,11 +153,11 @@ add_custom_target(CongregationStyleHeader DEPENDS "${_style_header}")
 add_library(CongregationStyle INTERFACE)
 add_dependencies(CongregationStyle CongregationStyleHeader)
 target_include_directories(CongregationStyle INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
-add_library(CongregationArtwork STATIC App/Native/QuickMask.cpp App/Native/Artwork.cpp App/Native/ArtworkPerspective.cpp App/Native/Artwork.h App/Native/Shapes.cpp App/Native/LegacyCanvas.cpp)
+add_library(CongregationArtwork STATIC App/Native/QuickMask.cpp App/Native/Artwork.cpp App/Native/ArtworkPerspective.cpp App/Native/Artwork.h App/Native/SocietyFiles.cpp App/Native/Shapes.cpp App/Native/LegacyCanvas.cpp)
 target_compile_features(CongregationArtwork PUBLIC cxx_std_23)
 target_include_directories(CongregationArtwork PUBLIC App)
 target_compile_definitions(CongregationArtwork PUBLIC CONGREGATION_NATIVE_WIDGET_ABI="${iiGUI_NATIVE_ABI_ID}")
-target_link_libraries(CongregationArtwork PUBLIC Congregation::Engine iiSharedCanvas::Native PRIVATE iiGUI::iiGUI iiBrushTools::iiBrushTools iiGraphicAdjust::iiGraphicAdjust)
+target_link_libraries(CongregationArtwork PUBLIC Congregation::Engine iiSharedCanvas::Native iiSocietyContainer::MobileStorage PRIVATE iiGUI::iiGUI iiBrushTools::iiBrushTools iiGraphicAdjust::iiGraphicAdjust)
 file(READ "${CMAKE_SOURCE_DIR}/resources/canvas-presets.json" _canvas_catalogue)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "resources/canvas-presets.json")
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CanvasCatalogue.generated.h" CONTENT "#pragma once\n#include <string_view>\nnamespace congregation::native::data { inline constexpr std::string_view canvas_catalogue = R\"CATALOG(${_canvas_catalogue})CATALOG\"; }\n")
@@ -164,6 +173,8 @@ add_library(CongregationPresentation STATIC App/Native/PresentationList.cpp App/
 target_compile_features(CongregationPresentation PUBLIC cxx_std_23)
 target_include_directories(CongregationPresentation PUBLIC App)
 target_link_libraries(CongregationPresentation PUBLIC iiSDKCore::Runtime LVUI::Native)
+lvui_generate(NAME ToolPanelView SOURCE App/Native/views/ToolPanel.lvui OUTPUT_VARIABLE _tool_panel_view STYLE_FILE "${_style_profile}" INCLUDES Native/ToolPanelBackend.h)
+add_custom_target(CongregationToolPanelGenerated DEPENDS "${_tool_panel_view}")
 if(CONGREGATION_BUILD_GUI)
     include(cmake/AppIcon.cmake)
     find_package(iiGUI 0.5.0 CONFIG REQUIRED)
@@ -171,9 +182,10 @@ if(CONGREGATION_BUILD_GUI)
     lvui_generate(NAME PreferencesView SOURCE App/Native/views/Preferences.lvui OUTPUT_VARIABLE _preferences_view STYLE_FILE "${_style_profile}" INCLUDES Native/EditorBackend.h)
     lvui_generate(NAME CanvasSetupView SOURCE App/Native/views/CanvasSetup.lvui OUTPUT_VARIABLE _setup_view STYLE_FILE "${_style_profile}" INCLUDES Native/CanvasSetupModel.h Native/NativeViewBackend.h)
     add_custom_target(CongregationGeneratedViews DEPENDS "${_main_view}" "${_preferences_view}" "${_setup_view}")
+    add_dependencies(CongregationGeneratedViews CongregationToolPanelGenerated)
     set(_workspace_sources App/Native/CanvasSetupWindow.cpp App/Native/CanvasSetupWindow.h App/Native/MainWindow.cpp App/Native/MainWindow.h App/Native/WorkspaceView.cpp App/Native/WorkspaceView.h
         App/Native/EditorPalette.cpp App/Native/EditorPalette.h
-        App/Native/OwnedWidgetStyle.cpp App/Native/OwnedWidgetStyle.h App/Native/ToolPanel.cpp App/Native/ToolPanel.h
+        App/Native/OwnedWidgetStyle.cpp App/Native/OwnedWidgetStyle.h App/Native/ToolPanel.cpp App/Native/ToolPanel.h App/Native/ToolPanelBackend.cpp App/Native/ToolPanelBackend.h
         App/Native/TimelineView.cpp App/Native/TimelineView.h)
     set(_figma_resources "${CMAKE_SOURCE_DIR}/resources/figma/coastal-house.png" "${CMAKE_SOURCE_DIR}/resources/figma/mountain-study.png"
         "${CMAKE_SOURCE_DIR}/resources/figma/playhead-marker.svg" "${CMAKE_SOURCE_DIR}/resources/figma/playhead-line.svg")
@@ -190,6 +202,7 @@ if(CONGREGATION_BUILD_GUI)
     target_include_directories(Congregation PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}")
     target_include_directories(Congregation BEFORE PRIVATE ${_lvui_native_include})
     target_include_directories(Congregation BEFORE PRIVATE "${_congregation_update_include}" "${_congregation_account_include}")
+    target_include_directories(Congregation BEFORE PRIVATE ${_iigui_native_include})
     target_compile_features(Congregation PRIVATE cxx_std_23)
     target_compile_definitions(Congregation PRIVATE CONGREGATION_VERSION="${PROJECT_VERSION}")
     set_target_properties(Congregation PROPERTIES CXX_EXTENSIONS OFF MACOSX_BUNDLE_GUI_IDENTIFIER com.iisacc.congregation.painter MACOSX_BUNDLE_BUNDLE_NAME Congregation MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}" MACOSX_BUNDLE_BUNDLE_VERSION "${CONGREGATION_BUNDLE_VERSION}" MACOSX_BUNDLE_ICON_FILE Appicon.icns)
@@ -206,6 +219,9 @@ if(CONGREGATION_BUILD_GUI)
         include(cmake/iPadOS.cmake)
         congregation_configure_ipados(Congregation)
     elseif(APPLE)
+        include(cmake/NativeBundleSDK.cmake)
+        congregation_bundle_sdk_arguments(_congregation_canvas_bundle_args iiSharedCanvas::Native)
+        congregation_bundle_sdk_arguments(_congregation_lvui_bundle_args LVUI::Native)
         set_target_properties(Congregation PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/NativeInfo.plist.in" BUILD_RPATH "@executable_path/../Frameworks;${CONGREGATION_SDK_PREFIX}/lib")
         set_target_properties(Congregation PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}$<0:>"
@@ -227,7 +243,8 @@ if(CONGREGATION_BUILD_GUI)
             --library-dir "$<TARGET_FILE_DIR:iiSDKCore::iiSDKCore>"
             --library-dir "$<TARGET_FILE_DIR:iiColorManager::iiColorManager>"
             --library-dir "$<TARGET_FILE_DIR:iiFileProvider::Native>"
-            --library-dir "$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>" VERBATIM)
+            --library-dir "$<TARGET_FILE_DIR:iiPaintEngine::iiPaintEngine>"
+            ${_congregation_canvas_bundle_args} ${_congregation_lvui_bundle_args} VERBATIM)
         add_custom_target(CongregationInstaller
             COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_SOURCE_DIR}/packaging/macos/create_installer.py" --xcode
             DEPENDS Congregation WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" USES_TERMINAL
@@ -236,12 +253,15 @@ if(CONGREGATION_BUILD_GUI)
 endif()
 include(cmake/VerifyNativeEngine.cmake)
 if(BUILD_TESTING)
+    add_test(NAME Congregation.tool_panel_declarative_boundary COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_SOURCE_DIR}/tests/test_tool_panel_declarative.py")
     add_test(NAME Congregation.lvui_native_boundary COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/tests/test_lvui_boundary.py" "${CMAKE_SOURCE_DIR}")
     add_test(NAME Congregation.lvui_ipados_bindings COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/tests/test_lvui_ipados_bindings.py")
     add_test(NAME Congregation.ipados_sdk_coherence COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/tests/test_ipados_sdk_coherence.py")
+    add_test(NAME Congregation.ipados_static_canvas COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/tests/test_ipados_static_canvas.py")
     add_test(NAME Congregation.native_dependency_guard COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/tests/test_native_dependency_guard.py")
     if(CONGREGATION_TEST_INDEPENDENT_PREFERENCES OR CONGREGATION_TEST_INDEPENDENT_TOOL_PANEL OR CONGREGATION_TEST_INDEPENDENT_COLOR OR CONGREGATION_TEST_INDEPENDENT_MAIN OR CONGREGATION_TEST_INDEPENDENT_WORKSPACE OR CONGREGATION_TEST_INDEPENDENT_SETUP OR CONGREGATION_TEST_INDEPENDENT_ASSETS)
@@ -265,8 +285,9 @@ if(BUILD_TESTING)
         add_test(NAME Congregation.independent_preferences COMMAND tests_independent_preferences)
     endif()
     if(CONGREGATION_TEST_INDEPENDENT_TOOL_PANEL)
-        add_executable(tests_independent_tool_panel tests/IndependentToolPanel.cpp App/Native/ToolPanel.cpp
+        add_executable(tests_independent_tool_panel tests/IndependentToolPanel.cpp App/Native/ToolPanel.cpp App/Native/ToolPanelBackend.cpp
             App/Native/OwnedWidgetStyle.cpp App/Native/EditorLayout.cpp App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
+        add_dependencies(tests_independent_tool_panel CongregationToolPanelGenerated)
         target_include_directories(tests_independent_tool_panel PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}"
             "${CONGREGATION_INDEPENDENT_TEST_HEADERS}")
         target_link_libraries(tests_independent_tool_panel PRIVATE CongregationToolSettings CongregationPresentation CongregationEditorColor
@@ -292,8 +313,9 @@ if(BUILD_TESTING)
     endif()
     if(CONGREGATION_TEST_INDEPENDENT_WORKSPACE)
         add_executable(tests_independent_workspace tests/IndependentWorkspace.cpp App/Native/WorkspaceView.cpp
-            App/Native/TimelineView.cpp App/Native/ToolPanel.cpp App/Native/OwnedWidgetStyle.cpp
+            App/Native/TimelineView.cpp App/Native/ToolPanel.cpp App/Native/ToolPanelBackend.cpp App/Native/OwnedWidgetStyle.cpp
             App/Native/EditorLayout.cpp App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
+        add_dependencies(tests_independent_workspace CongregationToolPanelGenerated)
         target_include_directories(tests_independent_workspace PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}"
             "${CONGREGATION_INDEPENDENT_TEST_HEADERS}")
         target_link_libraries(tests_independent_workspace PRIVATE CongregationToolSettings CongregationPresentation
@@ -302,7 +324,7 @@ if(BUILD_TESTING)
         if(CONGREGATION_BUILD_GUI)
             add_executable(tests_independent_main_window tests/IndependentMainWindow.cpp
                 App/Native/MainWindow.cpp App/Native/WorkspaceView.cpp App/Native/TimelineView.cpp
-                App/Native/ToolPanel.cpp App/Native/OwnedWidgetStyle.cpp App/Native/EditorLayout.cpp
+                App/Native/ToolPanel.cpp App/Native/ToolPanelBackend.cpp App/Native/OwnedWidgetStyle.cpp App/Native/EditorLayout.cpp
                 App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
             add_dependencies(tests_independent_main_window CongregationGeneratedViews)
             target_include_directories(tests_independent_main_window PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}"
@@ -312,7 +334,7 @@ if(BUILD_TESTING)
             add_test(NAME Congregation.independent_main_window COMMAND tests_independent_main_window "${CMAKE_SOURCE_DIR}/resources/figma")
             add_executable(tests_native_canvas_stroke_integration tests/NativeCanvasStrokeIntegration.cpp
                 App/Native/CanvasView.cpp App/Native/MainWindow.cpp App/Native/WorkspaceView.cpp
-                App/Native/TimelineView.cpp App/Native/ToolPanel.cpp App/Native/OwnedWidgetStyle.cpp
+                App/Native/TimelineView.cpp App/Native/ToolPanel.cpp App/Native/ToolPanelBackend.cpp App/Native/OwnedWidgetStyle.cpp
                 App/Native/EditorLayout.cpp App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
             add_dependencies(tests_native_canvas_stroke_integration CongregationGeneratedViews)
             target_include_directories(tests_native_canvas_stroke_integration PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}"
@@ -385,6 +407,8 @@ if(BUILD_TESTING)
     add_executable(tests_applicationengine tests/tst_applicationengine.cpp)
     target_link_libraries(tests_applicationengine PRIVATE Congregation::Engine)
     add_test(NAME Congregation.engine COMMAND tests_applicationengine)
+    add_executable(tests_license_presentation tests/LicensePresentation.cpp)
+    add_test(NAME Congregation.license_presentation COMMAND tests_license_presentation)
     add_executable(tests_nativebackends tests/tst_nativebackends.cpp)
     target_link_libraries(tests_nativebackends PRIVATE Congregation::Engine OpenSSL::Crypto)
     add_test(NAME Congregation.services COMMAND tests_nativebackends "${_congregation_test_path}")
@@ -419,6 +443,14 @@ if(BUILD_TESTING)
     add_executable(tests_nativeartwork tests/tst_nativeartwork.cpp)
     target_link_libraries(tests_nativeartwork PRIVATE CongregationArtwork)
     add_test(NAME Congregation.artwork COMMAND tests_nativeartwork "${_congregation_test_path}")
+    add_executable(tests_society_canvas_storage tests/SocietyCanvasStorageTest.cpp)
+    target_link_libraries(tests_society_canvas_storage PRIVATE CongregationArtwork)
+    add_test(NAME Congregation.society_canvas_storage COMMAND tests_society_canvas_storage)
+    set_tests_properties(Congregation.society_canvas_storage PROPERTIES TIMEOUT 600)
+    add_executable(tests_startup_canvas_size tests/StartupCanvasSize.cpp)
+    target_include_directories(tests_startup_canvas_size PRIVATE App)
+    target_link_libraries(tests_startup_canvas_size PRIVATE iiGUI::iiGUI)
+    add_test(NAME Congregation.startup_canvas_size COMMAND tests_startup_canvas_size)
     add_executable(tests_shared_asset_deletion tests/tst_shared_asset_deletion.cpp)
     target_link_libraries(tests_shared_asset_deletion PRIVATE CongregationArtwork)
     add_test(NAME Congregation.shared_asset_deletion COMMAND tests_shared_asset_deletion "${_congregation_test_path}")
@@ -696,8 +728,9 @@ if(BUILD_TESTING)
     # Headless widget-tree contract test. Production code only depends on iiGUI's public API.
     set(CONGREGATION_IIGUI_TEST_HEADERS "" CACHE PATH "iiGUI test header root matching the linked iiGUI library")
     if(CONGREGATION_IIGUI_TEST_HEADERS AND EXISTS "${CONGREGATION_IIGUI_TEST_HEADERS}/iiGUI/WidgetState.h")
-        add_executable(tests_tool_panel_headless tests/ToolPanelHeadless.cpp App/Native/ToolPanel.cpp App/Native/OwnedWidgetStyle.cpp App/Native/EditorLayout.cpp App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
-        target_include_directories(tests_tool_panel_headless PRIVATE App "${CONGREGATION_IIGUI_TEST_HEADERS}")
+        add_executable(tests_tool_panel_headless tests/ToolPanelHeadless.cpp App/Native/ToolPanel.cpp App/Native/ToolPanelBackend.cpp App/Native/OwnedWidgetStyle.cpp App/Native/EditorLayout.cpp App/Native/EditorPalette.cpp App/Native/EditorBackend.cpp)
+        add_dependencies(tests_tool_panel_headless CongregationToolPanelGenerated)
+        target_include_directories(tests_tool_panel_headless PRIVATE App "${CMAKE_CURRENT_BINARY_DIR}" "${CONGREGATION_IIGUI_TEST_HEADERS}")
         target_compile_features(tests_tool_panel_headless PRIVATE cxx_std_23)
         target_link_libraries(tests_tool_panel_headless PRIVATE CongregationToolSettings CongregationPresentation CongregationStyle CongregationEditorColor iiGUI::iiGUI LVUI::Native)
         add_test(NAME Congregation.tool_panel_headless COMMAND tests_tool_panel_headless)

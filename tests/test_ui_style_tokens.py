@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import sys
 import unittest
+from lvui_source_contract import component, components, contains_html_syntax
 
 ROOT = Path(__file__).resolve().parents[1]
 NUMBER = r"-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?[fF]?"
@@ -88,38 +89,66 @@ def lvui_violations(source):
                 r'cornerRadius|borderWidth|rowHeight|itemWidth|iconSize|selectionRadius|'
                 r'horizontalPadding|verticalPadding|thumbDiameter|trackHeight|rangeInset')
     found = []
-    for match in re.finditer(r'\b(?:' + geometry + r')=\{([^}]+)\}', source):
+    for match in re.finditer(r'\b(?:' + geometry + r')\s*:\s*([^,\n)]+)', source):
         if 'Metric.' not in match[1]:
             found.append('geometry attribute: ' + match[0])
-    for match in re.finditer(r'\b(?:color|backgroundColor|selectionColor|surfaceColor)=\{([^}]+)\}', source):
+    for match in re.finditer(r'\b(?:color|backgroundColor|selectionColor|surfaceColor)\s*:\s*([^,\n)]+)', source):
         if 'Color.' not in match[1]:
             found.append('color attribute: ' + match[0])
-    for match in re.finditer(r'\b(?:gap|padding|width|height|min-width|min-height|font-size|font-weight|border-width|border-radius)\s*:\s*([^;"\n]+)', source):
-        if 'Metric.' not in match[1]:
-            found.append('inline style: ' + match[0])
     if re.search(r'#[0-9a-fA-F]{6}\b', source):
         found.append('literal LVUI color')
     return found
 
 
 class UIStyleTokenTests(unittest.TestCase):
+    def test_component_scan_accepts_omitted_empty_sections(self):
+        source = '''Popover {
+            id: "brush-popup", width: extent(max(1, 2)),
+            VStack { Slider { size: .mini, id: "child" }\n Spacer }
+        }'''
+        popup = component(source, 'Popover', 'brush-popup')
+        self.assertIsNotNone(popup)
+        inputs, body = popup
+        self.assertIn('extent(max(1, 2))', inputs)
+        self.assertNotIn('child', inputs)
+        sliders = list(components(body, 'Slider'))
+        self.assertEqual(len(sliders), 1)
+        self.assertRegex(sliders[0][0], r'\bsize\s*:\s*\.mini\b')
+        self.assertEqual(len(list(components(body, 'Spacer'))), 1)
+
+    def test_declarative_component_scan_keeps_nested_calls_and_quoted_delimiters(self):
+        source = '''Popover(id: "brush-popup", width: extent(max(1, 2))) {
+            VStack { Slider(size: .mini, onMoved: { log("})"); vm.apply(value) }) }
+        }'''
+        popup = component(source, 'Popover', 'brush-popup')
+        self.assertIsNotNone(popup)
+        opening, body = popup
+        self.assertIn('extent(max(1, 2))', opening)
+        self.assertEqual(len(list(components(body, 'Slider'))), 1)
+
+    def test_html_guard_distinguishes_tags_from_text_and_script_variables(self):
+        self.assertTrue(contains_html_syntax('<span style="color:red">value</span>'))
+        self.assertFalse(contains_html_syntax('Label(text: "<span>") // <div>\nPushButton(onClick: { style = 1 })'))
+
     def test_description_labels_use_the_default_lvui_style(self):
         for name in ('Main.lvui', 'Preferences.lvui'):
             source = (ROOT / 'App/Native/views' / name).read_text(encoding='utf-8')
-            self.assertNotIn('fontSize={Metric.textDescription}', source)
-            self.assertNotIn('color={Color.text.description}', source)
+            self.assertNotRegex(source, r'\bfontSize\s*:\s*Metric\.textDescription\b')
+            self.assertNotRegex(source, r'\bcolor\s*:\s*Color\.text\.description\b')
 
     def test_brush_popup_uses_lvui_mini_sliders_and_scroll_view(self):
         source = (ROOT / 'App/Native/views/Main.lvui').read_text(encoding='utf-8')
-        popup = source.split('<Popover id="brush-popup"', 1)[1].split('</Popover>', 1)[0]
-        self.assertNotRegex(popup.split('>', 1)[0], r'\b(?:surfaceColor|padding|cornerRadius|clip)=')
-        sliders = re.findall(r'<Slider\b[^>]*/>', popup)
+        popup = component(source, 'Popover', 'brush-popup')
+        self.assertIsNotNone(popup)
+        opening, body = popup
+        self.assertNotRegex(opening, r'\b(?:surfaceColor|padding|cornerRadius|clip)\s*:')
+        sliders = [arguments for arguments, _ in components(body, 'Slider')]
         self.assertEqual(len(sliders), 7)
-        self.assertIn('<ScrollView id="brush-scroll"', popup)
-        self.assertNotRegex(popup, r'\b(?:fontSize|fontWeight)=')
+        self.assertIsNotNone(component(body, 'ScrollView', 'brush-scroll'))
+        self.assertNotRegex(body, r'\b(?:fontSize|fontWeight)\s*:')
         for slider in sliders:
-            self.assertIn('size={.mini}', slider)
-            self.assertNotRegex(slider, r'\b(?:height|thumbDiameter|trackHeight|rangeInset)=')
+            self.assertRegex(slider, r'\bsize\s*:\s*\.mini\b')
+            self.assertNotRegex(slider, r'\b(?:height|thumbDiameter|trackHeight|rangeInset)\s*:')
 
     def test_native_slider_sizes_come_from_lvui(self):
         for name, expected in [('TimelineView.cpp', 2), ('WorkspaceView.cpp', 1)]:
@@ -130,9 +159,11 @@ class UIStyleTokenTests(unittest.TestCase):
     def test_native_icon_buttons_do_not_embed_a_product_palette(self):
         cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
         widgets = (ROOT / 'App/Native/OwnedWidgetStyle.cpp').read_text(encoding='utf-8')
+        bindings = (ROOT / 'App/Native/LVUIHostBindings.h').read_text(encoding='utf-8')
         self.assertNotIn('EditorAssets.generated.h', cmake)
         self.assertNotIn('App/Native/EditorIcons.cpp', cmake)
-        self.assertIn('lvui::native::NativeButton::create', widgets)
+        self.assertIn('lvui_host::Button::create', widgets)
+        self.assertRegex(bindings, r'using Button\s*=\s*lvui::native::ButtonBinding<ii::gui::BasicButton,\s*ii::gui::BasicNativeButton')
         self.assertIn('options.icon_name=std::move(source)', widgets)
         self.assertIn('options.icon_source=lvui::design_icon_catalog()', widgets)
 
@@ -168,8 +199,8 @@ class UIStyleTokenTests(unittest.TestCase):
         self.assertTrue(cpp_violations('b.label(color_row, "#000000", Metric::textDescription); auto fill = "#112233";'))
 
     def test_lvui_controls_reject_inline_style_values(self):
-        self.assertTrue(lvui_violations('<Window width={1999}><div style="gap:8px"/></Window>'))
-        self.assertEqual(lvui_violations('<Window width={Metric.windowWidth}><Slider from={0} to={1} value={0.5}/><div style="gap:Metric.space8"/></Window>'), [])
+        self.assertTrue(lvui_violations('Window(width: 1999) { VStack(spacing: 8) {} }'))
+        self.assertEqual(lvui_violations('Window(width: Metric.windowWidth) { Slider(from: 0, to: 1, value: 0.5) VStack(spacing: Metric.space8) {} }'), [])
 
     def test_active_native_views_use_shared_types(self):
         root = ROOT / 'App/Native'

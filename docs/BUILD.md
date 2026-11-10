@@ -43,7 +43,7 @@ ctest --test-dir build --output-on-failure
 
 `--no-tests`는 반복 개발을 위한 옵션이며 완료 검증을 대신하지 않는다. 오래된 Qt 빌드 캐시에서 처음 전환할 때에는 기존 `build/CMakeCache.txt`와 `build/CMakeFiles`를 `build/native-migration-backup/` 아래에 보존한 뒤 다시 구성한다. 기존 앱과 사용자 파일을 삭제하거나 다른 위치에 활성 `.app` 복사본을 만들지 않는다.
 
-빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine 라이브러리 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.
+빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine과 공유 라이브러리로 선택한 LVUI의 실제 링크 대상 및 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. 정적 LVUI는 별도 바이너리로 수집하지 않는다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.
 
 직접 배포용 `Congregation.pkg`의 Developer ID 서명·설치 대상·페이로드 검증과 공증 절차는 [MACOS_INSTALLER.md](MACOS_INSTALLER.md)를 따른다. `CongregationInstaller` 타깃은 정식 앱에서 직접 패키지를 생성한다.
 

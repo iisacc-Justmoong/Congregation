@@ -5,6 +5,7 @@
 #include <iiSharedCanvasNative.h>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -52,6 +53,55 @@ void send(CanvasView& canvas,ii::gui::WidgetInputKind kind,double x,double y,dou
     auto accepted=canvas.input(event);
     check(accepted&&*accepted,"canvas rejected input");
 }
+
+void long_pen_stroke(const std::filesystem::path& directory,bool tapered,bool selected) {
+    Artwork artwork(directory);
+    check(artwork.create(768,128),"long stroke canvas creation failed");
+    if(selected)
+        check(artwork.set_selection(SelectionGeometry::Rectangle,{0,0},{768,128}),
+              "long stroke selection failed");
+    ToolSettings options;
+    options.set(ToolParameter::size,12);
+    CanvasView canvas(artwork);
+    canvas.brush_size=12;canvas.color=0xff6533ff;canvas.settings=options.brush();
+    if(tapered) canvas.taper={options.value(ToolParameter::start)/100.,
+                             options.value(ToolParameter::end)/100.,
+                             options.value(ToolParameter::minimum_size)/100.,
+                             options.value(ToolParameter::taper)/100.};
+    std::string status;
+    canvas.status=[&](std::string message){status=std::move(message);};
+    using K=ii::gui::WidgetInputKind;
+    const auto original=pixels(artwork).pixels;
+    auto position=[](int i) {
+        return std::pair{16.0+2.4*i,64.0+12*std::sin(i/30.0)};
+    };
+    auto [start_x,start_y]=position(0);
+    send(canvas,K::pointer_down,start_x,start_y,100,.5);
+    for(int i=1;i<=300;++i) {
+        const auto [x,y]=position(i);
+        send(canvas,K::pointer_move,x,y,100+i*.04,.4+.5*(i%31)/30.);
+    }
+    for(int i:{15,60,120,180,240,285}) {
+        const auto [x,y]=position(i);
+        check(alpha(pixels(artwork),int(x),int(y))>0,"long stroke preview lost input");
+    }
+    const auto [end_x,end_y]=position(300);
+    send(canvas,K::pointer_up,end_x,end_y,112.01,tapered?0:.7);
+    if(!status.empty()) throw std::runtime_error("long stroke finish: "+status);
+    for(int i:{15,60,120,180,240,285}) {
+        const auto [x,y]=position(i);
+        check(alpha(pixels(artwork),int(x),int(y))>0,"long stroke commit lost input");
+    }
+    const auto painted=pixels(artwork).pixels;
+    check(artwork.undo() && pixels(artwork).pixels==original && artwork.redo() &&
+          pixels(artwork).pixels==painted,"long stroke history is not exact");
+    const auto saved=directory/(std::string("long-stroke-")+(tapered?"taper":"plain")+
+                                 (selected?"-selected":"")+".iisc");
+    check(artwork.save(saved),"long stroke save failed");
+    Artwork reopened(directory);
+    check(reopened.open(saved) && pixels(reopened).pixels==painted,
+          "long stroke did not survive save and reopen");
+}
 }
 int main() try {
     iiFileProvider::native::TemporaryDirectory directory(std::filesystem::temp_directory_path());
@@ -92,5 +142,8 @@ int main() try {
     const auto painted=pixels(artwork).pixels;
     check(artwork.undo() && pixels(artwork).pixels==before &&
           artwork.redo() && pixels(artwork).pixels==painted,"stroke undo/redo is not exact");
+    long_pen_stroke(directory.path(),false,false);
+    long_pen_stroke(directory.path(),true,false);
+    long_pen_stroke(directory.path(),true,true);
     std::cout << "INTERACTIVE_CANVAS_STROKE_OK\n";
 } catch(const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }

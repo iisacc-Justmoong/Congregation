@@ -1,6 +1,7 @@
 #pragma once
 #include "CanvasDefinition.h"
 #include "Shapes.h"
+#include "SocietyFiles.h"
 #include <iiSharedCanvasNative.h>
 #include <Stroke/StrokePoint.h>
 #include <array>
@@ -26,10 +27,11 @@ enum class LayerTransform
 };
 // Synchronous borrowed tile views: pixel storage remains owned by this value.
 struct SelectionOptions final { bool antialias = true; double feather = 0; };
-// Percentages are represented as fractions of the complete stroke length.
+// Start and end lengths are fractions of the configured brush diameter.
 struct StrokeTaper final { double start = 0, end = 0, minimum = 1, strength = 0; };
 // A conservative, half-open document-space rectangle affected by a stroke.
 struct StrokeDamage final { double left = 0, top = 0, right = 0, bottom = 0; };
+class StreamingBrush;
 struct FloodOptions final { double tolerance = 0; bool contiguous = true; bool current_layer = false; bool target_current = false; bool preserve_alpha = false; bool antialias = false; };
 struct SelectionPreview final
 {
@@ -47,13 +49,20 @@ class Artwork final
 {
   public:
     explicit Artwork(std::filesystem::path recovery_directory, std::size_t history_budget = 64 * 1024 * 1024);
+    ~Artwork();
     bool create(int width = 1024, int height = 768, bool infinite = false);
     bool create(const CanvasDefinition&);
+    // Internal, non-editable bootstrap while the native display is identified.
+    bool create_startup_placeholder();
+    bool create_in_society(const CanvasDefinition&, const SocietyFiles&);
     const std::optional<CanvasDefinition>& creation() const { return creation_; }
     bool open(const std::filesystem::path&);
     bool recover(const std::filesystem::path&);
     bool replace(iiSharedCanvas::Document);
     bool save(const std::filesystem::path&);
+    bool save_in_society(const std::filesystem::path&);
+    [[nodiscard]] bool has_society_temporary() const noexcept { return society_temporary_.has_value(); }
+    void close_temporary() noexcept;
     bool export_image(const std::filesystem::path&, std::string format);
     bool import_image(const std::filesystem::path&, double x = 0, double y = 0);
     bool import_pixels(::RasterLayer, std::string name, double x, double y);
@@ -173,11 +182,12 @@ class Artwork final
             return sizeof(*this)+asset_id.capacity()+layer_id.capacity()+name.capacity()+payload;
         }
     };
-    struct RasterStrokeMetadata final
+    struct BitmapHistoryMetadata final
     {
         iiSharedCanvas::DocumentAuthorship before, after;
         iiSharedCanvas::FormatVersion before_version, after_version;
-        std::size_t bytes() const noexcept { return sizeof(*this) + before.dump().size() + after.dump().size(); }
+        std::size_t authored_bytes = 0;
+        std::size_t bytes() const noexcept { return sizeof(*this) + authored_bytes; }
     };
     struct History final
     {
@@ -187,14 +197,14 @@ class Artwork final
         bool mask_change = false;
         std::shared_ptr<iiSharedCanvas::ChunkedBitmapEditor> tile_editor;
         std::shared_ptr<iiSharedCanvas::BitmapEditor> raster_editor;
-        std::shared_ptr<const RasterStrokeMetadata> raster_metadata;
+        std::shared_ptr<const BitmapHistoryMetadata> bitmap_metadata;
         std::optional<iiSharedCanvas::CanvasRegion> canvas_before, canvas_after;
         std::shared_ptr<const ChunkFrameHistory> chunk_frame;
         std::shared_ptr<const RasterInsertion> raster_insertion;
         std::size_t bytes() const noexcept {
             return before.size()+after.size()+(tile_editor ? tile_editor->historyStatistics().retainedBytes : 0)+
                 (raster_editor ? raster_editor->historyStatistics().retainedBytes : 0)+
-                (raster_metadata ? raster_metadata->bytes() : 0)+
+                (bitmap_metadata ? bitmap_metadata->bytes() : 0)+
                 (canvas_before ? 2*sizeof(iiSharedCanvas::CanvasRegion) : 0)+(chunk_frame ? chunk_frame->bytes() : 0)+
                 (raster_insertion ? raster_insertion->bytes() : 0)+(mask_change ?
                 (mask_before ? mask_before->bytes() : 0)+(mask_after ? mask_after->bytes() : 0) : 0);
@@ -211,7 +221,9 @@ class Artwork final
     bool insert_raster_result(std::variant<::RasterLayer, iiSharedCanvas::ChunkedRasterAsset>, std::string, iiSharedCanvas::CanvasOrigin,
                               iiSharedCanvas::FrameIndex, RasterBlendMode);
     bool sparse_gradient(iiSharedCanvas::GradientDefinition, iiSharedCanvas::FrameIndex, RasterBlendMode);
-    bool finish_compact_chunk_stroke(const ::BrushState*);
+    bool finish_compact_chunk_stroke();
+    bool finish_masked_raster_stroke();
+    bool update_stream_input(::StrokePoint, bool finish);
     bool commit_raster_stroke_history(std::shared_ptr<iiSharedCanvas::BitmapEditor>, std::string);
     bool commit_compact_chunk_history(std::shared_ptr<iiSharedCanvas::ChunkedBitmapEditor>, std::string,
                                       std::optional<iiSharedCanvas::CanvasRegion> before,
@@ -247,6 +259,30 @@ class Artwork final
     bool reject_stroke(std::string);
     void record_stroke_damage(::DevicePixelRect) noexcept;
     void collect_stroke_damage() noexcept;
+    struct TemporaryCanvas final {
+        SocietyFiles files;
+        std::filesystem::path path;
+        std::string initial_digest;
+        iiSharedCanvas::DocumentAuthorship authorship;
+        iiSharedCanvas::FormatVersion format;
+        std::uint64_t device = 0, inode = 0;
+        std::filesystem::path saved_path;
+        std::uint64_t saved_device = 0, saved_inode = 0, saved_revision = 0;
+    };
+    struct StartupPlaceholder final {
+        std::filesystem::path path;
+        std::string initial_digest;
+        iiSharedCanvas::DocumentAuthorship authorship;
+        iiSharedCanvas::FormatVersion format;
+        std::uint64_t device = 0, inode = 0;
+    };
+    [[nodiscard]] bool removable_temporary() const noexcept;
+    [[nodiscard]] bool removable_startup_placeholder() const noexcept;
+    static void remove_temporary(const TemporaryCanvas&) noexcept;
+    static void remove_startup_placeholder(const StartupPlaceholder&) noexcept;
+    std::optional<TemporaryCanvas> society_temporary_;
+    std::optional<StartupPlaceholder> startup_placeholder_;
+    std::optional<SocietyFiles> pending_society_;
     std::filesystem::path directory_, recovery_, source_;
     std::optional<CanvasDefinition> creation_;
     iiSharedCanvas::DocumentFile file_;
@@ -258,6 +294,8 @@ class Artwork final
     double legacy_stroke_time_ = 0;
     std::string selected_, error_, stroke_selection_;
     std::vector<std::uint8_t> stroke_before_;
+    std::vector<std::uint8_t> stroke_tiles_;
+    std::size_t stroke_tile_columns_ = 0;
     std::shared_ptr<const SelectionValue> selection_;
     std::optional<::RasterLayer> stroke_original_;
     std::optional<iiSharedCanvas::ChunkedRasterAsset> stroke_original_chunks_;
@@ -266,12 +304,7 @@ class Artwork final
     bool stroke_frame_copy_ = false;
     bool stroke_compact_ = false;
     bool stroke_raster_history_ = false;
-    struct TaperStroke final {
-        StrokeTaper options;
-        std::vector<::StrokePoint> samples;
-        bool eraser = false;
-    };
-    std::optional<TaperStroke> taper_stroke_;
+    std::shared_ptr<StreamingBrush> streaming_brush_;
     std::deque<History> undo_, redo_;
     std::size_t history_bytes_ = 0;
 };

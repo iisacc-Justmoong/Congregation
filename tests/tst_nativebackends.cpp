@@ -477,9 +477,22 @@ void license(const std::filesystem::path& root)
         ii::runtime::EventLoop loop;
         iisacc::accounts::native::SocietySessionOptions invalid;
         LicenseService unavailable(loop,std::move(invalid),true);
-        require(!unavailable.licensed && unavailable.code=="society_unavailable",
+        require(!unavailable.licensed && unavailable.code=="society_unavailable" && !unavailable.workspace_visible(),
                 "Unavailable local transport did not fail closed");
         unavailable.restore(); unavailable.retry(); unavailable.cancel();
+    }
+    {
+        using namespace iisacc::accounts::native;
+        ii::runtime::EventLoop loop;
+        SocietySessionOptions options{.product_id="congregation",
+            .device={std::string(64,'a'),"tablet","Fixture","ios","1","com.iisacc.congregation.painter","1"}};
+        SessionPersistence store{.read=[] { return SecretResult{SecretResult::Status::not_found,{}}; }};
+        LicenseService web(loop,std::move(options),true,LicenseService::Authority::web,std::move(store));
+        require(web.workspace_visible() && !web.licensed, "Initial web check was not pending");
+        web.restore();
+        until(loop,[&] { return !web.workspace_visible(); },std::chrono::seconds(8));
+        require(!web.licensed && !web.verifying,
+                "Missing saved session must finish verification without granting access");
     }
 #if defined(__unix__) || defined(__APPLE__)
     using namespace iisacc::accounts::native;
@@ -498,6 +511,8 @@ void license(const std::filesystem::path& root)
         .socket_path=directory / "broker.sock",.timeout=std::chrono::seconds(2),
         .keys={{"fixture-owned-license",license_fixture::public_key()}}};
     LicenseService license(loop,options,true);
+    require(!license.licensed && license.workspace_visible(),
+            "Pending license verification must show the workspace without granting access");
     bool opened=false; license.open_society_action=[&]{opened=true;};
     auto run=[&](bool owned, bool foreign, bool open) {
         std::string error;
@@ -530,10 +545,11 @@ void license(const std::filesystem::path& root)
     run(false,false,true);
     require(opened,"Society account action was not forwarded");
     require(license.signed_in && !license.licensed && license.code=="license_not_owned","signed denial was ignored");
+    require(!license.workspace_visible(), "A completed denial must show the license screen");
     run(true,true,false);
     require(!license.licensed && !license.signed_in,"foreign-device token was accepted");
     run(true,false,false);
-    require(license.licensed,"valid local authorization did not recover");
+    require(license.licensed && license.workspace_visible(),"valid local authorization did not recover");
     int repeated=0; license.validated=[&](bool valid){if(valid)++repeated;};
     license.retry();
     const auto afterExpiry=ii::runtime::Clock::now()+std::chrono::milliseconds(2500);

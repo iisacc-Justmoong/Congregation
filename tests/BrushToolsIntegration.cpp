@@ -50,6 +50,15 @@ int main() try {
  const auto baseline=stamp("brush");
  settings.set(P::noise_enabled,1); settings.set(P::noise_amount,80); settings.set(P::noise_grain_size,4);
  check(stamp("brush")!=baseline,"Noise grain controls did not change painted pixels");
+ settings.set(P::noise_monochrome,1); const auto monochrome=stamp("brush");
+ settings.set(P::noise_monochrome,0); const auto colored=stamp("brush");
+ check(monochrome.size()==colored.size(),"Noise changed the canvas size");
+ bool coloredNoise=false;
+ for(std::size_t i=0;i<colored.size();++i) {
+  check((monochrome[i]>>24)==(colored[i]>>24),"Noise color mode changed coverage");
+  coloredNoise|=(monochrome[i]&0xffffffU)!=(colored[i]&0xffffffU);
+ }
+ check(coloredNoise,"Noise Monochrome did not change the painted colors");
  settings.set(P::noise_enabled,0); settings.set(P::wet_edges_enabled,1); settings.set(P::wet_edges_strength,80);
  check(stamp("brush")!=baseline,"Wet edge controls did not change painted pixels");
  settings.set(P::wet_edges_enabled,0); settings.set(P::build_up_enabled,1); settings.set(P::build_up_rate,25);

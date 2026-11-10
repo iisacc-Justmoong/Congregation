@@ -2,7 +2,7 @@
 
 Congregation is a local canvas editor built with the native iiSDK platform. Its application lifecycle and asynchronous services use iiSDKCore; its views use LVUI-owned native widgets hosted by iiGUI. The active application does not link LVRS, Qt, QML, a browser engine, or a WebView.
 
-LVUI views are HTML-like markup with inline styles. They compile to C++23 during the build and are not interpreted as web pages at runtime. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.
+LVUI views use direct declarative syntax: `ApplicationWindow` or `Window` contains nested `HStack`, `VStack`, and native controls, with values and events connected to imported C++ view models. The views compile to C++23 during the build. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.
 
 The current Main window uses a 54 px vertical icon toolbar at the left window edge, a centered canvas with pixel rulers, a bottom timeline/layer dock, and a 352 px segmented inspector. The former 224 px asset sidebar is removed; the canvas and timeline share the recovered space. The rest of the layout follows the Congregation Figma design. The Tool panel exposes all 22 parameters through sliders and step buttons with a scrolling body and fixed preset/actions. See [the native Figma contract](docs/FIGMA_APPLICATION_WINDOW.md). The earlier [Vincent restoration](docs/VINCENT_UI.md) remains historical reference.
 

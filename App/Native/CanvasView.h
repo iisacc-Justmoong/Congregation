@@ -2,6 +2,7 @@
 #include "Artwork.h"
 #include "CanvasTilePolicy.h"
 #include "QuickMask.h"
+#include "StrokeProfile.h"
 #include <iiGUI/NativeWidgets.h>
 #include <iiGUI/Image.h>
 #include <map>
@@ -21,8 +22,7 @@ struct Viewport final
 class CanvasView final
 {
   public:
-    explicit CanvasView(Artwork& artwork, std::size_t layer_budget = canvas_tile_layer_budget)
-        : artwork_(artwork), paint_layer_budget_(std::clamp<std::size_t>(layer_budget, 1, canvas_tile_layer_budget)) {}
+    explicit CanvasView(Artwork& artwork, std::size_t layer_budget = canvas_tile_layer_budget);
     ~CanvasView();
     CanvasView(const CanvasView&) = delete;
     CanvasView& operator=(const CanvasView&) = delete;
@@ -93,6 +93,7 @@ class CanvasView final
     ::StrokePoint stroke_sample(const ii::gui::WidgetInput&, iiSharedCanvas::Point, bool first);
     Artwork& artwork_;
     std::size_t paint_layer_budget_;
+    StrokeProfile stroke_profile_;
     std::unique_ptr<QuickMask> clone_mask_;
     std::optional<::RasterLayer> clone_reference_;
     std::optional<iiSharedCanvas::Point> clone_source_;

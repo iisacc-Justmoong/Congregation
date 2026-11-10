@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/BUILD.md",
-    "sha256": "f242f203b31751f90ed35415350de479a17b3d63bbf02cf60a62686ae50999c4",
-    "bytes": 15606,
+    "sha256": "7a6b1b7eb49c5fbf02e72fdd79ea4325b2c2b9bb7471339feaf43ed98622e1c9",
+    "bytes": 15724,
     "line_count": 136,
     "encoding": "utf-8",
     "language": "ko"
@@ -263,7 +263,7 @@
       "kind": "paragraph",
       "start_line": 46,
       "end_line": 46,
-      "raw": "빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine 라이브러리 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.\n"
+      "raw": "빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine과 공유 라이브러리로 선택한 LVUI의 실제 링크 대상 및 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. 정적 LVUI는 별도 바이너리로 수집하지 않는다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.\n"
     },
     {
       "id": "b000034",
@@ -767,7 +767,7 @@
       {
         "block_id": "b000033",
         "line": 46,
-        "text": "빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine 라이브러리 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.",
+        "text": "빌드 후 `cmake/package_native_macos.py`가 실행 파일의 전체 동적 의존성을 따라가며 번들 안으로 수집한다. 명시적으로 링크한 iiSDKCore, iiFileProvider, iiPaintEngine과 공유 라이브러리로 선택한 LVUI의 실제 링크 대상 및 디렉터리도 선택 키트와 함께 허용하고 심볼릭 링크의 실제 위치를 확인한다. 정적 LVUI는 별도 바이너리로 수집하지 않는다. Qt·LVRS 설치 이름, 허용된 디렉터리 밖의 비시스템 라이브러리, macOS 12.0보다 높은 최소 OS를 선언한 이미지를 거부한다. `Congregation.native_package_directories`는 금지 이름과 정상 라이브러리 이름을 함께 검사한다. 절대 RPATH를 제거하고 번들 상대 경로로 연결하며 외부 라이선스 고지를 포함한 뒤 로컬 임시 서명을 검증한다. 이는 Developer ID 서명·공증·App Store 배포를 수행한 결과가 아니다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },

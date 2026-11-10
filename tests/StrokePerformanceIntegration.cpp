@@ -120,11 +120,74 @@ void run(const std::filesystem::path& directory, int side, int brush_size)
     const auto end = measure([&] { ok = artwork.end_input(sample(x + 80, y, 1.04, 1)); });
     check(ok, "stroke end failed");
     const auto painted = pixel(artwork, x + 32, y);
-    check(artwork.undo() && pixel(artwork, x + 32, y) == original, "stroke undo failed");
-    check(artwork.redo() && pixel(artwork, x + 32, y) == painted, "stroke redo failed");
+    const auto undo = measure([&] { ok = artwork.undo(); });
+    check(ok && pixel(artwork, x + 32, y) == original, "stroke undo failed");
+    const auto redo = measure([&] { ok = artwork.redo(); });
+    check(ok && pixel(artwork, x + 32, y) == painted, "stroke redo failed");
     std::cout << "STROKE_PERFORMANCE canvas=" << side << " brush=" << brush_size;
     print("encode", snapshot); print("begin", begin); print("move", move);
-    print("composite_512", composite); print("composite_256", small_composite); print("end", end); std::cout << '\n';
+    print("composite_512", composite); print("composite_256", small_composite);
+    print("end", end); print("undo", undo); print("redo", redo); std::cout << std::endl;
+    if (side >= 4096)
+    {
+        check(end.bytes < 32 * 1024 * 1024 && undo.bytes < 32 * 1024 * 1024 &&
+              redo.bytes < 32 * 1024 * 1024,
+              "small stroke or history step allocated a complete large raster");
+        check(artwork.undo() && artwork.can_redo(), "no-op redo setup failed");
+        auto transparent = brush;
+        transparent.opacity = 0;
+        check(artwork.begin_input(sample(x, y, 2, 1), transparent), "no-op start failed");
+        const auto no_op = measure([&] { ok = artwork.end_input(sample(x + 5, y, 2.01, 1)); });
+        check(ok && artwork.can_redo() && no_op.bytes < 32 * 1024 * 1024,
+              "no-op stroke copied the raster or discarded redo");
+        check(artwork.begin_input(sample(x, y, 3, 1), brush) &&
+              artwork.extend_input(sample(x + 8, y, 3.01, 1)), "cancel setup failed");
+        const auto cancel = measure([&] { artwork.cancel(); });
+        check(artwork.can_redo() && pixel(artwork, x + 32, y) == original &&
+              cancel.bytes < 32 * 1024 * 1024,
+              "cancel copied the raster or changed the previous redo state");
+        std::cout << "STROKE_NOOP canvas=" << side;
+        print("end", no_op); print("cancel", cancel); std::cout << std::endl;
+    }
+}
+
+void run_masked_and_tapered(const std::filesystem::path& directory)
+{
+    constexpr int side = 4096;
+    constexpr std::size_t max_small_stroke_bytes = 32 * 1024 * 1024;
+    Artwork artwork(directory);
+    check(artwork.create(side, side), "variant canvas setup failed");
+    const int x = side / 2, y = side / 2;
+    check(artwork.set_selection(SelectionGeometry::Rectangle, {double(x), double(y - 64)},
+                                {double(x + 128), double(y + 64)}), "variant selection failed");
+    BitmapBrush brush;
+    brush.size = 16; brush.argb = 0xff6533ff; brush.pressureToOpacityEnabled = false;
+    const StrokeTaper options[]{StrokeTaper{}, StrokeTaper{.25, .25, .25, 1}};
+    for (int variant = 0; variant < 2; ++variant) {
+        const int stroke_y = y - 20 + variant * 40;
+        const auto before = artwork.snapshot();
+        const auto outside = pixel(artwork, x - 8, stroke_y);
+        bool ok = false;
+        const auto begin = measure([&] {
+            ok = artwork.begin_input(sample(x - 16, stroke_y, 1, 1), brush, 0, options[variant]);
+        });
+        check(ok, "variant stroke begin failed");
+        check(artwork.extend_input(sample(x + 32, stroke_y, 1.02, 1)), "variant stroke move failed");
+        const auto end = measure([&] { ok = artwork.end_input(sample(x + 80, stroke_y, 1.04, 1)); });
+        check(ok && pixel(artwork, x - 8, stroke_y) == outside &&
+              pixel(artwork, x + 32, stroke_y) != outside, "variant stroke selection failed");
+        const auto after = artwork.snapshot();
+        const auto undo = measure([&] { ok = artwork.undo(); });
+        check(ok && artwork.snapshot() == before, "variant undo was not exact");
+        const auto redo = measure([&] { ok = artwork.redo(); });
+        check(ok && artwork.snapshot() == after, "variant redo was not exact");
+        std::cout << "STROKE_VARIANT canvas=" << side << " tapered=" << variant;
+        print("begin", begin); print("end", end); print("undo", undo); print("redo", redo);
+        std::cout << std::endl;
+        check(begin.bytes < max_small_stroke_bytes && end.bytes < max_small_stroke_bytes &&
+              undo.bytes < max_small_stroke_bytes && redo.bytes < max_small_stroke_bytes,
+              "masked or tapered small stroke allocated a complete raster");
+    }
 }
 }
 
@@ -134,6 +197,14 @@ try {
     check(directory.isValid(), "temporary directory unavailable");
     if (argc > 1 && std::string_view(argv[1]) == "--large-only") {
         run(directory.path(), 512, 128);
+        return 0;
+    }
+    if (argc > 1 && std::string_view(argv[1]) == "--4k-only") {
+        run(directory.path(), 4096, 32);
+        return 0;
+    }
+    if (argc > 1 && std::string_view(argv[1]) == "--4k-variants-only") {
+        run_masked_and_tapered(directory.path());
         return 0;
     }
     const bool extended = argc > 1 && std::string_view(argv[1]) == "--extended";

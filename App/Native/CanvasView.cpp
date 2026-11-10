@@ -5,7 +5,10 @@
 #include <iiSDKCore/Core/Text/Number.h>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <iterator>
 #include <limits>
 #include <numbers>
@@ -16,6 +19,31 @@ namespace congregation::native
 using namespace iiSharedCanvas;
 namespace
 {
+using ProfileClock = std::chrono::steady_clock;
+std::uint64_t profile_elapsed(ProfileClock::time_point started) noexcept
+{
+    return std::uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(ProfileClock::now() - started).count());
+}
+bool stroke_profiling_enabled() noexcept
+{
+    const auto *value = std::getenv("CONGREGATION_PAINT_PROFILE");
+    return value && value[0] == '1' && value[1] == '\0';
+}
+void report_stroke_profile(const StrokeProfileReport& report) noexcept
+{
+    if (!report.recorded) return;
+    const auto u = [](std::uint64_t value) { return static_cast<unsigned long long>(value); };
+    std::fprintf(stderr,
+        "CONGREGATION_PAINT_PROFILE ok=%d moves=%llu renders=%llu begin_us=%llu "
+        "move_p50_upper_us=%llu move_p95_upper_us=%llu move_p99_upper_us=%llu move_max_us=%llu "
+        "render_p50_upper_us=%llu render_p95_upper_us=%llu render_p99_upper_us=%llu render_max_us=%llu "
+        "finish_us=%llu max_input_gap_us=%llu\n",
+        report.succeeded ? 1 : 0, u(report.moves), u(report.renders), u(report.begin_us),
+        u(report.move_p50_upper_us), u(report.move_p95_upper_us), u(report.move_p99_upper_us), u(report.move_max_us),
+        u(report.render_p50_upper_us), u(report.render_p95_upper_us), u(report.render_p99_upper_us), u(report.render_max_us),
+        u(report.finish_us), u(report.max_input_gap_us));
+    std::fflush(stderr);
+}
 template <class T> T take(ii::core::Result<T> result)
 {
     if (!result)
@@ -56,6 +84,10 @@ bool hasNonlocalFilters(const Document& document)
     });
 }
 } // namespace
+CanvasView::CanvasView(Artwork& artwork, std::size_t layer_budget)
+    : artwork_(artwork),
+      paint_layer_budget_(std::clamp<std::size_t>(layer_budget, 1, canvas_tile_layer_budget)),
+      stroke_profile_(stroke_profiling_enabled()) {}
 CanvasView::~CanvasView()
 {
     frame_lifetime_.reset();
@@ -209,7 +241,7 @@ void CanvasView::zoom(double factor, double x, double y)
         y = viewport_.height / 2;
     fitted_=false;
     const auto point = world(x, y);
-    viewport_.scale = std::clamp(viewport_.scale * factor, 1. / 64, 32.);
+    viewport_.scale = std::clamp(viewport_.scale * factor, 1. / 64, editor::maximum_canvas_zoom);
     viewport_.x = x - point.x * viewport_.scale;
     viewport_.y = y - point.y * viewport_.scale;
     render();
@@ -318,6 +350,7 @@ void CanvasView::set_frame(int value)
     // cancels it before another frame can be displayed or receive the release.
     if (artwork_.stroke_active() || polygon_active_ || (drag_ && !panning_ && !zooming_))
     {
+        stroke_profile_.cancel();
         artwork_.cancel();
         drag_ = panning_ = zooming_ = selecting_ = false;
         lasso_path_.clear();
@@ -345,6 +378,8 @@ void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
     stroke_preview_unbounded_ = false;
     if (!attached_ || viewport_.width <= 0 || viewport_.height <= 0)
         return;
+    const bool profiling = stroke_profile_.active();
+    const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
     ii::gui::WidgetDrawing drawing;
     auto preview = artwork_.selection_preview(document_region);
     if(clone_mask_) {preview=clone_preview();cache_.clear();}
@@ -623,6 +658,7 @@ void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
                 {{0, float(y), float(viewport_.width), Metric::stroke1}, color, color});
     }
     present_drawing(std::move(drawing), viewport_.visible_tiles);
+    if (profiling) stroke_profile_.render(profile_elapsed(profile_start));
     // Never evict a tile still visible in the submitted scene, even if a very
     // large viewport exceeds the ordinary offscreen cache capacity.
     trim_canvas_tile_cache(cache_, {lod, left, top, right, bottom, frame_, viewport_.visible_tiles}, 96);
@@ -699,6 +735,7 @@ bool CanvasView::apply_crop()
 }
 void CanvasView::cancel()
 {
+    stroke_profile_.cancel();
     const bool paint = artwork_.stroke_active() && !quick_mask_ && !clone_mask_;
     crop_.reset();crop_saved_.reset();crop_drag_=CropDrag::None;
     perspective_.reset();perspective_saved_.reset();perspective_drag_=-3;
@@ -906,7 +943,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
 {
     using K = ii::gui::WidgetInputKind;
     using Key = ii::gui::WidgetKey;
-    if (event.kind == K::focus_lost)
+    if (event.kind == K::focus_lost || event.kind == K::pointer_cancel)
     {
         // A native focus change can mean clicking a tool control or beginning
         // an iPad navigation gesture. Cancel only the in-flight mask stroke;
@@ -1189,6 +1226,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
             // the canceled stroke's damage before begin_input resets it or
             // changes the transform used to map that damage to the canvas.
             if (artwork_.stroke_active()) {
+                stroke_profile_.cancel();
                 artwork_.cancel();
                 schedule_stroke_render();
             }
@@ -1203,8 +1241,11 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
                 taper_options.strength = 0;
                 if (status) status("Whole-stroke taper is not yet available for infinite canvases");
             }
+            const auto profile_start = stroke_profile_.enabled() ? ProfileClock::now() : ProfileClock::time_point{};
             const auto ok = artwork_.begin_input(stroke_sample(event, down_, true), brush,
                                                  static_cast<FrameIndex>(frame_), taper_options);
+            if (ok && stroke_profile_.enabled())
+                stroke_profile_.begin(profile_elapsed(profile_start), event.timestamp);
             if (!ok && status)
                 status(artwork_.error());
             airbrush_stroke_ = ok && !brush.eraser && brush.engineState && brush.engineState->rasterizer.airbrushEnabled;
@@ -1296,9 +1337,14 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         else if (artwork_.stroke_active())
         {
             auto point = world(event.x, event.y);
-            if (!artwork_.extend_input(stroke_sample(event, point, false)) &&
-                status)
-                status(artwork_.error());
+            const bool profiling = stroke_profile_.active();
+            const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
+            const bool extended = artwork_.extend_input(stroke_sample(event, point, false));
+            if (profiling) stroke_profile_.move(profile_elapsed(profile_start), event.timestamp);
+            if (!extended) {
+                stroke_profile_.cancel();
+                if (status) status(artwork_.error());
+            }
             last_ = {event.x, event.y};
             schedule_stroke_render();
             return true;
@@ -1341,6 +1387,8 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         }
         if (artwork_.stroke_active())
         {
+            const bool profiling = stroke_profile_.active();
+            const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
             struct CommitGuard {
                 bool& flag;
                 explicit CommitGuard(bool& value) : flag(value) { flag = true; }
@@ -1351,6 +1399,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
                 CommitGuard guard(committing_stroke_);
                 ok = artwork_.end_input(stroke_sample(event, point, false));
             }
+            if (profiling) report_stroke_profile(stroke_profile_.finish(profile_elapsed(profile_start), ok));
             if (!ok && status)
                 status(artwork_.error());
             schedule_stroke_render();

@@ -176,13 +176,14 @@ class EditorBackend
         account_button{"Open Society"}, account_guide{"Society verifies your iisacc account and license."},
         size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
         hardness_label{"100%"}, spacing_label{"0.0 px"}, spacing_ratio_label{"15%"}, stabilizer_label{"0%"}, pressure_min_label{"0%"}, pressure_mid_label{"50%"}, pressure_max_label{"100%"};
-    ii::core::Observable<bool> licensed{false}, needs_license{true}, can_activate{true}, signed_in{false}, signing_in{false},
+    ii::core::Observable<bool> licensed{false}, workspace_visible{true}, needs_license{false}, can_activate{true}, signed_in{false}, signing_in{false},
         start_recent{false}, discover{true}, pressure_enabled{true},
         layer_controls{false}, chrome_visible{true}, general_visible{true}, profile_visible{false}, members_visible{false},
         start_new{true}, can_invite{false}, wand_contiguous{true}, wand_current_layer{false}, clone_aligned{true}, clone_current_layer{true},
         fill_contiguous{true}, fill_current_layer{false}, fill_target_current{false}, fill_preserve_alpha{false}, fill_antialias{false}, quick_mask_mode{false}, selection_antialias{true}, crop_destructive{false}, polygon_center{false}, polygon_fill{true}, polygon_outline{false};
     ii::core::Observable<double> brush_size{64}, opacity{1}, flow{.9}, hardness{.85}, spacing{.12},
         spacing_pixels{0}, stabilizer{.18}, pressure_min{0}, pressure_mid{.5}, pressure_max{1}, wand_tolerance{0}, fill_tolerance{0}, selection_feather{0}, magnetic_radius{12}, polygon_rotation{0}, polygon_stroke_width{1}, polygon_opacity{1};
+    ii::core::Observable<double> brush_size_limit{native::ToolSettings::spec(native::ToolParameter::size).maximum};
     std::shared_ptr<native::GradientSettings> gradient_settings = std::make_shared<native::GradientSettings>();
     // LVUI consumes these independently of the presentation's widget library.
     std::shared_ptr<PresentationList> layer_source, member_source;
@@ -355,26 +356,10 @@ class EditorBackend
         return callback ? callback(e) : ii::core::Result<bool>{false};
     }
     void set_spacing_pixels(double value) { spacing_pixels.set(value); invoke(brush_changed); }
-    void set_flow(double value)
-    {
-        flow.set(value);
-        invoke(brush_changed);
-    }
-    void set_hardness(double value)
-    {
-        hardness.set(value);
-        invoke(brush_changed);
-    }
-    void set_spacing(double value)
-    {
-        spacing.set(value);
-        invoke(brush_changed);
-    }
-    void set_stabilizer(double value)
-    {
-        stabilizer.set(value);
-        invoke(brush_changed);
-    }
+    void set_flow(double value) { set_parameter(native::ToolParameter::flow, value * 100); }
+    void set_hardness(double value) { set_parameter(native::ToolParameter::hardness, value * 100); }
+    void set_spacing(double value) { set_parameter(native::ToolParameter::spacing, value * 100); }
+    void set_stabilizer(double value) { set_parameter(native::ToolParameter::stabilization, value * 100); }
     void set_pressure_enabled(bool value)
     {
         pressure_enabled.set(value);
@@ -395,8 +380,8 @@ class EditorBackend
         pressure_max.set(value);
         invoke(brush_changed);
     }
-    void set_brush_size(double value) { brush_size.set(value); invoke(brush_changed); }
-    void set_opacity(double value) { opacity.set(value); invoke(brush_changed); }
+    void set_brush_size(double value) { set_parameter(native::ToolParameter::size, value); }
+    void set_opacity(double value) { set_parameter(native::ToolParameter::opacity, value * 100); }
     void set_start_recent(bool value)
     {
         start_recent.set(value);

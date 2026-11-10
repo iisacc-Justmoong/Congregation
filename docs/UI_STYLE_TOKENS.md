@@ -2,7 +2,7 @@
 
 타임라인의 두 슬라이더, 색상 불투명도와 브러시 팝오버의 일곱 슬라이더는 개별
 손잡이·트랙 치수를 지정하지 않고 LVUI의 `SliderSize::mini` 또는 선언형
-`size={.mini}`를 사용한다. 크기와 포커스 표시는 LVUI가 소유하며 앱은 값 범위·
+`size: .mini`를 사용한다. 크기와 포커스 표시는 LVUI가 소유하며 앱은 값 범위·
 폭·접근성 이름 등을 전달한다. 브러시 팝오버는 LVUI `ScrollView`로 넘치는 압력
 설정을 보존한다. 기준은 기존 LVUI 인스턴스로 구성한
 [스크롤 뷰포트](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=281-4112)와
@@ -55,7 +55,7 @@ Vincent 시절의 고정 색상 SVG와 이를 실행 파일에 포함하던 생�
 환경설정 Profile의 [Figma 기준 화면](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2635)은
 LVUI Avatar와 둥근 TextField 인스턴스를 사용한다. 소스의 Profile 사진과 이름
 입력도 공통 Avatar와 compact·rounded 입력 및 지우기 동작을 사용한다. 설정 탭은
-공통 세그먼트의 29px 배치와 22px 버튼을 따르며 `selectionStyle={.segmented}`로
+공통 세그먼트의 바깥 여백과 테두리 없이 버튼에 맞춘 22px 배치를 따르며 `selectionStyle: .segmented`로
 선택 항목의 기본 버튼 상태를 표현한다. 탭의 크기·여백·선택색은 제품에서
 재정의하지 않는다. 다른 설정 화면의 개별 스타일, 창 전체의 시각 동등성과 실제
 기기 표시는 아직 별도다.

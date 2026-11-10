@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/app_structure.md",
-    "sha256": "d3b1a5ceeaa8513e8a67d97f7a4ab6196d1ebdda761e751e2980a998a52913e9",
-    "bytes": 2359,
+    "sha256": "6e997d2f5401b9bbc1f7d2a97a2860ac729478e693c414cdaf149e92ac296fb9",
+    "bytes": 2373,
     "line_count": 23,
     "encoding": "utf-8",
     "language": "ko"
@@ -57,7 +57,7 @@
       "kind": "table",
       "start_line": 5,
       "end_line": 17,
-      "raw": "| 경로 | 역할 |\n| --- | --- |\n| `App/Engine/` | Core 수명, QueryPort, 협업·탐색, 설정·복구·라이선스와 문서 메타데이터 |\n| `App/Native/Application.cpp` | 앱·창·서비스 조립, 대화상자·메뉴·클립보드·드롭·명령 |\n| `App/Native/EditorBackend.*` | LVUI의 스코프 소유 백엔드와 반응형 값·목록 모델 |\n| `App/Native/Artwork.*` | 문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기 |\n| `App/Native/CanvasView.*` | 화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시 |\n| `App/Native/Shapes.*`, `LegacyCanvas.cpp` | 벡터 도형 정책과 이전 문서의 검증·이행 |\n| `App/Native/views/` | HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI |\n| `cmake/` | Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징 |\n| `tests/` | 엔진·서비스·편집·실제 GUI·번들 재배치 검증 |\n| `resources/` | 앱 아이콘과 제품 자원 |\n| `build/` | 생성 C++·SDK 소비 결과·앱 하나·검사 자료 |\n",
+      "raw": "| 경로 | 역할 |\n| --- | --- |\n| `App/Engine/` | Core 수명, QueryPort, 협업·탐색, 설정·복구·라이선스와 문서 메타데이터 |\n| `App/Native/Application.cpp` | 앱·창·서비스 조립, 대화상자·메뉴·클립보드·드롭·명령 |\n| `App/Native/EditorBackend.*` | LVUI의 스코프 소유 백엔드와 반응형 값·목록 모델 |\n| `App/Native/Artwork.*` | 문서 편집, 실행 취소, 파일 이행과 가져오기·내보내기 |\n| `App/Native/CanvasView.*` | 화면 영역의 타일, 포인터·펜·도구·뷰포트와 선택 표시 |\n| `App/Native/Shapes.*`, `LegacyCanvas.cpp` | 벡터 도형 정책과 이전 문서의 검증·이행 |\n| `App/Native/views/` | 직접 선언형 Main, Preferences, CanvasSetup LVUI와 공통 레이아웃 프로필 |\n| `cmake/` | Qt 없는 의존성 감사, 번들 메타데이터와 네이티브 패키징 |\n| `tests/` | 엔진·서비스·편집·실제 GUI·번들 재배치 검증 |\n| `resources/` | 앱 아이콘과 제품 자원 |\n| `build/` | 생성 C++·SDK 소비 결과·앱 하나·검사 자료 |\n",
       "columns": [
         "경로",
         "역할"
@@ -89,7 +89,7 @@
         ],
         [
           "`App/Native/views/`",
-          "HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI"
+          "직접 선언형 Main, Preferences, CanvasSetup LVUI와 공통 레이아웃 프로필"
         ],
         [
           "`cmake/`",
@@ -237,7 +237,7 @@
           ],
           [
             "`App/Native/views/`",
-            "HTML 요소·인라인 스타일의 Main, Preferences, CanvasSetup LVUI"
+            "직접 선언형 Main, Preferences, CanvasSetup LVUI와 공통 레이아웃 프로필"
           ],
           [
             "`cmake/`",

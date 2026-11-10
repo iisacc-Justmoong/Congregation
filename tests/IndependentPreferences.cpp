@@ -76,7 +76,7 @@ int main() {
     require(take(members_tab.snapshot()).bounds.height==22&&take(general_tab.snapshot()).bounds.height==22&&
             take(profile_tab.snapshot()).bounds.height==22,
             "Preferences segments did not use the standard 22px LVUI button height");
-    require(take(widget(tree,"/preferences-sections").snapshot()).bounds.height==29,
+    require(take(widget(tree,"/preferences-sections").snapshot()).bounds.height==22,
             "Preferences did not use the standard LVUI segmented-control geometry");
     const auto has_title=[](const auto& frame,std::string_view label){
         const auto contains=[&](const auto& texts){return std::ranges::any_of(texts,[&](const auto& text){
@@ -111,7 +111,10 @@ int main() {
     require(contains_photo(take(tree->drawing_snapshot({480,360}))),"Profile Avatar did not show the selected photo");
     scope->backend_0.profile_avatar.set({});
     const auto cleared=take(tree->drawing_snapshot({480,360}));
-    const auto placeholder=take(lvui::native::avatar_placeholder_mask_image({64,64},1));
+    const auto placeholder_catalog=take(lvui::native::avatar_placeholder_mask_catalog());
+    const auto placeholder_pixels=take(ii::gui::avatar_placeholder_pixels({64,64},1));
+    const auto placeholder=take(lvui::native::icon_image<ii::gui::CachedSvgDecoder>(
+        placeholder_catalog,"avatar-placeholder-mask",placeholder_pixels));
     const auto is_placeholder=[&](const auto& run){return run.image==placeholder&&run.tint&&
         std::abs(run.tint->red-1)<.0001&&std::abs(run.tint->green-1)<.0001&&
         std::abs(run.tint->blue-1)<.0001&&std::abs(run.tint->alpha-.8)<.0001;};

@@ -1,0 +1,135 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:e9d12fa199da636aa84dc10eea98c56caa68e17bd33d61a8c1e96d57f7f11c3b",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/BRUSH_TOOL_PANEL.md",
+    "sha256": "d78579d78c840cb1d4d2c2daaba33643ca59cba840a7404b2a6a83e984dcf305",
+    "bytes": 2673,
+    "line_count": 34,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "브러시 도구 속성 패널",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 브러시 도구 속성 패널\n",
+      "level": 1,
+      "title": "브러시 도구 속성 패널"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 11,
+      "raw": "Figma `130:1836`의 브러시 패널은 기본 설정, Shape Dynamics, Scattering,\nTexture, Color Dynamics, Transfer, Brush Pose, Noise, Wet Edges, Build-up,\nSmoothing과 이후 상세 설정을 순서대로 제공한다. 기본 설정은 작은 슬라이더와\n값을 사용하고 필압 불투명도·절대 간격·필압 곡선을 같은 위치에 둔다.\n상세 설정의 값은 `ToolSettings`를 거쳐 iiPaintEngine의 브러시 상태에 반영한다.\n동역학 제어는 목록에서 직접 선택하며, 해당 제어가 꺼져 있거나 현재 브러시가\n지원하지 않는 설정은 비활성화하고 값 대신 대시를 표시한다. 예를 들어 Tilt\nScale은 크기 제어가 Pen Tilt일 때, Wetness와 Mix는 물감을 혼합하는 도구에서\n사용한다. 섹션 안의 간격보다 섹션 간 간격이 크다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 13,
+      "end_line": 19,
+      "raw": "도구 속성의 화면 구성과 항목 순서는 `App/Native/views/ToolPanel.lvui`에서\n선언하고 빌드 시 네이티브 코드로 변환한다. 브러시 외의 선택·도형·채우기·\n그라디언트·복제 도구 속성도 같은 화면에 포함한다. `ToolPanelBackend`는 기존\n`EditorBackend`와 `ToolSettings`의 상태를 관찰해 각 행에 전달하고, 명령을\n원래 모델에 보낸다. `ToolPanel.cpp`는 선언형 화면의 마운트와 필압 곡선의\n네이티브 그리기 연결만 담당한다. 설정 변경은 캔버스 브러시와 팝오버에 같은\n모델을 통해 반영되며 패널 세대가 끝나면 관찰도 해제된다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 21,
+      "end_line": 25,
+      "raw": "기본 브러시 팝오버와 도구 패널은 크기, 유량, 불투명도, 경도, 간격과\n스무딩 강도를 같은 모델에서 읽고 쓴다. 필압 불투명도를 끄면 기존 필압\n바인딩도 비활성화하며, 이동 속도는 불투명도에 영향을 주지 않는다.\nNoise의 Monochrome을 끄면 동일한 노이즈 입자 위치에서 색상 채널을 변화시키고\n알파 마스크는 유지한다. 텍스처는 기존 자산 선택 동작으로 연결한다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 27,
+      "end_line": 30,
+      "raw": "패널의 휠과 트랙패드 스크롤은 해당 뷰포트에 전달되고, 터치 장치에서는\n손가락 또는 펜으로 한 번 세로 드래그해도 내용을 이동한다. 스크롤 가능한\n뷰포트에서만 세로 제스처를 인식하며, 캔버스 펜 입력과 슬라이더의 가로\n드래그는 기존 제어에 남는다. 두 손가락 스크롤과 확대 동작도 유지한다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 32,
+      "end_line": 34,
+      "raw": "헤드리스 패널 시험은 항목 순서와 크기, 선택 메뉴, 값 연결, 사용 가능 상태,\n휠과 터치 스크롤을 검사한다. 실제 iPad의 펜 입력과 표시 성능은 별도로\n기기에서 확인해야 한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "브러시 도구 속성 패널",
+      "anchor": "브러시-도구-속성-패널",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000011",
+        "line": 34,
+        "text": "기기에서 확인해야 한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

@@ -100,6 +100,9 @@ enum class ToolParameter : std::size_t
     build_up_rate,
     build_up_limit,
     build_up_time,
+    shape_tilt_scale,
+    transfer_opacity_jitter,
+    noise_monochrome,
     total
 };
 struct ParameterSpec final
@@ -119,6 +122,7 @@ class ToolSettings final
     ToolSettings();
     [[nodiscard]] static std::span<const ParameterSpec> specs();
     [[nodiscard]] static const ParameterSpec& spec(ToolParameter);
+    [[nodiscard]] static std::string option_label(ToolParameter, int option);
     [[nodiscard]] double value(ToolParameter) const;
     [[nodiscard]] double normalized(ToolParameter) const;
     [[nodiscard]] std::string label(ToolParameter) const;

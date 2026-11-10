@@ -125,6 +125,10 @@ public:
         auto options=value_.options();if(!options)return std::unexpected(options.error());
         options->text=std::move(text);return value_.set_options(*options);
     }
+    [[nodiscard]] ii::core::Result<void> set_enabled(bool enabled)const {
+        auto options=value_.options();if(!options)return std::unexpected(options.error());
+        options->enabled=enabled;return value_.set_options(*options);
+    }
 };
 class DropdownHandle final {
     lvui_host::DropdownButton value_;

@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/NATIVE_VERIFICATION.md",
-    "sha256": "337e51546d3cee75df52812624d304a28a20645db98837d46df3b9ca6cfafb33",
-    "bytes": 82377,
-    "line_count": 986,
+    "sha256": "e041cf8a8c7c85487620d737829a896b38c524a312a541b3a113603e3f27ecd3",
+    "bytes": 84313,
+    "line_count": 1010,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -43,9 +43,9 @@
       "kind": "heading",
       "start_line": 3,
       "end_line": 3,
-      "raw": "## LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04\n",
+      "raw": "## iPad 앱별 Society 저장소와 시작 캔버스 · 2026-11-10\n",
       "level": 2,
-      "title": "LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04"
+      "title": "iPad 앱별 Society 저장소와 시작 캔버스 · 2026-11-10"
     },
     {
       "id": "b000004",
@@ -59,7 +59,7 @@
       "kind": "paragraph",
       "start_line": 5,
       "end_line": 9,
-      "raw": "공통 LVUI에 Figma 원본의 채움형과 양 끝 레이블형, 구간형 슬라이더를 추가했다.\n구간형의 표시 개수와 기본 스냅 간격, 명시적 단계 우선순위, 키보드·접근성\n증감과 반응형 입력은 LVUI 헤드리스 검사에서 확인했다. 제품 회귀는 기존 화면을\n검사하며, 제품에서 새 형식을 사용한다는 뜻은 아니다. 공통 트랙의 일부 그림자,\n비활성 그룹 합성과 실제 GPU 표시의 동등성은 아직 남는다.\n"
+      "raw": "공유 App Group이 서명과 iOS 프로비저닝 프로필에 포함된 빌드를 기존 iPad 앱 위에\n설치했다. Society가 설치되지 않은 iPad Pro에서 앱이 자체 데이터 디렉터리에\n`Society.societycontainer`와 아홉 섹션을 만들고 `Files`에 `.iisc` 작업 파일을\n생성했다. 별도의 공용 App Group 루트에는 앱이 생성한 컨테이너가 없다. 실행 화면의\n캔버스 크기는 디스플레이와 같은 2732 × 2048 픽셀이며 작업 영역에 맞춰져 있다.\n"
     },
     {
       "id": "b000006",
@@ -72,268 +72,268 @@
       "id": "b000007",
       "kind": "paragraph",
       "start_line": 11,
-      "end_line": 17,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\n헤드리스 회귀 641건, 별도 설치 패키지 경계 검사 1건이 통과했다. 별도 빌드\n디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 같은 조건의 Congregation\nDebug 전체 빌드와 관련 제품 검사 14건도 통과했다. 제품용 LVUI 파일 45개와\niiGUI 파일 3개를 현 소스·빌드와 대조했고, 제품 테스트 정의 111개가 분리 전후\n일치했다. 기존 테스트 자료 13개 항목의 경로와 파일 해시는 유지했으며 격리된\n검사 경로는 정리했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "end_line": 21,
+      "raw": "자동 검사에서는 앱별 저장소 분리, 시작 크기, 작은 캔버스 맞춤, 파일 충돌·반복\n이관, SQLite의 미완료 쓰기와 리디렉션 보호가 통과했다. Qt 탐색을 끈 설치형 SDK의\nC++·Python 소비자도 확인했다. 실제 Society iPad 앱 설치 후의 공용 저장소 이관은\n기기에 Society가 없어 검증하지 못했다. Android 공유 저장소 이관은 아직 연결되지\n않았다. 사용자가 실기기에서 그린 획은 화면에 남았지만 드로잉 지연이 심하다고\n보고했다. 이 기록만으로 입력 처리·브러시 계산·합성 중 어느 단계가 지배적인지는\n판정할 수 없다. `xctrace`가 기기 연결을 기다리다 시간 초과되어 같은 조작의\n성능 추적은 확보하지 못했다. 패널 스크롤과 설정별 동작은 이번 응답에서 재확인되지\n않았다. 별도로 Mac의 합성 회귀에서는 2048 × 2048 캔버스의 획 종료가 약\n0.99~2.00초였다. 이 검사는 다른 기기와 저장 환경에서 실행했으므로 iPad 지연의\n원인을 입증하지 않는다.\n"
     },
     {
       "id": "b000008",
       "kind": "blank",
-      "start_line": 18,
-      "end_line": 18,
+      "start_line": 22,
+      "end_line": 22,
       "raw": "\n"
     },
     {
       "id": "b000009",
-      "kind": "paragraph",
-      "start_line": 19,
-      "end_line": 25,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심벌 230,027행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명은\n유효했다. 주 실행 파일 SHA-256은\n`ba0d778d484ecaa60ae335268e2d65d3267bee4ed0a0a051621bf98ea7260a54`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 기존\n중복 실행 검색 경로 경고가 있었다. 실제 앱 창·GPU·기기와 Windows·Linux 실행,\n배포 서명 및 공증은 검사하지 않았다.\n"
+      "kind": "heading",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "## LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04\n",
+      "level": 2,
+      "title": "LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04"
     },
     {
       "id": "b000010",
       "kind": "blank",
-      "start_line": 26,
-      "end_line": 26,
+      "start_line": 24,
+      "end_line": 24,
       "raw": "\n"
     },
     {
       "id": "b000011",
       "kind": "paragraph",
-      "start_line": 27,
-      "end_line": 31,
-      "raw": "제품의 `WorkspaceView`와 관련 C++ 전환 경계에는 일반 iiGUI 위젯·사용자 지정\n그리기가 남으며 제품별 `Metric` 선언 107개도 남는다. 기존 원본에 없는 공통\n상태 표시줄은 Figma 팀 파일이 보기 전용으로 잠겨 선행 디자인과 제품 전환을\n완료하지 못했다. 따라서 활성 번들의 의존성 검사 통과는 모든 GUI의 선언형\nLVUI 전환이나 저장소의 과거 Qt/QML 소스 제거를 뜻하지 않는다.\n"
+      "start_line": 25,
+      "end_line": 29,
+      "raw": "공통 LVUI에 Figma 원본의 채움형과 양 끝 레이블형, 구간형 슬라이더를 추가했다.\n구간형의 표시 개수와 기본 스냅 간격, 명시적 단계 우선순위, 키보드·접근성\n증감과 반응형 입력은 LVUI 헤드리스 검사에서 확인했다. 제품 회귀는 기존 화면을\n검사하며, 제품에서 새 형식을 사용한다는 뜻은 아니다. 공통 트랙의 일부 그림자,\n비활성 그룹 합성과 실제 GPU 표시의 동등성은 아직 남는다.\n"
     },
     {
       "id": "b000012",
       "kind": "blank",
-      "start_line": 32,
-      "end_line": 32,
+      "start_line": 30,
+      "end_line": 30,
       "raw": "\n"
     },
     {
       "id": "b000013",
-      "kind": "heading",
-      "start_line": 33,
-      "end_line": 33,
-      "raw": "## LVUI 슬라이더 심벌의 공통 색상 · 2026-11-04\n",
-      "level": 2,
-      "title": "LVUI 슬라이더 심벌의 공통 색상 · 2026-11-04"
+      "kind": "paragraph",
+      "start_line": 31,
+      "end_line": 37,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\n헤드리스 회귀 641건, 별도 설치 패키지 경계 검사 1건이 통과했다. 별도 빌드\n디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 같은 조건의 Congregation\nDebug 전체 빌드와 관련 제품 검사 14건도 통과했다. 제품용 LVUI 파일 45개와\niiGUI 파일 3개를 현 소스·빌드와 대조했고, 제품 테스트 정의 111개가 분리 전후\n일치했다. 기존 테스트 자료 13개 항목의 경로와 파일 해시는 유지했으며 격리된\n검사 경로는 정리했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000014",
       "kind": "blank",
-      "start_line": 34,
-      "end_line": 34,
+      "start_line": 38,
+      "end_line": 38,
       "raw": "\n"
     },
     {
       "id": "b000015",
       "kind": "paragraph",
-      "start_line": 35,
-      "end_line": 41,
-      "raw": "공통 슬라이더의 기본 심벌과 원본 LVRS에서 사용하던 `sun` 이름은 선택한\nLVUI `Material/Alert/actionBorder` 색상을 따른다. 기본색은 원본 SVG 래스터를\n그대로 사용하며 다른 색상과 투명도는 원본 형상을 보존해 적용한다. 모델·생성·\n위젯·토큰 관련 검사 6건과 설치 패키지 경계 검사가 통과했다. 현재 제품의\n슬라이더는 심벌을 표시하지 않으므로 제품 검사는 기존 화면의 회귀를 확인하며,\n심벌의 출력은 LVUI 헤드리스 검사에서 별도로 다룬다. 실제 GPU 출력은 검사하지\n않았다.\n"
+      "start_line": 39,
+      "end_line": 45,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심벌 230,027행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명은\n유효했다. 주 실행 파일 SHA-256은\n`ba0d778d484ecaa60ae335268e2d65d3267bee4ed0a0a051621bf98ea7260a54`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 기존\n중복 실행 검색 경로 경고가 있었다. 실제 앱 창·GPU·기기와 Windows·Linux 실행,\n배포 서명 및 공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000016",
       "kind": "blank",
-      "start_line": 42,
-      "end_line": 42,
+      "start_line": 46,
+      "end_line": 46,
       "raw": "\n"
     },
     {
       "id": "b000017",
       "kind": "paragraph",
-      "start_line": 43,
-      "end_line": 48,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드, LVUI 설치 패키지 경계 검사와 제품 관련 헤드리스 검사 14건이\n통과했다. 제품용 LVUI 파일 41개와 iiGUI 파일 3개를 현 소스·빌드와 대조했고,\n분리된 제품 테스트 정의 111개가 원본과 일치했다. 기존 테스트 자료 13개 항목의\n경로와 파일 해시를 보존했으며, 분리된 작업 경로는 검사 후 제거했다. 기존\n빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 47,
+      "end_line": 51,
+      "raw": "제품의 `WorkspaceView`와 관련 C++ 전환 경계에는 일반 iiGUI 위젯·사용자 지정\n그리기가 남으며 제품별 `Metric` 선언 107개도 남는다. 기존 원본에 없는 공통\n상태 표시줄은 Figma 팀 파일이 보기 전용으로 잠겨 선행 디자인과 제품 전환을\n완료하지 못했다. 따라서 활성 번들의 의존성 검사 통과는 모든 GUI의 선언형\nLVUI 전환이나 저장소의 과거 Qt/QML 소스 제거를 뜻하지 않는다.\n"
     },
     {
       "id": "b000018",
       "kind": "blank",
-      "start_line": 49,
-      "end_line": 49,
+      "start_line": 52,
+      "end_line": 52,
       "raw": "\n"
     },
     {
       "id": "b000019",
-      "kind": "paragraph",
-      "start_line": 50,
-      "end_line": 60,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심벌 230,022행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`a33781dc9cd9740372df0ad264381e5049836bc328fd2de84e560b4fd570e1d9`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 첫 LVUI\n전체 회귀에서 구문 검사 한 건이 시간 초과해 212건 통과 상태에서 중단했으며,\n해당 검사는 단독 재실행에서 2.01초로 통과했다. 이후 전체 헤드리스 회귀\n640건이 통과했고 해당 구문 검사도 1.09초로 통과했다. 별도 빌드 디렉터리를\n만드는 `LVUI.NativeInstalled`는 제외하고 설치 패키지 경계 검사를 별도로\n수행했다. 실제 앱 창·GPU·기기와\nWindows·Linux 실행, 배포 서명 및 공증은 검사하지 않았다.\n"
+      "kind": "heading",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "## LVUI 슬라이더 심벌의 공통 색상 · 2026-11-04\n",
+      "level": 2,
+      "title": "LVUI 슬라이더 심벌의 공통 색상 · 2026-11-04"
     },
     {
       "id": "b000020",
       "kind": "blank",
-      "start_line": 61,
-      "end_line": 61,
+      "start_line": 54,
+      "end_line": 54,
       "raw": "\n"
     },
     {
       "id": "b000021",
       "kind": "paragraph",
-      "start_line": 62,
-      "end_line": 69,
-      "raw": "제품의 `WorkspaceView`와 관련 C++ 전환 경계는 공통 LVUI 컨트롤과 함께 일반\niiGUI 위젯과 사용자 지정 그리기를 직접 조합한다. 따라서 모든 화면이 선언형\nLVUI로 전환된 상태는 아니다. 제품별 `Metric` 선언 107개 중 네 개는 현재 앱에\n연결되지 않은 에셋 라이브러리 뷰와 독립 테스트에서만 사용한다.\n[기준 상태 표시줄](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=84-11143)은\n높이가 고정 20px이며 안쪽 여백·간격·윗변은 공통 변수에 연결되어 있다.\n경계선은 자동 배치 크기 계산에 포함되지 않으므로 높이를 그 값들의 합으로\n단정하거나 같은 숫자의 다른 의미를 가진 토큰으로 치환할 수 없다.\n"
+      "start_line": 55,
+      "end_line": 61,
+      "raw": "공통 슬라이더의 기본 심벌과 원본 LVRS에서 사용하던 `sun` 이름은 선택한\nLVUI `Material/Alert/actionBorder` 색상을 따른다. 기본색은 원본 SVG 래스터를\n그대로 사용하며 다른 색상과 투명도는 원본 형상을 보존해 적용한다. 모델·생성·\n위젯·토큰 관련 검사 6건과 설치 패키지 경계 검사가 통과했다. 현재 제품의\n슬라이더는 심벌을 표시하지 않으므로 제품 검사는 기존 화면의 회귀를 확인하며,\n심벌의 출력은 LVUI 헤드리스 검사에서 별도로 다룬다. 실제 GPU 출력은 검사하지\n않았다.\n"
     },
     {
       "id": "b000022",
       "kind": "blank",
-      "start_line": 70,
-      "end_line": 70,
+      "start_line": 62,
+      "end_line": 62,
       "raw": "\n"
     },
     {
       "id": "b000023",
-      "kind": "heading",
-      "start_line": 71,
-      "end_line": 71,
-      "raw": "## LVUI 공통 색상 연결 후 회귀 · 2026-11-03\n",
-      "level": 2,
-      "title": "LVUI 공통 색상 연결 후 회귀 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 63,
+      "end_line": 68,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드, LVUI 설치 패키지 경계 검사와 제품 관련 헤드리스 검사 14건이\n통과했다. 제품용 LVUI 파일 41개와 iiGUI 파일 3개를 현 소스·빌드와 대조했고,\n분리된 제품 테스트 정의 111개가 원본과 일치했다. 기존 테스트 자료 13개 항목의\n경로와 파일 해시를 보존했으며, 분리된 작업 경로는 검사 후 제거했다. 기존\n빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000024",
       "kind": "blank",
-      "start_line": 72,
-      "end_line": 72,
+      "start_line": 69,
+      "end_line": 69,
       "raw": "\n"
     },
     {
       "id": "b000025",
       "kind": "paragraph",
-      "start_line": 73,
-      "end_line": 77,
-      "raw": "공통 슬라이더의 트랙·손잡이·눈금·양 끝 글자가 컴파일 시 선택한 LVUI 색상\n토큰을 따르도록 연결했다. 파괴적 버튼의 기본·호버·누름도 공통 빨강 토큰을\n사용하며, C++에서 기본색을 별도로 바꾸는 기존 동작은 유지한다. 제품 회귀는\n기존 기본 슬라이더와 버튼이 사용되는 화면을 확인한다. 새 색상 선택과 반응형\n입력은 LVUI의 모델·생성 코드·헤드리스 위젯 검사에서 별도로 확인했다.\n"
+      "start_line": 70,
+      "end_line": 80,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심벌 230,022행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`a33781dc9cd9740372df0ad264381e5049836bc328fd2de84e560b4fd570e1d9`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 첫 LVUI\n전체 회귀에서 구문 검사 한 건이 시간 초과해 212건 통과 상태에서 중단했으며,\n해당 검사는 단독 재실행에서 2.01초로 통과했다. 이후 전체 헤드리스 회귀\n640건이 통과했고 해당 구문 검사도 1.09초로 통과했다. 별도 빌드 디렉터리를\n만드는 `LVUI.NativeInstalled`는 제외하고 설치 패키지 경계 검사를 별도로\n수행했다. 실제 앱 창·GPU·기기와\nWindows·Linux 실행, 배포 서명 및 공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000026",
       "kind": "blank",
-      "start_line": 78,
-      "end_line": 78,
+      "start_line": 81,
+      "end_line": 81,
       "raw": "\n"
     },
     {
       "id": "b000027",
       "kind": "paragraph",
-      "start_line": 79,
-      "end_line": 88,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드, 관련 LVUI 검사 22건, 별도 설치 패키지 경계 검사 1건과 제품\n관련 검사 14건이 통과했다. 설치 패키지는 Python 컴파일 경로와 C++ 소비자의\n헤더 구문을 포함한다. 같은 변경 후 LVUI 전체 헤드리스 회귀 640건도 통과했고,\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111건은 분리 전후 일치했고 기존 테스트\n자료 13개 항목의 경로와 파일 해시는 유지되었다. 작업 전용 테스트 경로는 검사\n후 제거했다. 제품 스테이징의 LVUI 산출물 39개와 iiGUI 관련 파일 3개는 현재\n소스·빌드와 해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
+      "start_line": 82,
+      "end_line": 89,
+      "raw": "제품의 `WorkspaceView`와 관련 C++ 전환 경계는 공통 LVUI 컨트롤과 함께 일반\niiGUI 위젯과 사용자 지정 그리기를 직접 조합한다. 따라서 모든 화면이 선언형\nLVUI로 전환된 상태는 아니다. 제품별 `Metric` 선언 107개 중 네 개는 현재 앱에\n연결되지 않은 에셋 라이브러리 뷰와 독립 테스트에서만 사용한다.\n[기준 상태 표시줄](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=84-11143)은\n높이가 고정 20px이며 안쪽 여백·간격·윗변은 공통 변수에 연결되어 있다.\n경계선은 자동 배치 크기 계산에 포함되지 않으므로 높이를 그 값들의 합으로\n단정하거나 같은 숫자의 다른 의미를 가진 토큰으로 치환할 수 없다.\n"
     },
     {
       "id": "b000028",
       "kind": "blank",
-      "start_line": 89,
-      "end_line": 89,
+      "start_line": 90,
+      "end_line": 90,
       "raw": "\n"
     },
     {
       "id": "b000029",
-      "kind": "paragraph",
-      "start_line": 90,
-      "end_line": 100,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 230,019행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`17330139f680e786a82149589fd5b52992357e370b71530a1e6a06a766184c89`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개와 실행 중 전역 테마 구독은 남아 있다. 이 중 네 선언은\n현재 앱 대상에 연결되지 않은 에셋 라이브러리 뷰와 독립 테스트에서만 사용한다.\n현재 빌드에서 쓰지\n않는 과거 Qt/QML 소스와 Qt 배포 보조 스크립트도 저장소에 보존되어 있다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검사하지 않았다.\n아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 91,
+      "end_line": 91,
+      "raw": "## LVUI 공통 색상 연결 후 회귀 · 2026-11-03\n",
+      "level": 2,
+      "title": "LVUI 공통 색상 연결 후 회귀 · 2026-11-03"
     },
     {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 101,
-      "end_line": 101,
+      "start_line": 92,
+      "end_line": 92,
       "raw": "\n"
     },
     {
       "id": "b000031",
-      "kind": "heading",
-      "start_line": 102,
-      "end_line": 102,
-      "raw": "## LVUI 중심 기준 슬라이더 이식 후 회귀 · 2026-11-03\n",
-      "level": 2,
-      "title": "LVUI 중심 기준 슬라이더 이식 후 회귀 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 93,
+      "end_line": 97,
+      "raw": "공통 슬라이더의 트랙·손잡이·눈금·양 끝 글자가 컴파일 시 선택한 LVUI 색상\n토큰을 따르도록 연결했다. 파괴적 버튼의 기본·호버·누름도 공통 빨강 토큰을\n사용하며, C++에서 기본색을 별도로 바꾸는 기존 동작은 유지한다. 제품 회귀는\n기존 기본 슬라이더와 버튼이 사용되는 화면을 확인한다. 새 색상 선택과 반응형\n입력은 LVUI의 모델·생성 코드·헤드리스 위젯 검사에서 별도로 확인했다.\n"
     },
     {
       "id": "b000032",
       "kind": "blank",
-      "start_line": 103,
-      "end_line": 103,
+      "start_line": 98,
+      "end_line": 98,
       "raw": "\n"
     },
     {
       "id": "b000033",
       "kind": "paragraph",
-      "start_line": 104,
-      "end_line": 106,
-      "raw": "공통 LVUI에 중심 기준 슬라이더와 원형 눈금을 추가한 뒤 제품을 다시 빌드했다.\n제품 회귀는 기존 기본 슬라이더와 프로필 등 관련 화면을 확인하며 새 중심 기준\n형식의 동작은 LVUI의 모델·코드 생성·헤드리스 위젯 검사에서 별도로 확인했다.\n"
+      "start_line": 99,
+      "end_line": 108,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드, 관련 LVUI 검사 22건, 별도 설치 패키지 경계 검사 1건과 제품\n관련 검사 14건이 통과했다. 설치 패키지는 Python 컴파일 경로와 C++ 소비자의\n헤더 구문을 포함한다. 같은 변경 후 LVUI 전체 헤드리스 회귀 640건도 통과했고,\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111건은 분리 전후 일치했고 기존 테스트\n자료 13개 항목의 경로와 파일 해시는 유지되었다. 작업 전용 테스트 경로는 검사\n후 제거했다. 제품 스테이징의 LVUI 산출물 39개와 iiGUI 관련 파일 3개는 현재\n소스·빌드와 해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
     },
     {
       "id": "b000034",
       "kind": "blank",
-      "start_line": 107,
-      "end_line": 107,
+      "start_line": 109,
+      "end_line": 109,
       "raw": "\n"
     },
     {
       "id": "b000035",
       "kind": "paragraph",
-      "start_line": 108,
-      "end_line": 114,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\n헤드리스 회귀 640건, 별도 설치 패키지 경계 검사 1건, Congregation Debug 전체\n빌드와 관련 검사 14건이 통과했다. `LVUI.NativeInstalled`는 별도 빌드 디렉터리를\n만들므로 제외했다. 제품 테스트 정의 111건은 분리 전후 일치했고 기존 테스트\n자료의 경로 목록 13개는 유지되었다. 작업 전용 테스트 경로는 검사 후 제거했다.\n제품 스테이징의 LVUI 산출물 39개와 iiGUI 관련 파일 3개는 현재 소스·빌드와\n해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 110,
+      "end_line": 120,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 230,019행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`17330139f680e786a82149589fd5b52992357e370b71530a1e6a06a766184c89`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개와 실행 중 전역 테마 구독은 남아 있다. 이 중 네 선언은\n현재 앱 대상에 연결되지 않은 에셋 라이브러리 뷰와 독립 테스트에서만 사용한다.\n현재 빌드에서 쓰지\n않는 과거 Qt/QML 소스와 Qt 배포 보조 스크립트도 저장소에 보존되어 있다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검사하지 않았다.\n아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 115,
-      "end_line": 115,
+      "start_line": 121,
+      "end_line": 121,
       "raw": "\n"
     },
     {
       "id": "b000037",
-      "kind": "paragraph",
-      "start_line": 116,
-      "end_line": 123,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 230,019행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`134d4b92c316e00f76cf7eddb9145ae49d6dfb774ea32b9de5d107121708b2ef`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개, 실행 중 전역 테마 구독과 과거 Qt/QML 비교 소스는 남아\n있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검사하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 122,
+      "end_line": 122,
+      "raw": "## LVUI 중심 기준 슬라이더 이식 후 회귀 · 2026-11-03\n",
+      "level": 2,
+      "title": "LVUI 중심 기준 슬라이더 이식 후 회귀 · 2026-11-03"
     },
     {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 124,
-      "end_line": 124,
+      "start_line": 123,
+      "end_line": 123,
       "raw": "\n"
     },
     {
       "id": "b000039",
-      "kind": "heading",
-      "start_line": 125,
-      "end_line": 125,
-      "raw": "## Avatar 공통 색상과 마스크 · 2026-11-03\n",
-      "level": 2,
-      "title": "Avatar 공통 색상과 마스크 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 124,
+      "end_line": 126,
+      "raw": "공통 LVUI에 중심 기준 슬라이더와 원형 눈금을 추가한 뒤 제품을 다시 빌드했다.\n제품 회귀는 기존 기본 슬라이더와 프로필 등 관련 화면을 확인하며 새 중심 기준\n형식의 동작은 LVUI의 모델·코드 생성·헤드리스 위젯 검사에서 별도로 확인했다.\n"
     },
     {
       "id": "b000040",
       "kind": "blank",
-      "start_line": 126,
-      "end_line": 126,
+      "start_line": 127,
+      "end_line": 127,
       "raw": "\n"
     },
     {
       "id": "b000041",
       "kind": "paragraph",
-      "start_line": 127,
-      "end_line": 132,
-      "raw": "Figma Profile Avatar의 원형 배경은 `Panel/surfaceRaised`, 기본 사용자 심벌은\n`Text/bodyColor`에 연결된다. LVUI 컴파일러는 선택한 두 공통 토큰을 전달한다.\n심벌의 SVG 형상과 색상·불투명도를 분리하고 사용자 사진에는 색을 입히지 않는다.\n실행 중 전역 테마 구독은 아직 제공하지 않는다. 제품 프로필 회귀는 사진을 지운 뒤\n공통 마스크와 색상이 복원되는지 확인한다. 이전 회귀는 캡처된 단색 이미지의\n객체 일치를 가정해 실패했으며, 새 마스크와 색상·알파를 확인하도록 갱신했다.\n"
+      "start_line": 128,
+      "end_line": 134,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\n헤드리스 회귀 640건, 별도 설치 패키지 경계 검사 1건, Congregation Debug 전체\n빌드와 관련 검사 14건이 통과했다. `LVUI.NativeInstalled`는 별도 빌드 디렉터리를\n만들므로 제외했다. 제품 테스트 정의 111건은 분리 전후 일치했고 기존 테스트\n자료의 경로 목록 13개는 유지되었다. 작업 전용 테스트 경로는 검사 후 제거했다.\n제품 스테이징의 LVUI 산출물 39개와 iiGUI 관련 파일 3개는 현재 소스·빌드와\n해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000042",
       "kind": "blank",
-      "start_line": 133,
-      "end_line": 133,
+      "start_line": 135,
+      "end_line": 135,
       "raw": "\n"
     },
     {
       "id": "b000043",
       "kind": "paragraph",
-      "start_line": 134,
+      "start_line": 136,
       "end_line": 143,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI의 관련 검사 10건, Python 컴파일\nAPI 검사, 설치 패키지 경계 검사와 제품 관련 검사 14건이 통과했다. LVUI 전체\n헤드리스 회귀 640건도 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외하고 설치 패키지 경계 검사를 별도로 수행했다. 선택된 색상과\n투명도가 iiGUI의 테스트 전용 소프트웨어 합성 픽셀에도 반영되는지 확인했다.\n제품 테스트 정의 111건은 분리 전후 일치했고 기존 테스트 자료의 경로 목록 13개는\n유지되었다. 작업 전용 테스트 경로는 검사 후 제거했다. 제품 스테이징의 LVUI\n산출물 37개 및 iiGUI 관련 파일 3개는 해당 소스·빌드와 해시가 일치했다. 기존\n빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 230,019행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`134d4b92c316e00f76cf7eddb9145ae49d6dfb774ea32b9de5d107121708b2ef`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개, 실행 중 전역 테마 구독과 과거 Qt/QML 비교 소스는 남아\n있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검사하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000044",
@@ -344,142 +344,142 @@
     },
     {
       "id": "b000045",
-      "kind": "paragraph",
+      "kind": "heading",
       "start_line": 145,
-      "end_line": 152,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행, 심볼 230,018행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`1528d40d2a5a1868e29689f37dd663717f252d459e92b8e1c2714e8e26a34cd6`이다.\n이 이름·경로 검사는 다른 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개, 실행 중 전역 테마 구독과 과거 Qt/QML 비교 소스는 남아\n있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검증하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
+      "end_line": 145,
+      "raw": "## Avatar 공통 색상과 마스크 · 2026-11-03\n",
+      "level": 2,
+      "title": "Avatar 공통 색상과 마스크 · 2026-11-03"
     },
     {
       "id": "b000046",
+      "kind": "blank",
+      "start_line": 146,
+      "end_line": 146,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 147,
+      "end_line": 152,
+      "raw": "Figma Profile Avatar의 원형 배경은 `Panel/surfaceRaised`, 기본 사용자 심벌은\n`Text/bodyColor`에 연결된다. LVUI 컴파일러는 선택한 두 공통 토큰을 전달한다.\n심벌의 SVG 형상과 색상·불투명도를 분리하고 사용자 사진에는 색을 입히지 않는다.\n실행 중 전역 테마 구독은 아직 제공하지 않는다. 제품 프로필 회귀는 사진을 지운 뒤\n공통 마스크와 색상이 복원되는지 확인한다. 이전 회귀는 캡처된 단색 이미지의\n객체 일치를 가정해 실패했으며, 새 마스크와 색상·알파를 확인하도록 갱신했다.\n"
+    },
+    {
+      "id": "b000048",
       "kind": "blank",
       "start_line": 153,
       "end_line": 153,
       "raw": "\n"
     },
     {
-      "id": "b000047",
-      "kind": "heading",
-      "start_line": 154,
-      "end_line": 154,
-      "raw": "## 프로필 입력 영역의 콘텐츠 크기 · 2026-11-03\n",
-      "level": 2,
-      "title": "프로필 입력 영역의 콘텐츠 크기 · 2026-11-03"
-    },
-    {
-      "id": "b000048",
-      "kind": "blank",
-      "start_line": 155,
-      "end_line": 155,
-      "raw": "\n"
-    },
-    {
       "id": "b000049",
       "kind": "paragraph",
-      "start_line": 156,
-      "end_line": 159,
-      "raw": "환경설정 프로필은 Figma 원본처럼 왼쪽 정렬하며 입력 리스너가 공통 Large\nAvatar의 자연 크기를 따른다. 이전 구현에서 이미지 바깥으로 확장됐던 입력 영역을\n64×64로 줄였다. 기존 크기 지정은 없앴으며 영역 밖 클릭은 메뉴를 열지 않는다.\n사진 선택·삭제, 이름 입력과 영역 안 클릭은 기존 동작을 유지한다.\n"
+      "start_line": 154,
+      "end_line": 163,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI의 관련 검사 10건, Python 컴파일\nAPI 검사, 설치 패키지 경계 검사와 제품 관련 검사 14건이 통과했다. LVUI 전체\n헤드리스 회귀 640건도 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외하고 설치 패키지 경계 검사를 별도로 수행했다. 선택된 색상과\n투명도가 iiGUI의 테스트 전용 소프트웨어 합성 픽셀에도 반영되는지 확인했다.\n제품 테스트 정의 111건은 분리 전후 일치했고 기존 테스트 자료의 경로 목록 13개는\n유지되었다. 작업 전용 테스트 경로는 검사 후 제거했다. 제품 스테이징의 LVUI\n산출물 37개 및 iiGUI 관련 파일 3개는 해당 소스·빌드와 해시가 일치했다. 기존\n빌드 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000050",
       "kind": "blank",
-      "start_line": 160,
-      "end_line": 160,
+      "start_line": 164,
+      "end_line": 164,
       "raw": "\n"
     },
     {
       "id": "b000051",
       "kind": "paragraph",
-      "start_line": 161,
-      "end_line": 169,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드가 통과했다. 리스너·Avatar·반응형 바인딩 관련 LVUI 검사 15건,\n설치 패키지 경계 검사 1건과 분리된 제품 관련 검사 14건이 통과했다. 반응형 축의\n선언형 코드 생성 검사도 통과했다. 이전 버튼 변경의 전체 회귀 640건은 이 리스너\n변경 이전 결과이다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다. 기존 제품 테스트 자료 13개 항목은 바뀌지 않았고 분리된 테스트 정의\n111개를 원본과 대조했다. 제품용 LVUI 산출물 35개와 iiGUI 관련 헤더·라이브러리는\n현재 소스·빌드와 해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드\n산출물을 재사용했다.\n"
+      "start_line": 165,
+      "end_line": 172,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행, 심볼 230,018행에서 검사한\nQt·LVRS 이름을 찾지 못했고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명을\n확인했다. 주 실행 파일 SHA-256은\n`1528d40d2a5a1868e29689f37dd663717f252d459e92b8e1c2714e8e26a34cd6`이다.\n이 이름·경로 검사는 다른 이름의 정적 코드 출처까지 증명하지 않는다. 제품별\n`Metric` 선언 107개, 실행 중 전역 테마 구독과 과거 Qt/QML 비교 소스는 남아\n있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은 검증하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000052",
       "kind": "blank",
-      "start_line": 170,
-      "end_line": 170,
+      "start_line": 173,
+      "end_line": 173,
       "raw": "\n"
     },
     {
       "id": "b000053",
-      "kind": "paragraph",
-      "start_line": 171,
-      "end_line": 178,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행, 심볼 229,851행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`0a3c0f774ec35fa398f9dfc734de61c6e5b24fde9ec9d40e0c52de93ccf7afec`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n제품별 `Metric` 선언 107개, Avatar 심벌의 동적 테마 및 기존 Qt/QML 비교 소스는\n남아 있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은\n검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 174,
+      "end_line": 174,
+      "raw": "## 프로필 입력 영역의 콘텐츠 크기 · 2026-11-03\n",
+      "level": 2,
+      "title": "프로필 입력 영역의 콘텐츠 크기 · 2026-11-03"
     },
     {
       "id": "b000054",
       "kind": "blank",
-      "start_line": 179,
-      "end_line": 179,
+      "start_line": 175,
+      "end_line": 175,
       "raw": "\n"
     },
     {
       "id": "b000055",
-      "kind": "heading",
-      "start_line": 180,
-      "end_line": 180,
-      "raw": "## 공통 버튼의 상태 전환 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 버튼의 상태 전환 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 176,
+      "end_line": 179,
+      "raw": "환경설정 프로필은 Figma 원본처럼 왼쪽 정렬하며 입력 리스너가 공통 Large\nAvatar의 자연 크기를 따른다. 이전 구현에서 이미지 바깥으로 확장됐던 입력 영역을\n64×64로 줄였다. 기존 크기 지정은 없앴으며 영역 밖 클릭은 메뉴를 열지 않는다.\n사진 선택·삭제, 이름 입력과 영역 안 클릭은 기존 동작을 유지한다.\n"
     },
     {
       "id": "b000056",
       "kind": "blank",
-      "start_line": 181,
-      "end_line": 181,
+      "start_line": 180,
+      "end_line": 180,
       "raw": "\n"
     },
     {
       "id": "b000057",
       "kind": "paragraph",
-      "start_line": 182,
-      "end_line": 187,
-      "raw": "개명된 Figma LVUI의 레이블·아이콘 버튼 전환을 공통 LVUI 버튼에 이식했다.\n호버는 100ms, 누름은 60ms, 놓기와 누른 채 이탈은 80ms, 놓은 직후 이탈은\n120ms이다. 원본 `EASE_OUT`의 정확한 제어점이 제공되지 않아 CSS 표준\nease-out으로 근사한다. 포인터를 누른 채 밖으로 나간 뒤 다시 들어오면 호버\n표면을 표시하고, 키보드 누름과 기존 클릭 판정은 유지한다. 이전 QML의 내용\n변형·`motionStrength`·`releaseOnSignal`은 아직 이식하지 않았다.\n"
+      "start_line": 181,
+      "end_line": 189,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드가 통과했다. 리스너·Avatar·반응형 바인딩 관련 LVUI 검사 15건,\n설치 패키지 경계 검사 1건과 분리된 제품 관련 검사 14건이 통과했다. 반응형 축의\n선언형 코드 생성 검사도 통과했다. 이전 버튼 변경의 전체 회귀 640건은 이 리스너\n변경 이전 결과이다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다. 기존 제품 테스트 자료 13개 항목은 바뀌지 않았고 분리된 테스트 정의\n111개를 원본과 대조했다. 제품용 LVUI 산출물 35개와 iiGUI 관련 헤더·라이브러리는\n현재 소스·빌드와 해시가 일치했다. 기존 빌드 캐시와 다른 iiSDK의 사전 빌드\n산출물을 재사용했다.\n"
     },
     {
       "id": "b000058",
       "kind": "blank",
-      "start_line": 188,
-      "end_line": 188,
+      "start_line": 190,
+      "end_line": 190,
       "raw": "\n"
     },
     {
       "id": "b000059",
       "kind": "paragraph",
-      "start_line": 189,
-      "end_line": 196,
-      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 iiGUI, LVUI와\nCongregation Debug 전체 빌드가 통과했다. 버튼·모션 헤드리스 검사 2건,\niiGUI 입력 관찰 검사 7건, Figma 스냅샷 생성 검사 35건, LVUI 패키지 경계\n검사 1건과 분리된 제품 관련 검사 14건이 통과했다. 검증 전후 기존 제품\n테스트 자료 13개 항목은 바뀌지 않았고, 제품 테스트 정의 111개와 분리된 정의를\n대조했다. 기존 빌드 캐시 및 다른 iiSDK의 사전 빌드 산출물을 재사용했다.\nLVUI 전체 헤드리스 회귀 640건도 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했고 설치 패키지 경계 검사는 별도로 수행했다.\n"
+      "start_line": 191,
+      "end_line": 198,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행, 심볼 229,851행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`0a3c0f774ec35fa398f9dfc734de61c6e5b24fde9ec9d40e0c52de93ccf7afec`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n제품별 `Metric` 선언 107개, Avatar 심벌의 동적 테마 및 기존 Qt/QML 비교 소스는\n남아 있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 배포 서명 및 공증은\n검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000060",
       "kind": "blank",
-      "start_line": 197,
-      "end_line": 197,
+      "start_line": 199,
+      "end_line": 199,
       "raw": "\n"
     },
     {
       "id": "b000061",
-      "kind": "paragraph",
-      "start_line": 198,
-      "end_line": 205,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,843행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`799e4a0699cb5200a1ae0f8fbdeadf25d78f4f9db5032941201cc40b60000c88`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 실행 빌드에서\n제외한 이전 Qt/QML 비교 소스, 제품별 `Metric` 선언 107개와 Avatar의 동적 테마\n연결은 남아 있다. 실제 앱 창·GPU·기기, Windows·Linux 실행 및 배포 서명·공증은\n검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 200,
+      "end_line": 200,
+      "raw": "## 공통 버튼의 상태 전환 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 버튼의 상태 전환 · 2026-11-03"
     },
     {
       "id": "b000062",
       "kind": "blank",
-      "start_line": 206,
-      "end_line": 206,
+      "start_line": 201,
+      "end_line": 201,
       "raw": "\n"
     },
     {
       "id": "b000063",
-      "kind": "heading",
-      "start_line": 207,
+      "kind": "paragraph",
+      "start_line": 202,
       "end_line": 207,
-      "raw": "## Avatar 심벌의 크기와 배율 · 2026-11-03\n",
-      "level": 2,
-      "title": "Avatar 심벌의 크기와 배율 · 2026-11-03"
+      "raw": "개명된 Figma LVUI의 레이블·아이콘 버튼 전환을 공통 LVUI 버튼에 이식했다.\n호버는 100ms, 누름은 60ms, 놓기와 누른 채 이탈은 80ms, 놓은 직후 이탈은\n120ms이다. 원본 `EASE_OUT`의 정확한 제어점이 제공되지 않아 CSS 표준\nease-out으로 근사한다. 포인터를 누른 채 밖으로 나간 뒤 다시 들어오면 호버\n표면을 표시하고, 키보드 누름과 기존 클릭 판정은 유지한다. 이전 QML의 내용\n변형·`motionStrength`·`releaseOnSignal`은 아직 이식하지 않았다.\n"
     },
     {
       "id": "b000064",
@@ -492,282 +492,284 @@
       "id": "b000065",
       "kind": "paragraph",
       "start_line": 209,
-      "end_line": 213,
-      "raw": "환경설정의 공통 LVUI Avatar는 실제 할당된 크기와 그리기 배율을 기준으로\n기본 심벌의 래스터를 선택한다. 최소 2배 표본화, 공통 캐시와 512픽셀 상한을\n사용하며 사용자 사진이 있을 때는 사진을 표시한다. 사진을 지우면 기본 심벌을\n복원한다. LVUI의 네이티브 이미지 어댑터에는 배치·배율에 따른 래스터 공급\n경계를 추가했다. Figma `Text/bodyColor`의 동적 테마 구독은 아직 구현하지 않았다.\n"
+      "end_line": 216,
+      "raw": "Qt·LVRS 주요 경로를 차단한 기존 macOS arm64 구성에서 iiGUI, LVUI와\nCongregation Debug 전체 빌드가 통과했다. 버튼·모션 헤드리스 검사 2건,\niiGUI 입력 관찰 검사 7건, Figma 스냅샷 생성 검사 35건, LVUI 패키지 경계\n검사 1건과 분리된 제품 관련 검사 14건이 통과했다. 검증 전후 기존 제품\n테스트 자료 13개 항목은 바뀌지 않았고, 제품 테스트 정의 111개와 분리된 정의를\n대조했다. 기존 빌드 캐시 및 다른 iiSDK의 사전 빌드 산출물을 재사용했다.\nLVUI 전체 헤드리스 회귀 640건도 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했고 설치 패키지 경계 검사는 별도로 수행했다.\n"
     },
     {
       "id": "b000066",
       "kind": "blank",
-      "start_line": 214,
-      "end_line": 214,
+      "start_line": 217,
+      "end_line": 217,
       "raw": "\n"
     },
     {
       "id": "b000067",
       "kind": "paragraph",
-      "start_line": 215,
-      "end_line": 224,
-      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드가 통과했다. LVUI 이미지·Avatar·아이콘·카드·모달 관련 검사\n24건과 설치 패키지 경계 검사 1건, 제품 관련 검사 14건이 통과했다. 제품 검사에는\n환경설정의 사진 선택·제거와 기본 심벌 복원이 포함된다. 새 Avatar 배율 검사는\n기존 크기 조정 문제의 실패를 먼저 확인한 뒤 통과시켰다. 이전 재질 변경의 LVUI\n전체 회귀 639건은 아래 기록과 같고, 이를 이번 Avatar 변경 후의 전체 회귀로\n해석하지 않는다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다.\n제품용 LVUI 스테이징 30개는 현재 산출물과 해시가 일치하고, 분리된 제품 테스트\n정의 111개와 기존 테스트 자료 13개 항목을 확인했다. 기존 빌드 캐시와 다른 iiSDK의\n사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 218,
+      "end_line": 225,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,843행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`799e4a0699cb5200a1ae0f8fbdeadf25d78f4f9db5032941201cc40b60000c88`이다.\n이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 실행 빌드에서\n제외한 이전 Qt/QML 비교 소스, 제품별 `Metric` 선언 107개와 Avatar의 동적 테마\n연결은 남아 있다. 실제 앱 창·GPU·기기, Windows·Linux 실행 및 배포 서명·공증은\n검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000068",
       "kind": "blank",
-      "start_line": 225,
-      "end_line": 225,
+      "start_line": 226,
+      "end_line": 226,
       "raw": "\n"
     },
     {
       "id": "b000069",
-      "kind": "paragraph",
-      "start_line": 226,
-      "end_line": 234,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,780행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`5b7d6ecd4cde2c2a7bac7109fd002a806d9f32a78d92609fb6e234722934e959`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n읽기 차단의 예외인 `qt.svg` 아이콘과 현재 빌드에서 제외한 이전 Qt/QML 비교\n소스가 남아 있다. 제품별 `Metric` 선언 107개와 일부 표현 재정의도 남아 있다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 227,
+      "end_line": 227,
+      "raw": "## Avatar 심벌의 크기와 배율 · 2026-11-03\n",
+      "level": 2,
+      "title": "Avatar 심벌의 크기와 배율 · 2026-11-03"
     },
     {
       "id": "b000070",
       "kind": "blank",
-      "start_line": 235,
-      "end_line": 235,
+      "start_line": 228,
+      "end_line": 228,
       "raw": "\n"
     },
     {
       "id": "b000071",
-      "kind": "heading",
-      "start_line": 236,
-      "end_line": 236,
-      "raw": "## 공통 다색 재질 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 다색 재질 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 229,
+      "end_line": 233,
+      "raw": "환경설정의 공통 LVUI Avatar는 실제 할당된 크기와 그리기 배율을 기준으로\n기본 심벌의 래스터를 선택한다. 최소 2배 표본화, 공통 캐시와 512픽셀 상한을\n사용하며 사용자 사진이 있을 때는 사진을 표시한다. 사진을 지우면 기본 심벌을\n복원한다. LVUI의 네이티브 이미지 어댑터에는 배치·배율에 따른 래스터 공급\n경계를 추가했다. Figma `Text/bodyColor`의 동적 테마 구독은 아직 구현하지 않았다.\n"
     },
     {
       "id": "b000072",
       "kind": "blank",
-      "start_line": 237,
-      "end_line": 237,
+      "start_line": 234,
+      "end_line": 234,
       "raw": "\n"
     },
     {
       "id": "b000073",
       "kind": "paragraph",
-      "start_line": 238,
-      "end_line": 242,
-      "raw": "개명된 LVUI 원본의 여덟 방사형 도형과 네 색상 정지점을 공통 재질 및\n팝오버에 연결했다. 원본 스냅샷을 사용하며 창 강조색의 반응형 변경과 기존\n단색 밑그림 API를 보존한다. 브러시 팝오버의 진입·퇴장과 다색 래스터는\n분리된 제품 헤드리스 검사에서 확인했다. GPU 픽셀 동등성과 색상 전환 중\n텍스처 업로드 성능은 검증하지 않았다.\n"
+      "start_line": 235,
+      "end_line": 244,
+      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI와 Congregation\nDebug 전체 빌드가 통과했다. LVUI 이미지·Avatar·아이콘·카드·모달 관련 검사\n24건과 설치 패키지 경계 검사 1건, 제품 관련 검사 14건이 통과했다. 제품 검사에는\n환경설정의 사진 선택·제거와 기본 심벌 복원이 포함된다. 새 Avatar 배율 검사는\n기존 크기 조정 문제의 실패를 먼저 확인한 뒤 통과시켰다. 이전 재질 변경의 LVUI\n전체 회귀 639건은 아래 기록과 같고, 이를 이번 Avatar 변경 후의 전체 회귀로\n해석하지 않는다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다.\n제품용 LVUI 스테이징 30개는 현재 산출물과 해시가 일치하고, 분리된 제품 테스트\n정의 111개와 기존 테스트 자료 13개 항목을 확인했다. 기존 빌드 캐시와 다른 iiSDK의\n사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000074",
       "kind": "blank",
-      "start_line": 243,
-      "end_line": 243,
+      "start_line": 245,
+      "end_line": 245,
       "raw": "\n"
     },
     {
       "id": "b000075",
       "kind": "paragraph",
-      "start_line": 244,
-      "end_line": 256,
-      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체 빌드와\nCongregation 전체 Debug 빌드가 통과했다. iiGUI 관련 검사 8건, LVUI 헤드리스\n전체 회귀 639건과 설치 패키지 경계 검사 1건, 제품 관련 검사 14건이 통과했다.\n첫 LVUI 일괄 실행은 동시 실행 4개에서 한 생성 코드 검사가 120초 제한을\n초과해 중단했다. 그 검사는 단독 실행에서 95.30초로 통과했고 동시 실행을\n2개로 줄인 전체 재실행에서도 57.76초로 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111개를 분리된 정의와 대조했고 기존 테스트 자료 13개 항목도 변경되지 않았다.\nAvatar 배율의 후속 실패 우선 검사는 이 일괄 회귀에 포함되지 않는다.\n이 변경 전 제품의 전체 헤드리스 회귀 102건은 아래 기록과 같으며, 이를 이번\n변경 후 전체 회귀의 결과로 해석하지 않는다.\n제품용 LVUI 스테이징 30개와 iiGUI 헤더·라이브러리는 해당 산출물과 해시가\n일치했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 246,
+      "end_line": 254,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,780행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`5b7d6ecd4cde2c2a7bac7109fd002a806d9f32a78d92609fb6e234722934e959`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n읽기 차단의 예외인 `qt.svg` 아이콘과 현재 빌드에서 제외한 이전 Qt/QML 비교\n소스가 남아 있다. 제품별 `Metric` 선언 107개와 일부 표현 재정의도 남아 있다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지\n않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000076",
+      "kind": "blank",
+      "start_line": 255,
+      "end_line": 255,
+      "raw": "\n"
+    },
+    {
+      "id": "b000077",
+      "kind": "heading",
+      "start_line": 256,
+      "end_line": 256,
+      "raw": "## 공통 다색 재질 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 다색 재질 · 2026-11-03"
+    },
+    {
+      "id": "b000078",
       "kind": "blank",
       "start_line": 257,
       "end_line": 257,
       "raw": "\n"
     },
     {
-      "id": "b000077",
+      "id": "b000079",
       "kind": "paragraph",
       "start_line": 258,
-      "end_line": 266,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,674행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`80374f233418b36303f2eef73b7a008481d8eb64189d296d0afb2c7299c52d27`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단의 예외로 허용했다. 현재 빌드에서\n제외한 이전 Qt/QML 소스는 비교 자료로 남아 있다. 제품별 `Metric` 선언 107개와\n일부 표현 재정의가 남아 있으며, 실제 앱 창·GPU·기기와 Windows·Linux 실행,\n설치·배포 서명 및 공증은 검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
-    },
-    {
-      "id": "b000078",
-      "kind": "blank",
-      "start_line": 267,
-      "end_line": 267,
-      "raw": "\n"
-    },
-    {
-      "id": "b000079",
-      "kind": "heading",
-      "start_line": 268,
-      "end_line": 268,
-      "raw": "## 공통 팝오버 모션과 재질 경계 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 팝오버 모션과 재질 경계 · 2026-11-03"
+      "end_line": 262,
+      "raw": "개명된 LVUI 원본의 여덟 방사형 도형과 네 색상 정지점을 공통 재질 및\n팝오버에 연결했다. 원본 스냅샷을 사용하며 창 강조색의 반응형 변경과 기존\n단색 밑그림 API를 보존한다. 브러시 팝오버의 진입·퇴장과 다색 래스터는\n분리된 제품 헤드리스 검사에서 확인했다. GPU 픽셀 동등성과 색상 전환 중\n텍스처 업로드 성능은 검증하지 않았다.\n"
     },
     {
       "id": "b000080",
       "kind": "blank",
-      "start_line": 269,
-      "end_line": 269,
+      "start_line": 263,
+      "end_line": 263,
       "raw": "\n"
     },
     {
       "id": "b000081",
       "kind": "paragraph",
-      "start_line": 270,
-      "end_line": 275,
-      "raw": "LVUI 팝오버는 재질 경계 밖의 악센트를 블러 입력에 포함하고, 등장·퇴장 시\n재질과 그림자를 콘텐츠와 함께 변환한다. 불투명도는 등장 160ms·퇴장 150ms,\n크기는 등장 420ms OutBack을 사용하며 공통 속도·축소 모션과 개별\n`motionEnabled`를 따른다. 프레임 소스가 없는 환경은 즉시 표시하며 다른 오류와\n동적 콘텐츠의 지원 제한은 호출자에게 전달한다. Congregation의 브러시 팝오버도\n모의 프레임에서 등장과 퇴장 중 유리 재질이 유지되는지 검사했다.\n"
+      "start_line": 264,
+      "end_line": 276,
+      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체 빌드와\nCongregation 전체 Debug 빌드가 통과했다. iiGUI 관련 검사 8건, LVUI 헤드리스\n전체 회귀 639건과 설치 패키지 경계 검사 1건, 제품 관련 검사 14건이 통과했다.\n첫 LVUI 일괄 실행은 동시 실행 4개에서 한 생성 코드 검사가 120초 제한을\n초과해 중단했다. 그 검사는 단독 실행에서 95.30초로 통과했고 동시 실행을\n2개로 줄인 전체 재실행에서도 57.76초로 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111개를 분리된 정의와 대조했고 기존 테스트 자료 13개 항목도 변경되지 않았다.\nAvatar 배율의 후속 실패 우선 검사는 이 일괄 회귀에 포함되지 않는다.\n이 변경 전 제품의 전체 헤드리스 회귀 102건은 아래 기록과 같으며, 이를 이번\n변경 후 전체 회귀의 결과로 해석하지 않는다.\n제품용 LVUI 스테이징 30개와 iiGUI 헤더·라이브러리는 해당 산출물과 해시가\n일치했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000082",
       "kind": "blank",
-      "start_line": 276,
-      "end_line": 276,
+      "start_line": 277,
+      "end_line": 277,
       "raw": "\n"
     },
     {
       "id": "b000083",
       "kind": "paragraph",
-      "start_line": 277,
-      "end_line": 284,
-      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체\n빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 팝업·장면 검사 5건과\nGPU 인수의 헤드리스 계산 검사 3건, LVUI 일괄 회귀 638건 및 별도 설치 패키지\n경계 검사 1건이 통과했다. 제품 테스트 111개 중 실제 창·GPU·번들 이동 실행\n9건을 제외한 102건이 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 기존 테스트 자료 13개 항목은 변경되지 않았다.\n이 시점의 제품용 LVUI 스테이징 27개와 iiGUI 헤더·라이브러리는 빌드 산출물과\n해시가 일치했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 278,
+      "end_line": 286,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,674행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`80374f233418b36303f2eef73b7a008481d8eb64189d296d0afb2c7299c52d27`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단의 예외로 허용했다. 현재 빌드에서\n제외한 이전 Qt/QML 소스는 비교 자료로 남아 있다. 제품별 `Metric` 선언 107개와\n일부 표현 재정의가 남아 있으며, 실제 앱 창·GPU·기기와 Windows·Linux 실행,\n설치·배포 서명 및 공증은 검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000084",
       "kind": "blank",
-      "start_line": 285,
-      "end_line": 285,
+      "start_line": 287,
+      "end_line": 287,
       "raw": "\n"
     },
     {
       "id": "b000085",
-      "kind": "paragraph",
-      "start_line": 286,
-      "end_line": 295,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,564행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`6ea41c6fadf7a17e8eccb4c37180afae98c3da4ee68cd4dbaf5a7d5deaeefa71`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n저장소에는 현재 빌드에 포함하지 않는 이전 Qt/QML 소스가 비교 자료로 남아 있다.\n제품별 `Metric` 107개와 일부 표현 재정의가 남아 있고, Figma의 다색 방사형\n정지점 이식은 이 검증 이후 진행 중이다. 실제 앱 창·GPU·기기와 Windows·Linux\n실행, 설치·배포 서명 및 공증은 검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
+      "kind": "heading",
+      "start_line": 288,
+      "end_line": 288,
+      "raw": "## 공통 팝오버 모션과 재질 경계 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 팝오버 모션과 재질 경계 · 2026-11-03"
     },
     {
       "id": "b000086",
+      "kind": "blank",
+      "start_line": 289,
+      "end_line": 289,
+      "raw": "\n"
+    },
+    {
+      "id": "b000087",
+      "kind": "paragraph",
+      "start_line": 290,
+      "end_line": 295,
+      "raw": "LVUI 팝오버는 재질 경계 밖의 악센트를 블러 입력에 포함하고, 등장·퇴장 시\n재질과 그림자를 콘텐츠와 함께 변환한다. 불투명도는 등장 160ms·퇴장 150ms,\n크기는 등장 420ms OutBack을 사용하며 공통 속도·축소 모션과 개별\n`motionEnabled`를 따른다. 프레임 소스가 없는 환경은 즉시 표시하며 다른 오류와\n동적 콘텐츠의 지원 제한은 호출자에게 전달한다. Congregation의 브러시 팝오버도\n모의 프레임에서 등장과 퇴장 중 유리 재질이 유지되는지 검사했다.\n"
+    },
+    {
+      "id": "b000088",
       "kind": "blank",
       "start_line": 296,
       "end_line": 296,
       "raw": "\n"
     },
     {
-      "id": "b000087",
-      "kind": "heading",
-      "start_line": 297,
-      "end_line": 297,
-      "raw": "## 공통 팝오버의 창 강조색 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 팝오버의 창 강조색 · 2026-11-03"
-    },
-    {
-      "id": "b000088",
-      "kind": "blank",
-      "start_line": 298,
-      "end_line": 298,
-      "raw": "\n"
-    },
-    {
       "id": "b000089",
       "kind": "paragraph",
-      "start_line": 299,
-      "end_line": 303,
-      "raw": "LVUI 팝오버는 정적·반응형 창 강조색을 상속하고 명시한 `primaryColor`를\n우선한다. 열린 팝오버와 재사용 View의 갱신, 잘못된 색상의 보존과 복구,\n색상만 변경할 때의 마스크 재사용을 헤드리스로 검사했다. Congregation의 브러시\n팝오버도 기본 강조색을 LVUI 토큰과 비교한다. `PopoverConfiguration`의 필드가\n추가되었으므로 C++ 소비자는 새 헤더로 다시 빌드해야 한다.\n"
+      "start_line": 297,
+      "end_line": 304,
+      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체\n빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 팝업·장면 검사 5건과\nGPU 인수의 헤드리스 계산 검사 3건, LVUI 일괄 회귀 638건 및 별도 설치 패키지\n경계 검사 1건이 통과했다. 제품 테스트 111개 중 실제 창·GPU·번들 이동 실행\n9건을 제외한 102건이 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 기존 테스트 자료 13개 항목은 변경되지 않았다.\n이 시점의 제품용 LVUI 스테이징 27개와 iiGUI 헤더·라이브러리는 빌드 산출물과\n해시가 일치했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000090",
       "kind": "blank",
-      "start_line": 304,
-      "end_line": 304,
+      "start_line": 305,
+      "end_line": 305,
       "raw": "\n"
     },
     {
       "id": "b000091",
       "kind": "paragraph",
-      "start_line": 305,
-      "end_line": 312,
-      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI 헤드리스·패키지 경계 회귀\n638건과 제품 관련 헤드리스 검사 14건이 모두 통과했다. 설치 패키지의 Python\n컴파일 API도 새 팝오버 색상 입력을 확인했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의 111개와 격리 실행 정의를\n대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다. 제품용 LVUI 스테이징의\n헤더·자산·라이브러리·컴파일러 27개는 해당 산출물과 해시가 같았다. 기존 캐시와\n다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 306,
+      "end_line": 315,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,564행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`6ea41c6fadf7a17e8eccb4c37180afae98c3da4ee68cd4dbaf5a7d5deaeefa71`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n저장소에는 현재 빌드에 포함하지 않는 이전 Qt/QML 소스가 비교 자료로 남아 있다.\n제품별 `Metric` 107개와 일부 표현 재정의가 남아 있고, Figma의 다색 방사형\n정지점 이식은 이 검증 이후 진행 중이다. 실제 앱 창·GPU·기기와 Windows·Linux\n실행, 설치·배포 서명 및 공증은 검사하지 않았다. 아래 절은 각 시점의 이력이다.\n"
     },
     {
       "id": "b000092",
       "kind": "blank",
-      "start_line": 313,
-      "end_line": 313,
+      "start_line": 316,
+      "end_line": 316,
       "raw": "\n"
     },
     {
       "id": "b000093",
-      "kind": "paragraph",
-      "start_line": 314,
-      "end_line": 322,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,394행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`b69c5b0c553910e2f8e5df81e36f0e527f1f7c09d904543b4c7b71c9ada7be47`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n제품별 `Metric` 107개와 일부 표현 재정의, 팝오버의 경계 밖 악센트 흐림과 전환\n모션은 남아 있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및\n공증은 검사하지 않았다. 아래 절은 각 시점의 상태와 산출물을 보존한 이력이다.\n"
+      "kind": "heading",
+      "start_line": 317,
+      "end_line": 317,
+      "raw": "## 공통 팝오버의 창 강조색 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 팝오버의 창 강조색 · 2026-11-03"
     },
     {
       "id": "b000094",
       "kind": "blank",
-      "start_line": 323,
-      "end_line": 323,
+      "start_line": 318,
+      "end_line": 318,
       "raw": "\n"
     },
     {
       "id": "b000095",
-      "kind": "heading",
-      "start_line": 324,
-      "end_line": 324,
-      "raw": "## 공통 팝오버 악센트와 불투명 폴백 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 팝오버 악센트와 불투명 폴백 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 319,
+      "end_line": 323,
+      "raw": "LVUI 팝오버는 정적·반응형 창 강조색을 상속하고 명시한 `primaryColor`를\n우선한다. 열린 팝오버와 재사용 View의 갱신, 잘못된 색상의 보존과 복구,\n색상만 변경할 때의 마스크 재사용을 헤드리스로 검사했다. Congregation의 브러시\n팝오버도 기본 강조색을 LVUI 토큰과 비교한다. `PopoverConfiguration`의 필드가\n추가되었으므로 C++ 소비자는 새 헤더로 다시 빌드해야 한다.\n"
     },
     {
       "id": "b000096",
       "kind": "blank",
-      "start_line": 325,
-      "end_line": 325,
+      "start_line": 324,
+      "end_line": 324,
       "raw": "\n"
     },
     {
       "id": "b000097",
       "kind": "paragraph",
-      "start_line": 326,
-      "end_line": 331,
-      "raw": "브러시 팝오버는 실제 논리 크기와 배율에 맞춰 생성한 공통 방사형 악센트를\n사용하고 같은 기하에서는 래스터를 재사용한다. 흐림을 끈 불투명 팝오버도 이전\n화면을 캡처하지 않고 악센트·안쪽 광택·테두리를 유지한다. 전환 중인 iiGUI\n팝오버에서는 불투명 재질이 카드의 변환 및 닫힘에 함께 반응한다. 여러 색상\n정지점은 단일 강조색으로 근사한다. 팝오버의 창 강조색 상속, 재질 경계 밖\n악센트의 흐림 유입과 LVUI 팝오버 전환 모션은 남아 있다.\n"
+      "start_line": 325,
+      "end_line": 332,
+      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI 헤드리스·패키지 경계 회귀\n638건과 제품 관련 헤드리스 검사 14건이 모두 통과했다. 설치 패키지의 Python\n컴파일 API도 새 팝오버 색상 입력을 확인했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의 111개와 격리 실행 정의를\n대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다. 제품용 LVUI 스테이징의\n헤더·자산·라이브러리·컴파일러 27개는 해당 산출물과 해시가 같았다. 기존 캐시와\n다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000098",
       "kind": "blank",
-      "start_line": 332,
-      "end_line": 332,
+      "start_line": 333,
+      "end_line": 333,
       "raw": "\n"
     },
     {
       "id": "b000099",
       "kind": "paragraph",
-      "start_line": 333,
-      "end_line": 341,
-      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI\n전체 빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 팝업·장면 관련\n헤드리스 검사 5건, LVUI 헤드리스·패키지 경계 회귀 638건과 제품 관련 헤드리스\n검사 14건이 모두 통과했다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다. 제품 테스트 정의 111개를 격리 실행 정의와 대조했고 기존 테스트 자료\n13개 항목은 변경되지 않았다. 제품용 LVUI 스테이징의 헤더·자산·라이브러리·\n컴파일러 27개와 iiGUI 팝오버 헤더·라이브러리는 해당 산출물과 해시가 같다.\n기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다. 제품별 `Metric` 선언\n107개와 일부 표현 재정의는 공통 컴포넌트로의 분리가 남아 있다.\n"
+      "start_line": 334,
+      "end_line": 342,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,394행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`b69c5b0c553910e2f8e5df81e36f0e527f1f7c09d904543b4c7b71c9ada7be47`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n제품별 `Metric` 107개와 일부 표현 재정의, 팝오버의 경계 밖 악센트 흐림과 전환\n모션은 남아 있다. 실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및\n공증은 검사하지 않았다. 아래 절은 각 시점의 상태와 산출물을 보존한 이력이다.\n"
     },
     {
       "id": "b000100",
       "kind": "blank",
-      "start_line": 342,
-      "end_line": 342,
+      "start_line": 343,
+      "end_line": 343,
       "raw": "\n"
     },
     {
       "id": "b000101",
-      "kind": "paragraph",
-      "start_line": 343,
-      "end_line": 349,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,373행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`2066aede571d44ebaf4933c6c01d5a4e896b81e809fce14e890061966826f141`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
+      "kind": "heading",
+      "start_line": 344,
+      "end_line": 344,
+      "raw": "## 공통 팝오버 악센트와 불투명 폴백 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 팝오버 악센트와 불투명 폴백 · 2026-11-03"
     },
     {
       "id": "b000102",
       "kind": "blank",
-      "start_line": 350,
-      "end_line": 350,
+      "start_line": 345,
+      "end_line": 345,
       "raw": "\n"
     },
     {
       "id": "b000103",
       "kind": "paragraph",
-      "start_line": 351,
+      "start_line": 346,
       "end_line": 351,
-      "raw": "아래 절은 각 시점의 상태와 산출물을 보존한 이력이다.\n"
+      "raw": "브러시 팝오버는 실제 논리 크기와 배율에 맞춰 생성한 공통 방사형 악센트를\n사용하고 같은 기하에서는 래스터를 재사용한다. 흐림을 끈 불투명 팝오버도 이전\n화면을 캡처하지 않고 악센트·안쪽 광택·테두리를 유지한다. 전환 중인 iiGUI\n팝오버에서는 불투명 재질이 카드의 변환 및 닫힘에 함께 반응한다. 여러 색상\n정지점은 단일 강조색으로 근사한다. 팝오버의 창 강조색 상속, 재질 경계 밖\n악센트의 흐림 유입과 LVUI 팝오버 전환 모션은 남아 있다.\n"
     },
     {
       "id": "b000104",
@@ -778,84 +780,82 @@
     },
     {
       "id": "b000105",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 353,
-      "end_line": 353,
-      "raw": "## 공통 팝오버·설정 탭·타임라인 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 팝오버·설정 탭·타임라인 후속 검증 · 2026-11-03"
+      "end_line": 361,
+      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI\n전체 빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 팝업·장면 관련\n헤드리스 검사 5건, LVUI 헤드리스·패키지 경계 회귀 638건과 제품 관련 헤드리스\n검사 14건이 모두 통과했다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다. 제품 테스트 정의 111개를 격리 실행 정의와 대조했고 기존 테스트 자료\n13개 항목은 변경되지 않았다. 제품용 LVUI 스테이징의 헤더·자산·라이브러리·\n컴파일러 27개와 iiGUI 팝오버 헤더·라이브러리는 해당 산출물과 해시가 같다.\n기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다. 제품별 `Metric` 선언\n107개와 일부 표현 재정의는 공통 컴포넌트로의 분리가 남아 있다.\n"
     },
     {
       "id": "b000106",
       "kind": "blank",
-      "start_line": 354,
-      "end_line": 354,
+      "start_line": 362,
+      "end_line": 362,
       "raw": "\n"
     },
     {
       "id": "b000107",
       "kind": "paragraph",
-      "start_line": 355,
-      "end_line": 359,
-      "raw": "브러시 팝오버는 LVUI `ScrollView`와 일곱 개의 Mini 슬라이더를 사용한다.\n뷰포트 550px에서 전체 578px 내용을 스크롤하고 압력 곡선에 입력할 수 있음을\n헤드리스로 검사했다. 공통 팝오버는 원본의 흐림 16px, 테두리 1px, 안쪽 광택\n불투명도 0.14·오프셋 1px과 그림자를 사용한다. 불투명 폴백의 테두리도 보존한다.\n방사형 악센트와 불투명 폴백의 안쪽 광택, 팝오버 전환 모션은 아직 남아 있다.\n"
+      "start_line": 363,
+      "end_line": 369,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,373행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`2066aede571d44ebaf4933c6c01d5a4e896b81e809fce14e890061966826f141`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000108",
       "kind": "blank",
-      "start_line": 360,
-      "end_line": 360,
+      "start_line": 370,
+      "end_line": 370,
       "raw": "\n"
     },
     {
       "id": "b000109",
       "kind": "paragraph",
-      "start_line": 361,
-      "end_line": 365,
-      "raw": "환경설정 탭은 Figma의 공통 세그먼트 기본 배치와 버튼 선택 종류를 사용하며\n개별 크기·여백·선택색을 지정하지 않는다. 타임라인 키프레임은 LVUI의 18px\n아이콘을 22px 행과 프레임 셀의 중앙에 배치한다. 동적 레이어의 두 프레임을\n사용해 위치와 크기를 검사했다. 제품별 `Metric` 선언은 107개가 남아 있으며,\n나머지 제품 뷰의 표현 재정의와 함께 사용자 규칙에 맞춰 계속 분리해야 한다.\n"
+      "start_line": 371,
+      "end_line": 371,
+      "raw": "아래 절은 각 시점의 상태와 산출물을 보존한 이력이다.\n"
     },
     {
       "id": "b000110",
       "kind": "blank",
-      "start_line": 366,
-      "end_line": 366,
+      "start_line": 372,
+      "end_line": 372,
       "raw": "\n"
     },
     {
       "id": "b000111",
-      "kind": "paragraph",
-      "start_line": 367,
-      "end_line": 375,
-      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체\n빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 관련 헤드리스 회귀 5건, LVUI\n헤드리스·패키지 경계 회귀 638건과 제품 관련 헤드리스 검사 14건이 통과했다.\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111개를 격리 실행 정의와 대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다.\n제품용 LVUI 스테이징의 헤더·자산·라이브러리·컴파일러 25개와 iiGUI의 팝오버\n헤더·라이브러리는 해당 빌드 산출물과 해시가 같다. 팝오버 옵션의 ABI가 바뀌었으므로\n이전 iiGUI 헤더로 빌드한 소비자는 함께 다시 빌드해야 한다. 기존 캐시와 다른\niiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "kind": "heading",
+      "start_line": 373,
+      "end_line": 373,
+      "raw": "## 공통 팝오버·설정 탭·타임라인 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 팝오버·설정 탭·타임라인 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000112",
       "kind": "blank",
-      "start_line": 376,
-      "end_line": 376,
+      "start_line": 374,
+      "end_line": 374,
       "raw": "\n"
     },
     {
       "id": "b000113",
       "kind": "paragraph",
-      "start_line": 377,
-      "end_line": 383,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,285행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명도 유효했다.\n주 실행 파일 SHA-256은\n`9ee05a1034d663ed6dd973c084ab91657e676b314fa256ccb8886e699aa521a5`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처를 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
+      "start_line": 375,
+      "end_line": 379,
+      "raw": "브러시 팝오버는 LVUI `ScrollView`와 일곱 개의 Mini 슬라이더를 사용한다.\n뷰포트 550px에서 전체 578px 내용을 스크롤하고 압력 곡선에 입력할 수 있음을\n헤드리스로 검사했다. 공통 팝오버는 원본의 흐림 16px, 테두리 1px, 안쪽 광택\n불투명도 0.14·오프셋 1px과 그림자를 사용한다. 불투명 폴백의 테두리도 보존한다.\n방사형 악센트와 불투명 폴백의 안쪽 광택, 팝오버 전환 모션은 아직 남아 있다.\n"
     },
     {
       "id": "b000114",
       "kind": "blank",
-      "start_line": 384,
-      "end_line": 384,
+      "start_line": 380,
+      "end_line": 380,
       "raw": "\n"
     },
     {
       "id": "b000115",
-      "kind": "heading",
-      "start_line": 385,
+      "kind": "paragraph",
+      "start_line": 381,
       "end_line": 385,
-      "raw": "## 공통 버튼 색상과 배치 계산 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 버튼 색상과 배치 계산 후속 검증 · 2026-11-03"
+      "raw": "환경설정 탭은 Figma의 공통 세그먼트 기본 배치와 버튼 선택 종류를 사용하며\n개별 크기·여백·선택색을 지정하지 않는다. 타임라인 키프레임은 LVUI의 18px\n아이콘을 22px 행과 프레임 셀의 중앙에 배치한다. 동적 레이어의 두 프레임을\n사용해 위치와 크기를 검사했다. 제품별 `Metric` 선언은 107개가 남아 있으며,\n나머지 제품 뷰의 표현 재정의와 함께 사용자 규칙에 맞춰 계속 분리해야 한다.\n"
     },
     {
       "id": "b000116",
@@ -868,254 +868,254 @@
       "id": "b000117",
       "kind": "paragraph",
       "start_line": 387,
-      "end_line": 392,
-      "raw": "개명된 기존 LVUI 라이브러리의 레이블·아이콘 버튼 각 25개 상태를 대조하여\n기본 및 파괴적 버튼의 상태별 색상을 공통 구현에 반영했다. 기존 사용자 지정\n파괴 색상의 동작은 유지한다. 색상·도구 패널과 Profile·팝오버의 일부 폭과\n하단 높이는 원본에서 확인한 공통 컨트롤과 여백 또는 기존 컨테이너의 관계에서\n계산한다. 이 시점에 중복된 제품 `Metric` 선언 6개를 제거했지만 제품별 선언\n113개와 설정 탭·브러시 팝오버 등의 표현 재정의가 남아 있었다.\n"
+      "end_line": 395,
+      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 iiGUI·LVUI 전체\n빌드와 Congregation Debug 전체 빌드가 통과했다. iiGUI 관련 헤드리스 회귀 5건, LVUI\n헤드리스·패키지 경계 회귀 638건과 제품 관련 헤드리스 검사 14건이 통과했다.\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다. 제품 테스트 정의\n111개를 격리 실행 정의와 대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다.\n제품용 LVUI 스테이징의 헤더·자산·라이브러리·컴파일러 25개와 iiGUI의 팝오버\n헤더·라이브러리는 해당 빌드 산출물과 해시가 같다. 팝오버 옵션의 ABI가 바뀌었으므로\n이전 iiGUI 헤더로 빌드한 소비자는 함께 다시 빌드해야 한다. 기존 캐시와 다른\niiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000118",
       "kind": "blank",
-      "start_line": 393,
-      "end_line": 393,
+      "start_line": 396,
+      "end_line": 396,
       "raw": "\n"
     },
     {
       "id": "b000119",
       "kind": "paragraph",
-      "start_line": 394,
-      "end_line": 400,
-      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. LVUI의 버튼과 관련 컨트롤 회귀\n98건, 설치 패키지 경계 검사 및 변경과 관련된 제품 헤드리스 검사 13건이\n통과했다. 제품 테스트 정의 111개를 대조하고 기존 테스트 자료 13개 항목이\n변경되지 않았음을 확인했다. 제품이 사용하는 LVUI 스테이징의 관련 헤더·자산·\n라이브러리·컴파일러 19개는 현재 소스 산출물과 해시가 같았다. 기존 빌드 캐시와\n다른 iiSDK의 사전 빌드 산출물을 재사용했다.\n"
+      "start_line": 397,
+      "end_line": 403,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,285행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명도 유효했다.\n주 실행 파일 SHA-256은\n`9ee05a1034d663ed6dd973c084ab91657e676b314fa256ccb8886e699aa521a5`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처를 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 패키지 검사에서 읽기 차단의 예외로 허용했다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000120",
       "kind": "blank",
-      "start_line": 401,
-      "end_line": 401,
+      "start_line": 404,
+      "end_line": 404,
       "raw": "\n"
     },
     {
       "id": "b000121",
-      "kind": "paragraph",
-      "start_line": 402,
-      "end_line": 408,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,273행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`6c0c865c1b3e4293d6840fd054b10ad42c8bb1fdf797250d0ef8de68af293450`이다.\n이름·경로 검사는 임의 이름의 정적 코드 출처를 증명하지 않는다. 이식된\n`qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·GPU·\n기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
+      "kind": "heading",
+      "start_line": 405,
+      "end_line": 405,
+      "raw": "## 공통 버튼 색상과 배치 계산 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 버튼 색상과 배치 계산 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000122",
       "kind": "blank",
-      "start_line": 409,
-      "end_line": 409,
+      "start_line": 406,
+      "end_line": 406,
       "raw": "\n"
     },
     {
       "id": "b000123",
-      "kind": "heading",
-      "start_line": 410,
-      "end_line": 410,
-      "raw": "## Profile 공통 Avatar·입력 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "Profile 공통 Avatar·입력 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 407,
+      "end_line": 412,
+      "raw": "개명된 기존 LVUI 라이브러리의 레이블·아이콘 버튼 각 25개 상태를 대조하여\n기본 및 파괴적 버튼의 상태별 색상을 공통 구현에 반영했다. 기존 사용자 지정\n파괴 색상의 동작은 유지한다. 색상·도구 패널과 Profile·팝오버의 일부 폭과\n하단 높이는 원본에서 확인한 공통 컨트롤과 여백 또는 기존 컨테이너의 관계에서\n계산한다. 이 시점에 중복된 제품 `Metric` 선언 6개를 제거했지만 제품별 선언\n113개와 설정 탭·브러시 팝오버 등의 표현 재정의가 남아 있었다.\n"
     },
     {
       "id": "b000124",
       "kind": "blank",
-      "start_line": 411,
-      "end_line": 411,
+      "start_line": 413,
+      "end_line": 413,
       "raw": "\n"
     },
     {
       "id": "b000125",
       "kind": "paragraph",
-      "start_line": 412,
-      "end_line": 417,
-      "raw": "Figma의 [Profile 기준 화면](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2635)에\n연결된 LVUI Avatar와 둥근 입력을 사용한다. 사진이 없거나 삭제되면 공통 사용자\n심벌을 표시하고, 사진을 선택하면 뷰모델을 통해 원형 사진으로 바뀐다. 공통\n이벤트 리스너 자식에 아바타를 배치해 기존 사진 메뉴를 열며 사용자 이름의\n지우기 동작도 뷰모델에 반영한다. 탭 등 나머지 설정 화면의 시각 동등성은\n이 변경으로 완료된 것이 아니다.\n"
+      "start_line": 414,
+      "end_line": 420,
+      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. LVUI의 버튼과 관련 컨트롤 회귀\n98건, 설치 패키지 경계 검사 및 변경과 관련된 제품 헤드리스 검사 13건이\n통과했다. 제품 테스트 정의 111개를 대조하고 기존 테스트 자료 13개 항목이\n변경되지 않았음을 확인했다. 제품이 사용하는 LVUI 스테이징의 관련 헤더·자산·\n라이브러리·컴파일러 19개는 현재 소스 산출물과 해시가 같았다. 기존 빌드 캐시와\n다른 iiSDK의 사전 빌드 산출물을 재사용했다.\n"
     },
     {
       "id": "b000126",
       "kind": "blank",
-      "start_line": 418,
-      "end_line": 418,
+      "start_line": 421,
+      "end_line": 421,
       "raw": "\n"
     },
     {
       "id": "b000127",
       "kind": "paragraph",
-      "start_line": 419,
-      "end_line": 425,
-      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. 제품의 관련 헤드리스 검사\n13건과 LVUI 관련 회귀 105건이 통과했다. LVUI 설치 패키지 경계 검사도\nAvatar·Image 헤더, 심벌 자산과 중첩 뷰의 Python 컴파일을 확인했다. 제품\n테스트 정의 111개의 명령과 속성을 대조하고 기존 테스트 자료 13개 항목이\n변경되지 않았음을 확인했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
+      "start_line": 422,
+      "end_line": 428,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,273행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`6c0c865c1b3e4293d6840fd054b10ad42c8bb1fdf797250d0ef8de68af293450`이다.\n이름·경로 검사는 임의 이름의 정적 코드 출처를 증명하지 않는다. 이식된\n`qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·GPU·\n기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000128",
       "kind": "blank",
-      "start_line": 426,
-      "end_line": 426,
+      "start_line": 429,
+      "end_line": 429,
       "raw": "\n"
     },
     {
       "id": "b000129",
-      "kind": "paragraph",
-      "start_line": 427,
-      "end_line": 433,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,270행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명도\n유효했다. 주 실행 파일 SHA-256은\n`c3ec34824d60275dfde7d1b67856acaeacde75368cd87f40cf0623205911fb35`이다.\n이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·\nGPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.\n"
+      "kind": "heading",
+      "start_line": 430,
+      "end_line": 430,
+      "raw": "## Profile 공통 Avatar·입력 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "Profile 공통 Avatar·입력 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000130",
       "kind": "blank",
-      "start_line": 434,
-      "end_line": 434,
+      "start_line": 431,
+      "end_line": 431,
       "raw": "\n"
     },
     {
       "id": "b000131",
-      "kind": "heading",
-      "start_line": 435,
-      "end_line": 435,
-      "raw": "## 독립 아이콘·세그먼트·레이아웃 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "독립 아이콘·세그먼트·레이아웃 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 432,
+      "end_line": 437,
+      "raw": "Figma의 [Profile 기준 화면](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2635)에\n연결된 LVUI Avatar와 둥근 입력을 사용한다. 사진이 없거나 삭제되면 공통 사용자\n심벌을 표시하고, 사진을 선택하면 뷰모델을 통해 원형 사진으로 바뀐다. 공통\n이벤트 리스너 자식에 아바타를 배치해 기존 사진 메뉴를 열며 사용자 이름의\n지우기 동작도 뷰모델에 반영한다. 탭 등 나머지 설정 화면의 시각 동등성은\n이 변경으로 완료된 것이 아니다.\n"
     },
     {
       "id": "b000132",
       "kind": "blank",
-      "start_line": 436,
-      "end_line": 436,
+      "start_line": 438,
+      "end_line": 438,
       "raw": "\n"
     },
     {
       "id": "b000133",
       "kind": "paragraph",
-      "start_line": 437,
-      "end_line": 442,
-      "raw": "기존 Figma 라이브러리가 LVUI로 개명된 상태에서 독립 아이콘과 아이콘형·\n레이블형 세그먼트의 공통 기본값을 LVUI로 옮겼다. 제품은 해당 컨트롤의\n크기·배경·여백을 재정의하지 않는다. 타임라인과 확장 도구 패널의 높이는\n공통 컨트롤과 자식 배치에서 계산하고, 도구 패널의 빠른 이동은 고정 좌표가\n아닌 대상 파라미터의 현재 위치를 따른다. 당시 제품 전용 `Metric` 선언 119개와\n브러시 팝오버 등 나머지 표현 재정의는 별도 잔여 범위이다.\n"
+      "start_line": 439,
+      "end_line": 445,
+      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. 제품의 관련 헤드리스 검사\n13건과 LVUI 관련 회귀 105건이 통과했다. LVUI 설치 패키지 경계 검사도\nAvatar·Image 헤더, 심벌 자산과 중첩 뷰의 Python 컴파일을 확인했다. 제품\n테스트 정의 111개의 명령과 속성을 대조하고 기존 테스트 자료 13개 항목이\n변경되지 않았음을 확인했다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
     },
     {
       "id": "b000134",
       "kind": "blank",
-      "start_line": 443,
-      "end_line": 443,
+      "start_line": 446,
+      "end_line": 446,
       "raw": "\n"
     },
     {
       "id": "b000135",
       "kind": "paragraph",
-      "start_line": 444,
-      "end_line": 449,
-      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. 제품 변경과 연관된 헤드리스\n검사 13건이 모두 통과했다. 원래 테스트 111개의 정의와 격리 실행 정의를\n대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다. 제품이 사용하는\nLVUI 스테이징의 관련 헤더·자산·라이브러리·컴파일러 13개는 현재 소스 산출물과\n해시가 같았다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 447,
+      "end_line": 453,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 229,270행에서 검사한\nQt·LVRS 이름은 없었고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc 서명도\n유효했다. 주 실행 파일 SHA-256은\n`c3ec34824d60275dfde7d1b67856acaeacde75368cd87f40cf0623205911fb35`이다.\n이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·\nGPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.\n"
     },
     {
       "id": "b000136",
       "kind": "blank",
-      "start_line": 450,
-      "end_line": 450,
+      "start_line": 454,
+      "end_line": 454,
       "raw": "\n"
     },
     {
       "id": "b000137",
-      "kind": "paragraph",
-      "start_line": 451,
-      "end_line": 457,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,843행에서 검사한\nQt·LVRS 이름은 발견되지 않았다. 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명은 유효했다. 주 실행 파일 SHA-256은\n`581d9875adf5ed97397bd40563a2de7306073c067e3455c45ceb693b31a080c9`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·\nGPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.\n"
+      "kind": "heading",
+      "start_line": 455,
+      "end_line": 455,
+      "raw": "## 독립 아이콘·세그먼트·레이아웃 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "독립 아이콘·세그먼트·레이아웃 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000138",
       "kind": "blank",
-      "start_line": 458,
-      "end_line": 458,
+      "start_line": 456,
+      "end_line": 456,
       "raw": "\n"
     },
     {
       "id": "b000139",
-      "kind": "heading",
-      "start_line": 459,
-      "end_line": 459,
-      "raw": "## 공통 아이콘·입력 재질 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 아이콘·입력 재질 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 457,
+      "end_line": 462,
+      "raw": "기존 Figma 라이브러리가 LVUI로 개명된 상태에서 독립 아이콘과 아이콘형·\n레이블형 세그먼트의 공통 기본값을 LVUI로 옮겼다. 제품은 해당 컨트롤의\n크기·배경·여백을 재정의하지 않는다. 타임라인과 확장 도구 패널의 높이는\n공통 컨트롤과 자식 배치에서 계산하고, 도구 패널의 빠른 이동은 고정 좌표가\n아닌 대상 파라미터의 현재 위치를 따른다. 당시 제품 전용 `Metric` 선언 119개와\n브러시 팝오버 등 나머지 표현 재정의는 별도 잔여 범위이다.\n"
     },
     {
       "id": "b000140",
       "kind": "blank",
-      "start_line": 460,
-      "end_line": 460,
+      "start_line": 463,
+      "end_line": 463,
       "raw": "\n"
     },
     {
       "id": "b000141",
       "kind": "paragraph",
-      "start_line": 461,
-      "end_line": 464,
-      "raw": "개명된 기존 LVUI 라이브러리의 IconButton 25개 변형을 대조하고 공통 22px 버튼과\n18px 아이콘 설정을 LVUI가 소유하도록 바꾸었다. 제품 도구 레일과 타임라인 행은\n공통 버튼 치수에서 계산한다. 기존 일반 버튼의 아이콘 기본값은 유지한다.\n당시 제품별 `Metric` 선언 133개는 분리해야 할 잔여 범위였다.\n"
+      "start_line": 464,
+      "end_line": 469,
+      "raw": "Qt·LVRS 주요 실제 경로의 읽기를 차단한 기존 macOS arm64 구성에서 LVUI 전체\n대상과 Congregation Debug 전체 빌드가 통과했다. 제품 변경과 연관된 헤드리스\n검사 13건이 모두 통과했다. 원래 테스트 111개의 정의와 격리 실행 정의를\n대조했고 기존 테스트 자료 13개 항목은 변경되지 않았다. 제품이 사용하는\nLVUI 스테이징의 관련 헤더·자산·라이브러리·컴파일러 13개는 현재 소스 산출물과\n해시가 같았다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000142",
-      "kind": "blank",
-      "start_line": 465,
-      "end_line": 465,
-      "raw": "\n"
-    },
-    {
-      "id": "b000143",
-      "kind": "paragraph",
-      "start_line": 466,
-      "end_line": 469,
-      "raw": "일반·검색 입력의 둥근형, 원통형과 인라인형에 현재 원본의 활성 색상 연결과\n비활성 효과를 반영했다. 제품 어댑터가 선택한 둥근형과 검색 필드에 공통 재질이\n적용된다. 기존 선언형 환경설정 입력은 단색 기본 표면을 계속 사용한다. 포커스\n입력 방식의 구분과 실제 화면의 픽셀·운영체제 입력 검증은 남아 있다.\n"
-    },
-    {
-      "id": "b000144",
       "kind": "blank",
       "start_line": 470,
       "end_line": 470,
       "raw": "\n"
     },
     {
-      "id": "b000145",
+      "id": "b000143",
       "kind": "paragraph",
       "start_line": 471,
+      "end_line": 477,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,843행에서 검사한\nQt·LVRS 이름은 발견되지 않았다. 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명은 유효했다. 주 실행 파일 SHA-256은\n`581d9875adf5ed97397bd40563a2de7306073c067e3455c45ceb693b31a080c9`이다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다. 실제 앱 창·\nGPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.\n"
+    },
+    {
+      "id": "b000144",
+      "kind": "blank",
+      "start_line": 478,
       "end_line": 478,
-      "raw": "Qt·LVRS 주요 실제 경로 읽기를 차단한 기존 macOS arm64 구성에서 제품 Debug\n전체 빌드와 관련 헤드리스 검사 13건이 통과했다. 원래 테스트 111개의 정의를\n대조해 임시 자료 경로만 분리했으며, 기존 테스트 자료 13개 항목은 변경되지\n않았다. LVUI의 해당 버튼·입력·검색 검사 13건, 이를 사용하는 표·목록·색상·\n코드 편집기 검사 10건과 설치 패키지 경계 검사가 각각 통과했다. 이 변경 후\nLVUI 전체 대상 재빌드는 관련 없는 다수의 예제 재컴파일을 중단했으므로 전체\n대상 통과로 기록하지 않는다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
+      "raw": "\n"
+    },
+    {
+      "id": "b000145",
+      "kind": "heading",
+      "start_line": 479,
+      "end_line": 479,
+      "raw": "## 공통 아이콘·입력 재질 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 아이콘·입력 재질 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000146",
       "kind": "blank",
-      "start_line": 479,
-      "end_line": 479,
+      "start_line": 480,
+      "end_line": 480,
       "raw": "\n"
     },
     {
       "id": "b000147",
       "kind": "paragraph",
-      "start_line": 480,
-      "end_line": 488,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,301행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`bcb22cca37a0b1780a45ac8b0fcaabe1cbd8a45a16fd74eb0c06f529cd7b50c5`이다.\nLVUI Python 컴파일 브리지의 패키지 대상 추가 후 제품 대상을 다시 빌드하고\n위의 13개 제품 검사를 다시 통과한 최종 산출물이다. 브리지는 제품에서 링크하지\n않는다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행은 포함하지 않는다.\n"
+      "start_line": 481,
+      "end_line": 484,
+      "raw": "개명된 기존 LVUI 라이브러리의 IconButton 25개 변형을 대조하고 공통 22px 버튼과\n18px 아이콘 설정을 LVUI가 소유하도록 바꾸었다. 제품 도구 레일과 타임라인 행은\n공통 버튼 치수에서 계산한다. 기존 일반 버튼의 아이콘 기본값은 유지한다.\n당시 제품별 `Metric` 선언 133개는 분리해야 할 잔여 범위였다.\n"
     },
     {
       "id": "b000148",
       "kind": "blank",
-      "start_line": 489,
-      "end_line": 489,
+      "start_line": 485,
+      "end_line": 485,
       "raw": "\n"
     },
     {
       "id": "b000149",
-      "kind": "heading",
-      "start_line": 490,
-      "end_line": 490,
-      "raw": "## 둥근 입력 재질 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "둥근 입력 재질 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 486,
+      "end_line": 489,
+      "raw": "일반·검색 입력의 둥근형, 원통형과 인라인형에 현재 원본의 활성 색상 연결과\n비활성 효과를 반영했다. 제품 어댑터가 선택한 둥근형과 검색 필드에 공통 재질이\n적용된다. 기존 선언형 환경설정 입력은 단색 기본 표면을 계속 사용한다. 포커스\n입력 방식의 구분과 실제 화면의 픽셀·운영체제 입력 검증은 남아 있다.\n"
     },
     {
       "id": "b000150",
       "kind": "blank",
-      "start_line": 491,
-      "end_line": 491,
+      "start_line": 490,
+      "end_line": 490,
       "raw": "\n"
     },
     {
       "id": "b000151",
       "kind": "paragraph",
-      "start_line": 492,
+      "start_line": 491,
       "end_line": 498,
-      "raw": "개명된 원본 LVUI에서 둥근 TextField의 활성·비활성 재질이 검색 입력과 같음을\n대조하고 공통 재질로 통합했다. 제품 소유 입력 어댑터는 이 재질과 공통 크기·\n지우기를 선택한다. 선택·문자·커서는 재질 위에서 그리며, 원본의 일반·비활성\n텍스트와 강조 선택·설명색 커서 토큰을 사용한다. 조합 중 반응형 표면 변경과\n잘못된 값의 거절, 배경·문자 레이어 순서와 기존 검색 입력을 헤드리스로 검사했다.\n선언형 설정 화면의 입력에는 이 어댑터가 적용되지 않는다. 포커스 입력 방식의\n구분, Inline·Cylinder 모양과 실제 GPU 픽셀 비교는 아직 남아 있다.\n"
+      "raw": "Qt·LVRS 주요 실제 경로 읽기를 차단한 기존 macOS arm64 구성에서 제품 Debug\n전체 빌드와 관련 헤드리스 검사 13건이 통과했다. 원래 테스트 111개의 정의를\n대조해 임시 자료 경로만 분리했으며, 기존 테스트 자료 13개 항목은 변경되지\n않았다. LVUI의 해당 버튼·입력·검색 검사 13건, 이를 사용하는 표·목록·색상·\n코드 편집기 검사 10건과 설치 패키지 경계 검사가 각각 통과했다. 이 변경 후\nLVUI 전체 대상 재빌드는 관련 없는 다수의 예제 재컴파일을 중단했으므로 전체\n대상 통과로 기록하지 않는다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은\n재사용했다.\n"
     },
     {
       "id": "b000152",
@@ -1129,7 +1129,7 @@
       "kind": "paragraph",
       "start_line": 500,
       "end_line": 508,
-      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 대상과\nCongregation Debug 전체 빌드가 통과했다. 같은 소스의 LVUI 입력·검색·텍스트와\n이를 내장한 목록·표·색상 컨트롤 관련 검사 108건 및 제품의 입력·화면·빌드\n경계 관련 검사 11건이 통과했다. 제품 테스트 정의 111개의 명령과 속성을 대조하고\n임시 자료 경로만 격리했으며, 기존 테스트 자료 13개 항목은\n변경되지 않았다. 102개 제품 전체 헤드리스 회귀는 아래의 별도 중간 실행에서\n10건 통과 후 중단했으며, 이번 변경의 전체 회귀 성공으로 간주하지 않는다.\n별도 빌드 디렉터리를 만들지 않는 LVUI 설치 패키지 경계 검사도 통과했다.\n다른 빌드 디렉터리를 생성하는 `LVUI.NativeInstalled` 검사는 제외했다.\n"
+      "raw": "개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,301행에서 검사한\nQt·LVRS 이름은 발견되지 않았고 번들 내부 `@rpath` 참조 7개와 로컬 ad-hoc\n서명이 유효했다. 주 실행 파일 SHA-256은\n`bcb22cca37a0b1780a45ac8b0fcaabe1cbd8a45a16fd74eb0c06f529cd7b50c5`이다.\nLVUI Python 컴파일 브리지의 패키지 대상 추가 후 제품 대상을 다시 빌드하고\n위의 13개 제품 검사를 다시 통과한 최종 산출물이다. 브리지는 제품에서 링크하지\n않는다.\n이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.\n실제 앱 창·GPU·기기와 Windows·Linux 실행은 포함하지 않는다.\n"
     },
     {
       "id": "b000154",
@@ -1140,84 +1140,84 @@
     },
     {
       "id": "b000155",
-      "kind": "paragraph",
+      "kind": "heading",
       "start_line": 510,
-      "end_line": 517,
-      "raw": "개발 번들의 Mach-O 7개, 자체 식별자를 제외한 동적 의존성 62행과 심볼 226,294행에\n검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행은 번들 안에서 해석되고 로컬\n임시 서명의 엄격한 검사도 통과했다. 실행 파일 SHA-256은\n`b8147642665cdae93345880f3f5454c886cdb7cf5e3652017d50e45f970ed54f`이다.\n이는 기존 캐시와 사전 빌드한 나머지 iiSDK를 재사용한 이름·경로 기반 정적\n검사이며 이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다.\n임의 이름의 정적 코드 출처나 실제 창·GPU·기기, Windows·Linux 실행, 설치 및\n배포 서명·공증을 증명하지 않는다.\n"
+      "end_line": 510,
+      "raw": "## 둥근 입력 재질 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "둥근 입력 재질 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000156",
       "kind": "blank",
-      "start_line": 518,
-      "end_line": 518,
+      "start_line": 511,
+      "end_line": 511,
       "raw": "\n"
     },
     {
       "id": "b000157",
-      "kind": "heading",
-      "start_line": 519,
-      "end_line": 519,
-      "raw": "## 입력 지우기 동작 중간 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "입력 지우기 동작 중간 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 512,
+      "end_line": 518,
+      "raw": "개명된 원본 LVUI에서 둥근 TextField의 활성·비활성 재질이 검색 입력과 같음을\n대조하고 공통 재질로 통합했다. 제품 소유 입력 어댑터는 이 재질과 공통 크기·\n지우기를 선택한다. 선택·문자·커서는 재질 위에서 그리며, 원본의 일반·비활성\n텍스트와 강조 선택·설명색 커서 토큰을 사용한다. 조합 중 반응형 표면 변경과\n잘못된 값의 거절, 배경·문자 레이어 순서와 기존 검색 입력을 헤드리스로 검사했다.\n선언형 설정 화면의 입력에는 이 어댑터가 적용되지 않는다. 포커스 입력 방식의\n구분, Inline·Cylinder 모양과 실제 GPU 픽셀 비교는 아직 남아 있다.\n"
     },
     {
       "id": "b000158",
       "kind": "blank",
-      "start_line": 520,
-      "end_line": 520,
+      "start_line": 519,
+      "end_line": 519,
       "raw": "\n"
     },
     {
       "id": "b000159",
       "kind": "paragraph",
-      "start_line": 521,
-      "end_line": 526,
-      "raw": "일반 입력에 선택 가능한 LVUI 공통 지우기 동작을 추가하고 제품의 단일 줄 입력\n어댑터에 연결한 시점의 기록이다. 버튼은 원본 TextField의 12px 크기와 오른쪽\n배치를 사용하며, 지우기는 한 번의 편집으로 처리하고 포커스를 유지한다. 선택·\n입력기 조합·Undo/Redo, 읽기 전용과 상위 비활성 상태, 좁은 폭, 암호 이력과\n콜백 중 폐기를 LVUI 헤드리스 검사로 확인했다. 표시 중인 조합 값을 `options()`로\n읽어 다른 옵션을 갱신해도 조합을 확정하거나 나중의 편집을 덮어쓰지 않도록 했다.\n"
+      "start_line": 520,
+      "end_line": 528,
+      "raw": "Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI 전체 대상과\nCongregation Debug 전체 빌드가 통과했다. 같은 소스의 LVUI 입력·검색·텍스트와\n이를 내장한 목록·표·색상 컨트롤 관련 검사 108건 및 제품의 입력·화면·빌드\n경계 관련 검사 11건이 통과했다. 제품 테스트 정의 111개의 명령과 속성을 대조하고\n임시 자료 경로만 격리했으며, 기존 테스트 자료 13개 항목은\n변경되지 않았다. 102개 제품 전체 헤드리스 회귀는 아래의 별도 중간 실행에서\n10건 통과 후 중단했으며, 이번 변경의 전체 회귀 성공으로 간주하지 않는다.\n별도 빌드 디렉터리를 만들지 않는 LVUI 설치 패키지 경계 검사도 통과했다.\n다른 빌드 디렉터리를 생성하는 `LVUI.NativeInstalled` 검사는 제외했다.\n"
     },
     {
       "id": "b000160",
       "kind": "blank",
-      "start_line": 527,
-      "end_line": 527,
+      "start_line": 529,
+      "end_line": 529,
       "raw": "\n"
     },
     {
       "id": "b000161",
       "kind": "paragraph",
-      "start_line": 528,
-      "end_line": 536,
-      "raw": "이 시점에 Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI와\nCongregation Debug 전체 빌드가 통과했고, 입력·검색·텍스트 관련 LVUI 검사 10건과\n제품 `Congregation.independent_setup`이 통과했다. 후자의 조기 실행 한 번은\nXcode의 로컬 서명이 완료되기 전이라 운영체제가 프로세스를 종료했으며, 서명\n완료를 확인한 뒤 같은 검사가 통과했다. 제품의 창 없는 102개 전체 회귀는\n직접 관계없는 문서 통합 검사의 외장 디스크 동기화가 장시간 지연되어 10건 통과\n후 중단했다. 중단 전 실패는 없었으며 전체 회귀 통과로 간주하지 않는다. 이후\n둥근 입력 재질 이식이 시작되었으므로 이 빌드와 검사 결과를 그 후의 소스 전체에\n대한 결과로 해석하지 않는다.\n"
+      "start_line": 530,
+      "end_line": 537,
+      "raw": "개발 번들의 Mach-O 7개, 자체 식별자를 제외한 동적 의존성 62행과 심볼 226,294행에\n검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행은 번들 안에서 해석되고 로컬\n임시 서명의 엄격한 검사도 통과했다. 실행 파일 SHA-256은\n`b8147642665cdae93345880f3f5454c886cdb7cf5e3652017d50e45f970ed54f`이다.\n이는 기존 캐시와 사전 빌드한 나머지 iiSDK를 재사용한 이름·경로 기반 정적\n검사이며 이식된 `qt.svg` 아이콘 한 파일은 읽기 차단에서 예외로 허용했다.\n임의 이름의 정적 코드 출처나 실제 창·GPU·기기, Windows·Linux 실행, 설치 및\n배포 서명·공증을 증명하지 않는다.\n"
     },
     {
       "id": "b000162",
       "kind": "blank",
-      "start_line": 537,
-      "end_line": 537,
+      "start_line": 538,
+      "end_line": 538,
       "raw": "\n"
     },
     {
       "id": "b000163",
-      "kind": "paragraph",
-      "start_line": 538,
-      "end_line": 544,
-      "raw": "이 시점 개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,241행에\n검사한 Qt·LVRS 이름은 없었으며 `@rpath` 참조 7행과 로컬 임시 서명도 유효했다.\n주 실행 파일 SHA-256은\n`900ad98831dc50a791bc9bcbf3c0bce71c1e0d487ae9b05db3d14f04bead74c1`이다.\n기존 캐시와 사전 빌드한 나머지 iiSDK를 재사용했고 이식된 `qt.svg` 아이콘 한\n파일은 읽기 차단에서 예외로 허용했다. 이름·경로 검사는 임의 이름의 정적 코드\n출처를 증명하지 않으며 실제 창·GPU·기기 또는 Windows·Linux 실행 결과가 아니다.\n"
+      "kind": "heading",
+      "start_line": 539,
+      "end_line": 539,
+      "raw": "## 입력 지우기 동작 중간 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "입력 지우기 동작 중간 검증 · 2026-11-03"
     },
     {
       "id": "b000164",
       "kind": "blank",
-      "start_line": 545,
-      "end_line": 545,
+      "start_line": 540,
+      "end_line": 540,
       "raw": "\n"
     },
     {
       "id": "b000165",
-      "kind": "heading",
-      "start_line": 546,
+      "kind": "paragraph",
+      "start_line": 541,
       "end_line": 546,
-      "raw": "## 공통 입력 크기와 원본 LVUI 토큰 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "공통 입력 크기와 원본 LVUI 토큰 후속 검증 · 2026-11-03"
+      "raw": "일반 입력에 선택 가능한 LVUI 공통 지우기 동작을 추가하고 제품의 단일 줄 입력\n어댑터에 연결한 시점의 기록이다. 버튼은 원본 TextField의 12px 크기와 오른쪽\n배치를 사용하며, 지우기는 한 번의 편집으로 처리하고 포커스를 유지한다. 선택·\n입력기 조합·Undo/Redo, 읽기 전용과 상위 비활성 상태, 좁은 폭, 암호 이력과\n콜백 중 폐기를 LVUI 헤드리스 검사로 확인했다. 표시 중인 조합 값을 `options()`로\n읽어 다른 옵션을 갱신해도 조합을 확정하거나 나중의 편집을 덮어쓰지 않도록 했다.\n"
     },
     {
       "id": "b000166",
@@ -1230,440 +1230,440 @@
       "id": "b000167",
       "kind": "paragraph",
       "start_line": 548,
-      "end_line": 553,
-      "raw": "기존 공통 Figma 라이브러리는 동일한 파일·라이브러리 키를 유지한 채 LVUI로\n개명되었다. 현재 원본 변수 233개의 해석된 값을 SDK 카탈로그와 대조했으며,\n원본에서 제거된 네 `Action` 이름은 기존 소비자를 위한 호환 이름으로 보존한다.\n검색 필드에 필요한 변수 다섯 개는 원본에 추가·게시하고 제품 파일에서 조회했다.\n`Previous color` 별칭은 현재 원본처럼 파란 강조색을 직접 참조하므로 호환용\n`Action/primary`만 바꾸어서는 이 색이 변하지 않는다.\n"
+      "end_line": 556,
+      "raw": "이 시점에 Qt·LVRS 주요 실제 경로를 차단한 기존 macOS arm64 구성에서 LVUI와\nCongregation Debug 전체 빌드가 통과했고, 입력·검색·텍스트 관련 LVUI 검사 10건과\n제품 `Congregation.independent_setup`이 통과했다. 후자의 조기 실행 한 번은\nXcode의 로컬 서명이 완료되기 전이라 운영체제가 프로세스를 종료했으며, 서명\n완료를 확인한 뒤 같은 검사가 통과했다. 제품의 창 없는 102개 전체 회귀는\n직접 관계없는 문서 통합 검사의 외장 디스크 동기화가 장시간 지연되어 10건 통과\n후 중단했다. 중단 전 실패는 없었으며 전체 회귀 통과로 간주하지 않는다. 이후\n둥근 입력 재질 이식이 시작되었으므로 이 빌드와 검사 결과를 그 후의 소스 전체에\n대한 결과로 해석하지 않는다.\n"
     },
     {
       "id": "b000168",
       "kind": "blank",
-      "start_line": 554,
-      "end_line": 554,
+      "start_line": 557,
+      "end_line": 557,
       "raw": "\n"
     },
     {
       "id": "b000169",
       "kind": "paragraph",
-      "start_line": 555,
-      "end_line": 559,
-      "raw": "공통 `InputFieldSize::compact`를 원본 TextField의 22px 높이와 여백으로 추가하고\n제품 입력 어댑터와 연결했다. 제품의 입력별 `InputStyle` 일곱 건을 제거하고,\n어댑터에 사용자 지정 스타일이 전달되면 명시적으로 거절한다. 크기 변경 시\n입력 중인 조합과 이력을 보존하며 선언형 명시 치수가 프리셋보다 우선한다.\n이는 일반 입력 필드의 원본 재질과 지우기 버튼 전체를 이식했다는 뜻은 아니다.\n"
+      "start_line": 558,
+      "end_line": 564,
+      "raw": "이 시점 개발 번들의 Mach-O 이미지 7개, 동적 의존성 62행과 심볼 226,241행에\n검사한 Qt·LVRS 이름은 없었으며 `@rpath` 참조 7행과 로컬 임시 서명도 유효했다.\n주 실행 파일 SHA-256은\n`900ad98831dc50a791bc9bcbf3c0bce71c1e0d487ae9b05db3d14f04bead74c1`이다.\n기존 캐시와 사전 빌드한 나머지 iiSDK를 재사용했고 이식된 `qt.svg` 아이콘 한\n파일은 읽기 차단에서 예외로 허용했다. 이름·경로 검사는 임의 이름의 정적 코드\n출처를 증명하지 않으며 실제 창·GPU·기기 또는 Windows·Linux 실행 결과가 아니다.\n"
     },
     {
       "id": "b000170",
       "kind": "blank",
-      "start_line": 560,
-      "end_line": 560,
+      "start_line": 565,
+      "end_line": 565,
       "raw": "\n"
     },
     {
       "id": "b000171",
-      "kind": "paragraph",
-      "start_line": 561,
-      "end_line": 567,
-      "raw": "Qt·LVRS의 주요 실제 경로 읽기를 차단한 기존 macOS arm64 구성에서 제품 Debug\n전체 빌드와 관련 헤드리스 검사 11건이 통과했다. 111개 테스트 정의의 명령과\n속성을 대조하고 임시 자료 경로만 분리했으며, 기존 테스트 자료 13개 항목은\n변경되지 않았다. 처음 검사에서는 테스트의 최상위 필드가 호스트에 맞춰 늘어나\n높이 검사가 실패했다. 실제 화면처럼 세로 배치에 넣어 고유 높이와 배치 높이를\n함께 확인한 뒤 검사 전체가 통과했다. 앞 절의 제품 전체 헤드리스 102건은 입력\n크기 프리셋과 현재 원본 별칭 적용 전의 결과이다.\n"
+      "kind": "heading",
+      "start_line": 566,
+      "end_line": 566,
+      "raw": "## 공통 입력 크기와 원본 LVUI 토큰 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "공통 입력 크기와 원본 LVUI 토큰 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000172",
       "kind": "blank",
-      "start_line": 568,
-      "end_line": 568,
+      "start_line": 567,
+      "end_line": 567,
       "raw": "\n"
     },
     {
       "id": "b000173",
       "kind": "paragraph",
-      "start_line": 569,
-      "end_line": 575,
-      "raw": "현재 원본 별칭을 적용한 LVUI 회귀 633건 중 631건은 일괄 실행에서 통과했다.\n일시 중지된 일괄 실행 중 시간 초과된 조건부 뷰와 패키지 경계 2건은 프리셋\n적용 후 개별 재실행에서 모두 통과했다. 프리셋 관련 LVUI 집중 검사 10건과\n생성 코드의 명시 높이 우선순위·Undo/Redo 추가 검사가 통과했다. 프리셋 적용 후\nSDK 전체 대상 재빌드는 다른 빌드와의 자원 경합을 줄이기 위해 중단했으며,\n변경과 관계된 SDK 대상과 검사 도구는 다시 빌드했다. 앞 절의 SDK 전체 빌드와\n633건 통과는 프리셋 및 현재 원본 별칭 적용 전의 결과이다.\n"
+      "start_line": 568,
+      "end_line": 573,
+      "raw": "기존 공통 Figma 라이브러리는 동일한 파일·라이브러리 키를 유지한 채 LVUI로\n개명되었다. 현재 원본 변수 233개의 해석된 값을 SDK 카탈로그와 대조했으며,\n원본에서 제거된 네 `Action` 이름은 기존 소비자를 위한 호환 이름으로 보존한다.\n검색 필드에 필요한 변수 다섯 개는 원본에 추가·게시하고 제품 파일에서 조회했다.\n`Previous color` 별칭은 현재 원본처럼 파란 강조색을 직접 참조하므로 호환용\n`Action/primary`만 바꾸어서는 이 색이 변하지 않는다.\n"
     },
     {
       "id": "b000174",
       "kind": "blank",
-      "start_line": 576,
-      "end_line": 576,
+      "start_line": 574,
+      "end_line": 574,
       "raw": "\n"
     },
     {
       "id": "b000175",
       "kind": "paragraph",
-      "start_line": 577,
-      "end_line": 584,
-      "raw": "이 빌드의 개발 번들은 Mach-O 7개, 자체 식별자를 제외한 동적 의존성 62행,\n심볼 226,093행에서 검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행은 번들\n안에서 해석되고 로컬 임시 서명의 엄격한 검사도 통과했다. 실행 파일 SHA-256은\n`7faa3e56461b5887644c2094a4bacf2f259e5b40a6835f7cc36ae0e8441ce873`이다.\n검사는 기존 빌드 캐시와 사전 빌드한 나머지 iiSDK를 재사용하고, 이식된 아이콘\n`qt.svg` 한 파일만 읽기 차단에서 예외로 허용했다. 이름·경로 기반 검사는 모든\n정적 코드의 출처를 증명하지 않는다. 실제 창·GPU·기기, Windows·Linux 실행과\n설치·배포 서명·공증은 검사하지 않았다.\n"
+      "start_line": 575,
+      "end_line": 579,
+      "raw": "공통 `InputFieldSize::compact`를 원본 TextField의 22px 높이와 여백으로 추가하고\n제품 입력 어댑터와 연결했다. 제품의 입력별 `InputStyle` 일곱 건을 제거하고,\n어댑터에 사용자 지정 스타일이 전달되면 명시적으로 거절한다. 크기 변경 시\n입력 중인 조합과 이력을 보존하며 선언형 명시 치수가 프리셋보다 우선한다.\n이는 일반 입력 필드의 원본 재질과 지우기 버튼 전체를 이식했다는 뜻은 아니다.\n"
     },
     {
       "id": "b000176",
       "kind": "blank",
-      "start_line": 585,
-      "end_line": 585,
+      "start_line": 580,
+      "end_line": 580,
       "raw": "\n"
     },
     {
       "id": "b000177",
-      "kind": "heading",
-      "start_line": 586,
-      "end_line": 586,
-      "raw": "## 입력 길이 제한과 라이브러리 개명 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "입력 길이 제한과 라이브러리 개명 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 581,
+      "end_line": 587,
+      "raw": "Qt·LVRS의 주요 실제 경로 읽기를 차단한 기존 macOS arm64 구성에서 제품 Debug\n전체 빌드와 관련 헤드리스 검사 11건이 통과했다. 111개 테스트 정의의 명령과\n속성을 대조하고 임시 자료 경로만 분리했으며, 기존 테스트 자료 13개 항목은\n변경되지 않았다. 처음 검사에서는 테스트의 최상위 필드가 호스트에 맞춰 늘어나\n높이 검사가 실패했다. 실제 화면처럼 세로 배치에 넣어 고유 높이와 배치 높이를\n함께 확인한 뒤 검사 전체가 통과했다. 앞 절의 제품 전체 헤드리스 102건은 입력\n크기 프리셋과 현재 원본 별칭 적용 전의 결과이다.\n"
     },
     {
       "id": "b000178",
       "kind": "blank",
-      "start_line": 587,
-      "end_line": 587,
+      "start_line": 588,
+      "end_line": 588,
       "raw": "\n"
     },
     {
       "id": "b000179",
       "kind": "paragraph",
-      "start_line": 588,
-      "end_line": 593,
-      "raw": "LVUI 입력 상태에 문자 수 제한과 Unicode 스칼라 또는 UTF-16 코드 단위 선택을\n추가했다. 제품 입력 어댑터는 iiGUI의 0을 제한 없음으로, 양수는 Unicode 스칼라\n개수로 전달한다. 선택 교체, 입력기 조합 확정, 이모지, Undo/Redo와 잘못된 입력의\n원자성을 검사했다. `Congregation.independent_setup`도 제품 어댑터의 해당 경계를\n창 없이 확인한다. Figma에서 기존 공통 라이브러리는 같은 키를 유지한 채 LVUI로\n개명되었으며, 동명의 별도 라이브러리로 기존 인스턴스를 교체하지 않았다.\n"
+      "start_line": 589,
+      "end_line": 595,
+      "raw": "현재 원본 별칭을 적용한 LVUI 회귀 633건 중 631건은 일괄 실행에서 통과했다.\n일시 중지된 일괄 실행 중 시간 초과된 조건부 뷰와 패키지 경계 2건은 프리셋\n적용 후 개별 재실행에서 모두 통과했다. 프리셋 관련 LVUI 집중 검사 10건과\n생성 코드의 명시 높이 우선순위·Undo/Redo 추가 검사가 통과했다. 프리셋 적용 후\nSDK 전체 대상 재빌드는 다른 빌드와의 자원 경합을 줄이기 위해 중단했으며,\n변경과 관계된 SDK 대상과 검사 도구는 다시 빌드했다. 앞 절의 SDK 전체 빌드와\n633건 통과는 프리셋 및 현재 원본 별칭 적용 전의 결과이다.\n"
     },
     {
       "id": "b000180",
       "kind": "blank",
-      "start_line": 594,
-      "end_line": 594,
+      "start_line": 596,
+      "end_line": 596,
       "raw": "\n"
     },
     {
       "id": "b000181",
       "kind": "paragraph",
-      "start_line": 595,
-      "end_line": 601,
-      "raw": "macOS arm64의 기존 빌드 구성에서 Qt·LVRS의 주요 실제 소스와 설치 라이브러리\n읽기를 차단하고 검색 환경을 정리한 후 LVUI와 Congregation Debug 전체 빌드가\n통과했다. 이식된 `qt.svg` 자산 한 파일은 허용했고, 실제 레거시 경로와 별도의\nQt·LVRS 시험 파일이 차단되는 것을 확인했다. 기존 빌드 캐시와 나머지 iiSDK\n스테이징은 재사용했다. LVUI의 헤드리스·패키지 경계 검사 633건은 서로 겹치지\n않는 두 차례의 실행으로 모두 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled` 1건은 제외했다.\n"
+      "start_line": 597,
+      "end_line": 604,
+      "raw": "이 빌드의 개발 번들은 Mach-O 7개, 자체 식별자를 제외한 동적 의존성 62행,\n심볼 226,093행에서 검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행은 번들\n안에서 해석되고 로컬 임시 서명의 엄격한 검사도 통과했다. 실행 파일 SHA-256은\n`7faa3e56461b5887644c2094a4bacf2f259e5b40a6835f7cc36ae0e8441ce873`이다.\n검사는 기존 빌드 캐시와 사전 빌드한 나머지 iiSDK를 재사용하고, 이식된 아이콘\n`qt.svg` 한 파일만 읽기 차단에서 예외로 허용했다. 이름·경로 기반 검사는 모든\n정적 코드의 출처를 증명하지 않는다. 실제 창·GPU·기기, Windows·Linux 실행과\n설치·배포 서명·공증은 검사하지 않았다.\n"
     },
     {
       "id": "b000182",
       "kind": "blank",
-      "start_line": 602,
-      "end_line": 602,
+      "start_line": 605,
+      "end_line": 605,
       "raw": "\n"
     },
     {
       "id": "b000183",
-      "kind": "paragraph",
-      "start_line": 603,
-      "end_line": 607,
-      "raw": "제품의 헤드리스 회귀 102건이 한 차례 실행으로 통과했다. 원래 등록된 111개\n테스트의 명령·속성·작업 디렉터리를 대조한 뒤 임시 자료 경로만 분리했다.\n실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트 격리는 실제\nQt·LVRS 경로를 차단하고, 의존성 거절 검사에 필요한 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다.\n"
+      "kind": "heading",
+      "start_line": 606,
+      "end_line": 606,
+      "raw": "## 입력 길이 제한과 라이브러리 개명 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "입력 길이 제한과 라이브러리 개명 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000184",
       "kind": "blank",
-      "start_line": 608,
-      "end_line": 608,
+      "start_line": 607,
+      "end_line": 607,
       "raw": "\n"
     },
     {
       "id": "b000185",
       "kind": "paragraph",
-      "start_line": 609,
-      "end_line": 615,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n심볼 226,103행에서 검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행의 파일은\n번들에서 해석되며 로컬 임시 서명의 엄격한 검증도 통과했다. 주 실행 파일의\nSHA-256은 `c3cd1f69b4abab40e3f9b61532158dd42ea0c7e00183a0adacf0b17df158c153`이다.\n이는 기존 캐시와 미리 빌드한 SDK를 재사용한 이름·경로 기반 정적 검사이다.\n숨겨진 정적 코드의 전체 출처, 실제 창·GPU·기기와 Windows·Linux 실행, 설치 및\n배포용 서명·공증을 증명하지 않는다.\n"
+      "start_line": 608,
+      "end_line": 613,
+      "raw": "LVUI 입력 상태에 문자 수 제한과 Unicode 스칼라 또는 UTF-16 코드 단위 선택을\n추가했다. 제품 입력 어댑터는 iiGUI의 0을 제한 없음으로, 양수는 Unicode 스칼라\n개수로 전달한다. 선택 교체, 입력기 조합 확정, 이모지, Undo/Redo와 잘못된 입력의\n원자성을 검사했다. `Congregation.independent_setup`도 제품 어댑터의 해당 경계를\n창 없이 확인한다. Figma에서 기존 공통 라이브러리는 같은 키를 유지한 채 LVUI로\n개명되었으며, 동명의 별도 라이브러리로 기존 인스턴스를 교체하지 않았다.\n"
     },
     {
       "id": "b000186",
       "kind": "blank",
-      "start_line": 616,
-      "end_line": 616,
+      "start_line": 614,
+      "end_line": 614,
       "raw": "\n"
     },
     {
       "id": "b000187",
-      "kind": "heading",
-      "start_line": 617,
-      "end_line": 617,
-      "raw": "## 버튼 메서드와 Enter 입력 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "버튼 메서드와 Enter 입력 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 615,
+      "end_line": 621,
+      "raw": "macOS arm64의 기존 빌드 구성에서 Qt·LVRS의 주요 실제 소스와 설치 라이브러리\n읽기를 차단하고 검색 환경을 정리한 후 LVUI와 Congregation Debug 전체 빌드가\n통과했다. 이식된 `qt.svg` 자산 한 파일은 허용했고, 실제 레거시 경로와 별도의\nQt·LVRS 시험 파일이 차단되는 것을 확인했다. 기존 빌드 캐시와 나머지 iiSDK\n스테이징은 재사용했다. LVUI의 헤드리스·패키지 경계 검사 633건은 서로 겹치지\n않는 두 차례의 실행으로 모두 통과했다. 별도 빌드 디렉터리를 만드는\n`LVUI.NativeInstalled` 1건은 제외했다.\n"
     },
     {
       "id": "b000188",
       "kind": "blank",
-      "start_line": 618,
-      "end_line": 618,
+      "start_line": 622,
+      "end_line": 622,
       "raw": "\n"
     },
     {
       "id": "b000189",
       "kind": "paragraph",
-      "start_line": 619,
-      "end_line": 628,
-      "raw": "LVUI 공통 버튼 계열에 단일 메서드와 중첩·반응형 메서드 목록을 추가하고,\n환경설정의 General·Profile·Members 버튼을 이 경로에 연결했다. 중복 호출 없이\n탭이 바뀌는 것은 `Congregation.independent_preferences`의 헤드리스 검사에서\n확인했다. iiGUI는 Enter 활성화 정책과 눌렀던 키의 해제만 처리하는 규칙을 추가하고,\nLVUI는 원본 버튼 종류에 맞는 기본값과 반응형 입력을 제공한다. iiGUI의 입력·포커스·\n접근성 관련 헤드리스 검사 53건과 수정 후 LVUI 집중 검사 50건이 통과했다.\n최종 LVUI 헤드리스·패키지 경계 회귀는 633건 모두 통과했다. 이 일괄 검사는\nQt·LVRS 검색 환경을 정리했으며 별도 빌드 디렉터리를 생성하는\n`LVUI.NativeInstalled` 1건은 제외했다. 파일 접근 차단은 빌드에 적용했으나\nLVUI 일괄 검사에는 적용하지 않았다.\n"
+      "start_line": 623,
+      "end_line": 627,
+      "raw": "제품의 헤드리스 회귀 102건이 한 차례 실행으로 통과했다. 원래 등록된 111개\n테스트의 명령·속성·작업 디렉터리를 대조한 뒤 임시 자료 경로만 분리했다.\n실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트 격리는 실제\nQt·LVRS 경로를 차단하고, 의존성 거절 검사에 필요한 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다.\n"
     },
     {
       "id": "b000190",
       "kind": "blank",
-      "start_line": 629,
-      "end_line": 629,
+      "start_line": 628,
+      "end_line": 628,
       "raw": "\n"
     },
     {
       "id": "b000191",
       "kind": "paragraph",
-      "start_line": 630,
-      "end_line": 633,
-      "raw": "첫 LVUI 일괄 검사에서 클립 밖에 있거나 배치 전인 버튼의 명시 활성화가 억제되어\n색상 선택기 적용이 실패했다. 논리적 표시 상태와 실제 클리핑을 분리한 뒤 색상\n선택기 및 클립·숨김 회귀가 통과했다. 수정 전 일괄 검사는 중단하고 새 산출물로\n다시 빌드했다.\n"
+      "start_line": 629,
+      "end_line": 635,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n심볼 226,103행에서 검사한 Qt·LVRS 이름이 없었다. `@rpath` 참조 7행의 파일은\n번들에서 해석되며 로컬 임시 서명의 엄격한 검증도 통과했다. 주 실행 파일의\nSHA-256은 `c3cd1f69b4abab40e3f9b61532158dd42ea0c7e00183a0adacf0b17df158c153`이다.\n이는 기존 캐시와 미리 빌드한 SDK를 재사용한 이름·경로 기반 정적 검사이다.\n숨겨진 정적 코드의 전체 출처, 실제 창·GPU·기기와 Windows·Linux 실행, 설치 및\n배포용 서명·공증을 증명하지 않는다.\n"
     },
     {
       "id": "b000192",
       "kind": "blank",
-      "start_line": 634,
-      "end_line": 634,
+      "start_line": 636,
+      "end_line": 636,
       "raw": "\n"
     },
     {
       "id": "b000193",
-      "kind": "paragraph",
-      "start_line": 635,
-      "end_line": 642,
-      "raw": "macOS arm64에서 Qt·LVRS의 주요 실제 소스와 설치 라이브러리를 읽을 수 없도록\n차단하고 검색 환경 변수를 정리한 뒤 iiGUI, LVUI 및 Congregation Debug 전체\n빌드를 완료했다. 이식된 `qt.svg` 자산 한 파일은 예외로 허용했으며, 실제 LVRS\n소스·설치 아카이브와 별도의 Qt·LVRS 시험 파일이 차단됨을 확인했다. 기존 빌드\n캐시와 나머지 iiSDK 스테이징은 재사용했다. iiGUI의 변경된 공개 헤더·정적\n라이브러리·ABI 식별자를 함께 스테이징했고 제품 빌드가 새 식별자를 사용하는\n것을 확인했다. 제품이 참조하는 외부 아카이브·동적 라이브러리 26개에서는 해당\n동작 표면 API의 직접 참조를 찾지 못했다. 이는 이름 기반 검사다.\n"
+      "kind": "heading",
+      "start_line": 637,
+      "end_line": 637,
+      "raw": "## 버튼 메서드와 Enter 입력 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "버튼 메서드와 Enter 입력 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000194",
       "kind": "blank",
-      "start_line": 643,
-      "end_line": 643,
+      "start_line": 638,
+      "end_line": 638,
       "raw": "\n"
     },
     {
       "id": "b000195",
       "kind": "paragraph",
-      "start_line": 644,
-      "end_line": 649,
-      "raw": "최종 제품의 헤드리스 회귀 102건은 한 번의 실행으로 모두 통과했다. 원래의 111개\n테스트 정의에서 명령·속성·작업 디렉터리가 동일함을 대조하고 임시 자료 경로만\n분리했으며, 실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트에서는\n실제 Qt·LVRS 경로를 차단하고 의존성 거절 검사에 필요한 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다. 기존 테스트 자료 12개와 상위 항목의 해시·수정 시각은\n전후 일치했고, 아래 실행 파일 해시도 테스트 후 바뀌지 않았다.\n"
+      "start_line": 639,
+      "end_line": 648,
+      "raw": "LVUI 공통 버튼 계열에 단일 메서드와 중첩·반응형 메서드 목록을 추가하고,\n환경설정의 General·Profile·Members 버튼을 이 경로에 연결했다. 중복 호출 없이\n탭이 바뀌는 것은 `Congregation.independent_preferences`의 헤드리스 검사에서\n확인했다. iiGUI는 Enter 활성화 정책과 눌렀던 키의 해제만 처리하는 규칙을 추가하고,\nLVUI는 원본 버튼 종류에 맞는 기본값과 반응형 입력을 제공한다. iiGUI의 입력·포커스·\n접근성 관련 헤드리스 검사 53건과 수정 후 LVUI 집중 검사 50건이 통과했다.\n최종 LVUI 헤드리스·패키지 경계 회귀는 633건 모두 통과했다. 이 일괄 검사는\nQt·LVRS 검색 환경을 정리했으며 별도 빌드 디렉터리를 생성하는\n`LVUI.NativeInstalled` 1건은 제외했다. 파일 접근 차단은 빌드에 적용했으나\nLVUI 일괄 검사에는 적용하지 않았다.\n"
     },
     {
       "id": "b000196",
       "kind": "blank",
-      "start_line": 650,
-      "end_line": 650,
+      "start_line": 649,
+      "end_line": 649,
       "raw": "\n"
     },
     {
       "id": "b000197",
       "kind": "paragraph",
-      "start_line": 651,
-      "end_line": 656,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n`nm -m` 출력 226,066행에서 검사한 Qt·LVRS 이름은 없었다. 실행 검색 경로 8행은\n모두 번들 내부이며, 참조 파일과 로컬 임시 서명도 검증했다. 실행 파일 SHA-256은\n`a49c551e4e36d3c1e6eb7b0081f6458dad492ed5c3bea4b975e2e808c4baef1e`이다.\n이는 이름 기반 정적 검사이며 임의 이름으로 숨긴 정적 코드의 전체 출처나 실제\n창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.\n"
+      "start_line": 650,
+      "end_line": 653,
+      "raw": "첫 LVUI 일괄 검사에서 클립 밖에 있거나 배치 전인 버튼의 명시 활성화가 억제되어\n색상 선택기 적용이 실패했다. 논리적 표시 상태와 실제 클리핑을 분리한 뒤 색상\n선택기 및 클립·숨김 회귀가 통과했다. 수정 전 일괄 검사는 중단하고 새 산출물로\n다시 빌드했다.\n"
     },
     {
       "id": "b000198",
       "kind": "blank",
-      "start_line": 657,
-      "end_line": 657,
+      "start_line": 654,
+      "end_line": 654,
       "raw": "\n"
     },
     {
       "id": "b000199",
-      "kind": "heading",
-      "start_line": 658,
-      "end_line": 658,
-      "raw": "## 버튼 입력 이벤트 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "버튼 입력 이벤트 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 655,
+      "end_line": 662,
+      "raw": "macOS arm64에서 Qt·LVRS의 주요 실제 소스와 설치 라이브러리를 읽을 수 없도록\n차단하고 검색 환경 변수를 정리한 뒤 iiGUI, LVUI 및 Congregation Debug 전체\n빌드를 완료했다. 이식된 `qt.svg` 자산 한 파일은 예외로 허용했으며, 실제 LVRS\n소스·설치 아카이브와 별도의 Qt·LVRS 시험 파일이 차단됨을 확인했다. 기존 빌드\n캐시와 나머지 iiSDK 스테이징은 재사용했다. iiGUI의 변경된 공개 헤더·정적\n라이브러리·ABI 식별자를 함께 스테이징했고 제품 빌드가 새 식별자를 사용하는\n것을 확인했다. 제품이 참조하는 외부 아카이브·동적 라이브러리 26개에서는 해당\n동작 표면 API의 직접 참조를 찾지 못했다. 이는 이름 기반 검사다.\n"
     },
     {
       "id": "b000200",
       "kind": "blank",
-      "start_line": 659,
-      "end_line": 659,
+      "start_line": 663,
+      "end_line": 663,
       "raw": "\n"
     },
     {
       "id": "b000201",
       "kind": "paragraph",
-      "start_line": 660,
-      "end_line": 665,
-      "raw": "LVUI의 기본·아이콘·도움말 버튼에 누름·놓기·취소 이벤트를 추가하고 경고 버튼을\n동일한 경로에 연결했다. iiGUI도 중첩 콘텐츠와 팝업의 Escape 취소를 처리한다.\n포인터·키보드·영역 밖 놓기·취소와 콜백 재진입·위젯 폐기를 헤드리스로 검사했다.\niiGUI 관련 회귀 49건, LVUI 집중 검사 7건과 LVUI 전체 헤드리스·패키지 경계\n회귀 631건이 통과했다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다.\n"
+      "start_line": 664,
+      "end_line": 669,
+      "raw": "최종 제품의 헤드리스 회귀 102건은 한 번의 실행으로 모두 통과했다. 원래의 111개\n테스트 정의에서 명령·속성·작업 디렉터리가 동일함을 대조하고 임시 자료 경로만\n분리했으며, 실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트에서는\n실제 Qt·LVRS 경로를 차단하고 의존성 거절 검사에 필요한 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다. 기존 테스트 자료 12개와 상위 항목의 해시·수정 시각은\n전후 일치했고, 아래 실행 파일 해시도 테스트 후 바뀌지 않았다.\n"
     },
     {
       "id": "b000202",
       "kind": "blank",
-      "start_line": 666,
-      "end_line": 666,
+      "start_line": 670,
+      "end_line": 670,
       "raw": "\n"
     },
     {
       "id": "b000203",
       "kind": "paragraph",
-      "start_line": 667,
-      "end_line": 672,
-      "raw": "새 iiGUI 정적 라이브러리와 LVUI 컴파일러·공개 헤더를 제품이 참조하는 스테이징에\n반영하고 소스 산출물과 해시를 대조했다. Qt·LVRS의 주요 실제 소스와 라이브러리\n읽기를 차단하고 검색 환경 변수를 정리한 기존 구성에서 iiGUI 및 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI 일괄 회귀에는 검색 환경 정리를\n적용했으나 파일 읽기 차단은 적용하지 않았다. 기존 빌드 캐시와 나머지 iiSDK의\n사전 빌드 산출물은 재사용했다.\n"
+      "start_line": 671,
+      "end_line": 676,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n`nm -m` 출력 226,066행에서 검사한 Qt·LVRS 이름은 없었다. 실행 검색 경로 8행은\n모두 번들 내부이며, 참조 파일과 로컬 임시 서명도 검증했다. 실행 파일 SHA-256은\n`a49c551e4e36d3c1e6eb7b0081f6458dad492ed5c3bea4b975e2e808c4baef1e`이다.\n이는 이름 기반 정적 검사이며 임의 이름으로 숨긴 정적 코드의 전체 출처나 실제\n창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.\n"
     },
     {
       "id": "b000204",
       "kind": "blank",
-      "start_line": 673,
-      "end_line": 673,
+      "start_line": 677,
+      "end_line": 677,
       "raw": "\n"
     },
     {
       "id": "b000205",
-      "kind": "paragraph",
-      "start_line": 674,
-      "end_line": 679,
-      "raw": "제품 헤드리스 회귀 102건이 한 번의 실행으로 모두 통과했다. 원래 테스트 정의\n111개의 명령·속성·작업 디렉터리가 일치함을 대조한 뒤 임시 자료 위치만 별도로\n바꾸었다. 실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트에서는\n실제 Qt·LVRS 경로를 차단하고 의존성 차단을 검사하는 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다. 기존 테스트 자료 12개와 그 상위 항목의 해시·수정 시각은\n전후 일치했다.\n"
+      "kind": "heading",
+      "start_line": 678,
+      "end_line": 678,
+      "raw": "## 버튼 입력 이벤트 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "버튼 입력 이벤트 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000206",
       "kind": "blank",
-      "start_line": 680,
-      "end_line": 680,
+      "start_line": 679,
+      "end_line": 679,
       "raw": "\n"
     },
     {
       "id": "b000207",
       "kind": "paragraph",
-      "start_line": 681,
-      "end_line": 687,
-      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n`nm -m` 출력 225,802행에서 검사한 Qt·LVRS 이름이 없었다. 실행 검색 경로\n8행은 모두 번들 내부이며, 두 아키텍처가 있는 MoltenVK의 같은 경로가 두 번\n포함된다. 참조 파일과 로컬 임시 서명도 검증했다. 실행 파일 SHA-256은\n`f9c19fc6d0d0a330622ca4b1c830a4272a29611451c2a55b45493d7e067f9ef8`이다.\n이 결과는 이름 기반 정적 검사이며 임의 이름으로 숨긴 정적 코드의 전체 출처나\n실제 창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.\n"
+      "start_line": 680,
+      "end_line": 685,
+      "raw": "LVUI의 기본·아이콘·도움말 버튼에 누름·놓기·취소 이벤트를 추가하고 경고 버튼을\n동일한 경로에 연결했다. iiGUI도 중첩 콘텐츠와 팝업의 Escape 취소를 처리한다.\n포인터·키보드·영역 밖 놓기·취소와 콜백 재진입·위젯 폐기를 헤드리스로 검사했다.\niiGUI 관련 회귀 49건, LVUI 집중 검사 7건과 LVUI 전체 헤드리스·패키지 경계\n회귀 631건이 통과했다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는\n제외했다.\n"
     },
     {
       "id": "b000208",
       "kind": "blank",
-      "start_line": 688,
-      "end_line": 688,
+      "start_line": 686,
+      "end_line": 686,
       "raw": "\n"
     },
     {
       "id": "b000209",
-      "kind": "heading",
-      "start_line": 689,
-      "end_line": 689,
-      "raw": "## 버튼별 모션과 포커스 표시 후속 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "버튼별 모션과 포커스 표시 후속 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 687,
+      "end_line": 692,
+      "raw": "새 iiGUI 정적 라이브러리와 LVUI 컴파일러·공개 헤더를 제품이 참조하는 스테이징에\n반영하고 소스 산출물과 해시를 대조했다. Qt·LVRS의 주요 실제 소스와 라이브러리\n읽기를 차단하고 검색 환경 변수를 정리한 기존 구성에서 iiGUI 및 LVUI 전체 빌드와\nCongregation Debug 전체 빌드가 통과했다. LVUI 일괄 회귀에는 검색 환경 정리를\n적용했으나 파일 읽기 차단은 적용하지 않았다. 기존 빌드 캐시와 나머지 iiSDK의\n사전 빌드 산출물은 재사용했다.\n"
     },
     {
       "id": "b000210",
       "kind": "blank",
-      "start_line": 690,
-      "end_line": 690,
+      "start_line": 693,
+      "end_line": 693,
       "raw": "\n"
     },
     {
       "id": "b000211",
       "kind": "paragraph",
-      "start_line": 691,
-      "end_line": 696,
-      "raw": "LVUI 공통 버튼과 도움말·경고 버튼에 상수 또는 반응형 `motionEnabled`를 추가하고,\n버튼별 설정이 배경색과 포커스 표시의 전환을 제어하도록 했다. 포커스 표시의\n불투명도와 크기는 LVRS QML의 시간·곡선을 따르며, 중간 반전과 전역 축소 모션,\n프레임이 없는 호스트의 즉시 정착을 헤드리스로 검사했다. 프로그램으로 지정한\n포커스가 컨트롤의 상호작용 알림에 전달되도록 iiGUI도 수정했다. iiGUI 전체 빌드와\n관련 헤드리스 검사 50건이 통과했다.\n"
+      "start_line": 694,
+      "end_line": 699,
+      "raw": "제품 헤드리스 회귀 102건이 한 번의 실행으로 모두 통과했다. 원래 테스트 정의\n111개의 명령·속성·작업 디렉터리가 일치함을 대조한 뒤 임시 자료 위치만 별도로\n바꾸었다. 실제 창·GPU·번들 이동 실행이 필요한 9건은 제외했다. 테스트에서는\n실제 Qt·LVRS 경로를 차단하고 의존성 차단을 검사하는 가짜 LVRS 파일만 지정된\n임시 경로에서 허용했다. 기존 테스트 자료 12개와 그 상위 항목의 해시·수정 시각은\n전후 일치했다.\n"
     },
     {
       "id": "b000212",
       "kind": "blank",
-      "start_line": 697,
-      "end_line": 697,
+      "start_line": 700,
+      "end_line": 700,
       "raw": "\n"
     },
     {
       "id": "b000213",
       "kind": "paragraph",
-      "start_line": 698,
-      "end_line": 705,
-      "raw": "수정된 iiGUI 정적 라이브러리와 LVUI 공개 헤더를 제품이 참조하는 스테이징에\n반영하고 원본과 해시를 대조했다. LVUI 컴파일러와 공통 버튼·경고 버튼 헤더도\n스테이징과 일치한다. 기존 SDK 구성에서 macOS arm64의 LVUI Release 및\nCongregation Debug 전체 빌드를 다시 완료했다. 빌드 시 Qt·LVRS의 주요 실제\n소스와 라이브러리 경로를 차단하고 라이브러리 검색 환경 변수를 비웠다. 최종\nLVUI의 헤드리스·패키지 경계 회귀 631건이 통과했다. 이 일괄 검사는 검색 환경을\n정리했으나 파일 접근 차단을 적용하지 않았으며 별도 빌드 디렉터리를 생성하는\n`LVUI.NativeInstalled`는 제외했다.\n"
+      "start_line": 701,
+      "end_line": 707,
+      "raw": "개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행과\n`nm -m` 출력 225,802행에서 검사한 Qt·LVRS 이름이 없었다. 실행 검색 경로\n8행은 모두 번들 내부이며, 두 아키텍처가 있는 MoltenVK의 같은 경로가 두 번\n포함된다. 참조 파일과 로컬 임시 서명도 검증했다. 실행 파일 SHA-256은\n`f9c19fc6d0d0a330622ca4b1c830a4272a29611451c2a55b45493d7e067f9ef8`이다.\n이 결과는 이름 기반 정적 검사이며 임의 이름으로 숨긴 정적 코드의 전체 출처나\n실제 창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.\n"
     },
     {
       "id": "b000214",
       "kind": "blank",
-      "start_line": 706,
-      "end_line": 706,
+      "start_line": 708,
+      "end_line": 708,
       "raw": "\n"
     },
     {
       "id": "b000215",
-      "kind": "paragraph",
-      "start_line": 707,
-      "end_line": 711,
-      "raw": "최종 제품의 헤드리스 회귀 102건도 한 번의 실행으로 통과했다. 원래 111개 테스트의\n명령과 작업 디렉터리를 대조한 뒤 임시 자료 경로만 바꾸었고, 실제 창·GPU·번들 이동\n실행이 필요한 9건은 제외했다. 제품 검사에서는 실제 LVRS·Qt 경로를 차단하되\n의존성 거절 검사용 가짜 라이브러리와 이식된 `qt.svg` 자산은 허용했다. 기존 제품\n테스트 자료 12개는 전후 해시와 수정 시각이 일치했다.\n"
+      "kind": "heading",
+      "start_line": 709,
+      "end_line": 709,
+      "raw": "## 버튼별 모션과 포커스 표시 후속 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "버튼별 모션과 포커스 표시 후속 검증 · 2026-11-03"
     },
     {
       "id": "b000216",
       "kind": "blank",
-      "start_line": 712,
-      "end_line": 712,
+      "start_line": 710,
+      "end_line": 710,
       "raw": "\n"
     },
     {
       "id": "b000217",
       "kind": "paragraph",
-      "start_line": 713,
-      "end_line": 719,
-      "raw": "최종 개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행,\n`@rpath` 참조 7행과 심볼 225,752행에서 검사한 Qt·LVRS 이름을 찾지 못했다.\n번들 내부 경로와 로컬 임시 서명의 엄격한 검증도 통과했다. 주 실행 파일 SHA-256은\n`482f3b9d5576047d27e1096c8e23a26e52e8bb51a223b4a6ea547cf442d25268`이다.\n이 결과는 미리 빌드한 나머지 iiSDK와 기존 빌드 캐시를 재사용한 정적·헤드리스\n증거다. 임의 이름으로 숨긴 정적 코드의 전체 출처, 실제 창·GPU·기기와\nWindows·Linux 실행, 배포용 서명이나 공증을 증명하지 않는다.\n"
+      "start_line": 711,
+      "end_line": 716,
+      "raw": "LVUI 공통 버튼과 도움말·경고 버튼에 상수 또는 반응형 `motionEnabled`를 추가하고,\n버튼별 설정이 배경색과 포커스 표시의 전환을 제어하도록 했다. 포커스 표시의\n불투명도와 크기는 LVRS QML의 시간·곡선을 따르며, 중간 반전과 전역 축소 모션,\n프레임이 없는 호스트의 즉시 정착을 헤드리스로 검사했다. 프로그램으로 지정한\n포커스가 컨트롤의 상호작용 알림에 전달되도록 iiGUI도 수정했다. iiGUI 전체 빌드와\n관련 헤드리스 검사 50건이 통과했다.\n"
     },
     {
       "id": "b000218",
       "kind": "blank",
-      "start_line": 720,
-      "end_line": 720,
+      "start_line": 717,
+      "end_line": 717,
       "raw": "\n"
     },
     {
       "id": "b000219",
-      "kind": "heading",
-      "start_line": 721,
-      "end_line": 721,
-      "raw": "## 버튼 상태색 이식 후 검증 · 2026-11-03\n",
-      "level": 2,
-      "title": "버튼 상태색 이식 후 검증 · 2026-11-03"
+      "kind": "paragraph",
+      "start_line": 718,
+      "end_line": 725,
+      "raw": "수정된 iiGUI 정적 라이브러리와 LVUI 공개 헤더를 제품이 참조하는 스테이징에\n반영하고 원본과 해시를 대조했다. LVUI 컴파일러와 공통 버튼·경고 버튼 헤더도\n스테이징과 일치한다. 기존 SDK 구성에서 macOS arm64의 LVUI Release 및\nCongregation Debug 전체 빌드를 다시 완료했다. 빌드 시 Qt·LVRS의 주요 실제\n소스와 라이브러리 경로를 차단하고 라이브러리 검색 환경 변수를 비웠다. 최종\nLVUI의 헤드리스·패키지 경계 회귀 631건이 통과했다. 이 일괄 검사는 검색 환경을\n정리했으나 파일 접근 차단을 적용하지 않았으며 별도 빌드 디렉터리를 생성하는\n`LVUI.NativeInstalled`는 제외했다.\n"
     },
     {
       "id": "b000220",
       "kind": "blank",
-      "start_line": 722,
-      "end_line": 722,
+      "start_line": 726,
+      "end_line": 726,
       "raw": "\n"
     },
     {
       "id": "b000221",
       "kind": "paragraph",
-      "start_line": 723,
-      "end_line": 728,
-      "raw": "LVRS QML의 130ms OutCubic 버튼 배경색 전환을 독립 LVUI에 이식하고 그 헤더를\nCongregation이 사용하는 LVUI 스테이징에 반영했다. 공유 모션 설정, 중간 목표\n변경, 선택·팔레트 변경과 프레임이 없는 호스트를 검사했다. 전체 LVUI 빌드는\nQt·LVRS 주요 실행 파일 경로의 접근을 막아 통과했고, 헤드리스·패키지 경계\n검사 631건과 이후 추가된 팔레트·체크 버튼 집중 검사가 통과했다.\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다.\n"
+      "start_line": 727,
+      "end_line": 731,
+      "raw": "최종 제품의 헤드리스 회귀 102건도 한 번의 실행으로 통과했다. 원래 111개 테스트의\n명령과 작업 디렉터리를 대조한 뒤 임시 자료 경로만 바꾸었고, 실제 창·GPU·번들 이동\n실행이 필요한 9건은 제외했다. 제품 검사에서는 실제 LVRS·Qt 경로를 차단하되\n의존성 거절 검사용 가짜 라이브러리와 이식된 `qt.svg` 자산은 허용했다. 기존 제품\n테스트 자료 12개는 전후 해시와 수정 시각이 일치했다.\n"
     },
     {
       "id": "b000222",
       "kind": "blank",
-      "start_line": 729,
-      "end_line": 729,
+      "start_line": 732,
+      "end_line": 732,
       "raw": "\n"
     },
     {
       "id": "b000223",
       "kind": "paragraph",
-      "start_line": 730,
-      "end_line": 736,
-      "raw": "동일한 헤더로 원본 제품과 짧은 실제 경로의 별도 소스 사본을 각각 macOS arm64\nDebug로 빌드했다. 기존 원본의 관련 헤드리스 검사 16건이 통과했고, 별도 사본의\n전체 헤드리스 검사 102건도 한 번의 실행으로 모두 통과했다. 실제 창·GPU·번들\n이동 실행이 필요한 9건은 제외했다. 새 소스 사본은 275개 원본 파일의 해시를\n대조한 뒤 빈 `build/`에서 구성했다. 기존 iiSDK 스테이징은 재사용했으며 이식된\n아이콘 자산 `qt.svg` 한 파일과 차단 테스트용 가짜 라이브러리만 각각의 빌드·테스트\n격리 정책에서 예외로 허용했다. 실제 LVRS 소스와 설치 아카이브의 읽기는 차단했다.\n"
+      "start_line": 733,
+      "end_line": 739,
+      "raw": "최종 개발 번들의 Mach-O 이미지 7개, 자체 식별자를 제외한 동적 의존성 62행,\n`@rpath` 참조 7행과 심볼 225,752행에서 검사한 Qt·LVRS 이름을 찾지 못했다.\n번들 내부 경로와 로컬 임시 서명의 엄격한 검증도 통과했다. 주 실행 파일 SHA-256은\n`482f3b9d5576047d27e1096c8e23a26e52e8bb51a223b4a6ea547cf442d25268`이다.\n이 결과는 미리 빌드한 나머지 iiSDK와 기존 빌드 캐시를 재사용한 정적·헤드리스\n증거다. 임의 이름으로 숨긴 정적 코드의 전체 출처, 실제 창·GPU·기기와\nWindows·Linux 실행, 배포용 서명이나 공증을 증명하지 않는다.\n"
     },
     {
       "id": "b000224",
       "kind": "blank",
-      "start_line": 737,
-      "end_line": 737,
+      "start_line": 740,
+      "end_line": 740,
       "raw": "\n"
     },
     {
       "id": "b000225",
-      "kind": "paragraph",
-      "start_line": 738,
-      "end_line": 746,
-      "raw": "두 개발 번들 각각의 Mach-O 7개에서 자체 식별자를 제외한 동적 의존성 62행,\n심볼 225,748행과 `@rpath` 참조 7행을 검사했다. 검사한 Qt·LVRS 이름은 없었고\n참조 파일과 검색 경로는 번들에 있으며 로컬 임시 서명의 엄격한 검증도 통과했다.\n원본의 주 실행 파일 SHA-256은\n`71c78059f8a670796c5bad400b1964306eab86c5d7ebdab24c33f62619223534`,\n별도 사본은 `b8cb0de674febd20d3640b8a0d36fb2672e65586705f506b4b011debdcf0ce5a`이다.\n검사 범위는 알려진 이름과 관찰한 심볼이며 임의 이름으로 숨긴 정적 코드나 실제\n창·GPU·기기, Windows·Linux 실행을 증명하지 않는다. 이 서명은 배포용 서명이나\n공증이 아니다.\n"
+      "kind": "heading",
+      "start_line": 741,
+      "end_line": 741,
+      "raw": "## 버튼 상태색 이식 후 검증 · 2026-11-03\n",
+      "level": 2,
+      "title": "버튼 상태색 이식 후 검증 · 2026-11-03"
     },
     {
       "id": "b000226",
       "kind": "blank",
-      "start_line": 747,
-      "end_line": 747,
+      "start_line": 742,
+      "end_line": 742,
       "raw": "\n"
     },
     {
       "id": "b000227",
-      "kind": "heading",
-      "start_line": 748,
+      "kind": "paragraph",
+      "start_line": 743,
       "end_line": 748,
-      "raw": "## 네이티브 의존성 경계와 분리 빌드 · 2026-11-03\n",
-      "level": 2,
-      "title": "네이티브 의존성 경계와 분리 빌드 · 2026-11-03"
+      "raw": "LVRS QML의 130ms OutCubic 버튼 배경색 전환을 독립 LVUI에 이식하고 그 헤더를\nCongregation이 사용하는 LVUI 스테이징에 반영했다. 공유 모션 설정, 중간 목표\n변경, 선택·팔레트 변경과 프레임이 없는 호스트를 검사했다. 전체 LVUI 빌드는\nQt·LVRS 주요 실행 파일 경로의 접근을 막아 통과했고, 헤드리스·패키지 경계\n검사 631건과 이후 추가된 팔레트·체크 버튼 집중 검사가 통과했다.\n별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다.\n"
     },
     {
       "id": "b000228",
@@ -1676,64 +1676,66 @@
       "id": "b000229",
       "kind": "paragraph",
       "start_line": 750,
-      "end_line": 757,
-      "raw": "활성 앱과 네이티브 아트워크의 CMake 전이 의존성을 구성 종료 시 검사하도록\n강화했다. 직접·전이 대상과 별칭, 설정별 가져온 경로, 링크 옵션, 생성식의\n분기와 늦게 추가된 연결을 확인한다. Qt와 LVRS 본체·Core·Native·플러그인을\n거절하고, 실제 파일을 가리키는 심볼릭 링크도 검사한다. `LVRSCompatible` 같은\n다른 이름과 이식 자산의 라이선스 고지는 허용한다. macOS 번들 수집기와 설치\n원본·실제 로드 이미지 검사도 같은 이름 정책을 사용하며, 설치 원본의 번들 밖\n라이브러리 링크를 거절한다. 회귀 검사는 가짜 금지 라이브러리와 정상적인 유사\n이름을 모두 사용한다. 자세한 계약과 한계는 [빌드 문서](BUILD.md)를 따른다.\n"
+      "end_line": 756,
+      "raw": "동일한 헤더로 원본 제품과 짧은 실제 경로의 별도 소스 사본을 각각 macOS arm64\nDebug로 빌드했다. 기존 원본의 관련 헤드리스 검사 16건이 통과했고, 별도 사본의\n전체 헤드리스 검사 102건도 한 번의 실행으로 모두 통과했다. 실제 창·GPU·번들\n이동 실행이 필요한 9건은 제외했다. 새 소스 사본은 275개 원본 파일의 해시를\n대조한 뒤 빈 `build/`에서 구성했다. 기존 iiSDK 스테이징은 재사용했으며 이식된\n아이콘 자산 `qt.svg` 한 파일과 차단 테스트용 가짜 라이브러리만 각각의 빌드·테스트\n격리 정책에서 예외로 허용했다. 실제 LVRS 소스와 설치 아카이브의 읽기는 차단했다.\n"
     },
     {
       "id": "b000230",
       "kind": "blank",
-      "start_line": 758,
-      "end_line": 758,
+      "start_line": 757,
+      "end_line": 757,
       "raw": "\n"
     },
     {
       "id": "b000231",
       "kind": "paragraph",
-      "start_line": 759,
-      "end_line": 765,
-      "raw": "macOS arm64에서 Qt5·Qt6·LVRS 패키지 탐색을 비활성화하고 기존 SDK 스테이징을\n사용해 원본 제품과 별도 소스 스냅샷을 각각 전체 빌드했다. 스냅샷은 새 `build/`를\n사용했고 실제 LVRS 소스·설치본과 Qt·LVRS 이름의 주요 경로에 대한 읽기를 제한했다.\n실제 설치 헤더와 아카이브의 접근 차단을 확인했으나 SDK 자체는 미리 빌드된\n스테이징을 재사용했다. 테스트에는 금지 동작을 검사하기 위한 가짜 라이브러리의\n읽기만 별도로 허용했다. 원본과 스냅샷의 275개 소스·테스트·자산 파일은 기록한\n해시와 일치했으며 두 빌드의 도달 가능한 CMake 대상 47개에 Qt·LVRS 이름이 없었다.\n"
+      "start_line": 758,
+      "end_line": 766,
+      "raw": "두 개발 번들 각각의 Mach-O 7개에서 자체 식별자를 제외한 동적 의존성 62행,\n심볼 225,748행과 `@rpath` 참조 7행을 검사했다. 검사한 Qt·LVRS 이름은 없었고\n참조 파일과 검색 경로는 번들에 있으며 로컬 임시 서명의 엄격한 검증도 통과했다.\n원본의 주 실행 파일 SHA-256은\n`71c78059f8a670796c5bad400b1964306eab86c5d7ebdab24c33f62619223534`,\n별도 사본은 `b8cb0de674febd20d3640b8a0d36fb2672e65586705f506b4b011debdcf0ce5a`이다.\n검사 범위는 알려진 이름과 관찰한 심볼이며 임의 이름으로 숨긴 정적 코드나 실제\n창·GPU·기기, Windows·Linux 실행을 증명하지 않는다. 이 서명은 배포용 서명이나\n공증이 아니다.\n"
     },
     {
       "id": "b000232",
       "kind": "blank",
-      "start_line": 766,
-      "end_line": 766,
+      "start_line": 767,
+      "end_line": 767,
       "raw": "\n"
     },
     {
       "id": "b000233",
-      "kind": "paragraph",
-      "start_line": 767,
-      "end_line": 773,
-      "raw": "원본 제품의 관련 헤드리스 회귀 16건이 통과했다. 별도 스냅샷의 헤드리스 일괄\n검사 102건에서는 101건이 통과했고 서비스 검사 1건이 실패했다. 스냅샷의 긴\n절대 경로가 macOS Unix 소켓의 경로 제한을 초과한 것이 원인이었다. 같은 빌드와\n접근 제한을 유지하고 스냅샷의 실제 경로를 짧게 옮긴 후 서비스 실행 파일을 별도로\n재실행해 통과했다. 심볼릭 링크와 상대 경로로 재실행한 앞선 두 시도는 각각 테스트\n저장소의 경로 검증과 설정 복원 조건에 걸렸다. 따라서 102건을 한 번에 모두 통과한\n결과는 아니다. 창·GPU·번들 이동 실행이 필요한 9건은 제외했다.\n"
+      "kind": "heading",
+      "start_line": 768,
+      "end_line": 768,
+      "raw": "## 네이티브 의존성 경계와 분리 빌드 · 2026-11-03\n",
+      "level": 2,
+      "title": "네이티브 의존성 경계와 분리 빌드 · 2026-11-03"
     },
     {
       "id": "b000234",
       "kind": "blank",
-      "start_line": 774,
-      "end_line": 774,
+      "start_line": 769,
+      "end_line": 769,
       "raw": "\n"
     },
     {
       "id": "b000235",
       "kind": "paragraph",
-      "start_line": 775,
-      "end_line": 781,
-      "raw": "두 개발 번들 각각에서 Mach-O 이미지 7개, 자체 식별자를\n제외한 동적 의존성 62행 및 `nm -m` 심볼 225,393행을 확인했고 검사한 Qt·LVRS\n이름이 없었다. `@rpath` 참조 7행의 파일과 검색 경로는 번들에 있으며, 로컬\n임시 서명의 엄격한 검증도 통과했다. 원본 앱의 주 실행 파일 SHA-256은\n`0694130b57358f0d725f3156ebb7b0f510eb0b4902ff8e21ed5961245355bdde`,\n분리 스냅샷의 주 실행 파일 SHA-256은\n`679decb4ac2554009ab0f77da2e4174a92cba3ba7ce5fa5649fe0d623bab4f10`이다.\n"
+      "start_line": 770,
+      "end_line": 777,
+      "raw": "활성 앱과 네이티브 아트워크의 CMake 전이 의존성을 구성 종료 시 검사하도록\n강화했다. 직접·전이 대상과 별칭, 설정별 가져온 경로, 링크 옵션, 생성식의\n분기와 늦게 추가된 연결을 확인한다. Qt와 LVRS 본체·Core·Native·플러그인을\n거절하고, 실제 파일을 가리키는 심볼릭 링크도 검사한다. `LVRSCompatible` 같은\n다른 이름과 이식 자산의 라이선스 고지는 허용한다. macOS 번들 수집기와 설치\n원본·실제 로드 이미지 검사도 같은 이름 정책을 사용하며, 설치 원본의 번들 밖\n라이브러리 링크를 거절한다. 회귀 검사는 가짜 금지 라이브러리와 정상적인 유사\n이름을 모두 사용한다. 자세한 계약과 한계는 [빌드 문서](BUILD.md)를 따른다.\n"
     },
     {
       "id": "b000236",
       "kind": "blank",
-      "start_line": 782,
-      "end_line": 782,
+      "start_line": 778,
+      "end_line": 778,
       "raw": "\n"
     },
     {
       "id": "b000237",
       "kind": "paragraph",
-      "start_line": 783,
+      "start_line": 779,
       "end_line": 785,
-      "raw": "이것은 이름·경로와 관찰한 심볼을 대상으로 한 빌드 증거이다. 임의의 다른 이름으로\n숨긴 정적 코드의 전체 출처나 실제 창·GPU·기기 실행을 증명하지 않으며, Windows·\nLinux 실행, 배포용 서명과 공증도 이번 검증에 포함하지 않는다.\n"
+      "raw": "macOS arm64에서 Qt5·Qt6·LVRS 패키지 탐색을 비활성화하고 기존 SDK 스테이징을\n사용해 원본 제품과 별도 소스 스냅샷을 각각 전체 빌드했다. 스냅샷은 새 `build/`를\n사용했고 실제 LVRS 소스·설치본과 Qt·LVRS 이름의 주요 경로에 대한 읽기를 제한했다.\n실제 설치 헤더와 아카이브의 접근 차단을 확인했으나 SDK 자체는 미리 빌드된\n스테이징을 재사용했다. 테스트에는 금지 동작을 검사하기 위한 가짜 라이브러리의\n읽기만 별도로 허용했다. 원본과 스냅샷의 275개 소스·테스트·자산 파일은 기록한\n해시와 일치했으며 두 빌드의 도달 가능한 CMake 대상 47개에 Qt·LVRS 이름이 없었다.\n"
     },
     {
       "id": "b000238",
@@ -1744,54 +1746,54 @@
     },
     {
       "id": "b000239",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 787,
-      "end_line": 787,
-      "raw": "## 목록 드래그 정렬 후속 검증 · 2026-11-02\n",
-      "level": 2,
-      "title": "목록 드래그 정렬 후속 검증 · 2026-11-02"
+      "end_line": 793,
+      "raw": "원본 제품의 관련 헤드리스 회귀 16건이 통과했다. 별도 스냅샷의 헤드리스 일괄\n검사 102건에서는 101건이 통과했고 서비스 검사 1건이 실패했다. 스냅샷의 긴\n절대 경로가 macOS Unix 소켓의 경로 제한을 초과한 것이 원인이었다. 같은 빌드와\n접근 제한을 유지하고 스냅샷의 실제 경로를 짧게 옮긴 후 서비스 실행 파일을 별도로\n재실행해 통과했다. 심볼릭 링크와 상대 경로로 재실행한 앞선 두 시도는 각각 테스트\n저장소의 경로 검증과 설정 복원 조건에 걸렸다. 따라서 102건을 한 번에 모두 통과한\n결과는 아니다. 창·GPU·번들 이동 실행이 필요한 9건은 제외했다.\n"
     },
     {
       "id": "b000240",
       "kind": "blank",
-      "start_line": 788,
-      "end_line": 788,
+      "start_line": 794,
+      "end_line": 794,
       "raw": "\n"
     },
     {
       "id": "b000241",
       "kind": "paragraph",
-      "start_line": 789,
-      "end_line": 794,
-      "raw": "LVUI 일반 목록에 독립적인 드래그 정렬과 선언형 이동 이벤트를 추가했다. 이동\n미리보기는 원본을 변경하지 않으며, 놓을 때 교체 가능한 편집기가 리비전을 확인한다.\n가변 높이, 스크롤, 포커스·Escape 취소, 사용자 행의 버튼, 기존 이름 편집과 공유\n컨트롤러의 외부 갱신을 헤드리스 환경에서 검사했다. `PresentationList`는 레이어의\n이동 가능 상태와 참가자의 이동 불가 상태를 구분해 제공한다. 제품의 실제 레이어\n문서 변경과 이력은 기존 `Artwork` 명령이 소유한다.\n"
+      "start_line": 795,
+      "end_line": 801,
+      "raw": "두 개발 번들 각각에서 Mach-O 이미지 7개, 자체 식별자를\n제외한 동적 의존성 62행 및 `nm -m` 심볼 225,393행을 확인했고 검사한 Qt·LVRS\n이름이 없었다. `@rpath` 참조 7행의 파일과 검색 경로는 번들에 있으며, 로컬\n임시 서명의 엄격한 검증도 통과했다. 원본 앱의 주 실행 파일 SHA-256은\n`0694130b57358f0d725f3156ebb7b0f510eb0b4902ff8e21ed5961245355bdde`,\n분리 스냅샷의 주 실행 파일 SHA-256은\n`679decb4ac2554009ab0f77da2e4174a92cba3ba7ce5fa5649fe0d623bab4f10`이다.\n"
     },
     {
       "id": "b000242",
       "kind": "blank",
-      "start_line": 795,
-      "end_line": 795,
+      "start_line": 802,
+      "end_line": 802,
       "raw": "\n"
     },
     {
       "id": "b000243",
       "kind": "paragraph",
-      "start_line": 796,
-      "end_line": 800,
-      "raw": "Qt·LVRS 패키지 탐색을 끈 최종 LVUI 전체 빌드와 헤드리스 회귀 572건, 같은\n스테이징을 사용하는 Congregation 전체 빌드와 관련 헤드리스 검사 12건이 통과했다.\n설치 형태의 선언형 목록 소비자는 macOS에서 컴파일·링크하고 iPadOS 대상으로\n구문 컴파일했다. `LVUI.NativeInstalled` 검사는 별도 빌드 디렉터리를 만드는 방식이어서\n제외하고 같은 목적의 설치 형태 소비자를 `build/` 안에서 검증했다.\n"
+      "start_line": 803,
+      "end_line": 805,
+      "raw": "이것은 이름·경로와 관찰한 심볼을 대상으로 한 빌드 증거이다. 임의의 다른 이름으로\n숨긴 정적 코드의 전체 출처나 실제 창·GPU·기기 실행을 증명하지 않으며, Windows·\nLinux 실행, 배포용 서명과 공증도 이번 검증에 포함하지 않는다.\n"
     },
     {
       "id": "b000244",
       "kind": "blank",
-      "start_line": 801,
-      "end_line": 801,
+      "start_line": 806,
+      "end_line": 806,
       "raw": "\n"
     },
     {
       "id": "b000245",
-      "kind": "paragraph",
-      "start_line": 802,
+      "kind": "heading",
+      "start_line": 807,
       "end_line": 807,
-      "raw": "새 개발 번들의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한 공개 심볼에서\nQt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일 SHA-256은\n`5b31ca95b37796bc6af722a8163572085e7eb6047120754c5303e7112f11b3cb`이다.\n공개 심볼 표본은 숨겨진 모든 정적 코드의 부재를 증명하지 않는다. 앱 창과 기기는\n실행하지 않았고 기존 설치본과 배포 패키지를 교체하지 않았다. Windows·Linux와\n운영체제 보조 기술의 실제 검증도 포함하지 않는다.\n"
+      "raw": "## 목록 드래그 정렬 후속 검증 · 2026-11-02\n",
+      "level": 2,
+      "title": "목록 드래그 정렬 후속 검증 · 2026-11-02"
     },
     {
       "id": "b000246",
@@ -1802,301 +1804,357 @@
     },
     {
       "id": "b000247",
-      "kind": "heading",
+      "kind": "paragraph",
       "start_line": 809,
-      "end_line": 809,
-      "raw": "## 목록 이름 편집 후속 검증 · 2026-11-02\n",
-      "level": 2,
-      "title": "목록 이름 편집 후속 검증 · 2026-11-02"
+      "end_line": 814,
+      "raw": "LVUI 일반 목록에 독립적인 드래그 정렬과 선언형 이동 이벤트를 추가했다. 이동\n미리보기는 원본을 변경하지 않으며, 놓을 때 교체 가능한 편집기가 리비전을 확인한다.\n가변 높이, 스크롤, 포커스·Escape 취소, 사용자 행의 버튼, 기존 이름 편집과 공유\n컨트롤러의 외부 갱신을 헤드리스 환경에서 검사했다. `PresentationList`는 레이어의\n이동 가능 상태와 참가자의 이동 불가 상태를 구분해 제공한다. 제품의 실제 레이어\n문서 변경과 이력은 기존 `Artwork` 명령이 소유한다.\n"
     },
     {
       "id": "b000248",
       "kind": "blank",
-      "start_line": 810,
-      "end_line": 810,
+      "start_line": 815,
+      "end_line": 815,
       "raw": "\n"
     },
     {
       "id": "b000249",
       "kind": "paragraph",
-      "start_line": 811,
-      "end_line": 815,
-      "raw": "LVUI 일반 목록에 항목별 편집 가능 상태와 교체 가능한 이름 편집기를 추가하고,\nCongregation의 표시 목록이 제품의 편집 가능 상태를 보존하도록 수정했다.\n거절된 초안과 리비전 충돌, 다른 행 선택, 읽기 전용 항목 및 사용자 행 내부 버튼을\n검사했다. 제품의 참가자 목록은 읽기 전용이며 레이어 문서 편집과 이력은 기존\n문서 명령 경계가 담당한다.\n"
+      "start_line": 816,
+      "end_line": 820,
+      "raw": "Qt·LVRS 패키지 탐색을 끈 최종 LVUI 전체 빌드와 헤드리스 회귀 572건, 같은\n스테이징을 사용하는 Congregation 전체 빌드와 관련 헤드리스 검사 12건이 통과했다.\n설치 형태의 선언형 목록 소비자는 macOS에서 컴파일·링크하고 iPadOS 대상으로\n구문 컴파일했다. `LVUI.NativeInstalled` 검사는 별도 빌드 디렉터리를 만드는 방식이어서\n제외하고 같은 목적의 설치 형태 소비자를 `build/` 안에서 검증했다.\n"
     },
     {
       "id": "b000250",
       "kind": "blank",
-      "start_line": 816,
-      "end_line": 816,
+      "start_line": 821,
+      "end_line": 821,
       "raw": "\n"
     },
     {
       "id": "b000251",
       "kind": "paragraph",
-      "start_line": 817,
-      "end_line": 821,
-      "raw": "Qt·LVRS 패키지 탐색을 끈 최종 LVUI 전체 빌드와 헤드리스 검사 569건, 같은\n설치 스테이징을 사용하는 Congregation 전체 빌드와 관련 헤드리스 검사 12건이\n통과했다. 선언형 목록 편집 소비자는 공개 설치 헤더로 macOS에서 컴파일·링크하고\niPadOS 대상으로 구문 컴파일했다. `LVUI.NativeInstalled` 검사는 별도 빌드\n디렉터리를 만드는 방식이어서 제외하고 설치 형태 소비자를 `build/` 안에서 검증했다.\n"
+      "start_line": 822,
+      "end_line": 827,
+      "raw": "새 개발 번들의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한 공개 심볼에서\nQt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일 SHA-256은\n`5b31ca95b37796bc6af722a8163572085e7eb6047120754c5303e7112f11b3cb`이다.\n공개 심볼 표본은 숨겨진 모든 정적 코드의 부재를 증명하지 않는다. 앱 창과 기기는\n실행하지 않았고 기존 설치본과 배포 패키지를 교체하지 않았다. Windows·Linux와\n운영체제 보조 기술의 실제 검증도 포함하지 않는다.\n"
     },
     {
       "id": "b000252",
       "kind": "blank",
-      "start_line": 822,
-      "end_line": 822,
+      "start_line": 828,
+      "end_line": 828,
       "raw": "\n"
     },
     {
       "id": "b000253",
-      "kind": "paragraph",
-      "start_line": 823,
-      "end_line": 828,
-      "raw": "새 개발 번들의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한 공개 심볼에서\nQt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일의 SHA-256은\n`9e5728f4abd48705886999bcc88d3aa334d4b7d42823320f865b9616044f9748`이다.\n공개 심볼 표본은 숨겨진 모든 정적 코드를 증명하지 않는다. 앱 창과 기기는 실행하지\n않았고 기존 설치본과 배포 패키지를 교체하지 않았다. Windows·Linux의 실제 실행과\n운영체제 접근성 검증도 이 결과에 포함되지 않는다.\n"
+      "kind": "heading",
+      "start_line": 829,
+      "end_line": 829,
+      "raw": "## 목록 이름 편집 후속 검증 · 2026-11-02\n",
+      "level": 2,
+      "title": "목록 이름 편집 후속 검증 · 2026-11-02"
     },
     {
       "id": "b000254",
       "kind": "blank",
-      "start_line": 829,
-      "end_line": 829,
+      "start_line": 830,
+      "end_line": 830,
       "raw": "\n"
     },
     {
       "id": "b000255",
-      "kind": "heading",
-      "start_line": 830,
-      "end_line": 830,
-      "raw": "## 일반 목록 후속 검증 · 2026-11-02\n",
-      "level": 2,
-      "title": "일반 목록 후속 검증 · 2026-11-02"
+      "kind": "paragraph",
+      "start_line": 831,
+      "end_line": 835,
+      "raw": "LVUI 일반 목록에 항목별 편집 가능 상태와 교체 가능한 이름 편집기를 추가하고,\nCongregation의 표시 목록이 제품의 편집 가능 상태를 보존하도록 수정했다.\n거절된 초안과 리비전 충돌, 다른 행 선택, 읽기 전용 항목 및 사용자 행 내부 버튼을\n검사했다. 제품의 참가자 목록은 읽기 전용이며 레이어 문서 편집과 이력은 기존\n문서 명령 경계가 담당한다.\n"
     },
     {
       "id": "b000256",
       "kind": "blank",
-      "start_line": 831,
-      "end_line": 831,
+      "start_line": 836,
+      "end_line": 836,
       "raw": "\n"
     },
     {
       "id": "b000257",
       "kind": "paragraph",
-      "start_line": 832,
-      "end_line": 836,
-      "raw": "LVUI의 사용자 정의 목록 행에 자연 높이 측정과 행별 활성화 명령을 추가한 뒤\nLVUI 전체 헤드리스 검사 566건이 통과했다. 설치 스테이징의 컴파일러와 공개\n헤더를 사용하는 선언형 목록 소비자는 macOS에서 컴파일·링크하고 iPadOS 대상으로\n문법 컴파일했다. Qt·LVRS 탐색을 끈 상태에서 이 패키지로 Congregation 전체를\n재빌드하고 독립 화면·목록·색상·토큰·경계 관련 헤드리스 검사 12건을 통과했다.\n"
+      "start_line": 837,
+      "end_line": 841,
+      "raw": "Qt·LVRS 패키지 탐색을 끈 최종 LVUI 전체 빌드와 헤드리스 검사 569건, 같은\n설치 스테이징을 사용하는 Congregation 전체 빌드와 관련 헤드리스 검사 12건이\n통과했다. 선언형 목록 편집 소비자는 공개 설치 헤더로 macOS에서 컴파일·링크하고\niPadOS 대상으로 구문 컴파일했다. `LVUI.NativeInstalled` 검사는 별도 빌드\n디렉터리를 만드는 방식이어서 제외하고 설치 형태 소비자를 `build/` 안에서 검증했다.\n"
     },
     {
       "id": "b000258",
       "kind": "blank",
-      "start_line": 837,
-      "end_line": 837,
+      "start_line": 842,
+      "end_line": 842,
       "raw": "\n"
     },
     {
       "id": "b000259",
       "kind": "paragraph",
-      "start_line": 838,
-      "end_line": 842,
-      "raw": "새 `build/Congregation.app`의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한\n공개 심볼에서 Qt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일의\nSHA-256은 `0bacb3c01980a2b8859ac60810b8472eb6b3e9cebe9821ad712c471065e3adfe`이다.\n이 결과는 개발 빌드의 증거다. 앱·기기를 실행하거나 설치본·배포 패키지를 교체하지\n않았으며 Windows·Linux의 실제 실행은 검증하지 않았다.\n"
+      "start_line": 843,
+      "end_line": 848,
+      "raw": "새 개발 번들의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한 공개 심볼에서\nQt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일의 SHA-256은\n`9e5728f4abd48705886999bcc88d3aa334d4b7d42823320f865b9616044f9748`이다.\n공개 심볼 표본은 숨겨진 모든 정적 코드를 증명하지 않는다. 앱 창과 기기는 실행하지\n않았고 기존 설치본과 배포 패키지를 교체하지 않았다. Windows·Linux의 실제 실행과\n운영체제 접근성 검증도 이 결과에 포함되지 않는다.\n"
     },
     {
       "id": "b000260",
       "kind": "blank",
-      "start_line": 843,
-      "end_line": 843,
+      "start_line": 849,
+      "end_line": 849,
       "raw": "\n"
     },
     {
       "id": "b000261",
       "kind": "heading",
-      "start_line": 844,
-      "end_line": 844,
-      "raw": "## 독립 LVUI 빌드 · 2026-11-01\n",
+      "start_line": 850,
+      "end_line": 850,
+      "raw": "## 일반 목록 후속 검증 · 2026-11-02\n",
       "level": 2,
-      "title": "독립 LVUI 빌드 · 2026-11-01"
+      "title": "일반 목록 후속 검증 · 2026-11-02"
     },
     {
       "id": "b000262",
       "kind": "blank",
-      "start_line": 845,
-      "end_line": 845,
+      "start_line": 851,
+      "end_line": 851,
       "raw": "\n"
     },
     {
       "id": "b000263",
       "kind": "paragraph",
-      "start_line": 846,
-      "end_line": 851,
-      "raw": "현재 소스는 LVRS와 Qt 패키지 탐색을 끄고 독립 LVUI·iiGUI와 나머지 iiSDK를\n조합한다. macOS arm64의 `build/Congregation.app`은 버전 1.0.2 / 빌드 3이며\n최소 macOS 12.0이다. `build/lvui-accent-final-all-build.log`의 앱과 모든 테스트\n대상 빌드가 통과했다. `build/native-bundle-dependencies.json`은 실행 파일과\n동적 라이브러리 7개, 동적 의존성 항목 70개 및 Qt·LVRS 의존성 없음을 기록한다.\n번들의 로컬 임시 서명도 확인했다. 이는 배포용 서명이나 공증이 아니다.\n"
+      "start_line": 852,
+      "end_line": 856,
+      "raw": "LVUI의 사용자 정의 목록 행에 자연 높이 측정과 행별 활성화 명령을 추가한 뒤\nLVUI 전체 헤드리스 검사 566건이 통과했다. 설치 스테이징의 컴파일러와 공개\n헤더를 사용하는 선언형 목록 소비자는 macOS에서 컴파일·링크하고 iPadOS 대상으로\n문법 컴파일했다. Qt·LVRS 탐색을 끈 상태에서 이 패키지로 Congregation 전체를\n재빌드하고 독립 화면·목록·색상·토큰·경계 관련 헤드리스 검사 12건을 통과했다.\n"
     },
     {
       "id": "b000264",
       "kind": "blank",
-      "start_line": 852,
-      "end_line": 852,
+      "start_line": 857,
+      "end_line": 857,
       "raw": "\n"
     },
     {
       "id": "b000265",
       "kind": "paragraph",
-      "start_line": 853,
-      "end_line": 859,
-      "raw": "독립 LVUI의 전체 헤드리스 회귀 532개는 통과했고, 창 강조색 상속과 명시적 색상\n우선·실패 후 복구의 추가 검사는 `SDK/LVUI/build/lvui-accent-final-test.log`에서\n통과했다. 앱의 독립 화면·입력·문서·도구·SDK 패키지 선택과 iPad 빌더 계약을\n포함한 헤드리스 검사 98개는 `build/lvui-accent-final-headless-ctest.log`의 한 번의\n실행에서 모두 통과했다. 실제 GUI 앱을 실행하거나 새로 설치하지 않았고 Windows·Linux·\niPad의 실제 빌드 및 기기 실행을 이번 변경으로 검증하지 않았다. 원본 SVG 중 필터를\n쓰는 아이콘 1개와 여러 줄 자동 줄바꿈, 일부 메뉴·계층·표 기능 등은 아직 남아 있다.\n"
+      "start_line": 858,
+      "end_line": 862,
+      "raw": "새 `build/Congregation.app`의 Mach-O 이미지 7개, 동적 의존성 항목 70개와 검사한\n공개 심볼에서 Qt·LVRS 연결을 찾지 못했고 로컬 임시 서명을 검증했다. 주 실행 파일의\nSHA-256은 `0bacb3c01980a2b8859ac60810b8472eb6b3e9cebe9821ad712c471065e3adfe`이다.\n이 결과는 개발 빌드의 증거다. 앱·기기를 실행하거나 설치본·배포 패키지를 교체하지\n않았으며 Windows·Linux의 실제 실행은 검증하지 않았다.\n"
     },
     {
       "id": "b000266",
-      "kind": "blank",
-      "start_line": 860,
-      "end_line": 860,
-      "raw": "\n"
-    },
-    {
-      "id": "b000267",
-      "kind": "paragraph",
-      "start_line": 861,
-      "end_line": 862,
-      "raw": "아래 2026-10-25 및 그 이전 문단은 당시 빌드·설치·실행 기록이다. 현재의 독립\nLVUI 빌드나 현재 소스가 그때와 동일한 화면·패키지·실행 결과를 가졌다는 뜻은 아니다.\n"
-    },
-    {
-      "id": "b000268",
       "kind": "blank",
       "start_line": 863,
       "end_line": 863,
       "raw": "\n"
     },
     {
-      "id": "b000269",
+      "id": "b000267",
       "kind": "heading",
       "start_line": 864,
       "end_line": 864,
-      "raw": "## Figma ApplicationWindow · 2026-10-25\n",
+      "raw": "## 독립 LVUI 빌드 · 2026-11-01\n",
       "level": 2,
-      "title": "Figma ApplicationWindow · 2026-10-25"
+      "title": "독립 LVUI 빌드 · 2026-11-01"
     },
     {
-      "id": "b000270",
+      "id": "b000268",
       "kind": "blank",
       "start_line": 865,
       "end_line": 865,
       "raw": "\n"
     },
     {
-      "id": "b000271",
+      "id": "b000269",
       "kind": "paragraph",
       "start_line": 866,
-      "end_line": 866,
-      "raw": "현재 Main 화면은 `83:6974`와 Tool 풀버전 `130:1832`를 반영한 1999×1080 네이티브 구성이다. 현재 구현의 검증 결과는 [FIGMA_UI_VERIFICATION.md](FIGMA_UI_VERIFICATION.md), 구조·입력·기능 경계는 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)를 따른다. 아래 Vincent·2026-10-24 설치 패키지 기록은 당시 빌드의 이력이다. 기존 PKG에 이번 UI가 반영되었다는 뜻은 아니다. 이번 `build/Congregation.app`은 개발 검증용 ad-hoc 서명본이며 설치 패키지는 다시 만들지 않았다.\n"
+      "end_line": 871,
+      "raw": "현재 소스는 LVRS와 Qt 패키지 탐색을 끄고 독립 LVUI·iiGUI와 나머지 iiSDK를\n조합한다. macOS arm64의 `build/Congregation.app`은 버전 1.0.2 / 빌드 3이며\n최소 macOS 12.0이다. `build/lvui-accent-final-all-build.log`의 앱과 모든 테스트\n대상 빌드가 통과했다. `build/native-bundle-dependencies.json`은 실행 파일과\n동적 라이브러리 7개, 동적 의존성 항목 70개 및 Qt·LVRS 의존성 없음을 기록한다.\n번들의 로컬 임시 서명도 확인했다. 이는 배포용 서명이나 공증이 아니다.\n"
+    },
+    {
+      "id": "b000270",
+      "kind": "blank",
+      "start_line": 872,
+      "end_line": 872,
+      "raw": "\n"
+    },
+    {
+      "id": "b000271",
+      "kind": "paragraph",
+      "start_line": 873,
+      "end_line": 879,
+      "raw": "독립 LVUI의 전체 헤드리스 회귀 532개는 통과했고, 창 강조색 상속과 명시적 색상\n우선·실패 후 복구의 추가 검사는 `SDK/LVUI/build/lvui-accent-final-test.log`에서\n통과했다. 앱의 독립 화면·입력·문서·도구·SDK 패키지 선택과 iPad 빌더 계약을\n포함한 헤드리스 검사 98개는 `build/lvui-accent-final-headless-ctest.log`의 한 번의\n실행에서 모두 통과했다. 실제 GUI 앱을 실행하거나 새로 설치하지 않았고 Windows·Linux·\niPad의 실제 빌드 및 기기 실행을 이번 변경으로 검증하지 않았다. 원본 SVG 중 필터를\n쓰는 아이콘 1개와 여러 줄 자동 줄바꿈, 일부 메뉴·계층·표 기능 등은 아직 남아 있다.\n"
     },
     {
       "id": "b000272",
       "kind": "blank",
-      "start_line": 867,
-      "end_line": 867,
+      "start_line": 880,
+      "end_line": 880,
       "raw": "\n"
     },
     {
       "id": "b000273",
       "kind": "paragraph",
-      "start_line": 868,
-      "end_line": 868,
-      "raw": "Qt 독립화·UI 검증일은 2026-10-23이며 arm64 macOS 그래픽 세션에서 수행했다. Windows·Linux는 사용자의 지시에 따라 소스 구현 범위이다. 직접 배포용 PKG의 최신 검증은 아래 2026-10-24 설치 패키지 항목을 따른다. 선행 Qt 독립화 단계의 재실행·로그는 `build/native-verification.json`에, UI 변경 결과는 `build/vincent-ui-verification.json`에 보존한다.\n"
+      "start_line": 881,
+      "end_line": 882,
+      "raw": "아래 2026-10-25 및 그 이전 문단은 당시 빌드·설치·실행 기록이다. 현재의 독립\nLVUI 빌드나 현재 소스가 그때와 동일한 화면·패키지·실행 결과를 가졌다는 뜻은 아니다.\n"
     },
     {
       "id": "b000274",
       "kind": "blank",
-      "start_line": 869,
-      "end_line": 869,
+      "start_line": 883,
+      "end_line": 883,
       "raw": "\n"
     },
     {
       "id": "b000275",
       "kind": "heading",
-      "start_line": 870,
-      "end_line": 870,
-      "raw": "## macOS 설치 패키지 · 2026-10-24\n",
+      "start_line": 884,
+      "end_line": 884,
+      "raw": "## Figma ApplicationWindow · 2026-10-25\n",
       "level": 2,
-      "title": "macOS 설치 패키지 · 2026-10-24"
+      "title": "Figma ApplicationWindow · 2026-10-25"
     },
     {
       "id": "b000276",
       "kind": "blank",
-      "start_line": 871,
-      "end_line": 871,
+      "start_line": 885,
+      "end_line": 885,
       "raw": "\n"
     },
     {
       "id": "b000277",
       "kind": "paragraph",
-      "start_line": 872,
-      "end_line": 872,
-      "raw": "`build/Congregation.pkg`는 현재 Qt 없는 네이티브 앱을 `/Applications/Congregation.app`에 설치한다. 버전 1.0.0 / 빌드 1, arm64, 최소 macOS 12.0 조건이다. Developer ID Application·Installer 서명, hardened runtime과 신뢰 타임스탬프를 적용했다. Xcode 로그인 계정으로 최종 PKG의 공증 티켓을 받아 부착했으며 Gatekeeper install 평가에서 `accepted / Notarized Developer ID`를 확인했다.\n"
+      "start_line": 886,
+      "end_line": 886,
+      "raw": "현재 Main 화면은 `83:6974`와 Tool 풀버전 `130:1832`를 반영한 1999×1080 네이티브 구성이다. 현재 구현의 검증 결과는 [FIGMA_UI_VERIFICATION.md](FIGMA_UI_VERIFICATION.md), 구조·입력·기능 경계는 [FIGMA_APPLICATION_WINDOW.md](FIGMA_APPLICATION_WINDOW.md)를 따른다. 아래 Vincent·2026-10-24 설치 패키지 기록은 당시 빌드의 이력이다. 기존 PKG에 이번 UI가 반영되었다는 뜻은 아니다. 이번 `build/Congregation.app`은 개발 검증용 ad-hoc 서명본이며 설치 패키지는 다시 만들지 않았다.\n"
     },
     {
       "id": "b000278",
       "kind": "blank",
-      "start_line": 873,
-      "end_line": 873,
+      "start_line": 887,
+      "end_line": 887,
       "raw": "\n"
     },
     {
       "id": "b000279",
       "kind": "paragraph",
-      "start_line": 874,
-      "end_line": 874,
-      "raw": "제품 검사 12개 항목의 통과를 확인했다. `build/native-installer-release-tests.log`에서 기능·UI 등 11개 항목이 통과했고, hardened runtime에 맞춰 수정한 설치 계약·재배치 검사 2개는 `build/native-installer-runtime-final-tests.log`의 마지막 재실행에서 통과했다. 설치 계약에는 10개의 세부 회귀 검사가 있다. 한 번의 전체 일괄 실행이 모두 성공한 기록으로 표현하지 않는다.\n"
+      "start_line": 888,
+      "end_line": 888,
+      "raw": "Qt 독립화·UI 검증일은 2026-10-23이며 arm64 macOS 그래픽 세션에서 수행했다. Windows·Linux는 사용자의 지시에 따라 소스 구현 범위이다. 직접 배포용 PKG의 최신 검증은 아래 2026-10-24 설치 패키지 항목을 따른다. 선행 Qt 독립화 단계의 재실행·로그는 `build/native-verification.json`에, UI 변경 결과는 `build/vincent-ui-verification.json`에 보존한다.\n"
     },
     {
       "id": "b000280",
       "kind": "blank",
-      "start_line": 875,
-      "end_line": 875,
+      "start_line": 889,
+      "end_line": 889,
       "raw": "\n"
     },
     {
       "id": "b000281",
-      "kind": "paragraph",
-      "start_line": 876,
-      "end_line": 876,
-      "raw": "초기 재배치 검사는 배포용 보안 서명에서 제한되는 dyld 진단 출력에 의존했다. 이후 실행 중 실제 Mach-O 파일 매핑을 관측하도록 수정했다. OS의 임시·보호된 상태 데이터를 코드와 구분하며, 모든 필수 번들 이미지와 외부 SDK 유입 여부는 엄격하게 검사한다. 마지막 실행은 Metal·Vulkan에서 각각 번들 이미지 5개와 외부 SDK·Qt 이미지 0개를 확인했다.\n"
+      "kind": "heading",
+      "start_line": 890,
+      "end_line": 890,
+      "raw": "## macOS 설치 패키지 · 2026-10-24\n",
+      "level": 2,
+      "title": "macOS 설치 패키지 · 2026-10-24"
     },
     {
       "id": "b000282",
       "kind": "blank",
-      "start_line": 877,
-      "end_line": 877,
+      "start_line": 891,
+      "end_line": 891,
       "raw": "\n"
     },
     {
       "id": "b000283",
       "kind": "paragraph",
-      "start_line": 878,
-      "end_line": 878,
-      "raw": "최종 PKG의 일반 파일 38개는 서명된 정식 앱과 SHA-256이 일치하며, 재배치 후 정식 앱 복원과 `build/`의 `.app` 디렉터리 1개를 확인했다. 서명·티켓·설치 메타데이터·체크섬·검사별 출처는 `build/installer/verification.json`, 요약은 `build/installer/release-summary.json`이다. 재생성 절차와 공증 방식은 [MACOS_INSTALLER.md](MACOS_INSTALLER.md)를 따른다.\n"
+      "start_line": 892,
+      "end_line": 892,
+      "raw": "`build/Congregation.pkg`는 현재 Qt 없는 네이티브 앱을 `/Applications/Congregation.app`에 설치한다. 버전 1.0.0 / 빌드 1, arm64, 최소 macOS 12.0 조건이다. Developer ID Application·Installer 서명, hardened runtime과 신뢰 타임스탬프를 적용했다. Xcode 로그인 계정으로 최종 PKG의 공증 티켓을 받아 부착했으며 Gatekeeper install 평가에서 `accepted / Notarized Developer ID`를 확인했다.\n"
     },
     {
       "id": "b000284",
       "kind": "blank",
-      "start_line": 879,
-      "end_line": 879,
+      "start_line": 893,
+      "end_line": 893,
       "raw": "\n"
     },
     {
       "id": "b000285",
+      "kind": "paragraph",
+      "start_line": 894,
+      "end_line": 894,
+      "raw": "제품 검사 12개 항목의 통과를 확인했다. `build/native-installer-release-tests.log`에서 기능·UI 등 11개 항목이 통과했고, hardened runtime에 맞춰 수정한 설치 계약·재배치 검사 2개는 `build/native-installer-runtime-final-tests.log`의 마지막 재실행에서 통과했다. 설치 계약에는 10개의 세부 회귀 검사가 있다. 한 번의 전체 일괄 실행이 모두 성공한 기록으로 표현하지 않는다.\n"
+    },
+    {
+      "id": "b000286",
+      "kind": "blank",
+      "start_line": 895,
+      "end_line": 895,
+      "raw": "\n"
+    },
+    {
+      "id": "b000287",
+      "kind": "paragraph",
+      "start_line": 896,
+      "end_line": 896,
+      "raw": "초기 재배치 검사는 배포용 보안 서명에서 제한되는 dyld 진단 출력에 의존했다. 이후 실행 중 실제 Mach-O 파일 매핑을 관측하도록 수정했다. OS의 임시·보호된 상태 데이터를 코드와 구분하며, 모든 필수 번들 이미지와 외부 SDK 유입 여부는 엄격하게 검사한다. 마지막 실행은 Metal·Vulkan에서 각각 번들 이미지 5개와 외부 SDK·Qt 이미지 0개를 확인했다.\n"
+    },
+    {
+      "id": "b000288",
+      "kind": "blank",
+      "start_line": 897,
+      "end_line": 897,
+      "raw": "\n"
+    },
+    {
+      "id": "b000289",
+      "kind": "paragraph",
+      "start_line": 898,
+      "end_line": 898,
+      "raw": "최종 PKG의 일반 파일 38개는 서명된 정식 앱과 SHA-256이 일치하며, 재배치 후 정식 앱 복원과 `build/`의 `.app` 디렉터리 1개를 확인했다. 서명·티켓·설치 메타데이터·체크섬·검사별 출처는 `build/installer/verification.json`, 요약은 `build/installer/release-summary.json`이다. 재생성 절차와 공증 방식은 [MACOS_INSTALLER.md](MACOS_INSTALLER.md)를 따른다.\n"
+    },
+    {
+      "id": "b000290",
+      "kind": "blank",
+      "start_line": 899,
+      "end_line": 899,
+      "raw": "\n"
+    },
+    {
+      "id": "b000291",
       "kind": "heading",
-      "start_line": 880,
-      "end_line": 880,
+      "start_line": 900,
+      "end_line": 900,
       "raw": "## 제품과 설치 키트\n",
       "level": 2,
       "title": "제품과 설치 키트"
     },
     {
-      "id": "b000286",
+      "id": "b000292",
       "kind": "blank",
-      "start_line": 881,
-      "end_line": 881,
+      "start_line": 901,
+      "end_line": 901,
       "raw": "\n"
     },
     {
-      "id": "b000287",
+      "id": "b000293",
+      "kind": "paragraph",
+      "start_line": 902,
+      "end_line": 904,
+      "raw": "이 절과 아래 검증 수치는 2026-10-24 당시의 기록이다. 당시 사용된 HTML형 LVUI\n입력은 현행 제품 문법이 아니며, 지금의 직접 선언형 화면은\n[LVUI 뷰모델 계약](LVUI_VIEWMODELS.md)을 따른다.\n"
+    },
+    {
+      "id": "b000294",
+      "kind": "blank",
+      "start_line": 905,
+      "end_line": 905,
+      "raw": "\n"
+    },
+    {
+      "id": "b000295",
       "kind": "list",
-      "start_line": 882,
-      "end_line": 886,
+      "start_line": 906,
+      "end_line": 910,
       "raw": "- 실행 소스: `App/Engine`, `App/Native`, HTML과 인라인 스타일의 `App/Native/views/*.lvui`이다.\n- 정식 앱: `build/Congregation.app`이다. 버전 1.0.0과 번들 빌드 번호 1을 유지한다.\n- 설치 SDK: `../../SDK/build/congregation-native/prefix`이다. 기존 사용자 설치본은 변경하지 않았다.\n- `native-kit-manifest.json`은 헤더·설정·라이브러리·도구·라이선스 777개 파일과 상대 심볼릭 링크를 고정한다. Qt 공개 헤더·Qt 패키지 탐색·키트 밖의 링크를 거부한다. UI 계약 추가 후 키트를 다시 고정하고 `SDK/iiSDKBuilder/build/vincent-ui-kit-check.log`에서 일치를 확인했다.\n- LVRS/iiGUI ABI 일치, 불일치, 식별자 누락을 구성 소비자 검사로 확인했다. 앱 편집·화면 목적 파일도 위젯 ABI 식별자를 컴파일 인수로 받아 SDK 교체 시 다시 빌드한다.\n",
       "items": [
         {
@@ -2127,47 +2185,47 @@
       ]
     },
     {
-      "id": "b000288",
+      "id": "b000296",
       "kind": "blank",
-      "start_line": 887,
-      "end_line": 887,
+      "start_line": 911,
+      "end_line": 911,
       "raw": "\n"
     },
     {
-      "id": "b000289",
+      "id": "b000297",
       "kind": "heading",
-      "start_line": 888,
-      "end_line": 888,
+      "start_line": 912,
+      "end_line": 912,
       "raw": "## Vincent UI 복원 후 최종 검증\n",
       "level": 2,
       "title": "Vincent UI 복원 후 최종 검증"
     },
     {
-      "id": "b000290",
+      "id": "b000298",
       "kind": "blank",
-      "start_line": 889,
-      "end_line": 889,
+      "start_line": 913,
+      "end_line": 913,
       "raw": "\n"
     },
     {
-      "id": "b000291",
+      "id": "b000299",
       "kind": "paragraph",
-      "start_line": 890,
-      "end_line": 890,
+      "start_line": 914,
+      "end_line": 914,
       "raw": "`build/vincent-ui-final-build.log`의 최종 빌드가 완료됐으며, `build/vincent-ui-final-tests.log`의 단일 일괄 실행에서 제품 검사 **11/11**이 통과했다. 전체 시간은 151.56초이다. 원본 기준 배치와 팔레트, 실제 입력, 두 렌더러의 화면 캡처, 번들 재배치를 포함한다.\n"
     },
     {
-      "id": "b000292",
+      "id": "b000300",
       "kind": "blank",
-      "start_line": 891,
-      "end_line": 891,
+      "start_line": 915,
+      "end_line": 915,
       "raw": "\n"
     },
     {
-      "id": "b000293",
+      "id": "b000301",
       "kind": "table",
-      "start_line": 892,
-      "end_line": 904,
+      "start_line": 916,
+      "end_line": 928,
       "raw": "| 검사 | 최종 결과 |\n| --- | --- |\n| Congregation.native_build_surface | 통과 |\n| Congregation.native_build_surface_contract | 통과 |\n| Congregation.engine | 통과 |\n| Congregation.services | 통과 |\n| Congregation.artwork | 통과 |\n| Congregation.editor_layout | 통과 · 맞춤 여백·배율·확대 금지·sRGB·압력 곡선 |\n| Congregation.standalone_native | 통과 · Metal 실제 편집·저장·팝업·단축키 |\n| Congregation.vincent_ui_native | 통과 · Metal 9개 화면·배치·압력 그래프 입력 |\n| Congregation.standalone_vulkan | 통과 · Vulkan 실제 편집·저장·팝업·단축키 |\n| Congregation.vincent_ui_vulkan | 통과 · Vulkan 9개 화면·배치·압력 그래프 입력 |\n| Congregation.bundle_relocation | 통과 · 이동한 앱에서 두 렌더러 실행·동적 로드 감사·원위치 복원 |\n",
       "columns": [
         "검사",
@@ -2221,31 +2279,31 @@
       ]
     },
     {
-      "id": "b000294",
+      "id": "b000302",
       "kind": "blank",
-      "start_line": 905,
-      "end_line": 905,
+      "start_line": 929,
+      "end_line": 929,
       "raw": "\n"
     },
     {
-      "id": "b000295",
+      "id": "b000303",
       "kind": "paragraph",
-      "start_line": 906,
-      "end_line": 906,
+      "start_line": 930,
+      "end_line": 930,
       "raw": "이번 변경과 관련된 SDK 검사도 통과했다. 아래 수치는 전체 SDK의 완전한 기능 이식률을 뜻하지 않는다.\n"
     },
     {
-      "id": "b000296",
+      "id": "b000304",
       "kind": "blank",
-      "start_line": 907,
-      "end_line": 907,
+      "start_line": 931,
+      "end_line": 931,
       "raw": "\n"
     },
     {
-      "id": "b000297",
+      "id": "b000305",
       "kind": "table",
-      "start_line": 908,
-      "end_line": 913,
+      "start_line": 932,
+      "end_line": 937,
       "raw": "| 모듈 | 결과 | 로그 |\n| --- | --- | --- |\n| iiGUI | 21/21 | `SDK/iiGUI/build/vincent-ui-slider-tests.log` |\n| LVUI | 40/40 | `SDK/LVUI/build/vincent-ui-source-final-tests.log` |\n| LVRS | 9/9 | `SDK/LVRS/build/congregation/vincent-ui-final-scope-tests.log` |\n| 설치 키트 | 777개 파일 일치 | `SDK/iiSDKBuilder/build/vincent-ui-kit-check.log` |\n",
       "columns": [
         "모듈",
@@ -2276,89 +2334,89 @@
       ]
     },
     {
-      "id": "b000298",
-      "kind": "blank",
-      "start_line": 914,
-      "end_line": 914,
-      "raw": "\n"
-    },
-    {
-      "id": "b000299",
-      "kind": "paragraph",
-      "start_line": 915,
-      "end_line": 915,
-      "raw": "iiGUI는 원형 색상 버튼·동적 아이콘·18px 버튼·12px 슬라이더와 입력/수명 계약을, LVUI는 해당 속성의 타입 검사와 AOT 생성을 검증했다. LVRS는 목록 모델·외형·가상화·숨김 AppCard 그리기·색상 버튼·ABI·소스 경계·선언 대응표를 검사했다. SDK 로그의 경로는 Workspace 기준이다.\n"
-    },
-    {
-      "id": "b000300",
-      "kind": "blank",
-      "start_line": 916,
-      "end_line": 916,
-      "raw": "\n"
-    },
-    {
-      "id": "b000301",
-      "kind": "paragraph",
-      "start_line": 917,
-      "end_line": 917,
-      "raw": "화면 비교는 저장소 루트 `design-qa.md`를 따른다. 원본과 같은 1400×858 클라이언트 크기로 맞추고 DPR 2 캡처를 정규화했다. 최신 18개 원본 캡처와 비교 이미지는 `build/vincent-ui/`에 보존한다. 기존 임시 Undo/Redo 버튼을 찾던 초기 실행 검사는 네이티브 단축키 입력으로 갱신했으며 최종 일괄 실행에서 모두 통과했다.\n"
-    },
-    {
-      "id": "b000302",
-      "kind": "blank",
-      "start_line": 918,
-      "end_line": 918,
-      "raw": "\n"
-    },
-    {
-      "id": "b000303",
-      "kind": "heading",
-      "start_line": 919,
-      "end_line": 919,
-      "raw": "## Qt 독립화 단계의 선행 빌드·제품 검사\n",
-      "level": 2,
-      "title": "Qt 독립화 단계의 선행 빌드·제품 검사"
-    },
-    {
-      "id": "b000304",
-      "kind": "blank",
-      "start_line": 920,
-      "end_line": 920,
-      "raw": "\n"
-    },
-    {
-      "id": "b000305",
-      "kind": "paragraph",
-      "start_line": 921,
-      "end_line": 921,
-      "raw": "`./build.sh local`로 Qt5/Qt6 탐색을 비활성화하여 구성·빌드하고 실행 검사를 수행했다. 최종 재배치 검사 상태는 아래 확정 결과와 구조화된 기록을 따른다.\n"
-    },
-    {
       "id": "b000306",
       "kind": "blank",
-      "start_line": 922,
-      "end_line": 922,
+      "start_line": 938,
+      "end_line": 938,
       "raw": "\n"
     },
     {
       "id": "b000307",
       "kind": "paragraph",
-      "start_line": 923,
-      "end_line": 923,
-      "raw": "Qt 독립화 당시 제품 검사 8개 모두 통과했다. 엔진·서비스·편집·Metal·Vulkan은 `build/congregation-abi-rebuilt-tests.log`의 빌드에 대한 통과 기록이며, 경로 분류를 수정한 번들 재배치 검사는 `build/congregation-relocation-final-tests.log`에서 추가 통과했다. 재배치 실행에서 개발 SDK·Homebrew 로딩은 0건이며 정식 앱 경로의 복원을 확인했다. 이후 활성 빌드 진입점과 그 회귀 계약 검사 2개를 `build/congregation-build-surface-tests.log`에서 추가 통과했다.\n"
+      "start_line": 939,
+      "end_line": 939,
+      "raw": "iiGUI는 원형 색상 버튼·동적 아이콘·18px 버튼·12px 슬라이더와 입력/수명 계약을, LVUI는 해당 속성의 타입 검사와 AOT 생성을 검증했다. LVRS는 목록 모델·외형·가상화·숨김 AppCard 그리기·색상 버튼·ABI·소스 경계·선언 대응표를 검사했다. SDK 로그의 경로는 Workspace 기준이다.\n"
     },
     {
       "id": "b000308",
       "kind": "blank",
-      "start_line": 924,
-      "end_line": 924,
+      "start_line": 940,
+      "end_line": 940,
       "raw": "\n"
     },
     {
       "id": "b000309",
+      "kind": "paragraph",
+      "start_line": 941,
+      "end_line": 941,
+      "raw": "화면 비교는 저장소 루트 `design-qa.md`를 따른다. 원본과 같은 1400×858 클라이언트 크기로 맞추고 DPR 2 캡처를 정규화했다. 최신 18개 원본 캡처와 비교 이미지는 `build/vincent-ui/`에 보존한다. 기존 임시 Undo/Redo 버튼을 찾던 초기 실행 검사는 네이티브 단축키 입력으로 갱신했으며 최종 일괄 실행에서 모두 통과했다.\n"
+    },
+    {
+      "id": "b000310",
+      "kind": "blank",
+      "start_line": 942,
+      "end_line": 942,
+      "raw": "\n"
+    },
+    {
+      "id": "b000311",
+      "kind": "heading",
+      "start_line": 943,
+      "end_line": 943,
+      "raw": "## Qt 독립화 단계의 선행 빌드·제품 검사\n",
+      "level": 2,
+      "title": "Qt 독립화 단계의 선행 빌드·제품 검사"
+    },
+    {
+      "id": "b000312",
+      "kind": "blank",
+      "start_line": 944,
+      "end_line": 944,
+      "raw": "\n"
+    },
+    {
+      "id": "b000313",
+      "kind": "paragraph",
+      "start_line": 945,
+      "end_line": 945,
+      "raw": "`./build.sh local`로 Qt5/Qt6 탐색을 비활성화하여 구성·빌드하고 실행 검사를 수행했다. 최종 재배치 검사 상태는 아래 확정 결과와 구조화된 기록을 따른다.\n"
+    },
+    {
+      "id": "b000314",
+      "kind": "blank",
+      "start_line": 946,
+      "end_line": 946,
+      "raw": "\n"
+    },
+    {
+      "id": "b000315",
+      "kind": "paragraph",
+      "start_line": 947,
+      "end_line": 947,
+      "raw": "Qt 독립화 당시 제품 검사 8개 모두 통과했다. 엔진·서비스·편집·Metal·Vulkan은 `build/congregation-abi-rebuilt-tests.log`의 빌드에 대한 통과 기록이며, 경로 분류를 수정한 번들 재배치 검사는 `build/congregation-relocation-final-tests.log`에서 추가 통과했다. 재배치 실행에서 개발 SDK·Homebrew 로딩은 0건이며 정식 앱 경로의 복원을 확인했다. 이후 활성 빌드 진입점과 그 회귀 계약 검사 2개를 `build/congregation-build-surface-tests.log`에서 추가 통과했다.\n"
+    },
+    {
+      "id": "b000316",
+      "kind": "blank",
+      "start_line": 948,
+      "end_line": 948,
+      "raw": "\n"
+    },
+    {
+      "id": "b000317",
       "kind": "table",
-      "start_line": 925,
-      "end_line": 934,
+      "start_line": 949,
+      "end_line": 958,
       "raw": "| 검사 | 결과 |\n| --- | --- |\n| Congregation.native_build_surface | 통과 · 활성 CMake·빌드 스크립트·워크플로의 Qt 획득·배포 차단 |\n| Congregation.native_build_surface_contract | 통과 · Qt 유입 거부·정상 비활성화·이행 기록 허용 |\n| Congregation.engine | 통과 |\n| Congregation.services | 통과 |\n| Congregation.artwork | 통과 |\n| Congregation.standalone_native | 통과 · Metal |\n| Congregation.standalone_vulkan | 통과 · Vulkan/MoltenVK |\n| Congregation.bundle_relocation | 통과 · 이동한 앱에서 두 렌더러 실행·동적 로드 감사·복원 |\n",
       "columns": [
         "검사",
@@ -2400,61 +2458,61 @@
       ]
     },
     {
-      "id": "b000310",
+      "id": "b000318",
       "kind": "blank",
-      "start_line": 935,
-      "end_line": 936,
+      "start_line": 959,
+      "end_line": 960,
       "raw": "\n\n"
     },
     {
-      "id": "b000311",
+      "id": "b000319",
       "kind": "paragraph",
-      "start_line": 937,
-      "end_line": 937,
+      "start_line": 961,
+      "end_line": 961,
       "raw": "엔진·서비스·편집 검사 외에 실제 네이티브 창에서 새 캔버스 입력 검증·생성, 압력 스트로크와 취소, 화면 이동·확대·임시 확대, 레이어 추가·이름·선택·복제·삭제·가시성, 실행 취소·재실행, 이미지 드롭, 다중행 한글 텍스트, 실제 ColorPicker 팝업과 읽기 전용 스포이트, 정규 IISC 저장·재열기, PNG·PSD 내보내기, 비동기 환경설정 창, 프로필 이미지·브러시 설정을 실행한다. 순수 조회·화면 이동·선택은 문서 리비전을 바꾸지 않음을 확인한다.\n"
     },
     {
-      "id": "b000312",
+      "id": "b000320",
       "kind": "blank",
-      "start_line": 938,
-      "end_line": 938,
+      "start_line": 962,
+      "end_line": 962,
       "raw": "\n"
     },
     {
-      "id": "b000313",
+      "id": "b000321",
       "kind": "paragraph",
-      "start_line": 939,
-      "end_line": 939,
+      "start_line": 963,
+      "end_line": 963,
       "raw": "`tests/verify_standalone_bundle.py`는 정식 앱을 `build/` 안의 임시 경로로 이동하고 빈 작업 디렉터리에서 Metal과 Vulkan을 실행한다. 실행 중 실제 로드된 라이브러리 경로를 검사하고 성공·실패 모두 정식 경로로 복원한다. macOS Cryptex 시스템 볼륨의 OS 라이브러리도 시스템 경로로 구분하며 개발 SDK·Homebrew·임의 외부 경로는 허용하지 않는다.\n"
     },
     {
-      "id": "b000314",
+      "id": "b000322",
       "kind": "blank",
-      "start_line": 940,
-      "end_line": 940,
+      "start_line": 964,
+      "end_line": 964,
       "raw": "\n"
     },
     {
-      "id": "b000315",
+      "id": "b000323",
       "kind": "heading",
-      "start_line": 941,
-      "end_line": 941,
+      "start_line": 965,
+      "end_line": 965,
       "raw": "## Qt 독립화 단계의 선행 SDK 검사\n",
       "level": 2,
       "title": "Qt 독립화 단계의 선행 SDK 검사"
     },
     {
-      "id": "b000316",
+      "id": "b000324",
       "kind": "blank",
-      "start_line": 942,
-      "end_line": 942,
+      "start_line": 966,
+      "end_line": 966,
       "raw": "\n"
     },
     {
-      "id": "b000317",
+      "id": "b000325",
       "kind": "table",
-      "start_line": 943,
-      "end_line": 954,
+      "start_line": 967,
+      "end_line": 978,
       "raw": "| 모듈 | 통과 기록 | 검증 범위 |\n| --- | --- | --- |\n| iiSDKCore | 58/58 | 작업 수명·관측 값·십진 변환·기반 경계 |\n| iiGUI | 176/176 | 네이티브 입력·IME·보안/다중행 입력·OS 서비스·보조창·GPU 효과·폴백 |\n| LVUI | 37/37 | HTML/인라인 구문·AOT·타입 바인딩·스코프 수명·목록·라우터 생성·예약어 조사 |\n| LVRS Native | 117/117, 재실행 포함 | 제품 위젯·모델·팝업·설치 ABI·선언 대응표와 병행 추가된 표·라우터 |\n| iiSharedCanvas Native | 20/20 | 문서·청크·타일·레이어·파일 형식·무한 영역의 읽기 불변식 |\n| iiImageCodec | 3/3 | 형식·방향·ICC·프로필 썸네일·알파 경계 |\n| iiNetwork | 32/32, 재실행 포함 | 네이티브 전송·HTTP/TLS·종료·OS 신뢰 저장소 |\n| 계정·라이선스·업데이트 Native | 각 1/1 | 정규화·GraphQL·서명/플랫폼·버전/대기 계약 |\n| iiSDKBuilder | 16/16, 재실행 포함 | JSON 숫자·명령·실제 SDK 빌드·리소스·설치 소비자·키트 고정 |\n| iiFileProvider | 37/38 | 로컬·SQL·Native·잠금·원자적 저장·CoreIO 통과; 작업 공간 전체 감사는 아래 별도 기록 |\n",
       "columns": [
         "모듈",
@@ -2515,105 +2573,105 @@
       ]
     },
     {
-      "id": "b000318",
+      "id": "b000326",
       "kind": "blank",
-      "start_line": 955,
-      "end_line": 955,
+      "start_line": 979,
+      "end_line": 979,
       "raw": "\n"
     },
     {
-      "id": "b000319",
+      "id": "b000327",
       "kind": "paragraph",
-      "start_line": 956,
-      "end_line": 956,
+      "start_line": 980,
+      "end_line": 980,
       "raw": "일부 초기 실행은 제한 시간을 초과했으며 단독 재실행에서 통과했다. LVRS의 Sheet 모션 검사도 일괄 실행에서 한 번 실패하고 단독 재실행에서 통과했다. 단일 일괄 실행의 전 항목이 항상 성공했다고 표현하지 않는다. 최종 앱의 기능 검사와 SDK 모듈별 통과 기록을 구분한다.\n"
     },
     {
-      "id": "b000320",
+      "id": "b000328",
       "kind": "blank",
-      "start_line": 957,
-      "end_line": 957,
+      "start_line": 981,
+      "end_line": 981,
       "raw": "\n"
     },
     {
-      "id": "b000321",
+      "id": "b000329",
       "kind": "heading",
-      "start_line": 958,
-      "end_line": 958,
+      "start_line": 982,
+      "end_line": 982,
       "raw": "## 설치·의존성 증거\n",
       "level": 2,
       "title": "설치·의존성 증거"
     },
     {
-      "id": "b000322",
+      "id": "b000330",
       "kind": "blank",
-      "start_line": 959,
-      "end_line": 959,
+      "start_line": 983,
+      "end_line": 983,
       "raw": "\n"
     },
     {
-      "id": "b000323",
+      "id": "b000331",
       "kind": "paragraph",
-      "start_line": 960,
-      "end_line": 960,
+      "start_line": 984,
+      "end_line": 984,
       "raw": "`build/native-bundle-dependencies.json`은 앱 실행 파일과 동적 라이브러리 총 5개의 폐쇄된 의존성, 상대 RPATH, 최소 macOS 12.0 선언을 기록한다. Qt·Homebrew·개발 소스의 동적 런타임 의존성은 없다. 5개 이미지의 undefined symbol 검사에서도 Qt 클래스·실행 엔진 참조가 없으며 로컬 임시 서명의 엄격한 검증을 통과했다. 공개 배포용 서명·공증·스토어 제출은 수행한 범위가 아니다.\n"
     },
     {
-      "id": "b000324",
+      "id": "b000332",
       "kind": "blank",
-      "start_line": 961,
-      "end_line": 961,
+      "start_line": 985,
+      "end_line": 985,
       "raw": "\n"
     },
     {
-      "id": "b000325",
+      "id": "b000333",
       "kind": "paragraph",
-      "start_line": 962,
-      "end_line": 962,
+      "start_line": 986,
+      "end_line": 986,
       "raw": "위치를 바꾼 SDK 소비자는 Qt 탐색을 끈 상태에서 정규 IISC 생성·편집·재열기·픽셀 델타·타일 렌더링·PNG 왕복·PSD 내보내기/가져오기를 통과했다. `../../SDK/iiSharedCanvas/build/native-consumer/loaded-images-verification.json`은 실제 SDK 라이브러리가 원래 설치 위치가 아닌 `relocated-prefix`에서 로드되었음을 기록한다.\n"
     },
     {
-      "id": "b000326",
+      "id": "b000334",
       "kind": "blank",
-      "start_line": 963,
-      "end_line": 963,
+      "start_line": 987,
+      "end_line": 987,
       "raw": "\n"
     },
     {
-      "id": "b000327",
+      "id": "b000335",
       "kind": "heading",
-      "start_line": 964,
-      "end_line": 964,
+      "start_line": 988,
+      "end_line": 988,
       "raw": "## 작업 범위 밖의 전체 감사\n",
       "level": 2,
       "title": "작업 범위 밖의 전체 감사"
     },
     {
-      "id": "b000328",
+      "id": "b000336",
       "kind": "blank",
-      "start_line": 965,
-      "end_line": 965,
+      "start_line": 989,
+      "end_line": 989,
       "raw": "\n"
     },
     {
-      "id": "b000329",
+      "id": "b000337",
       "kind": "paragraph",
-      "start_line": 966,
-      "end_line": 966,
+      "start_line": 990,
+      "end_line": 990,
       "raw": "`iiFileProvider.workspace_creation`은 Congregation만 검사하는 테스트가 아니다. SDK와 Product 전체를 조사하여 다음 Dreamscapes 경로 2건을 보고했다. 읽을 수 없는 파일은 0건이며 이번 Congregation·SDK 이행에서 발생한 위반은 없다. 이 검사를 통과로 바꾸거나 다른 제품의 변경을 덮어쓰지 않았다.\n"
     },
     {
-      "id": "b000330",
+      "id": "b000338",
       "kind": "blank",
-      "start_line": 967,
-      "end_line": 967,
+      "start_line": 991,
+      "end_line": 991,
       "raw": "\n"
     },
     {
-      "id": "b000331",
+      "id": "b000339",
       "kind": "list",
-      "start_line": 968,
-      "end_line": 969,
+      "start_line": 992,
+      "end_line": 993,
       "raw": "- `Product/Dreamscapes/src/App/Generation/FailureReportStorage.h:14`\n- `Product/Dreamscapes/src/App/Publishing/PublishReview.cpp:185`\n",
       "items": [
         {
@@ -2629,89 +2687,89 @@
       ]
     },
     {
-      "id": "b000332",
-      "kind": "blank",
-      "start_line": 970,
-      "end_line": 970,
-      "raw": "\n"
-    },
-    {
-      "id": "b000333",
-      "kind": "paragraph",
-      "start_line": 971,
-      "end_line": 971,
-      "raw": "원본 보고서는 `../../SDK/iiFileProvider/build/congregation-final-creation-audit.json`이다. 경로와 줄 번호는 조사 당시 소스 기준이다.\n"
-    },
-    {
-      "id": "b000334",
-      "kind": "blank",
-      "start_line": 972,
-      "end_line": 972,
-      "raw": "\n"
-    },
-    {
-      "id": "b000335",
-      "kind": "heading",
-      "start_line": 973,
-      "end_line": 973,
-      "raw": "## 플랫폼과 남은 검증 경계\n",
-      "level": 2,
-      "title": "플랫폼과 남은 검증 경계"
-    },
-    {
-      "id": "b000336",
-      "kind": "blank",
-      "start_line": 974,
-      "end_line": 974,
-      "raw": "\n"
-    },
-    {
-      "id": "b000337",
-      "kind": "paragraph",
-      "start_line": 975,
-      "end_line": 975,
-      "raw": "macOS는 Cocoa 창과 네이티브 입력, Metal 및 MoltenVK를 통한 강제 Vulkan의 실제 실행 결과이다. macOS의 Vulkan은 Metal 위의 구현이며 독립된 하드웨어 폴백을 뜻하지 않는다. Vulkan과 Direct3D11의 블러·그림자·변환 구현은 GPU 경로이며 Vulkan의 실제 픽셀 검사를 포함한다.\n"
-    },
-    {
-      "id": "b000338",
-      "kind": "blank",
-      "start_line": 976,
-      "end_line": 976,
-      "raw": "\n"
-    },
-    {
-      "id": "b000339",
-      "kind": "paragraph",
-      "start_line": 977,
-      "end_line": 977,
-      "raw": "Windows의 Win32/Direct3D11·Vulkan, 펜·IME·클립보드·드롭·메뉴·대화상자와 Linux의 X11/XInput2/XIM·Vulkan·XDG portal/GIO 소스를 구현했다. 해당 OS에서 컴파일·실행한 증거는 없다. Linux OS 접근성 객체 노출에는 미구현 영역이 남아 있고 직접 Wayland 호스트는 없다. LVRS 전체 149개 선언을 완전히 이식한 결과도 아니다. 기준은 Congregation 자체 실행에 필요한 계약이다.\n"
-    },
-    {
       "id": "b000340",
       "kind": "blank",
-      "start_line": 978,
-      "end_line": 978,
+      "start_line": 994,
+      "end_line": 994,
       "raw": "\n"
     },
     {
       "id": "b000341",
       "kind": "paragraph",
-      "start_line": 979,
-      "end_line": 979,
-      "raw": "물리 펜 장비, macOS 12 실기기, 실운영 계정·라이선스·업데이트 서버, 공개 배포 설치자는 이번 로컬 자동 검사와 별개의 검증이다. 이전 Qt 소스는 기존 변경과 이행 비교를 위해 보존했으며 현재 구성·컴파일·링크·리소스·배포에는 포함하지 않는다.\n"
+      "start_line": 995,
+      "end_line": 995,
+      "raw": "원본 보고서는 `../../SDK/iiFileProvider/build/congregation-final-creation-audit.json`이다. 경로와 줄 번호는 조사 당시 소스 기준이다.\n"
     },
     {
       "id": "b000342",
       "kind": "blank",
-      "start_line": 980,
-      "end_line": 981,
-      "raw": "\n\n"
+      "start_line": 996,
+      "end_line": 996,
+      "raw": "\n"
     },
     {
       "id": "b000343",
+      "kind": "heading",
+      "start_line": 997,
+      "end_line": 997,
+      "raw": "## 플랫폼과 남은 검증 경계\n",
+      "level": 2,
+      "title": "플랫폼과 남은 검증 경계"
+    },
+    {
+      "id": "b000344",
+      "kind": "blank",
+      "start_line": 998,
+      "end_line": 998,
+      "raw": "\n"
+    },
+    {
+      "id": "b000345",
       "kind": "paragraph",
-      "start_line": 982,
-      "end_line": 986,
+      "start_line": 999,
+      "end_line": 999,
+      "raw": "macOS는 Cocoa 창과 네이티브 입력, Metal 및 MoltenVK를 통한 강제 Vulkan의 실제 실행 결과이다. macOS의 Vulkan은 Metal 위의 구현이며 독립된 하드웨어 폴백을 뜻하지 않는다. Vulkan과 Direct3D11의 블러·그림자·변환 구현은 GPU 경로이며 Vulkan의 실제 픽셀 검사를 포함한다.\n"
+    },
+    {
+      "id": "b000346",
+      "kind": "blank",
+      "start_line": 1000,
+      "end_line": 1000,
+      "raw": "\n"
+    },
+    {
+      "id": "b000347",
+      "kind": "paragraph",
+      "start_line": 1001,
+      "end_line": 1001,
+      "raw": "Windows의 Win32/Direct3D11·Vulkan, 펜·IME·클립보드·드롭·메뉴·대화상자와 Linux의 X11/XInput2/XIM·Vulkan·XDG portal/GIO 소스를 구현했다. 해당 OS에서 컴파일·실행한 증거는 없다. Linux OS 접근성 객체 노출에는 미구현 영역이 남아 있고 직접 Wayland 호스트는 없다. LVRS 전체 149개 선언을 완전히 이식한 결과도 아니다. 기준은 Congregation 자체 실행에 필요한 계약이다.\n"
+    },
+    {
+      "id": "b000348",
+      "kind": "blank",
+      "start_line": 1002,
+      "end_line": 1002,
+      "raw": "\n"
+    },
+    {
+      "id": "b000349",
+      "kind": "paragraph",
+      "start_line": 1003,
+      "end_line": 1003,
+      "raw": "물리 펜 장비, macOS 12 실기기, 실운영 계정·라이선스·업데이트 서버, 공개 배포 설치자는 이번 로컬 자동 검사와 별개의 검증이다. 이전 Qt 소스는 기존 변경과 이행 비교를 위해 보존했으며 현재 구성·컴파일·링크·리소스·배포에는 포함하지 않는다.\n"
+    },
+    {
+      "id": "b000350",
+      "kind": "blank",
+      "start_line": 1004,
+      "end_line": 1005,
+      "raw": "\n\n"
+    },
+    {
+      "id": "b000351",
+      "kind": "paragraph",
+      "start_line": 1006,
+      "end_line": 1010,
       "raw": "The native installer contract uses the private test work directory inside\n`resources/` for its temporary payload and signature fixtures. The contract\nchecks that the directory is a child of the real resource root; the build\ndirectory is not a runtime fixture location. This test inspects synthetic\ninstaller data and does not launch the application.\n"
     }
   ],
@@ -2728,698 +2786,713 @@
       "block_id": "b000003",
       "parent_id": "b000001",
       "level": 2,
-      "title": "LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04",
-      "anchor": "lvui-채움형양-끝-레이블형구간형-슬라이더--2026-11-04",
+      "title": "iPad 앱별 Society 저장소와 시작 캔버스 · 2026-11-10",
+      "anchor": "ipad-앱별-society-저장소와-시작-캔버스--2026-11-10",
       "start_line": 3
     },
     {
-      "block_id": "b000013",
+      "block_id": "b000009",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "LVUI 채움형·양 끝 레이블형·구간형 슬라이더 · 2026-11-04",
+      "anchor": "lvui-채움형양-끝-레이블형구간형-슬라이더--2026-11-04",
+      "start_line": 23
+    },
+    {
+      "block_id": "b000019",
       "parent_id": "b000001",
       "level": 2,
       "title": "LVUI 슬라이더 심벌의 공통 색상 · 2026-11-04",
       "anchor": "lvui-슬라이더-심벌의-공통-색상--2026-11-04",
-      "start_line": 33
+      "start_line": 53
     },
     {
-      "block_id": "b000023",
+      "block_id": "b000029",
       "parent_id": "b000001",
       "level": 2,
       "title": "LVUI 공통 색상 연결 후 회귀 · 2026-11-03",
       "anchor": "lvui-공통-색상-연결-후-회귀--2026-11-03",
-      "start_line": 71
+      "start_line": 91
     },
     {
-      "block_id": "b000031",
+      "block_id": "b000037",
       "parent_id": "b000001",
       "level": 2,
       "title": "LVUI 중심 기준 슬라이더 이식 후 회귀 · 2026-11-03",
       "anchor": "lvui-중심-기준-슬라이더-이식-후-회귀--2026-11-03",
-      "start_line": 102
+      "start_line": 122
     },
     {
-      "block_id": "b000039",
+      "block_id": "b000045",
       "parent_id": "b000001",
       "level": 2,
       "title": "Avatar 공통 색상과 마스크 · 2026-11-03",
       "anchor": "avatar-공통-색상과-마스크--2026-11-03",
-      "start_line": 125
+      "start_line": 145
     },
     {
-      "block_id": "b000047",
+      "block_id": "b000053",
       "parent_id": "b000001",
       "level": 2,
       "title": "프로필 입력 영역의 콘텐츠 크기 · 2026-11-03",
       "anchor": "프로필-입력-영역의-콘텐츠-크기--2026-11-03",
-      "start_line": 154
+      "start_line": 174
     },
     {
-      "block_id": "b000055",
+      "block_id": "b000061",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 버튼의 상태 전환 · 2026-11-03",
       "anchor": "공통-버튼의-상태-전환--2026-11-03",
-      "start_line": 180
+      "start_line": 200
     },
     {
-      "block_id": "b000063",
+      "block_id": "b000069",
       "parent_id": "b000001",
       "level": 2,
       "title": "Avatar 심벌의 크기와 배율 · 2026-11-03",
       "anchor": "avatar-심벌의-크기와-배율--2026-11-03",
-      "start_line": 207
+      "start_line": 227
     },
     {
-      "block_id": "b000071",
+      "block_id": "b000077",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 다색 재질 · 2026-11-03",
       "anchor": "공통-다색-재질--2026-11-03",
-      "start_line": 236
+      "start_line": 256
     },
     {
-      "block_id": "b000079",
+      "block_id": "b000085",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 팝오버 모션과 재질 경계 · 2026-11-03",
       "anchor": "공통-팝오버-모션과-재질-경계--2026-11-03",
-      "start_line": 268
+      "start_line": 288
     },
     {
-      "block_id": "b000087",
+      "block_id": "b000093",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 팝오버의 창 강조색 · 2026-11-03",
       "anchor": "공통-팝오버의-창-강조색--2026-11-03",
-      "start_line": 297
+      "start_line": 317
     },
     {
-      "block_id": "b000095",
+      "block_id": "b000101",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 팝오버 악센트와 불투명 폴백 · 2026-11-03",
       "anchor": "공통-팝오버-악센트와-불투명-폴백--2026-11-03",
-      "start_line": 324
+      "start_line": 344
     },
     {
-      "block_id": "b000105",
+      "block_id": "b000111",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 팝오버·설정 탭·타임라인 후속 검증 · 2026-11-03",
       "anchor": "공통-팝오버설정-탭타임라인-후속-검증--2026-11-03",
-      "start_line": 353
+      "start_line": 373
     },
     {
-      "block_id": "b000115",
+      "block_id": "b000121",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 버튼 색상과 배치 계산 후속 검증 · 2026-11-03",
       "anchor": "공통-버튼-색상과-배치-계산-후속-검증--2026-11-03",
-      "start_line": 385
+      "start_line": 405
     },
     {
-      "block_id": "b000123",
+      "block_id": "b000129",
       "parent_id": "b000001",
       "level": 2,
       "title": "Profile 공통 Avatar·입력 후속 검증 · 2026-11-03",
       "anchor": "profile-공통-avatar입력-후속-검증--2026-11-03",
-      "start_line": 410
+      "start_line": 430
     },
     {
-      "block_id": "b000131",
+      "block_id": "b000137",
       "parent_id": "b000001",
       "level": 2,
       "title": "독립 아이콘·세그먼트·레이아웃 후속 검증 · 2026-11-03",
       "anchor": "독립-아이콘세그먼트레이아웃-후속-검증--2026-11-03",
-      "start_line": 435
+      "start_line": 455
     },
     {
-      "block_id": "b000139",
+      "block_id": "b000145",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 아이콘·입력 재질 후속 검증 · 2026-11-03",
       "anchor": "공통-아이콘입력-재질-후속-검증--2026-11-03",
-      "start_line": 459
+      "start_line": 479
     },
     {
-      "block_id": "b000149",
+      "block_id": "b000155",
       "parent_id": "b000001",
       "level": 2,
       "title": "둥근 입력 재질 후속 검증 · 2026-11-03",
       "anchor": "둥근-입력-재질-후속-검증--2026-11-03",
-      "start_line": 490
+      "start_line": 510
     },
     {
-      "block_id": "b000157",
+      "block_id": "b000163",
       "parent_id": "b000001",
       "level": 2,
       "title": "입력 지우기 동작 중간 검증 · 2026-11-03",
       "anchor": "입력-지우기-동작-중간-검증--2026-11-03",
-      "start_line": 519
+      "start_line": 539
     },
     {
-      "block_id": "b000165",
+      "block_id": "b000171",
       "parent_id": "b000001",
       "level": 2,
       "title": "공통 입력 크기와 원본 LVUI 토큰 후속 검증 · 2026-11-03",
       "anchor": "공통-입력-크기와-원본-lvui-토큰-후속-검증--2026-11-03",
-      "start_line": 546
+      "start_line": 566
     },
     {
-      "block_id": "b000177",
+      "block_id": "b000183",
       "parent_id": "b000001",
       "level": 2,
       "title": "입력 길이 제한과 라이브러리 개명 후속 검증 · 2026-11-03",
       "anchor": "입력-길이-제한과-라이브러리-개명-후속-검증--2026-11-03",
-      "start_line": 586
+      "start_line": 606
     },
     {
-      "block_id": "b000187",
+      "block_id": "b000193",
       "parent_id": "b000001",
       "level": 2,
       "title": "버튼 메서드와 Enter 입력 후속 검증 · 2026-11-03",
       "anchor": "버튼-메서드와-enter-입력-후속-검증--2026-11-03",
-      "start_line": 617
+      "start_line": 637
     },
     {
-      "block_id": "b000199",
+      "block_id": "b000205",
       "parent_id": "b000001",
       "level": 2,
       "title": "버튼 입력 이벤트 후속 검증 · 2026-11-03",
       "anchor": "버튼-입력-이벤트-후속-검증--2026-11-03",
-      "start_line": 658
+      "start_line": 678
     },
     {
-      "block_id": "b000209",
+      "block_id": "b000215",
       "parent_id": "b000001",
       "level": 2,
       "title": "버튼별 모션과 포커스 표시 후속 검증 · 2026-11-03",
       "anchor": "버튼별-모션과-포커스-표시-후속-검증--2026-11-03",
-      "start_line": 689
+      "start_line": 709
     },
     {
-      "block_id": "b000219",
+      "block_id": "b000225",
       "parent_id": "b000001",
       "level": 2,
       "title": "버튼 상태색 이식 후 검증 · 2026-11-03",
       "anchor": "버튼-상태색-이식-후-검증--2026-11-03",
-      "start_line": 721
+      "start_line": 741
     },
     {
-      "block_id": "b000227",
+      "block_id": "b000233",
       "parent_id": "b000001",
       "level": 2,
       "title": "네이티브 의존성 경계와 분리 빌드 · 2026-11-03",
       "anchor": "네이티브-의존성-경계와-분리-빌드--2026-11-03",
-      "start_line": 748
+      "start_line": 768
     },
     {
-      "block_id": "b000239",
+      "block_id": "b000245",
       "parent_id": "b000001",
       "level": 2,
       "title": "목록 드래그 정렬 후속 검증 · 2026-11-02",
       "anchor": "목록-드래그-정렬-후속-검증--2026-11-02",
-      "start_line": 787
+      "start_line": 807
     },
     {
-      "block_id": "b000247",
+      "block_id": "b000253",
       "parent_id": "b000001",
       "level": 2,
       "title": "목록 이름 편집 후속 검증 · 2026-11-02",
       "anchor": "목록-이름-편집-후속-검증--2026-11-02",
-      "start_line": 809
-    },
-    {
-      "block_id": "b000255",
-      "parent_id": "b000001",
-      "level": 2,
-      "title": "일반 목록 후속 검증 · 2026-11-02",
-      "anchor": "일반-목록-후속-검증--2026-11-02",
-      "start_line": 830
+      "start_line": 829
     },
     {
       "block_id": "b000261",
       "parent_id": "b000001",
       "level": 2,
-      "title": "독립 LVUI 빌드 · 2026-11-01",
-      "anchor": "독립-lvui-빌드--2026-11-01",
-      "start_line": 844
+      "title": "일반 목록 후속 검증 · 2026-11-02",
+      "anchor": "일반-목록-후속-검증--2026-11-02",
+      "start_line": 850
     },
     {
-      "block_id": "b000269",
+      "block_id": "b000267",
       "parent_id": "b000001",
       "level": 2,
-      "title": "Figma ApplicationWindow · 2026-10-25",
-      "anchor": "figma-applicationwindow--2026-10-25",
+      "title": "독립 LVUI 빌드 · 2026-11-01",
+      "anchor": "독립-lvui-빌드--2026-11-01",
       "start_line": 864
     },
     {
       "block_id": "b000275",
       "parent_id": "b000001",
       "level": 2,
-      "title": "macOS 설치 패키지 · 2026-10-24",
-      "anchor": "macos-설치-패키지--2026-10-24",
-      "start_line": 870
+      "title": "Figma ApplicationWindow · 2026-10-25",
+      "anchor": "figma-applicationwindow--2026-10-25",
+      "start_line": 884
     },
     {
-      "block_id": "b000285",
+      "block_id": "b000281",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "macOS 설치 패키지 · 2026-10-24",
+      "anchor": "macos-설치-패키지--2026-10-24",
+      "start_line": 890
+    },
+    {
+      "block_id": "b000291",
       "parent_id": "b000001",
       "level": 2,
       "title": "제품과 설치 키트",
       "anchor": "제품과-설치-키트",
-      "start_line": 880
+      "start_line": 900
     },
     {
-      "block_id": "b000289",
+      "block_id": "b000297",
       "parent_id": "b000001",
       "level": 2,
       "title": "Vincent UI 복원 후 최종 검증",
       "anchor": "vincent-ui-복원-후-최종-검증",
-      "start_line": 888
+      "start_line": 912
     },
     {
-      "block_id": "b000303",
+      "block_id": "b000311",
       "parent_id": "b000001",
       "level": 2,
       "title": "Qt 독립화 단계의 선행 빌드·제품 검사",
       "anchor": "qt-독립화-단계의-선행-빌드제품-검사",
-      "start_line": 919
+      "start_line": 943
     },
     {
-      "block_id": "b000315",
+      "block_id": "b000323",
       "parent_id": "b000001",
       "level": 2,
       "title": "Qt 독립화 단계의 선행 SDK 검사",
       "anchor": "qt-독립화-단계의-선행-sdk-검사",
-      "start_line": 941
+      "start_line": 965
     },
     {
-      "block_id": "b000321",
+      "block_id": "b000329",
       "parent_id": "b000001",
       "level": 2,
       "title": "설치·의존성 증거",
       "anchor": "설치의존성-증거",
-      "start_line": 958
-    },
-    {
-      "block_id": "b000327",
-      "parent_id": "b000001",
-      "level": 2,
-      "title": "작업 범위 밖의 전체 감사",
-      "anchor": "작업-범위-밖의-전체-감사",
-      "start_line": 964
+      "start_line": 982
     },
     {
       "block_id": "b000335",
       "parent_id": "b000001",
       "level": 2,
+      "title": "작업 범위 밖의 전체 감사",
+      "anchor": "작업-범위-밖의-전체-감사",
+      "start_line": 988
+    },
+    {
+      "block_id": "b000343",
+      "parent_id": "b000001",
+      "level": 2,
       "title": "플랫폼과 남은 검증 경계",
       "anchor": "플랫폼과-남은-검증-경계",
-      "start_line": 973
+      "start_line": 997
     }
   ],
   "indexes": {
     "directive_candidates": [
       {
-        "block_id": "b000009",
-        "line": 23,
+        "block_id": "b000007",
+        "line": 21,
+        "text": "원인을 입증하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000015",
+        "line": 43,
         "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 기존",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000011",
-        "line": 31,
+        "block_id": "b000017",
+        "line": 51,
         "text": "LVUI 전환이나 저장소의 과거 Qt/QML 소스 제거를 뜻하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000019",
-        "line": 54,
+        "block_id": "b000025",
+        "line": 74,
         "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 첫 LVUI",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000029",
-        "line": 94,
+        "block_id": "b000035",
+        "line": 114,
         "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000037",
-        "line": 120,
+        "block_id": "b000043",
+        "line": 140,
         "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 제품별",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000041",
-        "line": 130,
+        "block_id": "b000047",
+        "line": 150,
         "text": "실행 중 전역 테마 구독은 아직 제공하지 않는다. 제품 프로필 회귀는 사진을 지운 뒤",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000045",
-        "line": 149,
+        "block_id": "b000051",
+        "line": 169,
         "text": "이 이름·경로 검사는 다른 이름의 정적 코드 출처까지 증명하지 않는다. 제품별",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000053",
-        "line": 175,
+        "block_id": "b000059",
+        "line": 195,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
-        "basis": "lexical_match",
-        "context": "paragraph"
-      },
-      {
-        "block_id": "b000061",
-        "line": 202,
-        "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 실행 빌드에서",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
         "block_id": "b000067",
-        "line": 221,
+        "line": 222,
+        "text": "이 이름·경로 검사는 임의 이름의 정적 코드 출처까지 증명하지 않는다. 실행 빌드에서",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000073",
+        "line": 241,
         "text": "해석하지 않는다. 별도 빌드 디렉터리를 만드는 `LVUI.NativeInstalled`는 제외했다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000069",
-        "line": 230,
+        "block_id": "b000075",
+        "line": 250,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000075",
-        "line": 254,
+        "block_id": "b000081",
+        "line": 274,
         "text": "변경 후 전체 회귀의 결과로 해석하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000077",
-        "line": 262,
+        "block_id": "b000083",
+        "line": 282,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000085",
-        "line": 290,
+        "block_id": "b000091",
+        "line": 310,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000089",
-        "line": 303,
+        "block_id": "b000095",
+        "line": 323,
         "text": "추가되었으므로 C++ 소비자는 새 헤더로 다시 빌드해야 한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000093",
-        "line": 318,
+        "block_id": "b000099",
+        "line": 338,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000101",
-        "line": 347,
+        "block_id": "b000107",
+        "line": 367,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000109",
-        "line": 362,
+        "block_id": "b000115",
+        "line": 382,
         "text": "개별 크기·여백·선택색을 지정하지 않는다. 타임라인 키프레임은 LVUI의 18px",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000109",
-        "line": 365,
+        "block_id": "b000115",
+        "line": 385,
         "text": "나머지 제품 뷰의 표현 재정의와 함께 사용자 규칙에 맞춰 계속 분리해야 한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000111",
-        "line": 374,
+        "block_id": "b000117",
+        "line": 394,
         "text": "이전 iiGUI 헤더로 빌드한 소비자는 함께 다시 빌드해야 한다. 기존 캐시와 다른",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000113",
-        "line": 381,
+        "block_id": "b000119",
+        "line": 401,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처를 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000121",
-        "line": 406,
+        "block_id": "b000127",
+        "line": 426,
         "text": "이름·경로 검사는 임의 이름의 정적 코드 출처를 증명하지 않는다. 이식된",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000129",
-        "line": 431,
+        "block_id": "b000135",
+        "line": 451,
         "text": "이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000129",
-        "line": 433,
+        "block_id": "b000135",
+        "line": 453,
         "text": "GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000133",
-        "line": 439,
+        "block_id": "b000139",
+        "line": 459,
         "text": "크기·배경·여백을 재정의하지 않는다. 타임라인과 확장 도구 패널의 높이는",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000137",
-        "line": 455,
+        "block_id": "b000143",
+        "line": 475,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000137",
-        "line": 457,
+        "block_id": "b000143",
+        "line": 477,
         "text": "GPU·기기와 Windows·Linux 실행, 설치·배포 서명 및 공증은 이 검사에 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000145",
-        "line": 477,
+        "block_id": "b000151",
+        "line": 497,
         "text": "대상 통과로 기록하지 않는다. 기존 캐시와 다른 iiSDK의 사전 빌드 산출물은",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000147",
-        "line": 487,
+        "block_id": "b000153",
+        "line": 507,
         "text": "이 이름·경로 검사는 임의 이름으로 포함된 정적 코드의 출처까지 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000147",
-        "line": 488,
+        "block_id": "b000153",
+        "line": 508,
         "text": "실제 앱 창·GPU·기기와 Windows·Linux 실행은 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000153",
-        "line": 506,
+        "block_id": "b000159",
+        "line": 526,
         "text": "10건 통과 후 중단했으며, 이번 변경의 전체 회귀 성공으로 간주하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000155",
-        "line": 517,
+        "block_id": "b000161",
+        "line": 537,
         "text": "배포 서명·공증을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000161",
-        "line": 534,
+        "block_id": "b000167",
+        "line": 554,
         "text": "후 중단했다. 중단 전 실패는 없었으며 전체 회귀 통과로 간주하지 않는다. 이후",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000161",
-        "line": 536,
+        "block_id": "b000167",
+        "line": 556,
         "text": "대한 결과로 해석하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000167",
-        "line": 553,
+        "block_id": "b000173",
+        "line": 573,
         "text": "`Action/primary`만 바꾸어서는 이 색이 변하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000175",
-        "line": 583,
+        "block_id": "b000181",
+        "line": 603,
         "text": "정적 코드의 출처를 증명하지 않는다. 실제 창·GPU·기기, Windows·Linux 실행과",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000185",
-        "line": 615,
+        "block_id": "b000191",
+        "line": 635,
         "text": "배포용 서명·공증을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000197",
-        "line": 656,
+        "block_id": "b000203",
+        "line": 676,
         "text": "창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000207",
-        "line": 687,
+        "block_id": "b000213",
+        "line": 707,
         "text": "실제 창·GPU·기기, Windows·Linux 실행, 배포용 서명·공증을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000217",
-        "line": 719,
+        "block_id": "b000223",
+        "line": 739,
         "text": "Windows·Linux 실행, 배포용 서명이나 공증을 증명하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000225",
-        "line": 745,
+        "block_id": "b000231",
+        "line": 765,
         "text": "창·GPU·기기, Windows·Linux 실행을 증명하지 않는다. 이 서명은 배포용 서명이나",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000229",
-        "line": 756,
+        "block_id": "b000235",
+        "line": 776,
         "text": "라이브러리 링크를 거절한다. 회귀 검사는 가짜 금지 라이브러리와 정상적인 유사",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000231",
-        "line": 763,
+        "block_id": "b000237",
+        "line": 783,
         "text": "스테이징을 재사용했다. 테스트에는 금지 동작을 검사하기 위한 가짜 라이브러리의",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000237",
-        "line": 785,
+        "block_id": "b000243",
+        "line": 805,
         "text": "Linux 실행, 배포용 서명과 공증도 이번 검증에 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000245",
-        "line": 805,
+        "block_id": "b000251",
+        "line": 825,
         "text": "공개 심볼 표본은 숨겨진 모든 정적 코드의 부재를 증명하지 않는다. 앱 창과 기기는",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000245",
-        "line": 807,
+        "block_id": "b000251",
+        "line": 827,
         "text": "운영체제 보조 기술의 실제 검증도 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000253",
-        "line": 826,
+        "block_id": "b000259",
+        "line": 846,
         "text": "공개 심볼 표본은 숨겨진 모든 정적 코드를 증명하지 않는다. 앱 창과 기기는 실행하지",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000279",
-        "line": 874,
+        "block_id": "b000285",
+        "line": 894,
         "text": "제품 검사 12개 항목의 통과를 확인했다. `build/native-installer-release-tests.log`에서 기능·UI 등 11개 항목이 통과했고, hardened runtime에 맞춰 수정한 설치 계약·재배치 검사 2개는 `build/native-installer-runtime-final-tests.log`의 마지막 재실행에서 통과했다. 설치 계약에는 10개의 세부 회귀 검사가 있다. 한 번의 전체 일괄 실행이 모두 성공한 기록으로 표현하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000281",
-        "line": 876,
+        "block_id": "b000287",
+        "line": 896,
         "text": "초기 재배치 검사는 배포용 보안 서명에서 제한되는 dyld 진단 출력에 의존했다. 이후 실행 중 실제 Mach-O 파일 매핑을 관측하도록 수정했다. OS의 임시·보호된 상태 데이터를 코드와 구분하며, 모든 필수 번들 이미지와 외부 SDK 유입 여부는 엄격하게 검사한다. 마지막 실행은 Metal·Vulkan에서 각각 번들 이미지 5개와 외부 SDK·Qt 이미지 0개를 확인했다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000293",
-        "line": 899,
+        "block_id": "b000301",
+        "line": 923,
         "text": "| Congregation.editor_layout | 통과 · 맞춤 여백·배율·확대 금지·sRGB·압력 곡선 |",
         "basis": "lexical_match",
         "context": "table"
       },
       {
-        "block_id": "b000295",
-        "line": 906,
+        "block_id": "b000303",
+        "line": 930,
         "text": "이번 변경과 관련된 SDK 검사도 통과했다. 아래 수치는 전체 SDK의 완전한 기능 이식률을 뜻하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000313",
-        "line": 939,
+        "block_id": "b000321",
+        "line": 963,
         "text": "`tests/verify_standalone_bundle.py`는 정식 앱을 `build/` 안의 임시 경로로 이동하고 빈 작업 디렉터리에서 Metal과 Vulkan을 실행한다. 실행 중 실제 로드된 라이브러리 경로를 검사하고 성공·실패 모두 정식 경로로 복원한다. macOS Cryptex 시스템 볼륨의 OS 라이브러리도 시스템 경로로 구분하며 개발 SDK·Homebrew·임의 외부 경로는 허용하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000319",
-        "line": 956,
+        "block_id": "b000327",
+        "line": 980,
         "text": "일부 초기 실행은 제한 시간을 초과했으며 단독 재실행에서 통과했다. LVRS의 Sheet 모션 검사도 일괄 실행에서 한 번 실패하고 단독 재실행에서 통과했다. 단일 일괄 실행의 전 항목이 항상 성공했다고 표현하지 않는다. 최종 앱의 기능 검사와 SDK 모듈별 통과 기록을 구분한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000337",
-        "line": 975,
+        "block_id": "b000345",
+        "line": 999,
         "text": "macOS는 Cocoa 창과 네이티브 입력, Metal 및 MoltenVK를 통한 강제 Vulkan의 실제 실행 결과이다. macOS의 Vulkan은 Metal 위의 구현이며 독립된 하드웨어 폴백을 뜻하지 않는다. Vulkan과 Direct3D11의 블러·그림자·변환 구현은 GPU 경로이며 Vulkan의 실제 픽셀 검사를 포함한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000341",
-        "line": 979,
+        "block_id": "b000349",
+        "line": 1003,
         "text": "물리 펜 장비, macOS 12 실기기, 실운영 계정·라이선스·업데이트 서버, 공개 배포 설치자는 이번 로컬 자동 검사와 별개의 검증이다. 이전 Qt 소스는 기존 변경과 이행 비교를 위해 보존했으며 현재 구성·컴파일·링크·리소스·배포에는 포함하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -3428,51 +3501,58 @@
     "commands": [],
     "links": [
       {
-        "block_id": "b000021",
+        "block_id": "b000027",
         "label": "기준 상태 표시줄",
         "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=84-11143",
         "kind": "external",
-        "line": 66
+        "line": 86
       },
       {
-        "block_id": "b000125",
+        "block_id": "b000131",
         "label": "Profile 기준 화면",
         "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=268-2635",
         "kind": "external",
-        "line": 412
+        "line": 432
       },
       {
-        "block_id": "b000229",
+        "block_id": "b000235",
         "label": "빌드 문서",
         "target": "BUILD.md",
         "kind": "relative",
-        "line": 757
+        "line": 777
       },
       {
-        "block_id": "b000271",
+        "block_id": "b000277",
         "label": "FIGMA_UI_VERIFICATION.md",
         "target": "FIGMA_UI_VERIFICATION.md",
         "kind": "relative",
-        "line": 866
+        "line": 886
       },
       {
-        "block_id": "b000271",
+        "block_id": "b000277",
         "label": "FIGMA_APPLICATION_WINDOW.md",
         "target": "FIGMA_APPLICATION_WINDOW.md",
         "kind": "relative",
-        "line": 866
+        "line": 886
       },
       {
-        "block_id": "b000283",
+        "block_id": "b000289",
         "label": "MACOS_INSTALLER.md",
         "target": "MACOS_INSTALLER.md",
         "kind": "relative",
-        "line": 878
+        "line": 898
+      },
+      {
+        "block_id": "b000293",
+        "label": "LVUI 뷰모델 계약",
+        "target": "LVUI_VIEWMODELS.md",
+        "kind": "relative",
+        "line": 904
       }
     ],
     "tables": [
       {
-        "block_id": "b000293",
+        "block_id": "b000301",
         "columns": [
           "검사",
           "최종 결과"
@@ -3525,7 +3605,7 @@
         ]
       },
       {
-        "block_id": "b000297",
+        "block_id": "b000305",
         "columns": [
           "모듈",
           "결과",
@@ -3555,7 +3635,7 @@
         ]
       },
       {
-        "block_id": "b000309",
+        "block_id": "b000317",
         "columns": [
           "검사",
           "결과"
@@ -3596,7 +3676,7 @@
         ]
       },
       {
-        "block_id": "b000317",
+        "block_id": "b000325",
         "columns": [
           "모듈",
           "통과 기록",

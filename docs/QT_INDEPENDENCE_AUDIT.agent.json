@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/QT_INDEPENDENCE_AUDIT.md",
-    "sha256": "a3cf30870893fcb993ebeef0f6636429b729e8aab59ec05263907625b0ce680b",
-    "bytes": 28577,
+    "sha256": "05630a31cb4b0b75fbdb2ba5fc2d389938762f0b7bce6e909465982c7c283889",
+    "bytes": 28579,
     "line_count": 212,
     "encoding": "utf-8",
     "language": "ko"
@@ -87,7 +87,7 @@
       "kind": "table",
       "start_line": 9,
       "end_line": 19,
-      "raw": "| 부족 영역 | 현재 구현 |\n| --- | --- |\n| G01 | iiSharedCanvas Native의 Qt 없는 문서·SQL 저장·편집·타일 렌더링·정규 IISC와 설치 소비자 |\n| G02 | 위젯 트리 안의 타일 캔버스, 유한·무한 좌표, 스트로크·레이어·도형·텍스트·변환·실행 취소 |\n| G03 | 압력·장치·기울기·회전·시간·버튼·보조키·포커스 취소, 뷰포트와 문서 변경 분리 |\n| G04 | HTML/인라인 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델 |\n| G05 | 비트맵·PSD·ORA, RGB ICC·방향·해상도, 프로필 썸네일·네이티브 텍스트와 PDF 스마트 오브젝트 |\n| G06 | 네이티브 메뉴·단축키·대화상자·클립보드·드롭·보조창·다중행/보안 입력과 IME 경계 |\n| G07 | Cocoa/Metal 실제 실행, 강제 Vulkan 실제 실행과 효과 픽셀 검사, Win32/D3D11·Linux X11/Vulkan 소스 |\n| G08 | Workspace 내부 설치 키트, 최소 macOS 12.0, ABI 검사·키트 해시·상대 의존성 번들·로컬 서명 |\n| G09 | Qt 탐색을 끈 실제 제품 검사, 설치·재배치 소비자, Metal/Vulkan 편집 흐름·번들 재배치 실행·활성 빌드/워크플로의 Qt 획득 차단 |\n",
+      "raw": "| 부족 영역 | 현재 구현 |\n| --- | --- |\n| G01 | iiSharedCanvas Native의 Qt 없는 문서·SQL 저장·편집·타일 렌더링·정규 IISC와 설치 소비자 |\n| G02 | 위젯 트리 안의 타일 캔버스, 유한·무한 좌표, 스트로크·레이어·도형·텍스트·변환·실행 취소 |\n| G03 | 압력·장치·기울기·회전·시간·버튼·보조키·포커스 취소, 뷰포트와 문서 변경 분리 |\n| G04 | 직접 선언형 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델 |\n| G05 | 비트맵·PSD·ORA, RGB ICC·방향·해상도, 프로필 썸네일·네이티브 텍스트와 PDF 스마트 오브젝트 |\n| G06 | 네이티브 메뉴·단축키·대화상자·클립보드·드롭·보조창·다중행/보안 입력과 IME 경계 |\n| G07 | Cocoa/Metal 실제 실행, 강제 Vulkan 실제 실행과 효과 픽셀 검사, Win32/D3D11·Linux X11/Vulkan 소스 |\n| G08 | Workspace 내부 설치 키트, 최소 macOS 12.0, ABI 검사·키트 해시·상대 의존성 번들·로컬 서명 |\n| G09 | Qt 탐색을 끈 실제 제품 검사, 설치·재배치 소비자, Metal/Vulkan 편집 흐름·번들 재배치 실행·활성 빌드/워크플로의 Qt 획득 차단 |\n",
       "columns": [
         "부족 영역",
         "현재 구현"
@@ -107,7 +107,7 @@
         ],
         [
           "G04",
-          "HTML/인라인 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델"
+          "직접 선언형 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델"
         ],
         [
           "G05",
@@ -2010,7 +2010,7 @@
           ],
           [
             "G04",
-            "HTML/인라인 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델"
+            "직접 선언형 LVUI, Core Observable 바인딩, 스코프 소유 백엔드·목록·계층·색상 선택 모델"
           ],
           [
             "G05",

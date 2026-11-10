@@ -1,5 +1,6 @@
 #pragma once
 #include "Data.h"
+#include "LicensePresentation.h"
 #include <iiAccountManager/SocietySession.h>
 namespace congregation {
 class WebLicenseService;
@@ -16,6 +17,8 @@ public:
     std::function<void(std::string)> open_browser_action;
     bool enforced=true, licensed=false, verifying=false, signed_in=false;
     std::string code, email;
+    // Visibility is not an authorization decision; commands still require licensed.
+    bool workspace_visible() const { return license_workspace_visible(enforced, licensed, initial_verification_pending_); }
     void sign_in();
     void restore();
     void retry();
@@ -28,6 +31,7 @@ private:
     void notify_state();
     std::unique_ptr<iisacc::accounts::native::SocietySession> session_;
     std::unique_ptr<WebLicenseService> web_;
+    bool initial_verification_pending_=true;
     bool last_validated_=false;
     bool launch_granted_=false;
     std::shared_ptr<bool> alive_=std::make_shared<bool>(true);

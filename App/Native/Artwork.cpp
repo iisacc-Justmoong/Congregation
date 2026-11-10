@@ -1,26 +1,77 @@
 #include "Artwork.h"
+#include "StreamingBrush.h"
 #include <Render/Compositor.h>
-#include <iiBrushTools/Gesture.h>
 #include "Shapes.h"
 #include "LegacyCanvas.h"
 #include <Engine/Data.h>
 #include <iiFileProviderNative.h>
 #include <iiFileProviderCompatibility.h>
+#include <iiFileProviderPresentation.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
 #include <map>
+#include <mutex>
 #include <numbers>
 #include <optional>
 #include <utility>
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <sys/stat.h>
+#endif
 
 namespace congregation::native
 {
 using namespace iiSharedCanvas;
 namespace
 {
+struct FileIdentity final { std::uint64_t device, inode; };
+std::optional<FileIdentity> file_identity(const std::filesystem::path& path) noexcept
+{
+#ifdef _WIN32
+    HANDLE handle = CreateFileW(path.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+    if (handle == INVALID_HANDLE_VALUE) return std::nullopt;
+    BY_HANDLE_FILE_INFORMATION info{};
+    const bool ok = GetFileInformationByHandle(handle, &info) &&
+        !(info.dwFileAttributes & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY));
+    CloseHandle(handle);
+    if (!ok) return std::nullopt;
+    return FileIdentity{info.dwVolumeSerialNumber,
+                        (std::uint64_t(info.nFileIndexHigh) << 32) | info.nFileIndexLow};
+#else
+    struct stat info{};
+    if (lstat(path.c_str(), &info) != 0 || !S_ISREG(info.st_mode)) return std::nullopt;
+    return FileIdentity{std::uint64_t(info.st_dev), std::uint64_t(info.st_ino)};
+#endif
+}
+std::optional<std::string> document_digest(const Document& document,
+                                           const DocumentAuthorship& authorship,
+                                           FormatVersion format)
+{
+    const auto digest = [](const Document& value) -> std::optional<std::string> {
+        const auto bytes = encodeIisc(value);
+        if (!bytes.ok()) return std::nullopt;
+        return iiFileProvider::native::sha256({reinterpret_cast<const char*>(bytes.bytes.data()), bytes.bytes.size()});
+    };
+    if (document.authorship.dump() == authorship.dump() &&
+        document.formatVersion.major == format.major && document.formatVersion.minor == format.minor)
+        return digest(document);
+    Document copy = document;
+    copy.authorship = authorship;
+    copy.formatVersion = format;
+    return digest(copy);
+}
 constexpr std::size_t HistoryCount = 32;
+bool currentBitmapFormat(FormatVersion version) noexcept
+{
+    return version.major == CurrentFormatMajor && version.minor == CurrentFormatMinor;
+}
 DevicePixelRect unionStrokeDamage(DevicePixelRect a, DevicePixelRect b) noexcept
 {
     if (a.width <= 0 || a.height <= 0) return b;
@@ -179,6 +230,114 @@ Artwork::Artwork(std::filesystem::path directory, std::size_t history_budget)
 {
     iiFileProvider::native::File::createDirectories(directory_);
 }
+Artwork::~Artwork() { close_temporary(); }
+bool Artwork::create_startup_placeholder()
+{
+    if (file_.isOpen()) return fail("A startup placeholder requires an empty artwork owner");
+    if (!create(1,1)) return false;
+    try {
+        const auto identity=file_identity(recovery_);
+        const auto digest=document_digest(draft_,draft_.authorship,draft_.formatVersion);
+        if (!identity || !digest) return fail("Cannot verify the startup placeholder");
+        startup_placeholder_.emplace(StartupPlaceholder{recovery_,*digest,draft_.authorship,
+                                                          draft_.formatVersion,identity->device,identity->inode});
+        return true;
+    } catch (...) { return fail("Cannot prepare the startup placeholder"); }
+}
+bool Artwork::removable_startup_placeholder() const noexcept
+{
+    try {
+        if (!startup_placeholder_ || !file_.isOpen() || !source_.empty() || stroke_active() || file_.revision()!=0) return false;
+        const auto& temp=*startup_placeholder_;
+        if (temp.path!=recovery_ || temp.path.parent_path().lexically_normal()!=directory_.lexically_normal()) return false;
+        const auto identity=file_identity(temp.path);
+        if (!identity || identity->device!=temp.device || identity->inode!=temp.inode) return false;
+        DocumentFileInfo info;
+        if (!DocumentFile::readStorageInfo(path_text(temp.path),info).ok() || info.revision!=0) return false;
+        const auto current=document_digest(draft_,temp.authorship,temp.format);
+        if (!current || *current!=temp.initial_digest || draft_.authorship.dump()!=temp.authorship.dump()) return false;
+        Document disk;
+        if (!DocumentFile::readSnapshot(path_text(temp.path),disk).ok() || disk.authorship.dump()!=temp.authorship.dump()) return false;
+        const auto persisted=document_digest(disk,temp.authorship,temp.format);
+        return persisted && *persisted==temp.initial_digest;
+    } catch (...) { return false; }
+}
+void Artwork::remove_startup_placeholder(const StartupPlaceholder& temp) noexcept
+{
+    try {
+        const auto identity=file_identity(temp.path);
+        if (identity && identity->device==temp.device && identity->inode==temp.inode)
+            (void)iiFileProvider::native::File::remove(temp.path);
+    } catch (...) {}
+}
+bool Artwork::removable_temporary() const noexcept
+{
+    try {
+        if (!society_temporary_ || stroke_active() || !file_.isOpen()) return false;
+        const auto& temp = *society_temporary_;
+        const auto identity = file_identity(temp.path);
+        if (!temp.files.available() || !identity || identity->device != temp.device || identity->inode != temp.inode) return false;
+        DocumentFileInfo info;
+        if (!DocumentFile::readStorageInfo(path_text(temp.path), info).ok() || info.revision != file_.revision()) return false;
+        const auto current = document_digest(draft_, temp.authorship, temp.format);
+        if (!current) return false;
+        if (source_.empty()) {
+            // Editing timestamps and revision may change after an Undo, but
+            // author profiles, links and the active author are document data.
+            if (*current != temp.initial_digest ||
+                draft_.authorship.firstEditor() != temp.authorship.firstEditor() ||
+                draft_.authorship.participants() != temp.authorship.participants() ||
+                draft_.authorship.links() != temp.authorship.links() ||
+                draft_.authorship.hasActiveAuthor() != temp.authorship.hasActiveAuthor()) return false;
+        } else {
+            const auto saved_identity = file_identity(source_);
+            if (source_ != temp.saved_path || !temp.files.destination(source_) || !saved_identity ||
+                saved_identity->device != temp.saved_device || saved_identity->inode != temp.saved_inode ||
+                file_.revision() != temp.saved_revision) return false;
+            Document saved;
+            if (!DocumentFile::readSnapshot(path_text(source_), saved).ok()) return false;
+            if (saved.authorship.dump() != draft_.authorship.dump()) return false;
+            const auto saved_digest = document_digest(saved, temp.authorship, temp.format);
+            if (!saved_digest || *saved_digest != *current) return false;
+        }
+        Document disk;
+        if (!DocumentFile::readSnapshot(path_text(temp.path), disk).ok()) return false;
+        if (disk.authorship.dump() != draft_.authorship.dump()) return false;
+        const auto persisted = document_digest(disk, temp.authorship, temp.format);
+        return persisted && *persisted == *current;
+    } catch (...) { return false; }
+}
+void Artwork::remove_temporary(const TemporaryCanvas& temp) noexcept
+{
+    try {
+        const auto identity = file_identity(temp.path);
+        const auto saved_identity = temp.saved_path.empty() ? std::optional<FileIdentity>{} : file_identity(temp.saved_path);
+        const bool saved_unchanged = temp.saved_path.empty() ||
+            (saved_identity && saved_identity->device == temp.saved_device && saved_identity->inode == temp.saved_inode &&
+             bool(temp.files.destination(temp.saved_path)));
+        if (saved_unchanged && temp.files.available() && identity && identity->device == temp.device && identity->inode == temp.inode)
+            (void)iiFileProvider::native::File::remove(temp.path);
+    } catch (...) {}
+}
+void Artwork::close_temporary() noexcept
+{
+    if (!society_temporary_ && !startup_placeholder_) return;
+    try {
+        const auto& path=society_temporary_ ? society_temporary_->path : startup_placeholder_->path;
+        iiFileProvider::native::SourceAccess access(path);
+        std::lock_guard lock(access);
+        bool remove = removable_temporary(), remove_placeholder=removable_startup_placeholder();
+        try { cancel(); } catch (...) { remove = false; remove_placeholder=false; }
+        file_.close();
+        if (remove) remove_temporary(*society_temporary_);
+        if (remove_placeholder) remove_startup_placeholder(*startup_placeholder_);
+    } catch (...) {
+        try { cancel(); } catch (...) {}
+        file_.close();
+    }
+    society_temporary_.reset();
+    startup_placeholder_.reset();
+}
 bool Artwork::has_selection() const noexcept { return bool(selection_); }
 const RasterMask* Artwork::selection_mask() const noexcept { return selection_ ? selection_->dense.get() : nullptr; }
 std::shared_ptr<const RasterMask> Artwork::selection_mask_handle() const noexcept { return selection_ ? selection_->dense : nullptr; }
@@ -197,17 +356,54 @@ std::vector<std::uint8_t> Artwork::capture() const
 }
 bool Artwork::replace(Document document)
 {
-    auto next = directory_ / (uuid() + ".iisc");
+    if (pending_society_ && !pending_society_->available())
+        return fail("Society Files storage is unavailable or has changed");
+    auto next = (pending_society_ ? pending_society_->root() : directory_) / (uuid() + ".iisc");
     auto staged = std::make_unique<DocumentFile>();
     auto created = staged->create(path_text(next), document);
     if (!created.ok())
         return fail(created.message);
+    std::optional<TemporaryCanvas> next_temporary;
+    if (pending_society_) {
+        try {
+            const auto identity = file_identity(next);
+            const auto digest = document_digest(*staged->document(), staged->document()->authorship,
+                                                staged->document()->formatVersion);
+            if (!identity || !digest) {
+                staged->close();
+                return fail("Cannot verify the new Society canvas");
+            }
+            next_temporary.emplace(TemporaryCanvas{*pending_society_, next, *digest,
+                staged->document()->authorship, staged->document()->formatVersion, identity->device, identity->inode});
+        } catch (...) {
+            staged->close();
+            return fail("Cannot prepare the new Society canvas");
+        }
+    }
+    std::unique_ptr<iiFileProvider::native::SourceAccess> previous_access;
+    std::unique_lock<iiFileProvider::native::SourceAccess> previous_lock;
+    if (society_temporary_ || startup_placeholder_) {
+        try {
+            const auto& path=society_temporary_ ? society_temporary_->path : startup_placeholder_->path;
+            previous_access = std::make_unique<iiFileProvider::native::SourceAccess>(path);
+            previous_lock = std::unique_lock<iiFileProvider::native::SourceAccess>(*previous_access);
+        } catch (...) {}
+    }
+    const bool remove_previous = previous_lock.owns_lock() && removable_temporary();
+    const bool remove_placeholder = previous_lock.owns_lock() && removable_startup_placeholder();
+    const auto previous_path = recovery_;
     cancel();
     staged->close();
     file_.close();
     auto opened = file_.open(path_text(next));
-    if (!opened.ok())
+    if (!opened.ok()) {
+        if (!previous_path.empty()) (void)file_.open(path_text(previous_path));
         return fail(opened.message);
+    }
+    if (remove_previous && society_temporary_) remove_temporary(*society_temporary_);
+    if (remove_placeholder && startup_placeholder_) remove_startup_placeholder(*startup_placeholder_);
+    society_temporary_ = std::move(next_temporary);
+    startup_placeholder_.reset();
     draft_ = *file_.document();
     recovery_ = next;
     source_.clear();
@@ -224,12 +420,25 @@ bool Artwork::replace(Document document)
         changed();
     return true;
 }
+bool Artwork::create_in_society(const CanvasDefinition& value, const SocietyFiles& files)
+{
+    if (!files.available()) return fail("Society Files storage is unavailable or has changed");
+    pending_society_ = files;
+    try {
+        const bool result = create(value);
+        pending_society_.reset();
+        return result;
+    } catch (...) {
+        pending_society_.reset();
+        return fail("Cannot create the Society canvas");
+    }
+}
 bool Artwork::create(int width, int height, bool infinite)
 {
     if (infinite)
         return fail("Infinite canvas is no longer supported");
-    if (width < 1 || height < 1 || width > 32768 || height > 32768 ||
-        std::uint64_t(width) * height > 256ULL * 1024 * 1024)
+    if (width < 1 || height < 1 || width > CanvasMaximumDimension || height > CanvasMaximumDimension ||
+        std::uint64_t(width) * height > CanvasMaximumPixels)
         return fail("Canvas extent exceeds the document limit");
     Document document;
     document.extent = {width, height};
@@ -243,9 +452,9 @@ bool Artwork::create(int width, int height, bool infinite)
 }
 bool Artwork::create(const CanvasDefinition& value)
 {
-    if (value.pixel_width < 1 || value.pixel_height < 1 || value.pixel_width > 32768 ||
-        value.pixel_height > 32768 ||
-        std::uint64_t(value.pixel_width) * value.pixel_height > 268435456 ||
+    if (value.pixel_width < 1 || value.pixel_height < 1 || value.pixel_width > CanvasMaximumDimension ||
+        value.pixel_height > CanvasMaximumDimension ||
+        std::uint64_t(value.pixel_width) * value.pixel_height > CanvasMaximumPixels ||
         (value.background != "White" && value.background != "Transparent" &&
          value.background != "Black"))
         return fail("Enter valid canvas dimensions and background");
@@ -368,6 +577,22 @@ bool Artwork::save(const std::filesystem::path& path)
     {
         return fail(e.what());
     }
+}
+bool Artwork::save_in_society(const std::filesystem::path& path)
+{
+    if (!society_temporary_) return fail("The canvas is not associated with Society Files");
+    const auto destination = society_temporary_->files.destination(path);
+    if (!destination) return fail(destination.error());
+    if (*destination == recovery_) return fail("Choose a new path for the saved canvas");
+    if (!save(*destination)) return false;
+    const auto saved = file_identity(*destination);
+    if (saved) {
+        society_temporary_->saved_path = *destination;
+        society_temporary_->saved_device = saved->device;
+        society_temporary_->saved_inode = saved->inode;
+        society_temporary_->saved_revision = file_.revision();
+    }
+    return true;
 }
 bool Artwork::export_image(const std::filesystem::path& path, std::string format)
 {
@@ -1408,6 +1633,19 @@ void Artwork::record_stroke_damage(DevicePixelRect bounds) noexcept
     if (bounds.width <= 0 || bounds.height <= 0) return;
     stroke_dirty_total_ = unionStrokeDamage(stroke_dirty_total_, bounds);
     stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, bounds);
+    if (stroke_tiles_.empty() || !stroke_tile_columns_) return;
+    const auto* pixels = raster_.pixels();
+    const int width = pixels ? pixels->width : chunks_.isBound() ? draft_.extent.width : 0;
+    const int height = pixels ? pixels->height : chunks_.isBound() ? draft_.extent.height : 0;
+    const auto left = std::max<std::int64_t>(0, bounds.origin.x);
+    const auto top = std::max<std::int64_t>(0, bounds.origin.y);
+    const auto right = std::min<std::int64_t>(width, std::int64_t(bounds.origin.x) + bounds.width);
+    const auto bottom = std::min<std::int64_t>(height, std::int64_t(bounds.origin.y) + bounds.height);
+    if (right <= left || bottom <= top) return;
+    constexpr int side = BitmapPreviewTileSide;
+    for (auto y = top / side; y <= (bottom - 1) / side; ++y)
+        for (auto x = left / side; x <= (right - 1) / side; ++x)
+            stroke_tiles_[std::size_t(y) * stroke_tile_columns_ + std::size_t(x)] = 1;
 }
 
 void Artwork::collect_stroke_damage() noexcept
@@ -1509,10 +1747,14 @@ std::optional<SelectionPreview> Artwork::selection_preview(std::optional<CanvasR
             return std::optional<SelectionPreview>(std::move(preview));
         } catch(const std::bad_alloc&) {return std::nullopt;}
     }
-    if (!stroke_original_ || !raster_.strokeActive() || !raster_.pixels()) return std::nullopt;
+    const RasterLayer* original = stroke_original_ ? &*stroke_original_ : nullptr;
+    if (!original && stroke_raster_history_ && file_.document()) {
+        if (const auto* asset = findRasterAsset(*file_.document(), raster_.boundAssetId())) original = &asset->pixels;
+    }
+    if (!original || !raster_.strokeActive() || !raster_.pixels()) return std::nullopt;
     try {
         const auto *painted = raster_.pixels();
-        if (painted->width != stroke_original_->width || painted->height != stroke_original_->height) return std::nullopt;
+        if (painted->width != original->width || painted->height != original->height) return std::nullopt;
         const auto bounds = stroke_dirty_total_;
         const int side = BitmapPreviewTileSide;
         auto left=std::max<std::int64_t>(0,bounds.origin.x), top=std::max<std::int64_t>(0,bounds.origin.y);
@@ -1533,7 +1775,7 @@ std::optional<SelectionPreview> Artwork::selection_preview(std::optional<CanvasR
             for(int dy=0;dy<side;++dy) for(int dx=0;dx<side;++dx) {
                 const int ax=x+dx,ay=y+dy; if(ax>=painted->width || ay>=painted->height) continue;
                 const auto tile=std::size_t(dy)*side+dx, source=std::size_t(ay)*painted->width+ax;
-                before.pixels[tile]=stroke_original_->pixels[source]; after.pixels[tile]=painted->pixels[source];
+                before.pixels[tile]=original->pixels[source]; after.pixels[tile]=painted->pixels[source];
                 const double wx=t.m11*(ax+.5)+t.m21*(ay+.5)+t.translationX;
                 const double wy=t.m12*(ax+.5)+t.m22*(ay+.5)+t.translationY;
                 selection.alpha[tile]=selection_coverage(wx,wy);
@@ -1558,13 +1800,11 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
     auto point = sample.position;
     if (stroke_active())
         cancel();
-    taper_stroke_.reset();
     stroke_dirty_total_ = {};
     stroke_dirty_pending_ = {};
     const auto unit = [](double value) { return std::isfinite(value) && value >= 0 && value <= 1; };
     if (!unit(taper.start) || !unit(taper.end) || !unit(taper.minimum) || !unit(taper.strength))
-        return fail("Invalid whole-stroke taper settings");
-    const bool taper_active = taper.strength > 0 && taper.minimum < 1 && (taper.start > 0 || taper.end > 0);
+        return fail("Invalid brush taper settings");
     if (frame >= draft_.timeline.frameCount)
         return fail("The current frame is outside the document timeline");
     const auto* selected = layer(draft_, selected_);
@@ -1578,6 +1818,8 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
     point = *converted;
     sample.position = point;
     stroke_before_.clear();
+    stroke_tiles_.clear();
+    stroke_tile_columns_ = 0;
     stroke_raster_history_ = false;
     stroke_frame_history_.reset();
     stroke_compact_ = false;
@@ -1590,9 +1832,10 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         chunks_.cancelStroke();
         draft_ = *file_.document();
         stroke_before_.clear();
+        stroke_tiles_.clear(); stroke_tile_columns_ = 0;
         stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
         stroke_raster_history_ = false;
-        taper_stroke_.reset();
+        streaming_brush_.reset();
         stroke_frame_history_.reset();
         stroke_frame_copy_ = false;
         bind();
@@ -1614,10 +1857,28 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         const bool copy_frame = dynamic || spans_frames || shared;
         constexpr auto minimum_tile_history = std::size_t(BitmapPreviewTileSide) * BitmapPreviewTileSide *
                                               2 * sizeof(std::uint32_t);
-        stroke_raster_history_ = bitmap && draft_.canvasMode == CanvasMode::Finite && !selection_ &&
-                                 !taper_active && !copy_frame && history_budget_ >= minimum_tile_history;
-        if (!stroke_raster_history_) stroke_before_ = capture();
-        if (!stroke_raster_history_ && stroke_before_.empty()) {
+        stroke_raster_history_ = bitmap && draft_.canvasMode == CanvasMode::Finite &&
+                                 !copy_frame && history_budget_ >= minimum_tile_history;
+        const auto& transform = stroke_transform_;
+        const bool identity = transform.m11 == 1 && transform.m12 == 0 && transform.m21 == 0 &&
+                              transform.m22 == 1 && transform.translationX == 0 && transform.translationY == 0;
+        const auto origin = canvasOrigin(draft_);
+        stroke_compact_ = chunked && draft_.canvasMode == CanvasMode::Finite && !copy_frame &&
+                          identity && origin.x == 0 && origin.y == 0 && history_budget_ >= minimum_tile_history;
+        const bool indexedRaster = stroke_raster_history_ && selection_;
+        const bool indexedChunk = stroke_compact_ && selection_;
+        if (indexedRaster || indexedChunk) {
+            const auto width = indexedRaster ? bitmap->pixels.width : draft_.extent.width;
+            const auto height = indexedRaster ? bitmap->pixels.height : draft_.extent.height;
+            const auto columns = (std::size_t(width) + BitmapPreviewTileSide - 1) / BitmapPreviewTileSide;
+            const auto rows = (std::size_t(height) + BitmapPreviewTileSide - 1) / BitmapPreviewTileSide;
+            if (rows && columns > stroke_tiles_.max_size() / rows)
+                return rollback("Stroke tile index exceeds the supported size");
+            stroke_tiles_.assign(columns * rows, 0);
+            stroke_tile_columns_ = columns;
+        }
+        if (!stroke_raster_history_ && !stroke_compact_) stroke_before_ = capture();
+        if (!stroke_raster_history_ && !stroke_compact_ && stroke_before_.empty()) {
             if (!chunked)
                 return rollback("Stroke exceeds the undo budget");
             stroke_compact_=true;
@@ -1629,7 +1890,7 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
                 stroke_asset_region_=assetBoundsForCanvas({canvasOrigin(draft_),draft_.extent},t);
                 if(!stroke_asset_region_)return rollback("Transformed stroke exceeds the supported asset coordinate range");
             }
-            if(selection_ || taper_active || copy_frame || transformed) {
+            if(selection_ || copy_frame || transformed) {
                 const auto size=draft_.infiniteCanvas.chunkSize;
                 if(size<=0 || std::uint64_t(size)*size>4ULL*1024*1024)return rollback("Chunk size exceeds the stroke budget");
             }
@@ -1664,7 +1925,7 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
             }
             stroke_frame_copy_ = true;
         } else if (!bind()) return fail("Select a bitmap layer before painting");
-        if (selection_ || taper_active || (chunked && copy_frame) || stroke_asset_region_) {
+        if (selection_ || (chunked && copy_frame) || stroke_asset_region_) {
             if (chunks_.isBound()) {
                 const auto* original=findChunkedRasterAsset(draft_,chunks_.boundAssetId());
                 if (!original) return rollback("Chunk stroke target is unavailable");
@@ -1672,8 +1933,10 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
             } else {
                 if (draft_.canvasMode != CanvasMode::Finite || !raster_.isBound() || !raster_.pixels())
                     return rollback("Selection and tapered painting currently require a finite bitmap layer");
-                if (stroke_before_.empty()) return rollback("Stroke exceeds the undo budget");
-                if (!stroke_original_) stroke_original_ = *raster_.pixels();
+                if (!stroke_raster_history_) {
+                    if (stroke_before_.empty()) return rollback("Stroke exceeds the undo budget");
+                    if (!stroke_original_) stroke_original_ = *raster_.pixels();
+                }
             }
         }
     } catch (const std::bad_alloc&) { return rollback("Insufficient memory for stroke snapshot"); }
@@ -1684,8 +1947,7 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         return rollback(chunks_.lastError());
     if (raster_.isBound())
     {
-        // Simple finite strokes retain only changed tiles; structural and
-        // masked strokes keep the existing document snapshot history.
+        // Non-structural finite strokes retain only changed tiles.
         const bool configured = stroke_raster_history_ ? raster_.setDeferredStrokeHistory(true)
                                                        : raster_.setExternalStrokeHistory(true);
         if (!configured)
@@ -1693,10 +1955,11 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         if (!raster_.setBrush(brush))
             return rollback(raster_.lastError());
         raster_.clearDirtyBounds();
-        if (!raster_.beginStrokeInput(sample)) return rollback(raster_.lastError());
+        if (!raster_.beginProjectedStroke()) return rollback(raster_.lastError());
     }
     else {
-        if (draft_.canvasMode == CanvasMode::Finite) {
+        const bool bounded = draft_.canvasMode == CanvasMode::Finite || selection_ || stroke_asset_region_;
+        if (bounded) {
             // Compact documents use the editor's tile history on release;
             // ordinary documents use Artwork's snapshot instead.
             const bool configured = stroke_compact_ ? chunks_.setDeferredStrokeHistory(true)
@@ -1705,15 +1968,53 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         }
         if (!chunks_.setBrush(brush)) return rollback(chunks_.lastError());
         chunks_.clearDirtyBounds();
-        if (!(stroke_asset_region_ ? chunks_.beginAssetStrokeInput(sample,*stroke_asset_region_) : chunks_.beginStrokeInput(sample)))
-            return rollback(chunks_.lastError());
+        if (bounded) {
+            if (!chunks_.beginProjectedStroke(stroke_asset_region_)) return rollback(chunks_.lastError());
+        } else {
+            // Compatibility for pre-existing unbounded documents: their
+            // growth editor is separate from the finite canvas workflow.
+            if (!chunks_.beginStrokeInput(sample)) return rollback(chunks_.lastError());
+            collect_stroke_damage();
+            legacy_stroke_time_ = sample.time;
+            return true;
+        }
     }
-    collect_stroke_damage();
-    if (taper_active) {
-        try { taper_stroke_ = TaperStroke{taper, {sample}, brush.eraser}; }
-        catch (const std::bad_alloc&) { return rollback("Insufficient memory for stroke input"); }
-    }
+    try {
+        auto state = raster_.isBound() ? raster_.currentStrokeBrushState() : chunks_.currentStrokeBrushState();
+        if (!state) return rollback("Unable to initialize the active brush");
+        streaming_brush_ = std::make_shared<StreamingBrush>(std::move(*state), taper.start, taper.end,
+                                                            taper.minimum, taper.strength);
+        if (!update_stream_input(sample, false)) return rollback(error_);
+    } catch (const std::bad_alloc&) { return rollback("Insufficient memory for stroke input"); }
     legacy_stroke_time_ = sample.time;
+    return true;
+}
+
+bool Artwork::update_stream_input(StrokePoint sample, bool finish)
+{
+    if (!streaming_brush_) return fail("No streaming brush is active");
+    DevicePixelRect clip{};
+    if (raster_.isBound()) clip = {{0, 0}, raster_.width(), raster_.height()};
+    else {
+        const auto region = stroke_asset_region_.value_or(CanvasRegion{canvasOrigin(draft_), draft_.extent});
+        clip = {{region.origin.x, region.origin.y}, region.extent.width, region.extent.height};
+    }
+    struct Source { const Artwork* artwork; DevicePixelPoint origin; };
+    const Source context{this, clip.origin};
+    const RasterSourceSampler source{&context, [](const void* value, DevicePixelPoint point) {
+        const auto& source = *static_cast<const Source*>(value);
+        point.x += source.origin.x; point.y += source.origin.y;
+        const auto& art = *source.artwork;
+        return art.raster_.isBound() ? art.raster_.strokeSourceAt(point.x, point.y).value_or(0) :
+                                       art.chunks_.strokeSourceAt(point.x, point.y).value_or(0);
+    }, clip.origin, clip.width, clip.height};
+    auto pixels = streaming_brush_->append(sample, finish, source, clip);
+    if (!pixels) return fail(pixels.error());
+    if (pixels->unchanged) return true;
+    const bool accepted = raster_.isBound() ? raster_.updateProjectedStroke(pixels->stable, pixels->transient) :
+                                              chunks_.updateProjectedStroke(pixels->stable, pixels->transient);
+    if (!accepted) return fail(raster_.isBound() ? raster_.lastError() : chunks_.lastError());
+    collect_stroke_damage();
     return true;
 }
 
@@ -1736,16 +2037,11 @@ bool Artwork::extend_input(StrokePoint sample)
                   2))
         return reject_stroke(error_);
     sample.position = point;
-    const auto result = raster_.isBound() ? raster_.continueStrokeInput(sample)
-                                          : chunks_.continueStrokeInput(sample);
-    if (!result)
-        return reject_stroke(raster_.isBound() ? raster_.lastError() : chunks_.lastError());
-    collect_stroke_damage();
-    if (taper_stroke_) {
-        try {
-            if (taper_stroke_->samples.size() >= 65536) return reject_stroke("Stroke exceeds the input sample budget");
-            taper_stroke_->samples.push_back(sample);
-        } catch (const std::bad_alloc&) { return reject_stroke("Insufficient memory for stroke input"); }
+    if (streaming_brush_) {
+        if (!update_stream_input(sample, false)) return reject_stroke(error_);
+    } else {
+        if (!chunks_.continueStrokeInput(sample)) return reject_stroke(chunks_.lastError());
+        collect_stroke_damage();
     }
     legacy_stroke_time_ = sample.time;
     return true;
@@ -1775,24 +2071,25 @@ bool Artwork::end_input(StrokePoint sample)
         return false;
     }
     sample.position = point;
-    std::optional<BrushState> state;
-    if (taper_stroke_) {
-        try {
-            state = raster_.isBound() ? raster_.currentStrokeBrushState() : chunks_.currentStrokeBrushState();
-            if (!state) return reject_stroke("Unable to snapshot the active brush");
-            if (taper_stroke_->samples.size() >= 65536) return reject_stroke("Stroke exceeds the input sample budget");
-            taper_stroke_->samples.push_back(sample);
-        } catch (const std::bad_alloc&) { return reject_stroke("Insufficient memory for stroke snapshot"); }
-    }
-    const auto result =
-        raster_.isBound() ? raster_.endStrokeInput(sample) : chunks_.endStrokeInput(sample);
+    bool result;
+    if (streaming_brush_) {
+        if (!update_stream_input(sample, true)) return reject_stroke(error_);
+        result = raster_.isBound() ? raster_.endProjectedStroke() : chunks_.endProjectedStroke();
+    } else result = chunks_.endStrokeInput(sample);
     if (!result)
         return reject_stroke(raster_.isBound() ? raster_.lastError() : chunks_.lastError());
+    streaming_brush_.reset();
     collect_stroke_damage();
     if (stroke_raster_history_) {
         stroke_raster_history_ = false;
+        if (selection_)
+            return finish_masked_raster_stroke();
         if (!raster_.canUndo()) {
-            draft_ = *file_.document();
+            // The deferred journal established that no pixel changed. Restore
+            // only metadata; copying the entire raster here would make even
+            // a transparent click scale with document size.
+            draft_.authorship = file_.document()->authorship;
+            draft_.formatVersion = file_.document()->formatVersion;
             stroke_before_.clear();
             bind(); error_.clear();
             return true;
@@ -1804,85 +2101,36 @@ bool Artwork::end_input(StrokePoint sample)
             return reject_stroke("Insufficient memory for raster stroke history");
         }
     }
-    if (taper_stroke_ || selection_ || stroke_asset_region_)
+    if (selection_ || stroke_asset_region_)
         stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
-    if (stroke_compact_) return finish_compact_chunk_stroke(state ? &*state : nullptr);
-    if (taper_stroke_ && stroke_original_) {
+    if (stroke_compact_ && draft_.canvasMode == CanvasMode::Finite && !selection_ &&
+        !stroke_asset_region_ && !stroke_frame_history_) {
+        stroke_compact_ = false;
+        if (!chunks_.canUndo()) {
+            draft_.authorship = file_.document()->authorship;
+            draft_.formatVersion = file_.document()->formatVersion;
+            bind(); error_.clear(); return true;
+        }
         try {
-            auto* asset = findRasterAsset(draft_, raster_.boundAssetId());
-            if (!asset || asset->pixels.width != stroke_original_->width || asset->pixels.height != stroke_original_->height)
-                throw std::runtime_error("Tapered stroke target changed");
-            ii::brush::Controls controls;
-            using P = ii::brush::Parameter;
-            if (!controls.set(P::Stabilization, 0) || !controls.set(P::PostCorrection, 0))
-                throw std::runtime_error("Invalid stroke correction settings");
-            ii::brush::ResolvedBrush resolved;
-            resolved.state = *state;
-            resolved.eraser = taper_stroke_->eraser;
-            const auto& t = taper_stroke_->options;
-            resolved.taper = {t.start, t.end, t.minimum, t.strength};
-            const auto& original = *stroke_original_;
-            RasterSourceSampler sampler{&original, [](const void* context, DevicePixelPoint p) {
-                const auto& source = *static_cast<const RasterLayer*>(context);
-                return source.pixels[std::size_t(p.y) * source.width + std::size_t(p.x)];
-            }, {0, 0}, original.width, original.height};
-            auto image = ii::brush::renderGestureWithResolvedBrush(taper_stroke_->samples, resolved, controls,
-                {{{0, 0}, original.width, original.height}, sampler});
-            if (!image) throw std::runtime_error(image.error().message);
-            asset->pixels = original;
-            for (const auto& tile : image->tiles) {
-                record_stroke_damage(tile.bounds);
-                for (int y = 0; y < tile.bounds.height; ++y)
-                    std::copy_n(tile.pixels.pixels.begin() + std::size_t(y) * tile.bounds.width, tile.bounds.width,
-                        asset->pixels.pixels.begin() + std::size_t(y + tile.bounds.origin.y) * original.width + tile.bounds.origin.x);
-            }
-            if (!selection_ && asset->pixels.pixels == original.pixels) {
-                draft_ = *file_.document(); taper_stroke_.reset(); stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false; stroke_before_.clear(); stroke_frame_copy_ = false; bind(); error_.clear(); return true;
-            }
-        } catch (const std::exception& error) {
-            return reject_stroke(error.what());
+            const bool committed = commit_compact_chunk_history(std::make_shared<ChunkedBitmapEditor>(chunks_),
+                std::move(stroke_selection_), std::nullopt, std::nullopt);
+            if (!committed)
+                stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
+            return committed;
+        } catch (const std::bad_alloc&) {
+            return reject_stroke("Insufficient memory for chunk stroke history");
         }
     }
-    if (taper_stroke_ && stroke_original_chunks_) {
-        try {
-            auto* asset=findChunkedRasterAsset(draft_,chunks_.boundAssetId());
-            if (!asset || asset->id!=stroke_original_chunks_->id) throw std::runtime_error("Tapered chunk target changed");
-            const auto region=stroke_asset_region_.value_or(CanvasRegion{canvasOrigin(draft_),draft_.extent});
-            const auto origin=region.origin;const auto extent=region.extent;
-            struct ChunkSampler { const ChunkedRasterAsset* asset; CanvasOrigin origin; int size; };
-            const ChunkSampler source{&*stroke_original_chunks_,origin,draft_.infiniteCanvas.chunkSize};
-            RasterSourceSampler sampler{&source, [](const void* context,DevicePixelPoint p) {
-                const auto& src=*static_cast<const ChunkSampler*>(context);
-                const int x=p.x+src.origin.x,y=p.y+src.origin.y;
-                const auto divide=[&](int v){const int q=v/src.size,r=v%src.size;return r<0?q-1:q;};
-                const int col=divide(x),row=divide(y);
-                const auto* chunk=findRasterChunk(*src.asset,col,row);
-                return chunk ? chunk->pixels.pixels[std::size_t(y-row*src.size)*src.size+x-col*src.size] : 0U;
-            }, {origin.x,origin.y},extent.width,extent.height};
-            ii::brush::Controls controls;using P=ii::brush::Parameter;
-            if (!controls.set(P::Stabilization,0) || !controls.set(P::PostCorrection,0))
-                throw std::runtime_error("Invalid stroke correction settings");
-            ii::brush::ResolvedBrush resolved;resolved.state=*state;resolved.eraser=taper_stroke_->eraser;
-            const auto& t=taper_stroke_->options;resolved.taper={t.start,t.end,t.minimum,t.strength};
-            auto image=ii::brush::renderGestureWithResolvedBrush(taper_stroke_->samples,resolved,controls,
-                {{{origin.x,origin.y},extent.width,extent.height},sampler});
-            if (!image) throw std::runtime_error(image.error().message);
-            const auto assetId=asset->id;asset->chunks=stroke_original_chunks_->chunks;
-            chunks_.unbind();if (!chunks_.bind(draft_,assetId)) throw std::runtime_error("Cannot rebind tapered chunk target");
-            std::vector<BitmapPatch> patches;patches.reserve(image->tiles.size());
-            for (const auto& tile:image->tiles) { record_stroke_damage(tile.bounds); patches.push_back({tile.bounds,tile.pixels.pixels}); }
-            if (!patches.empty() && !(stroke_asset_region_ ? chunks_.replaceAssetPatches(patches) : chunks_.replacePatches(patches))) throw std::runtime_error(chunks_.lastError());
-        } catch(const std::exception& e) {return reject_stroke(e.what());}
-    }
+    if (stroke_compact_) return finish_compact_chunk_stroke();
     if (stroke_frame_copy_ && !selection_ && stroke_original_) {
         const auto* asset = findRasterAsset(draft_, raster_.boundAssetId());
         if (!asset) return reject_stroke("Frame stroke target changed");
         if (asset->pixels.pixels == stroke_original_->pixels) {
-            draft_ = *file_.document(); taper_stroke_.reset(); stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
+            draft_ = *file_.document(); stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
             stroke_before_.clear(); stroke_frame_copy_ = false; bind(); error_.clear(); return true;
         }
     }
-    if (!selection_ && stroke_original_chunks_ && (stroke_frame_copy_ || taper_stroke_)) {
+    if (!selection_ && stroke_original_chunks_ && stroke_frame_copy_) {
         const auto* asset = findChunkedRasterAsset(draft_, chunks_.boundAssetId());
         if (!asset || asset->id != stroke_original_chunks_->id) return reject_stroke("Chunk stroke target changed");
         bool changed = asset->chunks.size() != stroke_original_chunks_->chunks.size();
@@ -1892,13 +2140,12 @@ bool Artwork::end_input(StrokePoint sample)
                 current->pixels.pixels != original.pixels.pixels) { changed = true; break; }
         }
         if (!changed) {
-            draft_ = *file_.document(); taper_stroke_.reset(); stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
+            draft_ = *file_.document(); stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
             stroke_before_.clear(); stroke_frame_copy_ = false; bind(); error_.clear(); return true;
         }
     }
-    const bool require_undo_snapshot = bool(taper_stroke_) || bool(selection_) || bool(stroke_asset_region_) || stroke_frame_copy_;
+    const bool require_undo_snapshot = bool(selection_) || bool(stroke_asset_region_) || stroke_frame_copy_;
     stroke_frame_copy_ = false;
-    taper_stroke_.reset();
     if ((selection_ || stroke_asset_region_) && stroke_original_chunks_) {
         try {
             auto* asset=findChunkedRasterAsset(draft_,chunks_.boundAssetId());
@@ -1972,11 +2219,99 @@ bool Artwork::end_input(StrokePoint sample)
     }
     return commit(std::move(stroke_before_), std::move(stroke_selection_));
 }
-bool Artwork::finish_compact_chunk_stroke(const BrushState* state)
+bool Artwork::finish_masked_raster_stroke()
+{
+    const auto rollback = [&](std::string reason) {
+        // Preview frames may have consumed the incremental damage already.
+        // A failed publication restores the committed document, so invalidate the
+        // entire stroke rather than leaving earlier preview tiles on screen.
+        stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
+        draft_ = *file_.document();
+        stroke_tiles_.clear(); stroke_tile_columns_ = 0;
+        bind();
+        return fail(std::move(reason));
+    };
+    try {
+        const auto assetId = raster_.boundAssetId();
+        const auto* originalAsset = file_.document() ? findRasterAsset(*file_.document(), assetId) : nullptr;
+        const auto* painted = raster_.pixels();
+        if (!originalAsset || !painted || painted->width != originalAsset->pixels.width ||
+            painted->height != originalAsset->pixels.height)
+            return rollback("Masked stroke target changed");
+        const auto& original = originalAsset->pixels;
+        std::vector<RasterLayer> storage;
+        std::vector<DevicePixelRect> regions;
+        const auto append = [&](DevicePixelRect region, std::span<const std::uint32_t> values) {
+            if (region.origin.x < 0 || region.origin.y < 0 || region.width <= 0 || region.height <= 0 ||
+                std::int64_t(region.origin.x) + region.width > original.width ||
+                std::int64_t(region.origin.y) + region.height > original.height ||
+                values.size() != std::size_t(region.width) * region.height)
+                throw std::runtime_error("Invalid masked stroke tile");
+            auto before = makeRasterLayer(region.width, region.height, 0);
+            auto after = makeRasterLayer(region.width, region.height, 0);
+            for (int y = 0; y < region.height; ++y) {
+                const auto offset = std::size_t(y) * region.width;
+                const auto source = std::size_t(y + region.origin.y) * original.width + region.origin.x;
+                std::copy_n(original.pixels.begin() + source, region.width, before.pixels.begin() + offset);
+                std::copy_n(values.begin() + offset, region.width, after.pixels.begin() + offset);
+            }
+            if (selection_) {
+                RasterMask mask{{region.width, region.height},
+                                std::vector<std::uint8_t>(std::size_t(region.width) * region.height)};
+                const auto& t = stroke_transform_;
+                for (int y = 0; y < region.height; ++y) for (int x = 0; x < region.width; ++x) {
+                    const double ax = region.origin.x + x + .5, ay = region.origin.y + y + .5;
+                    mask.alpha[std::size_t(y) * region.width + x] = selection_coverage(
+                        t.m11 * ax + t.m21 * ay + t.translationX,
+                        t.m12 * ax + t.m22 * ay + t.translationY);
+                }
+                auto blended = blendRaster(before, after, mask);
+                if (!blended.ok()) throw std::runtime_error(blended.error);
+                after = std::move(blended.pixels);
+            }
+            if (before.pixels != after.pixels) {
+                regions.push_back(region);
+                storage.push_back(std::move(after));
+            }
+        };
+        constexpr int side = BitmapPreviewTileSide;
+        for (std::size_t index = 0; index < stroke_tiles_.size(); ++index) {
+            if (!stroke_tiles_[index]) continue;
+            const int x = int(index % stroke_tile_columns_) * side;
+            const int y = int(index / stroke_tile_columns_) * side;
+            const int width = std::min(side, painted->width - x);
+            const int height = std::min(side, painted->height - y);
+            std::vector<std::uint32_t> pixels(std::size_t(width) * height);
+            for (int row = 0; row < height; ++row)
+                std::copy_n(painted->pixels.begin() + std::size_t(y + row) * painted->width + x,
+                            width, pixels.begin() + std::size_t(row) * width);
+            append({{x, y}, width, height}, pixels);
+        }
+        stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
+        if (raster_.canUndo() && !raster_.undo()) return rollback(raster_.lastError());
+        raster_.unbind();
+        draft_.authorship = file_.document()->authorship;
+        draft_.formatVersion = file_.document()->formatVersion;
+        if (!raster_.bind(draft_, assetId)) return rollback("Cannot rebind masked stroke target");
+        stroke_tiles_.clear(); stroke_tile_columns_ = 0;
+        if (storage.empty()) { bind(); error_.clear(); return true; }
+        std::vector<BitmapPatch> patches; patches.reserve(storage.size());
+        for (std::size_t index = 0; index < storage.size(); ++index)
+            patches.push_back({regions[index], storage[index].pixels});
+        if (!raster_.replacePatches(patches)) return rollback(raster_.lastError());
+        return commit_raster_stroke_history(std::make_shared<BitmapEditor>(raster_),
+                                            std::move(stroke_selection_));
+    } catch (const std::exception& error) {
+        return rollback(error.what());
+    }
+}
+
+bool Artwork::finish_compact_chunk_stroke()
 {
     auto frameHistory=std::move(stroke_frame_history_);stroke_frame_history_.reset();
     const auto rollback=[&](std::string reason) {
-        draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();
+        draft_=*file_.document();stroke_before_.clear();stroke_tiles_.clear();stroke_tile_columns_=0;
+        stroke_compact_=false;stroke_asset_region_.reset();bind();
         return fail(std::move(reason));
     };
     try {
@@ -1985,60 +2320,21 @@ bool Artwork::finish_compact_chunk_stroke(const BrushState* state)
         if(!original)return rollback("Compact stroke source is unavailable");
         const CanvasRegion initialCanvas{canvasOrigin(*file_.document()),file_.document()->extent};
         const CanvasRegion finalCanvas{canvasOrigin(draft_),draft_.extent};
-        if(taper_stroke_) {
-            if(!state)return rollback("Unable to snapshot the active brush");
-            if(!chunks_.canUndo()) {
-                draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;
-            }
-            const auto region=stroke_asset_region_.value_or(CanvasRegion{canvasOrigin(draft_),draft_.extent});
-            auto local=std::optional<CanvasRegion>(region);
-            if(selection_) {
-                const auto selected=selection_->tiled ? selection_->tiled->nonzeroBounds() :
-                    std::optional<CanvasRegion>(CanvasRegion{canvasOrigin(draft_),draft_.extent});
-                if(!selected) {
-                    draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;
-                }
-                local=assetBoundsForCanvas(*selected,stroke_transform_);
-                if(!local)return rollback("Selection exceeds the supported asset coordinate range");
-            }
-            const auto left=std::max<std::int64_t>(region.origin.x,local->origin.x),top=std::max<std::int64_t>(region.origin.y,local->origin.y);
-            const auto right=std::min(std::int64_t(region.origin.x)+region.extent.width,std::int64_t(local->origin.x)+local->extent.width);
-            const auto bottom=std::min(std::int64_t(region.origin.y)+region.extent.height,std::int64_t(local->origin.y)+local->extent.height);
-            if(right<=left || bottom<=top) {
-                draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;
-            }
-            struct ChunkSampler {const ChunkedRasterAsset* asset;CanvasOrigin origin;int size;};
-            const ChunkSampler source{original,region.origin,draft_.infiniteCanvas.chunkSize};
-            RasterSourceSampler sampler{&source,[](const void* context,DevicePixelPoint p){
-                const auto& src=*static_cast<const ChunkSampler*>(context);const int x=p.x+src.origin.x,y=p.y+src.origin.y;
-                const auto divide=[&](int v){const int q=v/src.size,r=v%src.size;return r<0?q-1:q;};
-                const int col=divide(x),row=divide(y);const auto* chunk=findRasterChunk(*src.asset,col,row);
-                return chunk?chunk->pixels.pixels[std::size_t(y-row*src.size)*src.size+x-col*src.size]:0U;
-            },{region.origin.x,region.origin.y},region.extent.width,region.extent.height};
-            ii::brush::Controls controls;using P=ii::brush::Parameter;
-            if(!controls.set(P::Stabilization,0) || !controls.set(P::PostCorrection,0))return rollback("Invalid stroke correction settings");
-            ii::brush::ResolvedBrush resolved;resolved.state=*state;resolved.eraser=taper_stroke_->eraser;
-            const auto& taper=taper_stroke_->options;resolved.taper={taper.start,taper.end,taper.minimum,taper.strength};
-            ii::brush::Limits limits;limits.maxTouchedPixels=std::min(limits.maxTouchedPixels,history_budget_/8);
-            auto image=ii::brush::renderGestureWithResolvedBrush(taper_stroke_->samples,resolved,controls,
-                {{{int(left),int(top)},int(right-left),int(bottom-top)},sampler},limits);
-            if(!image)return rollback(image.error().message);
-            if(!chunks_.undo())return rollback("Taper replay undo: "+chunks_.lastError());
-            draft_.infiniteCanvas.origin=finalCanvas.origin;draft_.extent=finalCanvas.extent;
-            chunks_.unbind();if(!chunks_.bind(draft_,assetId))return rollback("Cannot rebind tapered chunk target");
-            chunks_.clearDirtyBounds();std::vector<BitmapPatch> rendered;rendered.reserve(image->tiles.size());
-            for(const auto& tile:image->tiles){record_stroke_damage(tile.bounds);rendered.push_back({tile.bounds,tile.pixels.pixels});}
-            if(!rendered.empty() && !chunks_.replaceAssetPatches(rendered))return rollback(chunks_.lastError());
-            if(!chunks_.canUndo()) {
-                draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;
-            }
-        }
+        const auto unchanged=[&]() {
+            if(!stroke_tiles_.empty() && !frameHistory && initialCanvas==finalCanvas) {
+                if(chunks_.canUndo() && !chunks_.undo())return rollback(chunks_.lastError());
+                draft_.authorship=file_.document()->authorship;
+                draft_.formatVersion=file_.document()->formatVersion;
+            } else draft_=*file_.document();
+            stroke_before_.clear();stroke_tiles_.clear();stroke_tile_columns_=0;
+            stroke_compact_=false;stroke_asset_region_.reset();bind();error_.clear();return true;
+        };
         const auto dirty=unionStrokeDamage(stroke_dirty_total_,chunks_.dirtyBounds());const auto clip=stroke_asset_region_.value_or(CanvasRegion{canvasOrigin(draft_),draft_.extent});
         auto local=std::optional<CanvasRegion>(clip);
         if(selection_) {
             const auto selected=selection_->tiled ? selection_->tiled->nonzeroBounds() :
                     std::optional<CanvasRegion>(CanvasRegion{canvasOrigin(draft_),draft_.extent});
-            if(!selected) {draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;}
+            if(!selected) return unchanged();
             local=assetBoundsForCanvas(*selected,stroke_transform_);
             if(!local)return rollback("Selection exceeds the supported asset coordinate range");
         }
@@ -2046,15 +2342,25 @@ bool Artwork::finish_compact_chunk_stroke(const BrushState* state)
         const auto top=std::max({std::int64_t(dirty.origin.y),std::int64_t(clip.origin.y),std::int64_t(local->origin.y)});
         const auto right=std::min({std::int64_t(dirty.origin.x)+dirty.width,std::int64_t(clip.origin.x)+clip.extent.width,std::int64_t(local->origin.x)+local->extent.width});
         const auto bottom=std::min({std::int64_t(dirty.origin.y)+dirty.height,std::int64_t(clip.origin.y)+clip.extent.height,std::int64_t(local->origin.y)+local->extent.height});
-        if(right<=left || bottom<=top) {draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;}
+        if(right<=left || bottom<=top) return unchanged();
         const int side=BitmapPreviewTileSide,size=draft_.infiniteCanvas.chunkSize;
         const auto div=[](std::int64_t value,int divisor){return value>=0?value/divisor:(value-divisor+1)/divisor;};
         const auto x0=div(left,side),y0=div(top,side),x1=div(right-1,side),y1=div(bottom-1,side);
-        const auto count=std::uint64_t(x1-x0+1)*std::uint64_t(y1-y0+1);
-        if(count>1024 || count>history_budget_/(std::uint64_t(side)*side*8))return rollback("Compact stroke exceeds the tile or history budget");
+        const bool indexed=!stroke_tiles_.empty() && stroke_tile_columns_>0;
+        const auto inBounds=[&](std::size_t index) {
+            const auto tx=std::int64_t(index%stroke_tile_columns_),ty=std::int64_t(index/stroke_tile_columns_);
+            return stroke_tiles_[index] && tx>=x0 && tx<=x1 && ty>=y0 && ty<=y1;
+        };
+        std::uint64_t count=0;
+        if(indexed) {
+            for(std::size_t index=0;index<stroke_tiles_.size();++index)if(inBounds(index))++count;
+        } else count=std::uint64_t(x1-x0+1)*std::uint64_t(y1-y0+1);
+        if((!indexed && count>1024) || count>history_budget_/(std::uint64_t(side)*side*8))
+            return rollback("Compact stroke exceeds the tile or history budget");
         std::vector<std::vector<std::uint32_t>> storage;std::vector<DevicePixelRect> regions;
         storage.reserve(std::size_t(count));regions.reserve(std::size_t(count));
-        for(auto ty=y0;ty<=y1;++ty)for(auto tx=x0;tx<=x1;++tx) {
+        std::string tileError;
+        const auto appendTile=[&](std::int64_t tx,std::int64_t ty) {
             const auto lx=std::max<std::int64_t>(tx*side,clip.origin.x),ly=std::max<std::int64_t>(ty*side,clip.origin.y);
             const auto rx=std::min<std::int64_t>((tx+1)*side,std::int64_t(clip.origin.x)+clip.extent.width);
             const auto by=std::min<std::int64_t>((ty+1)*side,std::int64_t(clip.origin.y)+clip.extent.height);
@@ -2065,13 +2371,23 @@ bool Artwork::finish_compact_chunk_stroke(const BrushState* state)
                 const auto key=std::pair{std::int32_t(row),std::int32_t(col)};
                 const auto it=std::lower_bound(original->chunks.begin(),original->chunks.end(),key,[](const auto& chunk,const auto& value){return std::pair{chunk.row,chunk.column}<value;});
                 if(it!=original->chunks.end()&&it->row==row&&it->column==col)before.pixels[index]=it->pixels.pixels[std::size_t(ay-row*size)*size+std::size_t(ax-col*size)];
-                const auto painted=chunks_.assetPixelAt(std::int32_t(ax),std::int32_t(ay));if(!painted)return rollback("Compact stroke exceeds the asset coordinate range");
+                const auto painted=chunks_.assetPixelAt(std::int32_t(ax),std::int32_t(ay));
+                if(!painted) {tileError="Compact stroke exceeds the asset coordinate range";return false;}
                 after.pixels[index]=*painted;mask.alpha[index]=stroke_chunk_coverage(double(ax)+.5,double(ay)+.5);
             }
-            auto blended=blendRaster(before,after,mask);if(!blended.ok())return rollback(blended.error);
+            auto blended=blendRaster(before,after,mask);if(!blended.ok()) {tileError=blended.error;return false;}
             if(blended.pixels.pixels!=before.pixels) {storage.push_back(std::move(blended.pixels.pixels));regions.push_back({{int(lx),int(ly)},w,h});}
+            return true;
+        };
+        if(indexed) {
+            for(std::size_t index=0;index<stroke_tiles_.size();++index)if(inBounds(index) &&
+                !appendTile(std::int64_t(index%stroke_tile_columns_),std::int64_t(index/stroke_tile_columns_)))
+                return rollback(std::move(tileError));
+        } else {
+            for(auto ty=y0;ty<=y1;++ty)for(auto tx=x0;tx<=x1;++tx)
+                if(!appendTile(tx,ty))return rollback(std::move(tileError));
         }
-        if(storage.empty()) {draft_=*file_.document();stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();bind();error_.clear();return true;}
+        if(storage.empty()) return unchanged();
         if(!chunks_.undo())return rollback("Masked stroke undo: "+chunks_.lastError());
         draft_.infiniteCanvas.origin=finalCanvas.origin;draft_.extent=finalCanvas.extent;
         chunks_.unbind();if(!chunks_.bind(draft_,assetId))return rollback("Cannot rebind compact chunk target");
@@ -2081,14 +2397,20 @@ bool Artwork::finish_compact_chunk_stroke(const BrushState* state)
         auto journal=std::make_shared<ChunkedBitmapEditor>(chunks_);
         const auto beforeCanvas=initialCanvas==finalCanvas ? std::optional<CanvasRegion>{} : std::optional(initialCanvas);
         const auto afterCanvas=initialCanvas==finalCanvas ? std::optional<CanvasRegion>{} : std::optional(finalCanvas);
-        stroke_before_.clear();stroke_compact_=false;stroke_asset_region_.reset();taper_stroke_.reset();
-        return commit_compact_chunk_history(std::move(journal),stroke_selection_,beforeCanvas,afterCanvas,std::move(frameHistory));
+        stroke_before_.clear();stroke_tiles_.clear();stroke_tile_columns_=0;
+        stroke_compact_=false;stroke_asset_region_.reset();
+        const bool committed = commit_compact_chunk_history(std::move(journal), stroke_selection_,
+                                                            beforeCanvas, afterCanvas, std::move(frameHistory));
+        if (!committed)
+            stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
+        return committed;
     } catch(const std::bad_alloc&) {return rollback("Insufficient memory for compact stroke history");}
 }
 
 bool Artwork::commit_raster_stroke_history(std::shared_ptr<BitmapEditor> journal, std::string beforeSelection)
 {
     const auto rollback = [&](std::string reason) {
+        stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
         draft_ = *file_.document();
         bind();
         return fail(std::move(reason));
@@ -2102,20 +2424,33 @@ bool Artwork::commit_raster_stroke_history(std::shared_ptr<BitmapEditor> journal
         pending.after_selection = selected_;
         pending.raster_editor = std::move(journal);
         if (draft_.authorship.dump() == file_.document()->authorship.dump()) recordDocumentChange(draft_);
-        auto metadata = std::make_shared<RasterStrokeMetadata>();
+        auto metadata = std::make_shared<BitmapHistoryMetadata>();
         metadata->before = file_.document()->authorship;
         metadata->before_version = file_.document()->formatVersion;
         metadata->after = draft_.authorship;
         metadata->after_version = draft_.formatVersion;
-        pending.raster_metadata = std::move(metadata);
+        metadata->authored_bytes = metadata->before.dump().size() + metadata->after.dump().size();
+        pending.bitmap_metadata = std::move(metadata);
         const auto cost = pending.bytes();
         if (cost > history_budget_) return rollback("Raster stroke exceeds the undo budget");
         undo_.push_back(std::move(pending));
         pendingInserted = true;
-        const auto committed = file_.edit([&](Document& document) { document = draft_; return true; });
-        if (!committed.ok() || !committed.changed) {
+        bool saved = false;
+        std::string failure;
+        auto& entry = undo_.back();
+        if (currentBitmapFormat(entry.bitmap_metadata->before_version) &&
+            currentBitmapFormat(entry.bitmap_metadata->after_version)) {
+            saved = entry.raster_editor->publishHistoryState(file_, BitmapHistoryState::Applied,
+                entry.bitmap_metadata->before, entry.bitmap_metadata->before_version, file_.revision());
+            if (!saved) failure = entry.raster_editor->lastError();
+        } else {
+            const auto result = file_.edit([&](Document& document) { document = draft_; return true; });
+            saved = result.ok() && result.changed;
+            if (!saved) failure = result.ok() ? "Raster stroke did not change the document" : result.message;
+        }
+        if (!saved) {
             undo_.pop_back(); pendingInserted = false;
-            return rollback(committed.ok() ? "Raster stroke did not change the document" : committed.message);
+            return rollback(failure.empty() ? "Raster stroke could not be saved" : std::move(failure));
         }
         pendingInserted = false;
         for (const auto& entry : redo_) history_bytes_ -= entry.bytes();
@@ -2147,11 +2482,27 @@ bool Artwork::commit_compact_chunk_history(std::shared_ptr<ChunkedBitmapEditor> 
         History pending;pending.before_selection=std::move(beforeSelection);pending.after_selection=selected_;
         pending.tile_editor=std::move(journal);pending.canvas_before=beforeCanvas;pending.canvas_after=afterCanvas;
         if(frame)pending.chunk_frame=std::make_shared<const ChunkFrameHistory>(std::move(*frame));
-        const auto cost=pending.bytes();if(cost>history_budget_)return rollback("Compact edit exceeds the undo budget");
         if(draft_.authorship.dump()==file_.document()->authorship.dump())recordDocumentChange(draft_);
+        auto metadata=std::make_shared<BitmapHistoryMetadata>();
+        metadata->before=file_.document()->authorship;metadata->before_version=file_.document()->formatVersion;
+        metadata->after=draft_.authorship;metadata->after_version=draft_.formatVersion;
+        metadata->authored_bytes=metadata->before.dump().size()+metadata->after.dump().size();
+        pending.bitmap_metadata=std::move(metadata);
+        const auto cost=pending.bytes();if(cost>history_budget_)return rollback("Compact edit exceeds the undo budget");
         undo_.push_back(std::move(pending));pendingInserted=true;
-        const auto committed=file_.edit([&](Document& document){document=draft_;return true;});
-        if(!committed.ok() || !committed.changed) {undo_.pop_back();pendingInserted=false;return rollback(committed.ok()?"Compact edit did not change the document":committed.message);}
+        auto& entry=undo_.back();
+        bool saved=false;std::string failure;
+        if(!entry.chunk_frame && !entry.canvas_before && !entry.canvas_after &&
+           currentBitmapFormat(entry.bitmap_metadata->before_version) && currentBitmapFormat(entry.bitmap_metadata->after_version)) {
+            saved=entry.tile_editor->publishHistoryState(file_,BitmapHistoryState::Applied,
+                entry.bitmap_metadata->before,entry.bitmap_metadata->before_version,file_.revision());
+            if(!saved)failure=entry.tile_editor->lastError();
+        } else {
+            const auto committed=file_.edit([&](Document& document){document=draft_;return true;});
+            saved=committed.ok() && committed.changed;
+            if(!saved)failure=committed.ok()?"Compact edit did not change the document":committed.message;
+        }
+        if(!saved) {undo_.pop_back();pendingInserted=false;return rollback(failure.empty()?"Compact edit could not be saved":std::move(failure));}
         pendingInserted=false;
         for(const auto& entry:redo_)history_bytes_-=entry.bytes();redo_.clear();history_bytes_+=cost;
         while(history_bytes_>history_budget_ || undo_.size()>HistoryCount){history_bytes_-=undo_.front().bytes();undo_.pop_front();}
@@ -2164,9 +2515,10 @@ bool Artwork::commit_compact_chunk_history(std::shared_ptr<ChunkedBitmapEditor> 
 bool Artwork::reject_stroke(std::string reason)
 {
     stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
+    stroke_tiles_.clear(); stroke_tile_columns_ = 0;
     stroke_raster_history_ = false;
     stroke_frame_history_.reset();
-    taper_stroke_.reset();
+    streaming_brush_.reset();
     stroke_frame_copy_ = false;
     if (stroke_active())
         cancel();
@@ -2183,16 +2535,23 @@ void Artwork::cancel()
 {
     if (!stroke_active())
         return;
+    const bool rasterOnly = stroke_raster_history_ && raster_.isBound();
     collect_stroke_damage();
     stroke_dirty_pending_ = unionStrokeDamage(stroke_dirty_pending_, stroke_dirty_total_);
     stroke_frame_history_.reset();
     raster_.cancelStroke();
     chunks_.cancelStroke();
-    taper_stroke_.reset();
+    stroke_tiles_.clear(); stroke_tile_columns_ = 0;
+    streaming_brush_.reset();
     stroke_frame_copy_ = false;
     stroke_raster_history_ = false;
     stroke_original_.reset(); stroke_original_chunks_.reset(); stroke_asset_region_.reset(); stroke_compact_ = false;
-    draft_ = *file_.document();
+    if (rasterOnly && !raster_.strokeActive()) {
+        draft_.authorship = file_.document()->authorship;
+        draft_.formatVersion = file_.document()->formatVersion;
+    } else {
+        draft_ = *file_.document();
+    }
     stroke_before_.clear();
     bind();
 }
@@ -2780,19 +3139,34 @@ bool Artwork::apply_history(bool forward)
             return fail(std::move(reason));
         };
         try {
-            if (!entry.raster_metadata) return rollback("Raster history metadata is unavailable");
+            if (!entry.bitmap_metadata) return rollback("Raster history metadata is unavailable");
             auto trial = std::make_shared<BitmapEditor>(*entry.raster_editor);
             if (!(forward ? trial->redo() : trial->undo())) return rollback(trial->lastError());
             auto target = forward ? entry.after_selection : entry.before_selection;
-            draft_.authorship = forward ? entry.raster_metadata->after : entry.raster_metadata->before;
-            draft_.formatVersion = forward ? entry.raster_metadata->after_version : entry.raster_metadata->before_version;
+            draft_.authorship = forward ? entry.bitmap_metadata->after : entry.bitmap_metadata->before;
+            draft_.formatVersion = forward ? entry.bitmap_metadata->after_version : entry.bitmap_metadata->before_version;
             History next = entry;
             next.raster_editor = std::move(trial);
             destination.push_back(std::move(next)); pendingInserted = true;
-            const auto committed = file_.edit([&](Document& document) { document = draft_; return true; });
-            if (!committed.ok() || !committed.changed) {
+            bool saved = false;
+            std::string failure;
+            auto& pending = destination.back();
+            const auto& expected = forward ? pending.bitmap_metadata->before : pending.bitmap_metadata->after;
+            const auto version = forward ? pending.bitmap_metadata->before_version : pending.bitmap_metadata->after_version;
+            if (currentBitmapFormat(pending.bitmap_metadata->before_version) &&
+                currentBitmapFormat(pending.bitmap_metadata->after_version)) {
+                saved = pending.raster_editor->publishHistoryState(file_,
+                    forward ? BitmapHistoryState::Applied : BitmapHistoryState::Undone,
+                    expected, version, file_.revision());
+                if (!saved) failure = pending.raster_editor->lastError();
+            } else {
+                const auto result = file_.edit([&](Document& document) { document = draft_; return true; });
+                saved = result.ok() && result.changed;
+                if (!saved) failure = result.ok() ? "Raster history did not change the document" : result.message;
+            }
+            if (!saved) {
                 destination.pop_back(); pendingInserted = false;
-                return rollback(committed.ok() ? "Raster history did not change the document" : committed.message);
+                return rollback(failure.empty() ? "Raster history could not be saved" : std::move(failure));
             }
             pendingInserted = false;
             selected_ = std::move(target); source.pop_back();
@@ -2825,6 +3199,7 @@ bool Artwork::apply_history(bool forward)
     if (entry.tile_editor) {
         bool pendingInserted=false;
         try {
+            if(!entry.bitmap_metadata)return fail("Compact history metadata is unavailable");
             auto trial=std::make_shared<ChunkedBitmapEditor>(*entry.tile_editor);
             const auto setCanvas=[&](CanvasRegion region){draft_.infiniteCanvas.origin=region.origin;draft_.extent=region.extent;};
             const auto failFrame=[&](std::string reason) {draft_=*file_.document();bind();return fail(std::move(reason));};
@@ -2859,10 +3234,23 @@ bool Artwork::apply_history(bool forward)
             if(forward && entry.canvas_after)setCanvas(*entry.canvas_after);
             if(!forward && entry.canvas_before)setCanvas(*entry.canvas_before);
             auto target=forward?entry.after_selection:entry.before_selection;
-            if(draft_.authorship.dump()==file_.document()->authorship.dump())recordDocumentChange(draft_);
+            draft_.authorship=forward?entry.bitmap_metadata->after:entry.bitmap_metadata->before;
+            draft_.formatVersion=forward?entry.bitmap_metadata->after_version:entry.bitmap_metadata->before_version;
             History next=entry;next.tile_editor=std::move(trial);destination.push_back(std::move(next));pendingInserted=true;
-            const auto committed=file_.edit([&](Document& document){document=draft_;return true;});
-            if(!committed.ok() || !committed.changed) {destination.pop_back();pendingInserted=false;draft_=*file_.document();bind();return fail(committed.ok()?"Compact history did not change the document":committed.message);}
+            auto& pending=destination.back();bool saved=false;std::string failure;
+            if(!pending.chunk_frame && !pending.canvas_before && !pending.canvas_after &&
+               currentBitmapFormat(pending.bitmap_metadata->before_version) && currentBitmapFormat(pending.bitmap_metadata->after_version)) {
+                const auto& expected=forward?pending.bitmap_metadata->before:pending.bitmap_metadata->after;
+                const auto version=forward?pending.bitmap_metadata->before_version:pending.bitmap_metadata->after_version;
+                saved=pending.tile_editor->publishHistoryState(file_,forward?BitmapHistoryState::Applied:BitmapHistoryState::Undone,
+                    expected,version,file_.revision());
+                if(!saved)failure=pending.tile_editor->lastError();
+            } else {
+                const auto committed=file_.edit([&](Document& document){document=draft_;return true;});
+                saved=committed.ok() && committed.changed;
+                if(!saved)failure=committed.ok()?"Compact history did not change the document":committed.message;
+            }
+            if(!saved) {destination.pop_back();pendingInserted=false;draft_=*file_.document();bind();return fail(failure.empty()?"Compact history could not be saved":std::move(failure));}
             pendingInserted=false;selected_=std::move(target);source.pop_back();
             try { bind(); } catch(const std::bad_alloc&) { raster_.unbind();chunks_.unbind(); }
             error_.clear();

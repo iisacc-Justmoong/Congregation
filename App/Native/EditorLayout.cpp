@@ -34,9 +34,10 @@ Fit fit(double width, double height, double document_width, double document_heig
                                         std::round(height * Metric::canvasTopInsetRatio));
     const double bottom = std::max<double>(Metric::canvasInsetMinimum,
                                            std::round(height * Metric::canvasBottomInsetRatio));
-    const double scale =
-        std::max(1. / 65536, std::min({1., std::max(1., width - 2 * horizontal) / document_width,
-                                       std::max(1., height - top - bottom) / document_height}));
+    const double scale = std::clamp(
+        std::min(std::max(1., width - 2 * horizontal) / document_width,
+                 std::max(1., height - top - bottom) / document_height),
+        1. / 65536, maximum_canvas_zoom);
     return {scale,
             (width - document_width * scale) / 2 -
                 (width > Metric::canvasCenterThreshold ? Metric::canvasCenterShift : 0),

@@ -24,7 +24,7 @@ int main() try {
  StrokeTaper options{.25,.25,.25,1};auto a=at(16,48,0),b=at(80,48,.5),c=at(144,48,1);
  const auto before=pixels(art).pixels;const auto revision=art.revision();
  check(art.begin_input(a,brush,0,options)&&art.extend_input(b)&&art.end_input(c),"taper stroke failed");
- const auto result=pixels(art);check(width(result,80)>=14,"taper changed full-size middle");check(width(result,20)>=3&&width(result,20)<=8,"start does not use whole-stroke length");check(width(result,140)>=3&&width(result,140)<=8,"end does not use whole-stroke length");check((result.pixels[48*192+140]>>24)>=240,"size taper changed center opacity");
+ const auto result=pixels(art);check(width(result,80)>=14,"taper changed full-size middle");check(width(result,20)>=10,"start taper did not use brush-size distance");check(width(result,140)>=10,"end taper did not use brush-size distance");check((result.pixels[48*192+140]>>24)>=240,"size taper changed center opacity");
  check(art.revision()==revision+1,"taper stroke should make one document revision");check(art.undo()&&pixels(art).pixels==before&&art.redo()&&pixels(art).pixels==result.pixels,"taper undo redo failed");
  check(art.undo(),"undo before cancellation failed");
  auto invalid=options;invalid.end=std::numeric_limits<double>::quiet_NaN();check(!art.begin_input(a,brush,0,invalid) && pixels(art).pixels==before && art.can_redo(),"invalid taper changed pixels or lost redo");
@@ -32,10 +32,36 @@ int main() try {
  Artwork selected(dir.path());check(selected.create(192,96),"selection fixture failed");check(selected.set_selection(SelectionGeometry::Rectangle,{80,0},{192,96}),"selection failed");const auto selected_before=pixels(selected).pixels;
  check(selected.begin_input(a,brush,0,options)&&selected.extend_input(b)&&selected.end_input(c),"selected taper stroke failed");const auto selected_after=pixels(selected).pixels;
  for(int y=0;y<96;++y)for(int x=0;x<80;++x)check(selected_after[std::size_t(y)*192+x]==selected_before[std::size_t(y)*192+x],"taper escaped selection");
- check(width(pixels(selected),140)>=3 && selected.undo() && pixels(selected).pixels==selected_before && selected.redo() && pixels(selected).pixels==selected_after,"selected taper undo redo failed");
+ check(width(pixels(selected),140)>=10 && selected.undo() && pixels(selected).pixels==selected_before && selected.redo() && pixels(selected).pixels==selected_after,"selected taper undo redo failed");
  Artwork erased(dir.path());check(erased.create(192,96),"eraser fixture failed");check(erased.import_pixels(makeRasterLayer(192,96,0xffffffffU),"opaque",0,0),"eraser source failed");check(erased.set_selection(SelectionGeometry::Rectangle,{80,0},{192,96}),"eraser selection failed");auto eraser=brush;eraser.eraser=true;auto original=pixels(erased).pixels;
  check(erased.begin_input(a,eraser,0,options)&&erased.extend_input(b)&&erased.end_input(c),"tapered eraser stroke failed");const auto removed=pixels(erased).pixels;check(removed[48*192+60]==original[48*192+60] && (removed[48*192+140]>>24)<255,"eraser did not honor selected taper");check(erased.undo()&&pixels(erased).pixels==original&&erased.redo()&&pixels(erased).pixels==removed,"eraser undo redo failed");
  // Exercise the same pointer route used by the native canvas, without opening a window.
- Artwork routed(dir.path());check(routed.create(192,96),"canvas route fixture failed");CanvasView view(routed);view.brush_size=16;view.color=0xff112233U;view.settings=brush;view.taper=options;using K=ii::gui::WidgetInputKind;ii::gui::WidgetInput event;event.buttons=1;event.pressure=1;event.kind=K::pointer_down;event.x=16;event.y=48;check(view.input(event).has_value()&&routed.stroke_active(),"canvas begin failed");event.kind=K::pointer_move;event.x=80;check(view.input(event).has_value(),"canvas move failed");event.kind=K::pointer_up;event.x=144;check(view.input(event).has_value(),"canvas end failed");check(width(pixels(routed),140)>=3&&width(pixels(routed),140)<=8,"canvas did not pass taper settings");
+ Artwork routed(dir.path());check(routed.create(192,96),"canvas route fixture failed");CanvasView view(routed);view.brush_size=16;view.color=0xff112233U;view.settings=brush;view.taper=options;using K=ii::gui::WidgetInputKind;ii::gui::WidgetInput event;event.buttons=1;event.pressure=1;event.kind=K::pointer_down;event.x=16;event.y=48;check(view.input(event).has_value()&&routed.stroke_active(),"canvas begin failed");event.kind=K::pointer_move;event.x=80;check(view.input(event).has_value(),"canvas move failed");event.kind=K::pointer_up;event.x=144;check(view.input(event).has_value(),"canvas end failed");check(width(pixels(routed),140)>=10,"canvas did not pass taper settings");
+ // A long, broad stroke can exceed the gesture renderer's default cumulative
+ // projection budget even though its live, tile-based preview succeeded.
+ Artwork broad(dir.path());check(broad.create(768,128),"broad stroke fixture failed");
+ auto large=brush;large.size=256;large.spacingRatio=.12;
+ check(broad.begin_input(at(24,64,0),large,0,options),"broad tapered stroke begin failed");
+ int index=0;
+ for(int pass=0;pass<28;++pass) for(int step=1;step<=8;++step) {
+  const double x=pass%2 ? 744.-90.*step : 24.+90.*step;
+  if(!broad.extend_input(at(x,64,++index*.1))) throw std::runtime_error("broad stroke move: "+broad.error());
+ }
+ if(!broad.end_input(at(24,64,++index*.1))) throw std::runtime_error("broad stroke finish: "+broad.error());
+ const auto broad_result=pixels(broad).pixels;
+ check((broad_result[64*768+384]>>24)>0 && broad.undo() && broad.redo() && pixels(broad).pixels==broad_result,
+       "broad stroke or its history was lost");
+ // Small, densely spaced tips can reach the cumulative dab limit without
+ // exceeding the per-event limit or touching a large canvas area.
+ Artwork dense(dir.path());check(dense.create(128,32),"dense stroke fixture failed");
+ auto tiny=brush;tiny.size=1;tiny.spacingRatio=.01;
+ check(dense.begin_input(at(16.5,16.5,0),tiny,0,options),"dense tapered stroke begin failed");
+ for(int pass=0;pass<40;++pass)
+  if(!dense.extend_input(at(pass%2 ? 16.5 : 112.5,16.5,(pass+1)*.2)))
+   throw std::runtime_error("dense stroke move: "+dense.error());
+ if(!dense.end_input(at(16.5,16.5,8.01))) throw std::runtime_error("dense stroke finish: "+dense.error());
+ const auto dense_result=pixels(dense).pixels;
+ check(dense_result[16*128+64]!=0 && dense.undo() && dense.redo() && pixels(dense).pixels==dense_result,
+       "dense stroke or its history was lost");
  std::cout<<"TAPER_INTEGRATION_OK\n";return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

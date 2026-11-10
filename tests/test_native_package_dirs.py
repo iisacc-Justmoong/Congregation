@@ -127,6 +127,48 @@ endforeach()
             [('libfixture.0.dylib', actual)])
         self.assertEqual(candidates[0], actual)
 
+    def test_staged_canvas_library_wins_over_an_older_kit_copy(self):
+        with tempfile.TemporaryDirectory(prefix='package-canvas-', dir=ROOT / 'resources') as raw:
+            root = pathlib.Path(raw).resolve()
+            prefix, frameworks, selected = root / 'kit', root / 'frameworks', root / 'selected'
+            (prefix / 'lib').mkdir(parents=True)
+            frameworks.mkdir()
+            selected.mkdir()
+            name = 'libiiSharedCanvasNative.dylib'
+            (prefix / 'lib' / name).touch()
+            exact = selected / name
+            exact.touch()
+            candidates = module.library_candidates(name, prefix, frameworks, [selected], [(name, exact)])
+            located = next(path for path in candidates if path.is_file())
+            self.assertEqual(module.validate_selected_library(located, prefix, frameworks, [selected]), exact)
+            self.assertFalse(module.trusted_library(root / 'unselected' / name, prefix, frameworks, [selected]))
+
+    def test_bundle_arguments_include_shared_sdk_but_omit_static_archive(self):
+        with tempfile.TemporaryDirectory(prefix='bundle-sdk-source-', dir=ROOT / 'resources') as source, \
+             tempfile.TemporaryDirectory(prefix='bundle-sdk-build-', dir=ROOT / 'build') as output:
+            for library_type in ('STATIC', 'SHARED'):
+                fixture = pathlib.Path(source) / library_type
+                fixture.mkdir()
+                (fixture / 'CMakeLists.txt').write_text(
+                    'cmake_minimum_required(VERSION 3.31)\nproject(BundleSDK NONE)\n'
+                    f'add_library(canvas {library_type} IMPORTED)\n'
+                    'set_target_properties(canvas PROPERTIES IMPORTED_LOCATION "/fixture/libcanvas.dylib")\n'
+                    'include("${BUNDLE_MODULE}")\n'
+                    'congregation_bundle_sdk_arguments(arguments canvas)\n'
+                    'file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/arguments.txt" CONTENT "${arguments}")\n',
+                    encoding='utf-8')
+                build = pathlib.Path(output) / library_type
+                result = subprocess.run(['cmake', '-S', str(fixture), '-B', str(build),
+                    '-DBUNDLE_MODULE=' + str(ROOT / 'cmake/NativeBundleSDK.cmake')],
+                    text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                arguments = (build / 'arguments.txt').read_text(encoding='utf-8')
+                if library_type == 'STATIC':
+                    self.assertEqual(arguments, '')
+                else:
+                    self.assertEqual(arguments.split(';'),
+                                     ['--library', '/fixture/libcanvas.dylib', '--library-dir', '/fixture'])
+
     def test_additional_static_sdk_notices_are_packaged(self):
         with tempfile.TemporaryDirectory(prefix='package-notices-', dir=ROOT / 'resources') as raw:
             root = pathlib.Path(raw)

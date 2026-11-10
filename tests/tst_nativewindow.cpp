@@ -122,31 +122,18 @@ int main(int argc, char** argv)
                  checkColor(playhead, ruler.y + 24, {84, 138, 247});
                  const auto layers = take(take(mount.find("layers")).snapshot()).bounds;
                  checkColor(playhead, layers.y + 50, {84, 138, 247});
-                 for (const auto& p : ToolSettings::specs())
-                 {
-                     if (p.checkbox) {
-                         require(bool(mount.find(std::string(p.key))), "Parameter checkbox missing");
-                         continue;
-                     }
-                     if (p.dynamics_choice) {
-                         auto choice = take(mount.find("adjust-" + std::string(p.key)));
-                         require(take(choice.snapshot()).text == vm->parameters->label(p.id),
-                                 "Displayed dynamics control differs from the model");
-                         continue;
-                     }
-                     auto slider = take(mount.find(p.id == ToolParameter::size
-                                                       ? "brush-size"
-                                                       : "adjust-" + std::string(p.key)));
-                     require(take(slider.snapshot()).bounds.height == 32,
-                             "Parameter slider hit height changed");
-                     require(
-                         take(take(mount.find("value-" + std::string(p.key))).snapshot()).text ==
-                             vm->parameters->label(p.id),
-                         "Displayed parameter differs from the model");
-                 }
-                 good(take(mount.find("size-plus")).activate());
-                 require(vm->parameters->value(ToolParameter::size) == 65,
-                         "Step button does not edit shared Tool state");
+                 const auto size = take(take(mount.find("brush-size")).snapshot()).bounds;
+                 require(size.height == 22, "Brush slider hit height changed");
+                 const auto previousSize = vm->parameters->value(ToolParameter::size);
+                 good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::pointer_down,
+                                            .x = size.x + size.width * .8f,
+                                            .y = size.y + size.height / 2,
+                                            .buttons = 1}));
+                 good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::pointer_up,
+                                            .x = size.x + size.width * .8f,
+                                            .y = size.y + size.height / 2}));
+                 require(vm->parameters->value(ToolParameter::size) != previousSize,
+                         "The declarative brush slider does not edit shared Tool state");
                  auto stale = take(mount.find("brush-size"));
                  auto settings = vm->parameters;
                  good(take(mount.find("option-1")).activate());

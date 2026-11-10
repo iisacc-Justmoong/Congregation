@@ -1,54 +1,78 @@
-<script>
 import vm congregation.ui.EditorBackend
-</script>
-<Window title="Preferences" width={Metric.size480} height={Metric.size360} minimumWidth={Metric.size480} minimumHeight={Metric.size360}>
-  <div id="preferences-root" style="height: Metric.size360; display: flex; flex-direction: column; gap: Metric.space20; padding: Metric.space24; align-items: stretch; flex: 1">
-    <div style="display: flex; flex-direction: row; align-items: center">
-      <Spacer/>
-      <LabelSegmentedControl id="preferences-sections">
-        <LabelButton id="general-tab" text="General" checked={vm.general_visible} selectionStyle={.segmented} method={vm.general_tab}/>
-        <LabelButton id="profile-tab" text="Profile" checked={vm.profile_visible} selectionStyle={.segmented} method={vm.profile_tab}/>
-        <LabelButton id="members-tab" text="Members" checked={vm.members_visible} selectionStyle={.segmented} method={vm.members_tab}/>
-      </LabelSegmentedControl>
-      <Spacer/>
-    </div>
-    <div id="general-pane" visible={vm.general_visible} style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch; flex: 1">
-      <Label text="Account"/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space8"><Label text={vm.account_email} fontSize={Metric.textBody}/><Spacer/><Button id="preferences-open-society" text={vm.account_button} height={Metric.size28} onClick={vm.open_society}/></div>
-      <Label text={vm.account_guide}/>
-      <Label text="Startup"/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space16"><RadioButton text="New canvas" checked={vm.start_new} onToggled={vm.set_start_new}/><RadioButton text="Recent canvas" checked={vm.start_recent} onToggled={vm.set_start_recent}/></div>
-      <CheckBox text="Discover nearby Congregation users" checked={vm.discover} onToggled={vm.set_discover}/>
-      <Spacer/>
-      <Label text={vm.update_status}/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space8"><Button id="restore-purchases" text="Check license" tone={.default} height={Metric.size28} onClick={vm.restore_license}/><Spacer/><Button id="check-update" text="Check for updates" height={Metric.size28} onClick={vm.check_update}/></div>
-    </div>
-    <div id="profile-pane" visible={vm.profile_visible} style="display: flex; flex-direction: column; gap: Metric.space12; align-items: flex-start; flex: 1">
-      <Label text="User image"/>
-      <EventListener id="profile-image" sizeToContent={true} onInput={vm.profile_input}>
-        <Avatar id="profile-avatar" size={.large} source={vm.profile_avatar} accessibilityName="Profile image"/>
-      </EventListener>
-      <Label text="Username"/>
-      <InputField id="profile-name" text={vm.display_name} placeholder="Username" width={Metric.size480 - 2 * Metric.space24} size={.compact} surface={.rounded} clearButtonVisible={true} onEdited={vm.set_name}/>
-      <CheckBox text="Allow inviting other users" checked={vm.can_invite} onToggled={vm.set_can_invite}/>
-      <Spacer/>
-    </div>
-    <div id="members-pane" visible={vm.members_visible} style="display: flex; flex-direction: column; gap: Metric.space8; align-items: stretch; flex: 1">
-      <Label text={vm.status}/>
-      <div style="display: flex; flex-direction: row; gap: Metric.space6"><Button id="host-session" text="Share canvas" tone={.default} height={Metric.size28} onClick={vm.host_session}/><Button id="join-session" text="Join nearby…" tone={.default} height={Metric.size28} onClick={vm.join_session}/><Button id="leave-session" text="Leave" tone={.default} height={Metric.size28} onClick={vm.leave_session}/></div>
-      <div style="display: flex; flex-direction: row; gap: Metric.space0; flex: 1; align-items: stretch"><Spacer/><List id="members" model={vm.member_source} modelRevision={vm.member_revision} footerVisible={false} width={Metric.size237} height={Metric.size160} rowHeight={Metric.size20} backgroundColor={Color.surfaceSolid} selectedRowColor={Color.blue.selected} cornerRadius={Metric.space0} onItemActivated={vm.activate_member}/><Spacer/></div>
-      <div style="display: flex; flex-direction: row; gap: Metric.space4"><IconButton accessibilityName="Copy invitation" iconName="add" tone={.borderless} height={Metric.size20} onClick={vm.invite}/><IconButton accessibilityName="Remove member" iconName="remove" tone={.borderless} height={Metric.size20} onClick={vm.remove_member}/><Spacer/><Button text="Accept" tone={.borderless} height={Metric.size20} onClick={vm.accept_invite}/><Button text="Decline" tone={.borderless} height={Metric.size20} onClick={vm.reject_invite}/></div>
-    </div>
-    <Popover id="join-popup" width={Metric.size320 + 2 * Metric.space12} height={Metric.size132}>
-      <div style="display: flex; flex-direction: column; gap: Metric.space12; align-items: stretch">
-        <Label text="Join canvas" fontSize={Metric.textBody} fontWeight={Metric.weightSemiBold}/>
-        <InputField id="session-address" text={vm.session_address} placeholder="Session invitation or host address" width={Metric.size320} height={Metric.size28} onEdited={vm.set_address}/>
-        <Button text="Join" height={Metric.size28} onClick={vm.join_submit}/>
-      </div>
-    </Popover>
-    <ContextMenu id="avatar-menu" targetId="profile-image" itemWidth={Metric.size190}>
-      <MenuItem keyVisible={false} showChevron={false} label="Select profile image…" onClick={vm.choose_profile}/>
-      <MenuItem keyVisible={false} showChevron={false} label="Delete profile image" onClick={vm.clear_profile}/>
-    </ContextMenu>
-  </div>
-</Window>
+
+Window(title: "Preferences", width: Metric.size480, height: Metric.size360, minimumWidth: Metric.size480, minimumHeight: Metric.size360) {
+    VStack(id: "preferences-root", height: Metric.size360, spacing: Metric.space20, padding: Metric.space24, alignment: .stretch, flex: 1) {
+        HStack(alignment: .center) {
+            Spacer() {},
+            LabelSegmentedControl(id: "preferences-sections") {
+                LabelButton(id: "general-tab", text: "General", checked: vm.general_visible, selectionStyle: .segmented, method: vm.general_tab) {},
+                LabelButton(id: "profile-tab", text: "Profile", checked: vm.profile_visible, selectionStyle: .segmented, method: vm.profile_tab) {},
+                LabelButton(id: "members-tab", text: "Members", checked: vm.members_visible, selectionStyle: .segmented, method: vm.members_tab) {},
+            },
+            Spacer() {},
+        },
+        VStack(id: "general-pane", visible: vm.general_visible, spacing: Metric.space12, alignment: .stretch, flex: 1) {
+            Label(text: "Account") {},
+            HStack(spacing: Metric.space8) {
+                Label(text: vm.account_email, fontSize: Metric.textBody) {},
+                Spacer() {},
+                PushButton(id: "preferences-open-society", text: vm.account_button, height: Metric.size28, onClick: vm.open_society) {},
+            },
+            Label(text: vm.account_guide) {},
+            Label(text: "Startup") {},
+            HStack(spacing: Metric.space16) {
+                RadioButton(text: "New canvas", checked: vm.start_new, onToggled: vm.set_start_new) {},
+                RadioButton(text: "Recent canvas", checked: vm.start_recent, onToggled: vm.set_start_recent) {},
+            },
+            CheckBox(text: "Discover nearby Congregation users", checked: vm.discover, onToggled: vm.set_discover) {},
+            Spacer() {},
+            Label(text: vm.update_status) {},
+            HStack(spacing: Metric.space8) {
+                PushButton(id: "restore-purchases", text: "Check license", tone: .default, height: Metric.size28, onClick: vm.restore_license) {},
+                Spacer() {},
+                PushButton(id: "check-update", text: "Check for updates", height: Metric.size28, onClick: vm.check_update) {},
+            },
+        },
+        VStack(id: "profile-pane", visible: vm.profile_visible, spacing: Metric.space12, alignment: .leading, flex: 1) {
+            Label(text: "User image") {},
+            EventListener(id: "profile-image", sizeToContent: true, onInput: vm.profile_input) {
+                Avatar(id: "profile-avatar", size: .large, source: vm.profile_avatar, accessibilityName: "Profile image") {},
+            },
+            Label(text: "Username") {},
+            InputField(id: "profile-name", text: vm.display_name, placeholder: "Username", width: Metric.size480 - 2 * Metric.space24, size: .compact, surface: .rounded, clearButtonVisible: true, onEdited: vm.set_name) {},
+            CheckBox(text: "Allow inviting other users", checked: vm.can_invite, onToggled: vm.set_can_invite) {},
+            Spacer() {},
+        },
+        VStack(id: "members-pane", visible: vm.members_visible, spacing: Metric.space8, alignment: .stretch, flex: 1) {
+            Label(text: vm.status) {},
+            HStack(spacing: Metric.space6) {
+                PushButton(id: "host-session", text: "Share canvas", tone: .default, height: Metric.size28, onClick: vm.host_session) {},
+                PushButton(id: "join-session", text: "Join nearby…", tone: .default, height: Metric.size28, onClick: vm.join_session) {},
+                PushButton(id: "leave-session", text: "Leave", tone: .default, height: Metric.size28, onClick: vm.leave_session) {},
+            },
+            HStack(spacing: Metric.space0, flex: 1, alignment: .stretch) {
+                Spacer() {},
+                List(id: "members", model: vm.member_source, modelRevision: vm.member_revision, footerVisible: false, width: Metric.size237, height: Metric.size160, rowHeight: Metric.size20, backgroundColor: Color.surfaceSolid, selectedRowColor: Color.blue.selected, cornerRadius: Metric.space0, onItemActivated: vm.activate_member) {},
+                Spacer() {},
+            },
+            HStack(spacing: Metric.space4) {
+                IconButton(accessibilityName: "Copy invitation", iconName: "add", tone: .borderless, height: Metric.size20, onClick: vm.invite) {},
+                IconButton(accessibilityName: "Remove member", iconName: "remove", tone: .borderless, height: Metric.size20, onClick: vm.remove_member) {},
+                Spacer() {},
+                PushButton(text: "Accept", tone: .borderless, height: Metric.size20, onClick: vm.accept_invite) {},
+                PushButton(text: "Decline", tone: .borderless, height: Metric.size20, onClick: vm.reject_invite) {},
+            },
+        },
+        Popover(id: "join-popup", width: Metric.size320 + 2 * Metric.space12, height: Metric.size132) {
+            VStack(spacing: Metric.space12, alignment: .stretch) {
+                Label(text: "Join canvas", fontSize: Metric.textBody, fontWeight: Metric.weightSemiBold) {},
+                InputField(id: "session-address", text: vm.session_address, placeholder: "Session invitation or host address", width: Metric.size320, height: Metric.size28, onEdited: vm.set_address) {},
+                PushButton(text: "Join", height: Metric.size28, onClick: vm.join_submit) {},
+            },
+        },
+        ContextMenu(id: "avatar-menu", targetId: "profile-image", itemWidth: Metric.size190) {
+            MenuItem(keyVisible: false, showChevron: false, label: "Select profile image…", onClick: vm.choose_profile) {},
+            MenuItem(keyVisible: false, showChevron: false, label: "Delete profile image", onClick: vm.clear_profile) {},
+        },
+    },
+}

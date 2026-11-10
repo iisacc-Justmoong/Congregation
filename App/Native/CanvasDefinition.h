@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
+#include <cstdint>
 
 namespace congregation::native
 {
+inline constexpr int CanvasMaximumDimension = 32768;
+inline constexpr std::uint64_t CanvasMaximumPixels = 256ULL * 1024 * 1024;
 // Authored dimensions plus the checked pixel extent. This is document data,
 // independent of the chooser's native controls and presentation tokens.
 struct CanvasDefinition final

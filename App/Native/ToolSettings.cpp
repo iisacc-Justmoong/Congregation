@@ -99,7 +99,10 @@ constexpr ParameterSpec parameters[]{
     {P::build_up_enabled, "build-up-enabled", "Enable Build-up", "Build-up", "", "", 0, 1, 0, 1, true, false, true},
     {P::build_up_rate, "build-up-rate", "Accumulation", "Build-up", "brush-flow", "%", 0, 100, 25},
     {P::build_up_limit, "build-up-limit", "Opacity Limit", "Build-up", "brush-opacity", "%", 0, 100, 100},
-    {P::build_up_time, "build-up-time", "Time-based Build-up", "Build-up", "", "", 0, 1, 0, 1, true, false, true}};
+    {P::build_up_time, "build-up-time", "Time-based Build-up", "Build-up", "", "", 0, 1, 0, 1, true, false, true},
+    {P::shape_tilt_scale, "shape-tilt-scale", "Tilt Scale", "Shape Dynamics", "panel-tilt-angle", "%", 0, 100, 100},
+    {P::transfer_opacity_jitter, "transfer-opacity-jitter", "Opacity Jitter", "Transfer", "brush-opacity", "%", 0, 100, 0},
+    {P::noise_monochrome, "noise-monochrome", "Monochrome", "Noise", "", "", 0, 1, 1, 1, true, false, true}};
 ToolValues defaults()
 {
     ToolValues v{};
@@ -142,18 +145,27 @@ double ToolSettings::normalized(P id) const
     return s.logarithmic ? std::log(v / s.minimum) / std::log(s.maximum / s.minimum)
                          : (v - s.minimum) / (s.maximum - s.minimum);
 }
-std::string ToolSettings::label(P id) const
+std::string ToolSettings::option_label(P id, int option)
 {
     if (id == P::texture_mode) {
         static constexpr std::string_view modes[]{"Multiply", "Subtract", "Darken", "Lighten", "Color Dodge", "Color Burn", "Linear Burn", "Hard Mix", "Height", "Linear Height"};
-        return std::string(modes[static_cast<std::size_t>(value(id))]);
+        if(option<0 || std::size_t(option)>=std::size(modes))throw std::out_of_range("Unknown texture mode");
+        return std::string(modes[static_cast<std::size_t>(option)]);
     }
-    if (id == P::smoothing_method)
-        return value(id) == 0 ? "Exponential" : "Pulled String";
+    if (id == P::smoothing_method) {
+        if(option<0 || option>1)throw std::out_of_range("Unknown smoothing method");
+        return option == 0 ? "Exponential" : "Pulled String";
+    }
     if (spec(id).dynamics_choice) {
         static constexpr std::string_view names[]{"Off", "Fade", "Pen Pressure", "Pen Tilt", "Stylus Wheel", "Stylus Rotation", "Initial Direction", "Direction"};
-        return std::string(names[static_cast<std::size_t>(value(id))]);
+        if(option<0 || std::size_t(option)>=std::size(names))throw std::out_of_range("Unknown dynamics control");
+        return std::string(names[static_cast<std::size_t>(option)]);
     }
+    throw std::invalid_argument("Parameter does not have choices");
+}
+std::string ToolSettings::label(P id) const
+{
+    if (spec(id).dynamics_choice) return option_label(id,static_cast<int>(value(id)));
     return ii::core::format_decimal(value(id)) + std::string(spec(id).unit);
 }
 bool ToolSettings::set(P id, double v)

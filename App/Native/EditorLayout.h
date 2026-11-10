@@ -14,6 +14,7 @@ struct Fit final
 {
     double scale, x, y;
 };
+inline constexpr double maximum_canvas_zoom = 32.0;
 [[nodiscard]] Fit fit(double width, double height, double document_width, double document_height);
 [[nodiscard]] ii::gui::Color linear(ii::gui::WidgetColor);
 void panel(ii::gui::Widget, ii::gui::WidgetColor);

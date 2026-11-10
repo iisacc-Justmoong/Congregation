@@ -21,4 +21,9 @@ function(congregation_configure_ipados target)
         XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks"
         XCODE_ATTRIBUTE_ENABLE_BITCODE NO)
     target_link_options(${target} PRIVATE -ObjC)
+    option(CONGREGATION_IOS_SOCIETY_APP_GROUP "Enable migration to the Society App Group" ON)
+    if(CONGREGATION_IOS_SOCIETY_APP_GROUP)
+        set_target_properties(${target} PROPERTIES
+            XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/packaging/ios/Congregation.entitlements")
+    endif()
 endfunction()

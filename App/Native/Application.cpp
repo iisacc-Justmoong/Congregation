@@ -1,4 +1,6 @@
 #include "Artwork.h"
+#include "BrushPressure.h"
+#include "StartupCanvas.h"
 #include "AppMenu.h"
 #include "CanvasView.h"
 #include "ChildWindowGeneration.h"
@@ -24,7 +26,9 @@
 #include <iiUpdateManager/NativeUpdateManager.h>
 #include <iiFileProviderNative.h>
 #include <iiFileProviderCompatibility.h>
+#include <MobileStorage.h>
 #include <iiSDKCore/Core/Text/Number.h>
+#include <iiSDKCore/Runtime/Runtime.h>
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
@@ -137,7 +141,12 @@ std::string account_message(const LicenseService& license)
 struct State final : std::enable_shared_from_this<State>
 {
     ii::runtime::Application& app;
-    bool test = false, closed = false, receiving = false, device_evidence = false;
+    bool test = false, closed = false, receiving = false, device_evidence = false, placeholder = false, startup_pending = false;
+    std::string storage_error;
+    std::optional<SocietyFiles> mobile_files;
+    std::unique_ptr<ii::runtime::Runtime> mobile_storage_worker;
+    bool mobile_storage_pending = false;
+    unsigned startup_attempts = 0;
     int pressure_handle = -1;
     ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
     std::filesystem::path directory, initial_file, reference_image;
@@ -166,7 +175,7 @@ struct State final : std::enable_shared_from_this<State>
     std::string selected_member;
     NearbyDiscovery discovery;
     CanvasSession session;
-    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer;
+    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer, startup_retry;
     std::uint64_t airbrush_timer_generation = 0;
     std::shared_ptr<ToolSettings> tool_settings = std::make_shared<ToolSettings>();
     std::shared_ptr<TimelineModel> timeline_model = std::make_shared<TimelineModel>();
@@ -185,7 +194,15 @@ struct State final : std::enable_shared_from_this<State>
           image_http(app.event_loop()),
           discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
     {
-        check(artwork.create(test ? 128 : 1024, test ? 96 : 768), artwork.error());
+        if (test) {
+            check(artwork.create(128, 96), artwork.error());
+        } else {
+            // The actual screen is known only after the native window opens.
+            // This private inert document cannot receive user edits.
+            placeholder = startup_pending = true;
+            storage_error = "Waiting for the window display";
+            check(artwork.create_startup_placeholder(), artwork.error());
+        }
         const auto program = std::filesystem::absolute(native_path(app.arguments().front()));
 #if defined(__APPLE__) && TARGET_OS_IOS
         view->set_assets(program.parent_path() / "figma");
@@ -199,7 +216,122 @@ struct State final : std::enable_shared_from_this<State>
             (void) tool_settings->restore(
                 iiFileProvider::native::File::read(directory / "tools.ini", 8192));
     }
-    ~State() { (void)airbrush_timer.cancel(); }
+    ~State() { (void)airbrush_timer.cancel(); (void)startup_retry.cancel(); }
+    std::expected<SocietyFiles,std::string> society_files() const {
+#if (defined(__APPLE__) && TARGET_OS_IOS) || defined(__ANDROID__)
+        if(mobile_files && mobile_files->available())return *mobile_files;
+        return std::unexpected(storage_error.empty() ? "Mobile Society storage is unavailable" : storage_error);
+#else
+        return SocietyFiles::discover();
+#endif
+    }
+    void initialize_startup_canvas()
+    {
+        if (!startup_pending || closed) return;
+        const auto pixels=host->display_pixels();
+        if (!pixels) {
+            if (pixels.error().code==ii::core::ErrorCode::busy && startup_attempts++<100) {
+                const auto weak=weak_from_this();
+                auto scheduled=host->executor().after(std::chrono::milliseconds(50),[weak] {
+                    if (auto p=weak.lock()) p->initialize_startup_canvas();
+                });
+                if (scheduled) { startup_retry=scheduled.token; return; }
+            }
+            startup_pending=false;
+            storage_error=pixels.error().message;
+            status(storage_error);
+            return;
+        }
+        const auto definition=startup_canvas_definition(*pixels);
+        if (!definition) {
+            startup_pending=false;storage_error=definition.error();status(storage_error);return;
+        }
+        const auto files=society_files();
+        if (!files) {
+            startup_pending=false;storage_error=files.error();status(storage_error);return;
+        }
+        if (!artwork.create_in_society(*definition,*files)) {
+            startup_pending=false;storage_error=artwork.error();status(storage_error);return;
+        }
+        startup_pending=false;
+        placeholder=false;
+        canvas.fit();
+        refresh();
+    }
+    void finish_document_startup()
+    {
+        if(closed)return;
+        if (!test && preferences.start_recent && initial_file.empty() && startup_pending) {
+            const auto path=preferences.existing_canvas();
+            if(!path.empty()) {
+                const bool recovered=artwork.recover(path);
+                result(recovered);
+                if(recovered) {placeholder=false;startup_pending=false;}
+            }
+        }
+        if (!initial_file.empty() && startup_pending) {
+            const bool opened=artwork.open(initial_file);
+            result(opened);
+            if(opened) {placeholder=false;startup_pending=false;}
+            canvas.fit();refresh();
+        }
+        if(startup_pending)initialize_startup_canvas();
+        if(placeholder)status(storage_error);
+    }
+    bool prepare_mobile_storage()
+    {
+#if (defined(__APPLE__) && TARGET_OS_IOS) || defined(__ANDROID__)
+        if(test)return false;
+        std::error_code error;
+        const auto root=std::filesystem::canonical(directory,error);
+        if(error){storage_error="The application storage is unavailable";return false;}
+        const auto group=iiSocietyContainer::MobileStorage::app_group_root("group.com.iisacc.society");
+        const auto private_package=root/"Society.societycontainer";
+        const bool local_exists=std::filesystem::exists(std::filesystem::symlink_status(private_package,error));
+        if(error && error!=std::errc::no_such_file_or_directory) {
+            storage_error="The application storage cannot be inspected";return false;
+        }
+        const auto complete=[this](const auto& value) {
+            if(value){mobile_files=*value;storage_error.clear();}
+            else storage_error=value.error();
+        };
+        if(!group || !local_exists) {
+            complete(SocietyFiles::from_mobile(root,group,false));
+            return false;
+        }
+        // A migration can involve large files: keep it off the UI thread and
+        // postpone document opening until the source is no longer being copied.
+        try {
+            mobile_storage_worker=std::make_unique<ii::runtime::Runtime>(ii::runtime::RuntimeOptions{.workers=1,.capacity=4});
+            mobile_storage_pending=true;
+            status("Preparing Society storage…");
+            const auto weak=weak_from_this();const auto executor=host->executor();
+            auto submitted=mobile_storage_worker->post([weak,executor,root,group] {
+                auto value=SocietyFiles::from_mobile(root,group,true);
+                (void)executor.post([weak,root,value=std::move(value)]() mutable {
+                    if(auto state=weak.lock();state && !state->closed) {
+                        state->mobile_storage_pending=false;
+                        if(value){state->mobile_files=*value;state->storage_error.clear();}
+                        else {
+                            state->storage_error="Society migration was postponed: "+value.error();
+                            auto local=SocietyFiles::from_mobile(root,{},false);
+                            if(local)state->mobile_files=*local;
+                        }
+                        state->finish_document_startup();
+                        if(!state->storage_error.empty() && state->mobile_files)state->status(state->storage_error);
+                    }
+                });
+            });
+            if(submitted)return true;
+            mobile_storage_pending=false;
+            storage_error="Cannot start Society storage migration";
+        } catch(const std::exception& failure) {storage_error=failure.what();mobile_storage_pending=false;}
+        const auto local=SocietyFiles::from_mobile(root,{},false);
+        if(local)mobile_files=*local;
+        else storage_error=local.error();
+#endif
+        return false;
+    }
     void synchronize_airbrush_timer()
     {
         if (!canvas.airbrush_active()) { (void)airbrush_timer.cancel(); airbrush_timer = {}; return; }
@@ -331,7 +463,8 @@ struct State final : std::enable_shared_from_this<State>
                     iiFileProvider::native::File::read(directory / "asset-library.path", 8192));
         }
         backend.licensed.set(test || license.licensed);
-        backend.needs_license.set(!test && !license.licensed);
+        backend.workspace_visible.set(test || license.workspace_visible());
+        backend.needs_license.set(!test && !license.workspace_visible());
         backend.start_recent.set(preferences.start_recent);
         backend.start_new.set(!preferences.start_recent);
         backend.can_invite.set(preferences.invitations_allowed);
@@ -472,6 +605,10 @@ struct State final : std::enable_shared_from_this<State>
             {
                 if (!p->test && !p->license.licensed)
                     return false;
+                if (p->placeholder) {
+                    p->status(p->storage_error);
+                    return false;
+                }
                 if (p->main)
                 {
                     p->canvas.brush_size = p->main->brush_size.get();
@@ -790,12 +927,9 @@ struct State final : std::enable_shared_from_this<State>
         canvas.settings.pressureToOpacityEnabled = backend.pressure_enabled.get();
         BrushState engine = *canvas.settings.engineState;
         engine.rasterizer.smoothing = backend.stabilizer.get();
-        engine.dynamics.pressureToOpacity = 0;
-        auto& response = engine.dynamics.opacityResponse;
-        response.enabled = backend.pressure_enabled.get();
-        response.pressure = {true, std::clamp(backend.pressure_min.get(), 0., 1.),
-                             std::clamp(backend.pressure_mid.get(), 0., 1.),
-                             std::clamp(backend.pressure_max.get(), 0., 1.)};
+        configure_pressure_opacity(engine,backend.pressure_enabled.get(),backend.pressure_min.get(),
+                                   backend.pressure_mid.get(),backend.pressure_max.get(),
+                                   backend.parameters->value(P::transfer_opacity_jitter)/100.);
         canvas.settings.engineState = std::move(engine);
         if (main && &backend != main)
         {
@@ -1073,7 +1207,8 @@ struct State final : std::enable_shared_from_this<State>
         license.changed = [weak](LicenseService::Notice) {
             if(auto p=weak.lock()) for(auto* backend : {p->main,p->secondary}) if(backend) {
                 backend->licensed.set(p->test||p->license.licensed);
-                backend->needs_license.set(!p->test&&!p->license.licensed);
+                backend->workspace_visible.set(p->test||p->license.workspace_visible());
+                backend->needs_license.set(!p->test&&!p->license.workspace_visible());
                 backend->can_activate.set(!p->license.verifying);
                 backend->signing_in.set(p->license.verifying);
                 backend->signed_in.set(p->license.signed_in);
@@ -1123,7 +1258,9 @@ struct State final : std::enable_shared_from_this<State>
             if (auto p = weak.lock())
             {
                 p->receiving = true;
-                p->result(p->artwork.receive(bytes));
+                const bool received=p->artwork.receive(bytes);
+                p->result(received);
+                if(received){p->placeholder=false;p->startup_pending=false;}
                 p->receiving = false;
             }
         };
@@ -1134,8 +1271,11 @@ struct State final : std::enable_shared_from_this<State>
                 if (text(field(command, "type")) == "nativeDocument")
                 {
                     auto bytes = unbase64(text(field(command, "document")));
-                    if (bytes)
-                        p->result(p->artwork.receive(*bytes));
+                    if (bytes) {
+                        const bool received=p->artwork.receive(*bytes);
+                        p->result(received);
+                        if(received){p->placeholder=false;p->startup_pending=false;}
+                    }
                 }
             }
         };
@@ -1164,15 +1304,13 @@ struct State final : std::enable_shared_from_this<State>
         };
         if (!test)
         {
-            license.restore();
+            // Let the native window enter its event loop before starting verification.
+            auto scheduled = host->executor().post([weak] {
+                if (auto p = weak.lock()) p->license.restore();
+            });
+            check(bool(scheduled), "Cannot schedule license verification");
             if (preferences.discover_nearby)
                 discovery.start();
-            if (preferences.start_recent)
-            {
-                const auto path = preferences.existing_canvas();
-                if (!path.empty())
-                    result(artwork.recover(path));
-            }
         }
         check(bool(engine.start([] {})), "Core engine startup was rejected");
         if (device_evidence)
@@ -1182,12 +1320,7 @@ struct State final : std::enable_shared_from_this<State>
             });
             check(bool(capture), "Cannot schedule device startup evidence");
         }
-        if (!initial_file.empty())
-        {
-            result(artwork.open(initial_file));
-            canvas.fit();
-            refresh();
-        }
+        if(!prepare_mobile_storage())finish_document_startup();
         if (test)
         {
             auto submitted = host->executor().post(
@@ -1310,12 +1443,26 @@ struct State final : std::enable_shared_from_this<State>
     void choose(bool export_file, bool save_as = false)
     {
         ii::gui::FileDialogOptions options;
+        std::filesystem::path selected_root;
+        if (save_as) {
+#if defined(__APPLE__) && TARGET_OS_IOS
+            // The current UIKit adapter asks only for a folder and silently
+            // appends Canvas.iisc. That cannot satisfy an explicit filename.
+            status("Choosing a Society canvas filename is not yet available on iPad");
+            return;
+#endif
+            const auto files = society_files();
+            if (!files) { status(files.error()); return; }
+            selected_root = files->root();
+            options.initial_directory = path_text(selected_root);
+        }
         options.mode =
             export_file || save_as ? ii::gui::FileDialogMode::save : ii::gui::FileDialogMode::open;
         options.title = export_file ? "Export canvas" : save_as ? "Save canvas" : "Open canvas";
         options.filename = export_file ? "Canvas.png" : save_as ? "Canvas.iisc" : "";
         options.filters =
-            export_file ? std::vector<ii::gui::FileFilter>{{"Images",
+            save_as ? std::vector<ii::gui::FileFilter>{{"Congregation canvas", {"iisc"}}}
+            : export_file ? std::vector<ii::gui::FileFilter>{{"Images",
                                                             {"png", "jpg", "jpeg", "bmp", "tga",
                                                              "webp", "tif", "tiff", "psd"}}}
                         : std::vector<ii::gui::FileFilter>{
@@ -1323,11 +1470,12 @@ struct State final : std::enable_shared_from_this<State>
                                {"vrc", "iisc", "psd", "ora", "png", "jpg", "jpeg", "bmp", "gif",
                                 "tga", "webp", "tif", "tiff"}}};
         auto weak = weak_from_this();
+        const auto document = artwork.recovery();
         auto result =
             host->choose_file(std::move(options),
-                              [weak, export_file, save_as](auto result)
+                              [weak, export_file, save_as, selected_root, document](auto result)
                               {
-                                  if (auto p = weak.lock())
+                                  if (auto p = weak.lock(); p && !p->closed)
                                   {
                                       if (!result)
                                       {
@@ -1346,10 +1494,23 @@ struct State final : std::enable_shared_from_this<State>
                                                     "Exported " + path_text(path.filename()));
                                       }
                                       else if (save_as)
-                                          p->result(p->artwork.save(path), "Canvas saved");
+                                      {
+                                          const auto files = p->society_files();
+                                          if (!files || files->root() != selected_root || p->artwork.recovery() != document) {
+                                              p->status("The canvas or Society storage changed while choosing a path");
+                                              return;
+                                          }
+                                          const auto destination = files->destination(path);
+                                          if (!destination) { p->status(destination.error()); return; }
+                                          p->result(p->artwork.has_society_temporary()
+                                                        ? p->artwork.save_in_society(*destination)
+                                                        : p->artwork.save(*destination), "Canvas saved");
+                                      }
                                       else
                                       {
-                                          p->result(p->artwork.open(path));
+                                          const bool opened = p->artwork.open(path);
+                                          p->result(opened);
+                                          if (opened) { p->placeholder = false; p->startup_pending = false; }
                                           p->canvas.fit();
                                           p->refresh();
                                       }
@@ -1468,6 +1629,15 @@ struct State final : std::enable_shared_from_this<State>
         if (!test && !license.licensed)
         {
             status("Sign in to verify your Congregation license");
+            return;
+        }
+        if(mobile_storage_pending && (action==Action::new_document || action==Action::create_canvas || action==Action::open)) {
+            status("Preparing Society storage…");
+            return;
+        }
+        if (placeholder && action != Action::new_document && action != Action::create_canvas &&
+            action != Action::cancel_canvas && action != Action::open) {
+            status(storage_error);
             return;
         }
         if (canvas.quick_mask_active() && action != Action::brush && action != Action::eraser &&
@@ -1604,7 +1774,15 @@ struct State final : std::enable_shared_from_this<State>
                 break;
             const auto definition = setup->specification();
             if (!definition) { setup->creation_error(definition.error()); break; }
-            if (!artwork.create(*definition)) { setup->creation_error(artwork.error()); break; }
+            if (test) {
+                if (!artwork.create(*definition)) { setup->creation_error(artwork.error()); break; }
+            } else {
+                const auto files = society_files();
+                if (!files) { setup->creation_error(files.error()); break; }
+                if (!artwork.create_in_society(*definition, *files)) { setup->creation_error(artwork.error()); break; }
+            }
+            placeholder = false;
+            startup_pending = false;
             canvas.fit();
             good(setup_host->request_close());
             break;
@@ -1660,8 +1838,14 @@ struct State final : std::enable_shared_from_this<State>
         case Action::save:
             if (artwork.source().empty())
                 choose(false, true);
-            else
-                result(artwork.save(artwork.source()), "Canvas saved");
+            else {
+                const auto files = society_files();
+                if (!files) status(files.error());
+                else if (!files->destination(artwork.source())) choose(false, true);
+                else result(artwork.has_society_temporary()
+                                ? artwork.save_in_society(artwork.source())
+                                : artwork.save(artwork.source()), "Canvas saved");
+            }
             break;
         case Action::save_as:
             choose(false, true);
@@ -1994,9 +2178,6 @@ struct State final : std::enable_shared_from_this<State>
         good(mount.dispatch_input({.kind = K::pointer_up, .x = x, .y = y}));
         check(main->parameters->value(ToolParameter::size) == 128,
               "Native slider drag did not adjust logarithmic brush size");
-        good(take(mount.find("size-plus")).activate());
-        check(main->parameters->value(ToolParameter::size) == 129,
-              "Native step button did not make a physical-unit adjustment");
         main->reset_parameters();
         auto scroll = take(mount.find("tool-scroll"));
         const auto scroll_bounds = bounds("tool-scroll");
@@ -2131,10 +2312,12 @@ struct State final : std::enable_shared_from_this<State>
         check(test && main, "Isolated self-test state missing");
         const auto license_revision = artwork.revision();
         main->licensed.set(false);
+        main->workspace_visible.set(false);
         main->needs_license.set(true);
         view->refresh_document(artwork.document(), artwork.selected());
         capture_evidence(*host, "unlicensed");
         main->licensed.set(true);
+        main->workspace_visible.set(true);
         main->needs_license.set(false);
         view->refresh_document(artwork.document(), artwork.selected());
         check(artwork.revision() == license_revision, "License screen changed the document");
@@ -2487,10 +2670,8 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
                                  },
                                  .resized = [weak](ii::gui::Size size) { if(auto p=weak.lock();p&&p->view) if(auto root=p->view->widgets().find("root"))good(root->set_extent(size)); },
                                  .close_requested =
-                                     [weak]
+                                     []
                                  {
-                                     if (auto p = weak.lock())
-                                         p->artwork.cancel();
                                      return true;
                                  },
                                  .closed =
@@ -2499,6 +2680,8 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
                                      if (auto p = weak.lock())
                                      {
                                          p->closed = true;
+                                         p->artwork.close_temporary();
+                                         p->artwork.cancel();
                                          p->session.stop();
                                          p->discovery.stop();
                                          p->updater.cancelUpdate();
@@ -2510,7 +2693,9 @@ ii::core::Result<void> ii::runtime::configure_application(Application& app)
                                  {
                                      if (auto p = weak.lock(); p && !p->test && !paths.empty())
                                      {
-                                         p->result(p->artwork.open(native_path(paths.front())));
+                                         const bool opened = p->artwork.open(native_path(paths.front()));
+                                         p->result(opened);
+                                         if (opened) { p->placeholder = false; p->startup_pending = false; }
                                          p->canvas.fit();
                                          p->refresh();
                                      }

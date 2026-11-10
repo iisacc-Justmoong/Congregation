@@ -101,7 +101,7 @@ void WorkspaceView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
     good(raw.retain(bindings_));
     const auto root = b.column(parent, "workspace");
     good(root.set_flex(1));
-    good(ii::gui::bind_visible(*bindings_, root, vm_->licensed));
+    good(ii::gui::bind_visible(*bindings_, root, vm_->workspace_visible));
     const auto body = take(b.controls.hstack(
         root, "work-area",
         {.spacing = Metric::space0, .alignment = ii::gui::StackAlignment::stretch}));

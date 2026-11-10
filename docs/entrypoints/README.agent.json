@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "a6a75e4f798dc6d57e104f6c391dd2254bef1daaf31c613c576ea70e97195bbf",
-    "bytes": 8239,
+    "sha256": "2d523b20a7ff3406d4bde93f036a20b6eccf2af4ae3090174919f13b43013fdd",
+    "bytes": 8337,
     "line_count": 77,
     "encoding": "utf-8",
     "language": "en"
@@ -57,7 +57,7 @@
       "kind": "paragraph",
       "start_line": 5,
       "end_line": 5,
-      "raw": "LVUI views are HTML-like markup with inline styles. They compile to C++23 during the build and are not interpreted as web pages at runtime. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.\n"
+      "raw": "LVUI views use direct declarative syntax: `ApplicationWindow` or `Window` contains nested `HStack`, `VStack`, and native controls, with values and events connected to imported C++ view models. The views compile to C++23 during the build. macOS uses Cocoa and Metal; Vulkan is available through MoltenVK. Windows Win32/Direct3D and Linux X11/Vulkan adapters are implemented as source ports. Their execution is not verified by the macOS build.\n"
     },
     {
       "id": "b000006",
