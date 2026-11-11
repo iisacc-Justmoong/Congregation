@@ -16,7 +16,7 @@
 
 Congregation의 활성 UI 색상과 컨트롤 표현은 LVUI가 소유하는 공유 토큰을 사용한다. LVUI 뷰는 `Color.surfaceSolid`, `Color.text.description`, `Color.blue.selected` 등을 직접 참조하고 네이티브 C++은 같은 생성 카탈로그의 `Color::surfaceSolid`, `Color::textDescription`, `Color::blueSelected` 등을 사용한다. 이 카탈로그는 LVRS/Figma에서 도입한 값을 포함한다. 앱 전용 Color 선언과 `Panel/Border` Figma 변수는 제거했다.
 
-패널 경계는 두 제품과 Figma에서 공통 `Panel/canvas`이며 1 논리 픽셀이다. 타임라인의 눈금·플레이헤드·선택 영역은 각각 공통 텍스트 및 파랑 역할을 사용한다. 창과 팝오버·새 캔버스 창도 `Panel/window`, `Panel/surfaceSolid`를 사용한다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경 위에 합성한 뒤 네이티브 렌더러에 전달한다. 메인 창의 2% 악센트 합성은 같은 LVUI 색상 토큰으로 계산한다.
+패널 경계는 두 제품과 Figma에서 공통 `Panel/canvas`이며 1 논리 픽셀이다. 타임라인의 눈금·플레이헤드·선택 영역은 각각 공통 텍스트 및 파랑 역할을 사용한다. 창과 팝오버·새 캔버스 창도 `Panel/window`, `Panel/surfaceSolid`를 사용한다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경 위에 합성한 뒤 네이티브 렌더러에 전달한다. 메인 창 바탕은 악센트를 합성하지 않은 `Panel/window`다.
 
 네이티브 컨트롤과 타임라인의 아이콘 이름은 LVUI 디자인 카탈로그에서 해석한다.
 현재 Figma Main에서 캡처한 100종과 Avatar 기본 심벌은 해당 벡터를 사용하고, 나머지 이름은 LVUI가

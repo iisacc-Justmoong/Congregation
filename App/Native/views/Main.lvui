@@ -1,8 +1,30 @@
 import vm congregation.ui.EditorBackend
 import host congregation.native.NativeViewBackend
 
-ApplicationWindow(title: "Congregation", width: Metric.windowWidth, height: Metric.windowHeight, minimumWidth: Metric.windowMinimumWidth, minimumHeight: Metric.windowMinimumHeight) {
+ApplicationWindow(title: "Congregation", windowChrome: .custom, width: Metric.windowWidth, height: Metric.windowHeight, minimumWidth: Metric.windowMinimumWidth, minimumHeight: Metric.windowMinimumHeight) {
     VStack(id: "activation-shell", spacing: Metric.space0, alignment: .stretch, flex: 1) {
+        HStack(id: "application-titlebar", visible: vm.custom_titlebar_visible, height: Metric.space40,
+               spacing: Metric.space4, padding: Metric.space8, alignment: .center) {
+            HStack(id: "native-window-controls-space", visible: vm.native_titlebar_controls,
+                   width: 2 * Metric.size32 - Metric.space2, height: Metric.size24) {},
+            HStack(id: "client-window-controls", visible: vm.client_titlebar_controls, spacing: Metric.space0, alignment: .center) {
+                IconButton(id: "window-close", iconName: "generalclose", accessibilityName: "Close window", tone: .borderless, onClick: vm.titlebar_close) {},
+                IconButton(id: "window-minimize", iconName: "minus", accessibilityName: "Minimize window", tone: .borderless, onClick: vm.titlebar_minimize) {},
+                IconButton(id: "window-maximize", iconName: "expand", accessibilityName: "Maximize or restore window", tone: .borderless, onClick: vm.titlebar_maximize) {},
+            },
+            EventListener(id: "titlebar-drag-region", flex: 1, height: Metric.size24, onInput: vm.titlebar_input) {},
+            InputField(id: "titlebar-agent", text: vm.agent_prompt, placeholder: "Agent", width: Metric.size400 - Metric.size32 - Metric.space4,
+                       height: Metric.size22, size: .compact, surface: .rounded, onEdited: vm.set_agent_prompt, onSubmit: vm.submit_agent) {},
+            HStack(spacing: Metric.space2, alignment: .center) {
+                IconButton(id: "titlebar-notifications", iconName: "toolwindownotifications", accessibilityName: "Notifications", tone: .borderless, onClick: vm.show_notifications) {},
+                IconButton(id: "titlebar-learn", iconName: "toolwindowlearn", accessibilityName: "Learn", tone: .borderless, onClick: vm.show_learning) {},
+                IconButton(id: "titlebar-export", iconName: "generalexport", accessibilityName: "Export", tone: .borderless, onClick: vm.export_document) {},
+                IconButton(id: "titlebar-settings", iconName: "settings", accessibilityName: "Settings", tone: .borderless, onClick: vm.preferences) {},
+            },
+            EventListener(id: "titlebar-profile", sizeToContent: true, onInput: vm.titlebar_profile_input) {
+                Avatar(size: .small, source: vm.profile_avatar, accessibilityName: "Account") {},
+            },
+        },
         VStack(visible: vm.needs_license, alignment: .center, flex: 1) {
             Spacer() {},
             AppCard(id: "activation", width: Metric.size540, height: Metric.size340) {
@@ -55,8 +77,8 @@ ApplicationWindow(title: "Congregation", width: Metric.windowWidth, height: Metr
                         Spacer() {},
                         ComboBox(id: "document-color-mode", text: "sRGB / 8-bit", tone: .borderless, arrow: .down, width: Metric.size160, onClick: vm.show_document_options) {},
                         IconButton(id: "brush-color", iconName: "color-picker", accessibilityName: "color-picker", tone: .borderless, onClick: vm.open_color) {},
-                        IconButton(id: "export", iconName: "generalexport", accessibilityName: "generalexport", tone: .borderless, onClick: vm.export_document) {},
-                        IconButton(id: "preferences", iconName: "settings", accessibilityName: "settings", tone: .borderless, onClick: vm.preferences) {},
+                        IconButton(id: "export", visible: !vm.custom_titlebar_visible, iconName: "generalexport", accessibilityName: "generalexport", tone: .borderless, onClick: vm.export_document) {},
+                        IconButton(id: "preferences", visible: !vm.custom_titlebar_visible, iconName: "settings", accessibilityName: "settings", tone: .borderless, onClick: vm.preferences) {},
                     },
                     VStack(width: Metric.space4) {},
                 },

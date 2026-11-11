@@ -68,7 +68,7 @@ LVUI로 생성하고 헤드리스 위젯 트리에서 초기 목록, 갱신, 선
 
 ## 패널 색과 경계선 합성
 
-LVUI의 `Panel/window`와 파랑 악센트 토큰을 기존과 같은 비율로 합성한 창 배경을 사용하며 일반 패널은 투명하다. 합성된 sRGB 값은 `#1A1B1D`이고 별도의 LVRS `Theme` 타입은 필요하지 않다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 2026-10-25와 2026-10-31의 제품별 대표 색상 및 경계 변수는 당시의 기록이며 현재 구현의 별도 토큰이 아니다.
+창 배경은 LVUI의 `Panel/window`를 그대로 사용하며 악센트를 합성하지 않는다. 일반 패널은 투명하다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 창 재질의 Dense 75와 Glass 25는 별도 밀도 선택으로 유지한다.
 
 ## 도구 설정 모델
 

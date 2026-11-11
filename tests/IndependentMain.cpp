@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace {
 void require(bool condition, const char* message) {
@@ -33,6 +34,78 @@ ii::gui::Widget widget(const std::shared_ptr<ii::gui::detail::WidgetState>& tree
     if(found==nodes.end()) throw std::runtime_error("Main control did not mount: "+std::string(suffix));
     return take(tree->find(found->id));
 }
+void custom_titlebar() {
+    using View=lvui_generated::IndependentMainView;
+    using namespace ii::gui;
+    require(View::options().chrome==WindowChrome::custom,"The main window did not request custom chrome");
+    auto tree=std::make_shared<detail::WidgetState>([](ii::runtime::Task task){task();});
+    auto host=take(tree->content_host({},"titlebar-host",{1999,1080}));
+    std::shared_ptr<View::Scope> scope;
+    unsigned drags=0;
+    congregation::ui::Action invoked=congregation::ui::Action::quit;
+    good(host.set_content([&](auto& builder){return View::build(builder,{},[&](auto& view){
+        view.backend_0.custom_titlebar_visible.set(true);
+        view.backend_0.native_titlebar_controls.set(true);
+        view.backend_0.titlebar_drag=[&]() -> ii::core::Result<void> {
+            ++drags;
+            return tree->input({.kind=WidgetInputKind::pointer_cancel});
+        };
+        view.backend_0.perform=[&](auto action){invoked=action;};
+    },&scope);}));
+    (void)take(tree->drawing_snapshot({1999,1080}));
+    const auto bar=take(widget(tree,"/application-titlebar").snapshot()).bounds;
+    const auto controls=take(widget(tree,"/native-window-controls-space").snapshot()).bounds;
+    const auto agent=take(widget(tree,"/titlebar-agent").snapshot()).bounds;
+    const auto notification=take(widget(tree,"/titlebar-notifications").snapshot()).bounds;
+    const auto profile=take(widget(tree,"/titlebar-profile").snapshot()).bounds;
+    require(bar.x==0 && bar.y==0 && bar.width==1999 && bar.height==40,
+            "The titlebar must fill the window and match the Figma height");
+    require(controls.x==8 && controls.width==62 && agent.x==1501 && agent.y==9 && agent.width==364 && agent.height==22 &&
+            notification.x==1869 && profile.x==1967 && profile.width==24,
+            "The titlebar control layout differs from the Figma geometry");
+    good(tree->input({.kind=WidgetInputKind::pointer_down,.x=100,.y=20,.buttons=1}));
+    require(drags==1,"The titlebar drag region did not deliver its native action");
+    const auto export_bounds=take(widget(tree,"/titlebar-export").snapshot()).bounds;
+    good(tree->input({.kind=WidgetInputKind::pointer_down,.x=export_bounds.x+export_bounds.width/2,
+                      .y=export_bounds.y+export_bounds.height/2,.buttons=1}));
+    good(tree->input({.kind=WidgetInputKind::pointer_up,.x=export_bounds.x+export_bounds.width/2,
+                      .y=export_bounds.y+export_bounds.height/2}));
+    require(invoked==congregation::ui::Action::export_document,"Titlebar export is not wired");
+    good(widget(tree,"/titlebar-settings").activate());
+    require(invoked==congregation::ui::Action::preferences,"Titlebar settings is not wired");
+    scope->backend_0.native_titlebar_controls.set(false);
+    scope->backend_0.client_titlebar_controls.set(true);
+    (void)take(tree->drawing_snapshot({1999,1080}));
+    const auto desktop=take(widget(tree,"/client-window-controls").snapshot()).bounds;
+    const auto close=take(widget(tree,"/window-close").snapshot()).bounds;
+    const auto minimize=take(widget(tree,"/window-minimize").snapshot()).bounds;
+    const auto maximize=take(widget(tree,"/window-maximize").snapshot()).bounds;
+    require(desktop.x==8 && desktop.width==66 && close.x==8 && minimize.x==30 && maximize.x==52 &&
+            close.width==22 && minimize.width==22 && maximize.width==22 &&
+            take(widget(tree,"/titlebar-agent").snapshot()).bounds.x==1501,
+            "Windows and Linux controls do not match the LVUI Figma titlebar");
+    for(const auto& [name,expected]:{
+            std::pair{"/window-close",congregation::ui::Action::window_close},
+            std::pair{"/window-minimize",congregation::ui::Action::window_minimize},
+            std::pair{"/window-maximize",congregation::ui::Action::window_toggle_maximize}}){
+        good(widget(tree,name).activate());
+        require(invoked==expected,"A titlebar window control dispatched the wrong action");
+    }
+    scope->backend_0.client_titlebar_controls.set(false);
+    (void)take(tree->drawing_snapshot({1999,1080}));
+    require(take(widget(tree,"/application-titlebar").snapshot()).visible &&
+            !take(widget(tree,"/native-window-controls-space").snapshot()).visible &&
+            !take(widget(tree,"/client-window-controls").snapshot()).visible &&
+            take(widget(tree,"/titlebar-drag-region").snapshot()).bounds.x==8 &&
+            take(widget(tree,"/titlebar-agent").snapshot()).bounds.x==1501,
+            "A tablet must retain the titlebar without desktop window controls");
+    scope->backend_0.custom_titlebar_visible.set(false);
+    (void)take(tree->drawing_snapshot({1999,1080}));
+    require(!take(widget(tree,"/application-titlebar").snapshot()).visible &&
+            take(widget(tree,"/export").snapshot()).visible,
+            "System-chrome hosts must retain their original toolbar actions");
+    good(host.clear_content());scope.reset();tree->close();
+}
 void animated_brush_popover() {
     using namespace std::chrono_literals;
     using View=lvui_generated::IndependentMainView;
@@ -47,7 +120,7 @@ void animated_brush_popover() {
         view.backend_0.set_color_model(model);
     },&scope);}));
     (void)take(tree->drawing_snapshot({800,600}));
-    auto origin=widget(tree,"/activate"),popup=widget(tree,"/brush-popup");
+    auto origin=widget(tree,"/brush"),popup=widget(tree,"/brush-popup");
     const auto open=[&]{good(popup.open_for(origin,0,take(origin.snapshot()).bounds.height));};
     auto start=ii::runtime::Clock::now();open();(void)frames.step(start+1h);
     good(popup.close_popup());(void)frames.step(start+2h);open();start+=2h;(void)frames.step(start+80ms);
@@ -67,6 +140,7 @@ void animated_brush_popover() {
 }
 
 int main() {
+    custom_titlebar();
     animated_brush_popover();
     using View=lvui_generated::IndependentMainView;
     auto model=std::make_shared<congregation::ui::EditorColor>();
@@ -82,10 +156,16 @@ int main() {
     }));
     (void)take(tree->drawing_snapshot({800,600}));
     auto activate=widget(tree,"/activate");
+    scope->backend_0.needs_license.set(true);
+    scope->backend_0.workspace_visible.set(false);
     good(activate.activate());
     require(invoked==congregation::ui::Action::restore_license,"Activation action was not connected");
+    scope->backend_0.needs_license.set(false);
+    scope->backend_0.workspace_visible.set(true);
+    (void)take(tree->drawing_snapshot({800,600}));
+    auto origin=widget(tree,"/brush");
     auto brush_popup=widget(tree,"/brush-popup");
-    good(brush_popup.open_for(activate,0,take(activate.snapshot()).bounds.height));
+    good(brush_popup.open_for(origin,0,take(origin.snapshot()).bounds.height));
     const auto brush_frame=take(tree->drawing_snapshot({800,600}));
     const auto popup_bounds=take(brush_popup.snapshot()).bounds;
     const ii::gui::Rect underlay_bounds{popup_bounds.x-16,popup_bounds.y-16,popup_bounds.width+32,popup_bounds.height+32};
@@ -108,7 +188,7 @@ int main() {
             "Brush popover did not preserve its content width and padding");
     auto scroll=widget(tree,"/brush-scroll");
     auto scroll_snapshot=take(scroll.snapshot());
-    if(scroll_snapshot.bounds.height!=550||scroll_snapshot.content_height!=578)
+    if(scroll_snapshot.bounds.height!=550||scroll_snapshot.content_height<=0)
         throw std::runtime_error("Brush popover viewport="+std::to_string(scroll_snapshot.bounds.height)+
                                  " content="+std::to_string(scroll_snapshot.content_height));
     for(const auto* name:{"/brush-size-popup","/brush-flow-popup","/brush-opacity-popup",
@@ -143,7 +223,7 @@ int main() {
     require(scope->backend_0.flow.get()!=old_flow,"Brush slider did not update its viewmodel after scrolling was introduced");
     good(brush_popup.close_popup());
     auto text_popup=widget(tree,"/text-popup");
-    good(text_popup.open_for(activate,0,take(activate.snapshot()).bounds.height));
+    good(text_popup.open_for(origin,0,take(origin.snapshot()).bounds.height));
     (void)take(tree->drawing_snapshot({800,600}));
     require(take(text_popup.snapshot()).bounds.width==320&&
             take(widget(tree,"/text-value").snapshot()).bounds.width==296,

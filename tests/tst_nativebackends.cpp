@@ -3,6 +3,7 @@
 #include <Engine/EditCommand.h>
 #include <Engine/NearbyDiscovery.h>
 #include <Engine/LicenseService.h>
+#include <Engine/AsyncLicenseService.h>
 #include <Engine/WebLicenseService.h>
 #include <Engine/SocietyUpdateFeed.h>
 #include <iiAccountManager/LocalChannel.h>
@@ -556,6 +557,42 @@ void license(const std::filesystem::path& root)
     while(ii::runtime::Clock::now()<afterExpiry) { loop.poll(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
     require(license.licensed && repeated==0,"the launch grant was revoked during the current run");
     license.cancel(); require(license.licensed,"cancelling a later check revoked the launch grant");
+    const auto check_async=[&](bool owned) {
+        std::string error;
+        std::jthread server([&] {
+            pollfd descriptor{listener->native_handle(),POLLIN,0};
+            if (::poll(&descriptor,1,5000)<=0) { error="no async request"; return; }
+            auto peer=listener->accept(); if (!peer) { error="async accept failed"; return; }
+            auto bytes=peer->receive(std::chrono::seconds(3));
+            auto input=bytes ? parse_json(*bytes) : std::nullopt;
+            if (!input) { error="bad async request"; return; }
+            const auto now=std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            Object payload{{"v",Value(1)},{"iss",Value("https://iisacc.com")},{"aud",Value("society")},
+                {"sub",Value("fixture-owner")},{"deviceId",Value(std::string(64,'a'))},
+                {"issuedAt",Value(now)},{"expiresAt",Value(now+30)},
+                {"licenses",Value(Array{Value(Object{{"productId",Value("congregation")},
+                    {"licensed",Value(owned)},{"expiresAt",Value{}}})})}};
+            auto reply=json(Value(Object{{"requestId",field(*input,"requestId")},{"allowed",Value(owned)},
+                {"licenseToken",Value(license_fixture::sign(json(Value(payload))))}}));
+            if (!peer->send(reply,std::chrono::seconds(3))) error="async send failed";
+        });
+        AsyncLicenseService async(loop,true,LicenseService::Authority::society,[options] { return options; });
+        async.restore();
+        until(loop,[&] { return async.licensed || !async.workspace_visible(); },std::chrono::seconds(6));
+        server.join();
+        require(error.empty(),"asynchronous local license fixture failed");
+        require(async.licensed==owned && async.workspace_visible()==owned &&
+                async.local_edits_allowed()==owned,"asynchronous signed decision was not delivered");
+        if (owned) {
+            async.retry();
+            const auto until_time=ii::runtime::Clock::now()+std::chrono::milliseconds(150);
+            while (ii::runtime::Clock::now()<until_time) { loop.poll(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+            require(async.licensed && async.workspace_visible(),"A granted launch was lost during a later retry");
+        }
+    };
+    check_async(false);
+    check_async(true);
 #else
     (void)root; // Native Society local channel is not yet available on Windows.
 #endif

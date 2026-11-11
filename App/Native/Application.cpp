@@ -16,12 +16,13 @@
 #endif
 #include <Engine/ApplicationEngine.h>
 #include <Engine/Preferences.h>
-#include <Engine/LicenseService.h>
+#include <Engine/AsyncLicenseService.h>
 #include <Engine/SocietyUpdateFeed.h>
 #include <Engine/CanvasSession.h>
 #include <Engine/NearbyDiscovery.h>
 #include <iiGUI/Application.h>
 #include <iiGUI/Desktop.h>
+#include <iiGUI/Presentation.h>
 #include <iiImageCodec/ImageCodec.h>
 #include <iiUpdateManager/NativeUpdateManager.h>
 #include <iiFileProviderNative.h>
@@ -32,6 +33,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
+#include <future>
 #include <iostream>
 #include <optional>
 #include <utility>
@@ -74,7 +76,8 @@ void good(ii::core::Result<void> result)
         throw std::runtime_error(result.error().message);
     }
 }
-iisacc::accounts::native::SocietySessionOptions account_options(const std::filesystem::path& directory,bool test)
+iisacc::accounts::native::SocietySessionOptions account_options(const std::filesystem::path& directory,bool test,
+                                                                 ii::runtime::EventLoop::Sender ui)
 {
     using namespace iisacc::accounts::native;
     std::string fallback(64,'a');
@@ -87,7 +90,25 @@ iisacc::accounts::native::SocietySessionOptions account_options(const std::files
             iiFileProvider::native::File::write(path,fallback);
         }
     }
+#if defined(__APPLE__) && TARGET_OS_IOS
+    // UIDevice belongs to UIKit's main thread. Only this small platform query
+    // is dispatched there; disk and license operations stay on the worker.
+    const std::string marker(64,'\0');
+    auto promise=std::make_shared<std::promise<AppDevice>>();
+    auto future=promise->get_future();
+    auto queued=ui.post([promise,marker] {
+        try { promise->set_value(detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,marker)); }
+        catch (...) { promise->set_exception(std::current_exception()); }
+    });
+    if (!queued || future.wait_for(std::chrono::seconds(10))!=std::future_status::ready)
+        throw std::runtime_error("Cannot obtain the iOS account device");
+    auto device=future.get();
+    if (device.id==marker) device.id=std::move(fallback);
+    return {.product_id="congregation",.device=std::move(device)};
+#else
+    (void)ui;
     return {.product_id="congregation",.device=detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,fallback)};
+#endif
 }
 LicenseService::Authority account_authority()
 {
@@ -112,7 +133,7 @@ iisacc::accounts::native::SessionPersistence account_store(bool test)
 #endif
     return {};
 }
-std::string account_message(const LicenseService& license)
+std::string account_message(const AsyncLicenseService& license)
 {
     if(license.code=="waiting_for_browser") return "Finish connecting this iPad in your browser, then return.";
 #if defined(__APPLE__) && TARGET_OS_IOS
@@ -146,6 +167,8 @@ struct State final : std::enable_shared_from_this<State>
     std::optional<SocietyFiles> mobile_files;
     std::unique_ptr<ii::runtime::Runtime> mobile_storage_worker;
     bool mobile_storage_pending = false;
+    bool license_rejection_deferred = false;
+    bool first_presentation_pending = false;
     unsigned startup_attempts = 0;
     int pressure_handle = -1;
     ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
@@ -165,17 +188,17 @@ struct State final : std::enable_shared_from_this<State>
                                           member_source = std::make_shared<ui::PresentationList>();
     std::shared_ptr<ui::EditorColor> color = std::make_shared<ui::EditorColor>();
     ii::core::ObservableSubscription color_subscription;
+    ii::core::ObservableSubscription first_presentation_subscription;
     ui::EditorBackend* main = nullptr;
     ui::EditorBackend* secondary = nullptr;
-    iisacc::accounts::native::SocietySessionOptions account_config;
-    LicenseService license;
-    SocietyUpdateFeed update_feed;
+    AsyncLicenseService license;
+    std::unique_ptr<SocietyUpdateFeed> update_feed;
     iisacc::updates::native::UpdateManager updater;
     ii::network::Http image_http;
     std::string selected_member;
     NearbyDiscovery discovery;
     CanvasSession session;
-    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer, startup_retry;
+    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer, startup_retry, first_presentation_fallback;
     std::uint64_t airbrush_timer_generation = 0;
     std::shared_ptr<ToolSettings> tool_settings = std::make_shared<ToolSettings>();
     std::shared_ptr<TimelineModel> timeline_model = std::make_shared<TimelineModel>();
@@ -187,9 +210,9 @@ struct State final : std::enable_shared_from_this<State>
           preferences(test ? directory / "preferences.ini" : std::filesystem::path{},
                       directory / "recovery"),
           artwork(directory / "recovery"), canvas(artwork),
-          account_config(account_options(directory,test)),
-          license(app.event_loop(), account_config, !test, account_authority(), account_store(test)),
-          update_feed(app.event_loop(), account_config.device.id),
+          license(app.event_loop(), !test, account_authority(),
+                  [path=directory,self_test,ui=app.event_loop().sender()] { return account_options(path,self_test,ui); },
+                  account_store(test)),
           updater(app.event_loop(), "congregation", CONGREGATION_VERSION),
           image_http(app.event_loop()),
           discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
@@ -216,7 +239,7 @@ struct State final : std::enable_shared_from_this<State>
             (void) tool_settings->restore(
                 iiFileProvider::native::File::read(directory / "tools.ini", 8192));
     }
-    ~State() { (void)airbrush_timer.cancel(); (void)startup_retry.cancel(); }
+    ~State() { (void)airbrush_timer.cancel(); (void)startup_retry.cancel(); (void)first_presentation_fallback.cancel(); }
     std::expected<SocietyFiles,std::string> society_files() const {
 #if (defined(__APPLE__) && TARGET_OS_IOS) || defined(__ANDROID__)
         if(mobile_files && mobile_files->available())return *mobile_files;
@@ -343,7 +366,7 @@ struct State final : std::enable_shared_from_this<State>
         const auto weak = weak_from_this();
         auto scheduled = host->executor().every(std::chrono::milliseconds(33), [weak, started, generation] {
             if (auto p = weak.lock()) {
-                if (!p->test && !p->license.licensed && p->canvas.airbrush_active()) {
+                if (!p->test && !p->license.local_edits_allowed() && !p->license_rejection_deferred && p->canvas.airbrush_active()) {
                     p->canvas.cancel_airbrush_stroke();
                     p->status("Sign in to verify your Congregation license");
                 }
@@ -356,6 +379,49 @@ struct State final : std::enable_shared_from_this<State>
         });
         if (scheduled) airbrush_timer = scheduled.token;
         else status("Airbrush preview timer is unavailable");
+    }
+    void synchronize_license()
+    {
+        license_rejection_deferred = !test && license_defer_rejection(
+            license.workspace_visible(), canvas.interaction_active(), first_presentation_pending);
+        const bool visible = test || license.workspace_visible() || license_rejection_deferred;
+        for (auto* backend : {main,secondary}) if (backend) {
+            backend->licensed.set(test || license.licensed);
+            backend->workspace_visible.set(visible);
+            backend->needs_license.set(!visible);
+            backend->can_activate.set(!license.verifying);
+            backend->signing_in.set(license.verifying);
+            backend->signed_in.set(license.signed_in);
+            backend->account_email.set(license.signed_in ? license.email : "Not connected");
+            backend->account_status.set(account_message(license));
+        }
+    }
+    void await_first_presentation()
+    {
+        const auto source=host->presentation_source();
+        if (!source || !*source) return;
+        const auto weak=weak_from_this();
+        auto observed=(*source)->observe([weak](const ii::gui::PresentationEvent& event) {
+            if (event.kind!=ii::gui::PresentationKind::queued) return;
+            if (auto p=weak.lock(); p && p->first_presentation_pending) {
+                p->first_presentation_pending=false;
+                (void)p->first_presentation_fallback.cancel();
+                p->first_presentation_subscription.reset();
+                p->synchronize_license();
+            }
+        });
+        if (!observed) return;
+        first_presentation_pending=true;
+        first_presentation_subscription=std::move(*observed);
+        auto fallback=host->executor().after(std::chrono::seconds(3),[weak] {
+            if (auto p=weak.lock(); p && p->first_presentation_pending) {
+                p->first_presentation_pending=false;
+                p->first_presentation_subscription.reset();
+                p->synchronize_license();
+            }
+        });
+        if (fallback) first_presentation_fallback=fallback.token;
+        else { first_presentation_pending=false; first_presentation_subscription.reset(); }
     }
     void status(std::string value)
     {
@@ -470,7 +536,13 @@ struct State final : std::enable_shared_from_this<State>
         backend.can_invite.set(preferences.invitations_allowed);
         backend.discover.set(preferences.discover_nearby);
         backend.display_name.set(preferences.profile_name);
-        if (auxiliary) backend.profile_avatar.set(avatar);
+        backend.profile_avatar.set(avatar);
+        if (!auxiliary) {
+            const auto chrome=ii::gui::window_chrome_presentation(ii::gui::host_capabilities().backend);
+            backend.custom_titlebar_visible.set(chrome.titlebar);
+            backend.native_titlebar_controls.set(chrome.native_controls);
+            backend.client_titlebar_controls.set(chrome.client_controls);
+        }
         backend.account_email.set(license.signed_in ? license.email : "Not connected");
 #if defined(__APPLE__) && TARGET_OS_IOS
         backend.account_title.set("Connect your iisacc account");
@@ -492,6 +564,11 @@ struct State final : std::enable_shared_from_this<State>
             backend.pressure_max.set(main->pressure_max.get());
         }
         const auto weak = weak_from_this();
+        if (!auxiliary) backend.titlebar_drag = [weak]() -> ii::core::Result<void> {
+            auto owner=weak.lock();
+            if(!owner || !owner->host) return ii::core::fail(ii::core::ErrorCode::closed,"Window is closed");
+            return owner->host->begin_window_drag();
+        };
         backend.tool_selected = [weak](std::string name)
         {
             if (auto p = weak.lock())
@@ -603,8 +680,13 @@ struct State final : std::enable_shared_from_this<State>
         {
             if (auto p = weak.lock())
             {
-                if (!p->test && !p->license.licensed)
-                    return false;
+                if (!p->test && !p->license.local_edits_allowed()) {
+                    using K = ii::gui::WidgetInputKind;
+                    const bool completing = p->license_rejection_deferred && p->canvas.interaction_active() &&
+                        (event.kind==K::pointer_move || event.kind==K::pointer_up ||
+                         event.kind==K::pointer_cancel || event.kind==K::focus_lost);
+                    if (!completing) return false;
+                }
                 if (p->placeholder) {
                     p->status(p->storage_error);
                     return false;
@@ -657,6 +739,8 @@ struct State final : std::enable_shared_from_this<State>
                 }
                 auto result = p->canvas.input(local);
                 p->synchronize_airbrush_timer();
+                if (p->license_rejection_deferred && !p->canvas.interaction_active())
+                    p->synchronize_license();
                 if (p->main)
                     p->main->zoom.set(
                         ii::core::format_decimal(std::round(p->canvas.viewport().scale * 100)) +
@@ -738,7 +822,7 @@ struct State final : std::enable_shared_from_this<State>
     void select_native_tool(std::string name)
     {
         if (name == "quick-mask") {
-            if (!test && !license.licensed) { license.open_society(); status("Sign in to verify your Congregation license"); return; }
+            if (!test && !license.local_edits_allowed()) { status("Sign in to verify your Congregation license"); return; }
             if (canvas.quick_mask_active()) {
                 if (canvas.commit_quick_mask()) status("Quick mask applied");
             } else {
@@ -773,8 +857,7 @@ struct State final : std::enable_shared_from_this<State>
             {"imagezoomIn", Action::zoom_tool},
             {"color-picker", Action::eyedropper}};
         if (name == "clone-stamp" || name == "rect-marquee" || name == "ellipse-marquee" || name == "lasso" || name == "polygon-lasso" || name == "magnetic-lasso" || name == "crop" || name == "perspective-crop" || name == "magic-wand" || name == "gradient" || name == "polygon") {
-            if (!test && !license.licensed) {
-                license.open_society();
+            if (!test && !license.local_edits_allowed()) {
                 status("Sign in to verify your Congregation license");
                 return;
             }
@@ -787,8 +870,7 @@ struct State final : std::enable_shared_from_this<State>
         }
         if (auto item = actions.find(name); item != actions.end())
         {
-            if (!test && !license.licensed) {
-                license.open_society();
+            if (!test && !license.local_edits_allowed()) {
                 status("Sign in to verify your Congregation license");
                 return;
             }
@@ -990,6 +1072,7 @@ struct State final : std::enable_shared_from_this<State>
     }
     void publish_avatar()
     {
+        if (main) main->profile_avatar.set(avatar);
         if (preferences_view && secondary) secondary->profile_avatar.set(avatar);
     }
     void set_avatar(const std::filesystem::path& path)
@@ -1204,25 +1287,18 @@ struct State final : std::enable_shared_from_this<State>
                 if(!opened) { p->license.cancel(); p->status("The sign-in page could not be opened."); }
             }
         };
-        license.changed = [weak](LicenseService::Notice) {
-            if(auto p=weak.lock()) for(auto* backend : {p->main,p->secondary}) if(backend) {
-                backend->licensed.set(p->test||p->license.licensed);
-                backend->workspace_visible.set(p->test||p->license.workspace_visible());
-                backend->needs_license.set(!p->test&&!p->license.workspace_visible());
-                backend->can_activate.set(!p->license.verifying);
-                backend->signing_in.set(p->license.verifying);
-                backend->signed_in.set(p->license.signed_in);
-                backend->account_email.set(p->license.signed_in?p->license.email:"Not connected");
-                backend->account_status.set(account_message(p->license));
-            }
-        };
+        license.changed = [weak](LicenseService::Notice) { if(auto p=weak.lock()) p->synchronize_license(); };
         license.validated = [weak](bool valid) {
             if(auto p=weak.lock()) {
-                if(valid) {p->canvas.fit();p->status("Congregation license verified");}
-                else {p->canvas.cancel_interaction();p->status("Sign in to verify your Congregation license");}
+                if(valid) p->status("Congregation license verified");
             }
         };
-        updater.setUpdateFeed(&update_feed);
+        license.device_ready = [weak](std::string id) {
+            if (auto p=weak.lock(); p && !p->update_feed) {
+                p->update_feed=std::make_unique<SocietyUpdateFeed>(p->app.event_loop(),std::move(id));
+                p->updater.setUpdateFeed(p->update_feed.get());
+            }
+        };
         updater.upToDate = [weak](std::string version)
         {
             if (auto p = weak.lock())
@@ -1304,7 +1380,9 @@ struct State final : std::enable_shared_from_this<State>
         };
         if (!test)
         {
-            // Let the native window enter its event loop before starting verification.
+            // Keep the workspace through its first submitted frame, even if a
+            // local denial arrives before the renderer has presented it.
+            await_first_presentation();
             auto scheduled = host->executor().post([weak] {
                 if (auto p = weak.lock()) p->license.restore();
             });
@@ -1611,6 +1689,14 @@ struct State final : std::enable_shared_from_this<State>
             good(app.quit());
             return;
         }
+        if(action==Action::window_close || action==Action::window_minimize || action==Action::window_toggle_maximize) {
+            auto window=host;
+            if(!window){status("Window is unavailable");return;}
+            auto outcome=action==Action::window_close ? window->request_close() :
+                window->window_action(action==Action::window_minimize ? ii::gui::WindowAction::minimize : ii::gui::WindowAction::toggle_maximize);
+            if(!outcome)status(outcome.error().message);
+            return;
+        }
         if (action == Action::preferences)
         {
             open_preferences();
@@ -1626,9 +1712,13 @@ struct State final : std::enable_shared_from_this<State>
             license.open_society();
             return;
         }
-        if (!test && !license.licensed)
+        if (!test && !license.local_edits_allowed())
         {
             status("Sign in to verify your Congregation license");
+            return;
+        }
+        if (!test && !license.licensed && (action==Action::host_session || action==Action::join_session)) {
+            status("Wait for license verification before sharing a canvas");
             return;
         }
         if(mobile_storage_pending && (action==Action::new_document || action==Action::create_canvas || action==Action::open)) {
@@ -1978,11 +2068,13 @@ struct State final : std::enable_shared_from_this<State>
             break;
         }
         case Action::check_update:
-            if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            if (!license.licensed && license.local_edits_allowed()) update_status("Wait for license verification before checking for updates.");
+            else if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
             else if (!updater.checkForUpdates()) update_status("An update request is already in progress.");
             break;
         case Action::install_update:
-            if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            if (!license.licensed && license.local_edits_allowed()) update_status("Wait for license verification before installing updates.");
+            else if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
             else if (!updater.updateNow()) update_status("Check for an update first.");
             break;
         case Action::host_session:

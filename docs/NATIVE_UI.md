@@ -61,7 +61,8 @@ macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 
 않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,
 Window, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱
 메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을
-표시한다. `Congregation.app_menu` 검사는 메뉴 순서와 명령 연결을 확인한다.
+표시한다. Undo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,
+`Congregation.app_menu` 검사는 메뉴 순서, 단축키와 명령 연결을 확인한다.
 
 ## 우측 패널 세그먼트
 
@@ -76,6 +77,9 @@ Asset Library를 이 순서로 선택한다. 선택 상태는 작업 영역 뷰�
 라이브러리 열기와 폴더 연결도 제공한다. Generative는 연결된 생성 기능이 없어 안내만
 표시한다. `Congregation.society_assets`는 등록 정보와 파일 목록을 검사하고,
 `Congregation.inspector_segments`는 아이콘 자산과 순서를 확인한다.
+Society 등록 정보와 매니페스트는 iiNetwork의 JSON 변환 경계를 통해 Core 값으로
+읽는다. JSON 모듈의 값 표현이 달라도 동일한 등록 정보를 사용할 수 있으며, 잘못된
+JSON은 유효하지 않은 정보로 처리한다.
 
 ## Transfer와 Smoothing 제어
 

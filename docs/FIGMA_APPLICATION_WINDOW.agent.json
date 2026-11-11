@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/FIGMA_APPLICATION_WINDOW.md",
-    "sha256": "9d3a6783955c8c90bf326b539a80e68cd88c9d493374f2a486f05a3b5b8c4131",
-    "bytes": 16689,
+    "sha256": "9a0548e4e2901dc69aac2cdeda1ccfb7889656ec5c1cff40bde441232309e403",
+    "bytes": 16518,
     "line_count": 158,
     "encoding": "utf-8",
     "language": "ko"
@@ -240,7 +240,7 @@
       "kind": "paragraph",
       "start_line": 71,
       "end_line": 71,
-      "raw": "LVUI의 `Panel/window`와 파랑 악센트 토큰을 기존과 같은 비율로 합성한 창 배경을 사용하며 일반 패널은 투명하다. 합성된 sRGB 값은 `#1A1B1D`이고 별도의 LVRS `Theme` 타입은 필요하지 않다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 2026-10-25와 2026-10-31의 제품별 대표 색상 및 경계 변수는 당시의 기록이며 현재 구현의 별도 토큰이 아니다.\n"
+      "raw": "창 배경은 LVUI의 `Panel/window`를 그대로 사용하며 악센트를 합성하지 않는다. 일반 패널은 투명하다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 창 재질의 Dense 75와 Glass 25는 별도 밀도 선택으로 유지한다.\n"
     },
     {
       "id": "b000026",
@@ -693,6 +693,13 @@
         "block_id": "b000013",
         "line": 51,
         "text": "창이 열리거나 동작했음을 증명하지 않는다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      },
+      {
+        "block_id": "b000025",
+        "line": 71,
+        "text": "창 배경은 LVUI의 `Panel/window`를 그대로 사용하며 악센트를 합성하지 않는다. 일반 패널은 투명하다. 외곽선은 Figma와 앱에서 `Panel/canvas`를 공유하고 두께는 1px이다. 타임라인 내부 선은 `Material/Surface/Dense/Edge`를 창 배경에 합성한다. 전용 Color picker 구분선은 `Panel/surfacePanel`이다. 플레이헤드와 선택 표시는 파랑 상태 토큰을 사용한다. 창 재질의 Dense 75와 Glass 25는 별도 밀도 선택으로 유지한다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },

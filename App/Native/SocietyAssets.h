@@ -19,9 +19,7 @@ inline std::optional<ii::core::Value> read_society_json(const fs::path& path) {
     if (!f) return {};
     std::string contents(static_cast<std::size_t>(size), '\0');
     if (!f.read(contents.data(), static_cast<std::streamsize>(contents.size()))) return {};
-    auto value = ii::json::parse(contents);
-    if (!value) return {};
-    return *value;
+    return ii::network::wire::parse_json(contents, 1024 * 1024);
 }
 inline fs::path society_registry() {
     if (const char* value = std::getenv("SOCIETY_STORAGE_SETTINGS_PATH"); value && *value)

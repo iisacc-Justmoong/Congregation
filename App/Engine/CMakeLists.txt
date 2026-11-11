@@ -1,7 +1,7 @@
 add_library(CongregationEngine STATIC
         ApplicationEngine.cpp ApplicationEngine.h
         CanvasDocument.cpp CanvasDocument.h
-        Palette.cpp Palette.h
+        Palette.cpp Palette.h AsyncLicenseService.cpp AsyncLicenseService.h
         Data.h RecentCanvas.cpp RecentCanvas.h Preferences.cpp Preferences.h NearbyDiscovery.cpp NearbyDiscovery.h EditCommand.cpp EditCommand.h CborWire.cpp CanvasSession.cpp CanvasSession.h LicenseService.cpp LicenseService.h WebLicenseService.cpp WebLicenseService.h SocietyUpdateFeed.cpp SocietyUpdateFeed.h DocumentMetadata.cpp DocumentMetadata.h)
 add_library(Congregation::Engine ALIAS CongregationEngine)
 target_compile_features(CongregationEngine PUBLIC cxx_std_23)

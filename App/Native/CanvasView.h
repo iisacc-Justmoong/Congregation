@@ -45,6 +45,8 @@ class CanvasView final
     std::optional<iiSharedCanvas::RasterMask> quick_mask_preview() const { return quick_mask_ ? quick_mask_->mask() : std::nullopt; }
     bool polygon_active() const noexcept { return polygon_active_; }
     bool crop_active() const noexcept { return crop_.has_value() || perspective_.has_value(); }
+    // A pending license denial must not discard an in-flight pointer gesture.
+    bool interaction_active() const noexcept { return drag_; }
     bool apply_crop();
     void cancel_crop() { if (crop_ || perspective_) cancel(); }
     void cancel_interaction() { cancel(); }

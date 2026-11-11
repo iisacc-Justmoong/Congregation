@@ -92,7 +92,10 @@ enum class Action
     choose_asset_library,
     choose_texture,
     insert_asset,
-    open_asset_library
+    open_asset_library,
+    window_close,
+    window_minimize,
+    window_toggle_maximize
 };
 class EditorBackend
 {
@@ -115,6 +118,7 @@ class EditorBackend
     std::function<void(std::string)> layer_mode_changed;
     std::function<void(int)> frame_rate_changed;
     std::function<void(std::string)> command;
+    std::function<ii::core::Result<void>()> titlebar_drag;
     void set_parameter(native::ToolParameter, double);
     void set_parameter_normalized(native::ToolParameter, double);
     void step_parameter(native::ToolParameter, int);
@@ -171,14 +175,14 @@ class EditorBackend
     void save_parameters() { send(Action::save_tool_settings); }
     ii::core::Observable<std::string> status{"Ready"}, title{"Untitled"}, tool{"Brush"},
         zoom{"100%"}, account_status{"Open Society to check your Congregation license."}, text_value{"Text"}, session_address{""},
-        display_name{"Guest"}, update_status{""}, account_email{"Not connected"},
+        display_name{"Guest"}, update_status{""}, account_email{"Not connected"}, agent_prompt{""},
         account_title{"Connect to Society"}, account_description{"Sign in to Society to verify your Congregation license."},
         account_button{"Open Society"}, account_guide{"Society verifies your iisacc account and license."},
         size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
         hardness_label{"100%"}, spacing_label{"0.0 px"}, spacing_ratio_label{"15%"}, stabilizer_label{"0%"}, pressure_min_label{"0%"}, pressure_mid_label{"50%"}, pressure_max_label{"100%"};
     ii::core::Observable<bool> licensed{false}, workspace_visible{true}, needs_license{false}, can_activate{true}, signed_in{false}, signing_in{false},
         start_recent{false}, discover{true}, pressure_enabled{true},
-        layer_controls{false}, chrome_visible{true}, general_visible{true}, profile_visible{false}, members_visible{false},
+        layer_controls{false}, chrome_visible{true}, custom_titlebar_visible{false}, native_titlebar_controls{false}, client_titlebar_controls{false}, general_visible{true}, profile_visible{false}, members_visible{false},
         start_new{true}, can_invite{false}, wand_contiguous{true}, wand_current_layer{false}, clone_aligned{true}, clone_current_layer{true},
         fill_contiguous{true}, fill_current_layer{false}, fill_target_current{false}, fill_preserve_alpha{false}, fill_antialias{false}, quick_mask_mode{false}, selection_antialias{true}, crop_destructive{false}, polygon_center{false}, polygon_fill{true}, polygon_outline{false};
     ii::core::Observable<double> brush_size{64}, opacity{1}, flow{.9}, hardness{.85}, spacing{.12},
@@ -309,6 +313,27 @@ class EditorBackend
     void open_society() { send(Action::open_society); }
     void cancel_sign_in() { send(Action::cancel_sign_in); }
     void profile() { send(Action::profile); }
+    void titlebar_close() { send(Action::window_close); }
+    void titlebar_minimize() { send(Action::window_minimize); }
+    void titlebar_maximize() { send(Action::window_toggle_maximize); }
+    ii::core::Result<bool> titlebar_input(const ii::gui::WidgetInput& event)
+    {
+        if(event.kind!=ii::gui::WidgetInputKind::pointer_down || event.device!=ii::gui::PointerDevice::mouse || !(event.buttons&1))
+            return false;
+        auto callback=titlebar_drag;
+        if(!callback)return false;
+        if(auto result=callback();!result)return std::unexpected(result.error());
+        return true;
+    }
+    ii::core::Result<bool> titlebar_profile_input(const ii::gui::WidgetInput& event)
+    {
+        if(event.kind==ii::gui::WidgetInputKind::pointer_up) { profile(); return true; }
+        return event.kind==ii::gui::WidgetInputKind::pointer_down;
+    }
+    void set_agent_prompt(std::string value) { agent_prompt.set(std::move(value)); }
+    void submit_agent() { status.set("Agent is not available yet."); }
+    void show_notifications() { status.set("Notifications are not available yet."); }
+    void show_learning() { status.set("Learning resources are not available yet."); }
     void check_update() { send(Action::check_update); }
     void install_update() { send(Action::install_update); }
     void host_session() { send(Action::host_session); }

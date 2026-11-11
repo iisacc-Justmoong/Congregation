@@ -98,7 +98,14 @@
       "document_id": "urn:iisacc:document:31bd58b16c6311ea2a68cc6ea6c8ec4192bb43215cbfdc502b209398400cd7d1",
       "source": "docs/FIGMA_APPLICATION_WINDOW.md",
       "agent_json": "docs/FIGMA_APPLICATION_WINDOW.agent.json",
-      "source_sha256": "9d3a6783955c8c90bf326b539a80e68cd88c9d493374f2a486f05a3b5b8c4131",
+      "source_sha256": "9a0548e4e2901dc69aac2cdeda1ccfb7889656ec5c1cff40bde441232309e403",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:6311bdfc02965eccca7bbcf1cab6bcf8b0942a634bcb8b63caaeed34703ab56b",
+      "source": "docs/FIGMA_TITLEBAR.md",
+      "agent_json": "docs/FIGMA_TITLEBAR.agent.json",
+      "source_sha256": "1ca778878fa3f560cb16868bf0c24658ed76f5cb2d9c831bf3df1c9b63cf3e46",
       "role": "guide"
     },
     {
@@ -161,14 +168,14 @@
       "document_id": "urn:iisacc:document:ce7bf1337644cb048a20a5a6891d31b5cc90764d58e622f1db6377f82ed69ad3",
       "source": "docs/NATIVE_RUNTIME.md",
       "agent_json": "docs/NATIVE_RUNTIME.agent.json",
-      "source_sha256": "6f299c29fbd0f2868a619b6afc7b419e61e1a921af27f538f93a8a0f37691e07",
+      "source_sha256": "f0379561740852d6380b302ed0d14fc2efd8dfb59c9a4fca742f47c4fb13d3f6",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:f8ba7ff132019a628f22dbb98aeb5c0f54db4c545753507a9c63dcc4d9efd7a3",
       "source": "docs/NATIVE_UI.md",
       "agent_json": "docs/NATIVE_UI.agent.json",
-      "source_sha256": "7097ba4ae7830ea2f2f841895328381a4182aa7ad4fee7d9c631f16c5f6e9895",
+      "source_sha256": "8f738bb061754efbfb5d92ab66e3e585c4a5c57cc7dd8e3dc1863613a1772fc8",
       "role": "guide"
     },
     {
@@ -259,7 +266,7 @@
       "document_id": "urn:iisacc:document:904a3033c7b340f37bda1968d52969b1be8f6587c689063293409b2af52de798",
       "source": "docs/UI_STYLE_TOKENS.md",
       "agent_json": "docs/UI_STYLE_TOKENS.agent.json",
-      "source_sha256": "eabb83d7df37513cfe8851a8cec7d330db9db14e69444f01be7a43a233dc5fa3",
+      "source_sha256": "790b9b7402df4f1496125935f1816091affc1bf002f20a0099eeebd82efe3bbd",
       "role": "guide"
     },
     {
@@ -273,7 +280,7 @@
       "document_id": "urn:iisacc:document:2ff9781f3da3b4be0a515494cdb5a72141dd01ce6941a421d8268846101b080d",
       "source": "docs/WEB_ACCOUNT.md",
       "agent_json": "docs/WEB_ACCOUNT.agent.json",
-      "source_sha256": "32bf3a0b8cd4ce351e7e3169615c64b966a6c198e50578f3d66514c450ce4bf6",
+      "source_sha256": "b796148a9c5b8abc245b022cd0b886dfb13adde12a3ef111be219f6265f86849",
       "role": "guide"
     },
     {

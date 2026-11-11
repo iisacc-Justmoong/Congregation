@@ -14,6 +14,15 @@ int main()
     for (std::size_t i = 0; i < expected.size(); ++i)
         if (menu[i].title != expected[i] || menu[i].children.empty())
             throw std::runtime_error("incorrect menu order or empty menu");
+    const auto& undo = menu[1].children[0];
+    const auto& redo = menu[1].children[1];
+    if (!undo.shortcut || undo.shortcut->key != "z" || !undo.shortcut->meta || undo.shortcut->shift ||
+        !redo.shortcut || redo.shortcut->key != "z" || !redo.shortcut->meta || !redo.shortcut->shift)
+        throw std::runtime_error("Undo and Redo must expose Command-Z and Shift-Command-Z");
+    undo.triggered();
+    if (invoked != Action::undo) throw std::runtime_error("Undo command is disconnected");
+    redo.triggered();
+    if (invoked != Action::redo) throw std::runtime_error("Redo command is disconnected");
     menu[3].children[0].triggered();
     if (invoked != Action::fit) throw std::runtime_error("View command is disconnected");
     menu[4].children[0].triggered();

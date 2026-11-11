@@ -1,6 +1,7 @@
 #include <Native/Artwork.h>
 #include <Native/CanvasView.h>
 #include <Native/ToolSettings.h>
+#include <Engine/LicensePresentation.h>
 #include <iiFileProviderNative.h>
 #include <iiSharedCanvasNative.h>
 #include <algorithm>
@@ -102,6 +103,29 @@ void long_pen_stroke(const std::filesystem::path& directory,bool tapered,bool se
     check(reopened.open(saved) && pixels(reopened).pixels==painted,
           "long stroke did not survive save and reopen");
 }
+void rejection_waits_for_stroke(const std::filesystem::path& directory) {
+    Artwork artwork(directory);
+    check(artwork.create(256,128),"license transition canvas creation failed");
+    CanvasView canvas(artwork);
+    ToolSettings options;
+    options.set(ToolParameter::size,12);
+    canvas.brush_size=12; canvas.color=0xff6533ff; canvas.settings=options.brush();
+    using K=ii::gui::WidgetInputKind;
+    const auto before=pixels(artwork).pixels;
+    send(canvas,K::pointer_down,20,60,1,.8);
+    send(canvas,K::pointer_move,80,60,1.1,.8);
+    check(congregation::license_defer_rejection(false,canvas.interaction_active()),
+          "license rejection interrupted a pointer gesture");
+    send(canvas,K::pointer_move,160,60,1.2,.8);
+    send(canvas,K::pointer_up,220,60,1.3,.8);
+    check(!congregation::license_defer_rejection(false,canvas.interaction_active()),
+          "license rejection did not become visible after pointer release");
+    const auto painted=pixels(artwork).pixels;
+    check(alpha(pixels(artwork),160,60)>0 && alpha(pixels(artwork),210,60)>0,
+          "license rejection lost the active stroke");
+    check(artwork.undo() && pixels(artwork).pixels==before && artwork.redo() &&
+          pixels(artwork).pixels==painted,"license transition corrupted stroke history");
+}
 }
 int main() try {
     iiFileProvider::native::TemporaryDirectory directory(std::filesystem::temp_directory_path());
@@ -145,5 +169,6 @@ int main() try {
     long_pen_stroke(directory.path(),false,false);
     long_pen_stroke(directory.path(),true,false);
     long_pen_stroke(directory.path(),true,true);
+    rejection_waits_for_stroke(directory.path());
     std::cout << "INTERACTIVE_CANVAS_STROKE_OK\n";
 } catch(const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }

@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/NATIVE_UI.md",
-    "sha256": "7097ba4ae7830ea2f2f841895328381a4182aa7ad4fee7d9c631f16c5f6e9895",
-    "bytes": 8302,
-    "line_count": 106,
+    "sha256": "8f738bb061754efbfb5d92ab66e3e585c4a5c57cc7dd8e3dc1863613a1772fc8",
+    "bytes": 8647,
+    "line_count": 110,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -274,21 +274,21 @@
       "id": "b000035",
       "kind": "paragraph",
       "start_line": 60,
-      "end_line": 64,
-      "raw": "macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지\n않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,\nWindow, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱\n메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을\n표시한다. `Congregation.app_menu` 검사는 메뉴 순서와 명령 연결을 확인한다.\n"
+      "end_line": 65,
+      "raw": "macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지\n않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,\nWindow, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱\n메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을\n표시한다. Undo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,\n`Congregation.app_menu` 검사는 메뉴 순서, 단축키와 명령 연결을 확인한다.\n"
     },
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 65,
-      "end_line": 65,
+      "start_line": 66,
+      "end_line": 66,
       "raw": "\n"
     },
     {
       "id": "b000037",
       "kind": "heading",
-      "start_line": 66,
-      "end_line": 66,
+      "start_line": 67,
+      "end_line": 67,
       "raw": "## 우측 패널 세그먼트\n",
       "level": 2,
       "title": "우측 패널 세그먼트"
@@ -296,29 +296,29 @@
     {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 67,
-      "end_line": 67,
+      "start_line": 68,
+      "end_line": 68,
       "raw": "\n"
     },
     {
       "id": "b000039",
       "kind": "paragraph",
-      "start_line": 68,
-      "end_line": 78,
-      "raw": "Figma `84:9464`의 LVUI 아이콘 세그먼트로 Tools, Generative, Document,\nAsset Library를 이 순서로 선택한다. 선택 상태는 작업 영역 뷰모델의 `option_tab`과\n동기화된다. Document에 기존 문서·보기 설정을 유지한다. Asset Library는 Society가\n등록한 저장소와 컨테이너 식별자를 확인하고 매니페스트의 asset-library 섹션을 읽는다.\n명시적으로 선택한 로컬 폴더가 있으면 그 폴더를 사용한다. 하위 디렉터리를 포함해 최대\n512개 파일을 이름순으로 표시하며, 패널 진입과 Refresh에서 다시 읽는다. PNG·JPEG·WebP\n항목은 선택하면 이미지 레이어로 삽입한다. 다른 형식은 목록에 표시하되 이미지로 삽입할\n수 없다는 상태를 알린다. 연결되지 않았거나 빈 라이브러리는 각각 안내한다. Society\n라이브러리 열기와 폴더 연결도 제공한다. Generative는 연결된 생성 기능이 없어 안내만\n표시한다. `Congregation.society_assets`는 등록 정보와 파일 목록을 검사하고,\n`Congregation.inspector_segments`는 아이콘 자산과 순서를 확인한다.\n"
+      "start_line": 69,
+      "end_line": 82,
+      "raw": "Figma `84:9464`의 LVUI 아이콘 세그먼트로 Tools, Generative, Document,\nAsset Library를 이 순서로 선택한다. 선택 상태는 작업 영역 뷰모델의 `option_tab`과\n동기화된다. Document에 기존 문서·보기 설정을 유지한다. Asset Library는 Society가\n등록한 저장소와 컨테이너 식별자를 확인하고 매니페스트의 asset-library 섹션을 읽는다.\n명시적으로 선택한 로컬 폴더가 있으면 그 폴더를 사용한다. 하위 디렉터리를 포함해 최대\n512개 파일을 이름순으로 표시하며, 패널 진입과 Refresh에서 다시 읽는다. PNG·JPEG·WebP\n항목은 선택하면 이미지 레이어로 삽입한다. 다른 형식은 목록에 표시하되 이미지로 삽입할\n수 없다는 상태를 알린다. 연결되지 않았거나 빈 라이브러리는 각각 안내한다. Society\n라이브러리 열기와 폴더 연결도 제공한다. Generative는 연결된 생성 기능이 없어 안내만\n표시한다. `Congregation.society_assets`는 등록 정보와 파일 목록을 검사하고,\n`Congregation.inspector_segments`는 아이콘 자산과 순서를 확인한다.\nSociety 등록 정보와 매니페스트는 iiNetwork의 JSON 변환 경계를 통해 Core 값으로\n읽는다. JSON 모듈의 값 표현이 달라도 동일한 등록 정보를 사용할 수 있으며, 잘못된\nJSON은 유효하지 않은 정보로 처리한다.\n"
     },
     {
       "id": "b000040",
       "kind": "blank",
-      "start_line": 79,
-      "end_line": 79,
+      "start_line": 83,
+      "end_line": 83,
       "raw": "\n"
     },
     {
       "id": "b000041",
       "kind": "heading",
-      "start_line": 80,
-      "end_line": 80,
+      "start_line": 84,
+      "end_line": 84,
       "raw": "## Transfer와 Smoothing 제어\n",
       "level": 2,
       "title": "Transfer와 Smoothing 제어"
@@ -326,43 +326,43 @@
     {
       "id": "b000042",
       "kind": "blank",
-      "start_line": 81,
-      "end_line": 81,
+      "start_line": 85,
+      "end_line": 85,
       "raw": "\n"
     },
     {
       "id": "b000043",
       "kind": "paragraph",
-      "start_line": 82,
-      "end_line": 86,
+      "start_line": 86,
+      "end_line": 90,
       "raw": "Transfer의 Flow·Wetness·Mix는 각각 Jitter, Control과 Minimum을 브러시 엔진의\n동역학 변형에 전달한다. Flow를 필압으로 제어할 때는 이전의 별도 필압 Flow 계수를\n중복 적용하지 않는다. Wetness·Mix의 가시적인 효과는 믹서나 스머지 등 해당 물리\n모델이 활성화된 도구에서 나타난다. 불투명도는 별도의 필압 응답과 최소·최대 값을\n계속 사용한다.\n"
     },
     {
       "id": "b000044",
       "kind": "blank",
-      "start_line": 87,
-      "end_line": 87,
+      "start_line": 91,
+      "end_line": 91,
       "raw": "\n"
     },
     {
       "id": "b000045",
       "kind": "paragraph",
-      "start_line": 88,
-      "end_line": 91,
+      "start_line": 92,
+      "end_line": 95,
       "raw": "Smoothing의 활성화, Exponential/Pulled String 방식 및 획 끝 따라잡기는 독립적으로\n설정한다. Strength와 Radius는 기존 Brush 및 Smoothing 값을 공유한다. 추가 파라미터는\n기존 설정 파일을 읽을 때 기본값으로 초기화하며, `Congregation.tool_settings`가\n필압에 따른 Transfer 계산과 Smoothing 구성 전달을 검사한다.\n"
     },
     {
       "id": "b000046",
       "kind": "blank",
-      "start_line": 92,
-      "end_line": 92,
+      "start_line": 96,
+      "end_line": 96,
       "raw": "\n"
     },
     {
       "id": "b000047",
       "kind": "heading",
-      "start_line": 93,
-      "end_line": 93,
+      "start_line": 97,
+      "end_line": 97,
       "raw": "## 브러시 질감과 입자 효과\n",
       "level": 2,
       "title": "브러시 질감과 입자 효과"
@@ -370,29 +370,29 @@
     {
       "id": "b000048",
       "kind": "blank",
-      "start_line": 94,
-      "end_line": 94,
+      "start_line": 98,
+      "end_line": 98,
       "raw": "\n"
     },
     {
       "id": "b000049",
       "kind": "paragraph",
-      "start_line": 95,
-      "end_line": 102,
+      "start_line": 99,
+      "end_line": 106,
       "raw": "Tool 패널의 Texture 선택 버튼은 이미지 파일을 읽어 밝기와 알파로 브러시 마스크를\n구성한다. Invert, Scale, Brightness, Contrast, Texture Each Tip, Mode, Depth,\nMinimum Depth, Depth Jitter와 Control은 엔진 텍스처 설정에 전달한다. 선택한 텍스처와\n배경색은 현재 실행 세션에 보관한다. Color Dynamics의 `Use current color`로 현재 색을\n배경색으로 지정한 뒤 전경색을 바꾸고 Foreground/Background Jitter 및 Control을\n사용한다. Noise의 Grain Size는 문서 픽셀 단위이다. Wet Edges의 폭은 문서 픽셀,\nDiffusion은 백분율이다. Build-up은 활성화, 누적률, 불투명도 상한, 시간 기반 분사를\n독립적으로 설정한다. 시간 기반 분사는 획 입력과 기존 시계 진행 경로를 사용한다.\n"
     },
     {
       "id": "b000050",
       "kind": "blank",
-      "start_line": 103,
-      "end_line": 103,
+      "start_line": 107,
+      "end_line": 107,
       "raw": "\n"
     },
     {
       "id": "b000051",
       "kind": "paragraph",
-      "start_line": 104,
-      "end_line": 106,
+      "start_line": 108,
+      "end_line": 110,
       "raw": "Tool 패널은 주요 고급 섹션을 Figma 순서로 배치하고 작은 슬라이더를 사용하며,\nBrush 섹션에 절대 간격과 필압 곡선 편집을 제공한다. `Congregation.tool_settings`와\n`Congregation.brush_tools_integration`은 설정 전달과 실제 픽셀 변화를 검사한다.\n"
     }
   ],
@@ -443,7 +443,7 @@
       "level": 2,
       "title": "우측 패널 세그먼트",
       "anchor": "우측-패널-세그먼트",
-      "start_line": 66
+      "start_line": 67
     },
     {
       "block_id": "b000041",
@@ -451,7 +451,7 @@
       "level": 2,
       "title": "Transfer와 Smoothing 제어",
       "anchor": "transfer와-smoothing-제어",
-      "start_line": 80
+      "start_line": 84
     },
     {
       "block_id": "b000047",
@@ -459,7 +459,7 @@
       "level": 2,
       "title": "브러시 질감과 입자 효과",
       "anchor": "브러시-질감과-입자-효과",
-      "start_line": 93
+      "start_line": 97
     }
   ],
   "indexes": {
@@ -501,7 +501,7 @@
       },
       {
         "block_id": "b000043",
-        "line": 84,
+        "line": 88,
         "text": "중복 적용하지 않는다. Wetness·Mix의 가시적인 효과는 믹서나 스머지 등 해당 물리",
         "basis": "lexical_match",
         "context": "paragraph"

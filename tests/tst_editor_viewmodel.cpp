@@ -13,6 +13,35 @@ void require(bool value, const char* message)
     if (!value) throw std::runtime_error(message);
 }
 
+void titlebar_viewmodel()
+{
+    using namespace congregation::ui;
+    using namespace ii::gui;
+    EditorBackend backend;
+    unsigned drags=0;
+    backend.titlebar_drag=[&]() -> ii::core::Result<void> { ++drags; return {}; };
+    require(backend.titlebar_input({.kind=WidgetInputKind::pointer_down,.device=PointerDevice::mouse,.buttons=1}).value() && drags==1,
+            "A primary titlebar press must start the native window drag");
+    require(!backend.titlebar_input({.kind=WidgetInputKind::pointer_move,.device=PointerDevice::mouse,.buttons=1}).value() &&
+            !backend.titlebar_input({.kind=WidgetInputKind::pointer_down,.device=PointerDevice::mouse,.buttons=2}).value() &&
+            !backend.titlebar_input({.kind=WidgetInputKind::pointer_down,.device=PointerDevice::touch,.buttons=1}).value() && drags==1,
+            "Titlebar drag must not consume movement, secondary presses or touch");
+    backend.set_agent_prompt("hello");
+    backend.submit_agent();
+    require(backend.agent_prompt.get()=="hello" && backend.status.get().find("not available")!=std::string::npos,
+            "The Agent field must retain input and identify unavailable submission");
+    Action action=Action::quit;
+    backend.perform=[&](Action value){action=value;};
+    backend.titlebar_close();
+    require(action==Action::window_close,"Titlebar close did not use the window-close action");
+    backend.titlebar_minimize();
+    require(action==Action::window_minimize,"Titlebar minimize did not use the window-minimize action");
+    backend.titlebar_maximize();
+    require(action==Action::window_toggle_maximize,"Titlebar maximize did not use the toggle action");
+    require(backend.titlebar_profile_input({.kind=WidgetInputKind::pointer_up}).value() && action==Action::profile,
+            "The titlebar avatar must open the account action");
+}
+
 void child_window_generations()
 {
     using congregation::native::ChildWindowGeneration;
@@ -147,6 +176,7 @@ int main()
 {
     try
     {
+        titlebar_viewmodel();
         child_window_generations();
         callback_replacement();
         reentrant_viewmodel_changes();

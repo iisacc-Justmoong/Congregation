@@ -14,9 +14,9 @@ namespace congregation::native {
 inline std::vector<ii::gui::AppMenuItem> application_menu(std::function<void(ui::Action)> dispatch)
 {
     using ui::Action;
-    auto item = [dispatch](std::string id, std::string title, Action action, std::string key = {}) {
+    auto item = [dispatch](std::string id, std::string title, Action action, std::string key = {}, bool shift = false) {
         ii::gui::AppMenuItem result{.id = std::move(id), .title = std::move(title)};
-        if (!key.empty()) result.shortcut = ii::gui::AppShortcut{std::move(key)};
+        if (!key.empty()) result.shortcut = ii::gui::AppShortcut{.key = std::move(key), .shift = shift};
         result.triggered = [dispatch, action] { if (dispatch) dispatch(action); };
         return result;
     };
@@ -25,7 +25,7 @@ inline std::vector<ii::gui::AppMenuItem> application_menu(std::function<void(ui:
             item("open", "Open…", Action::open, "o"), item("save", "Save", Action::save, "s"),
             item("save-as", "Save As…", Action::save_as), item("export", "Export…", Action::export_document)}},
         {.id="edit", .title="Edit", .children={item("undo", "Undo", Action::undo, "z"),
-            item("redo", "Redo", Action::redo), item("copy", "Copy canvas", Action::copy),
+            item("redo", "Redo", Action::redo, "z", true), item("copy", "Copy canvas", Action::copy),
             item("paste", "Paste image", Action::paste), item("preferences", "Preferences…", Action::preferences, ",")}},
         {.id="selection", .title="Select", .children={item("deselect", "Deselect", Action::clear_selection, "d"),
             item("invert-selection", "Inverse", Action::invert_selection)}},

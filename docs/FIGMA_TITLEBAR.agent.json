@@ -1,0 +1,135 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:6311bdfc02965eccca7bbcf1cab6bcf8b0942a634bcb8b63caaeed34703ab56b",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/FIGMA_TITLEBAR.md",
+    "sha256": "1ca778878fa3f560cb16868bf0c24658ed76f5cb2d9c831bf3df1c9b63cf3e46",
+    "bytes": 1486,
+    "line_count": 9,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Congregation 애플리케이션 타이틀바",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Congregation 애플리케이션 타이틀바\n",
+      "level": 1,
+      "title": "Congregation 애플리케이션 타이틀바"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "메인 창은 [macOS Figma 타이틀바](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=346-6481)를 LVUI 뷰로 사용한다. 오른쪽에는 Agent 입력란과 알림, 학습, 내보내기, 설정 및 프로필이 있다. 구성요소와 간격은 LVUI 컴포넌트 및 공통 토큰을 사용한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "macOS는 기본 창 버튼을 유지한다. [Windows·Linux 시안](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=359-5256)은 타이틀바 왼쪽에 LVUI 닫기, 최소화, 최대화·복원 버튼을 배치한다. 버튼은 iiGUI 호스트의 창 수명주기와 창 관리자 동작에 연결된다. [태블릿 시안](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=359-5317)은 같은 막대를 창 버튼 없이 표시한다. 데스크톱의 빈 타이틀바 영역은 기본 마우스 누름으로 창을 이동한다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "내보내기와 설정, 프로필은 기존 동작에 연결된다. Agent 제출, 알림과 학습은 아직 사용할 수 없음을 알린다. 사용자 정의 프레임을 지원하지 않는 호스트는 시스템 타이틀바와 기존 도구막대의 내보내기·설정을 사용한다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "헤드리스 뷰 검사는 세 배치의 가시성, 위치와 버튼 동작 연결을 확인한다. Windows·Linux의 실제 창 관리자와 iPadOS에서의 표시 및 포인터 동작은 별도 기기 실행 검증이 필요하다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Congregation 애플리케이션 타이틀바",
+      "anchor": "congregation-애플리케이션-타이틀바",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [
+      {
+        "block_id": "b000003",
+        "label": "macOS Figma 타이틀바",
+        "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=346-6481",
+        "kind": "external",
+        "line": 3
+      },
+      {
+        "block_id": "b000005",
+        "label": "Windows·Linux 시안",
+        "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=359-5256",
+        "kind": "external",
+        "line": 5
+      },
+      {
+        "block_id": "b000005",
+        "label": "태블릿 시안",
+        "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=359-5317",
+        "kind": "external",
+        "line": 5
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

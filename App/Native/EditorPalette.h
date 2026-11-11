@@ -4,7 +4,7 @@
 
 namespace congregation::native::editor
 {
-// Compose the LVUI window and accent tokens with the authored window tint.
+// Use the shared LVUI window token independently of the app accent.
 [[nodiscard]] ii::gui::WidgetColor window_background();
 // Panel edges and internal ruler/timeline details have separate color roles.
 inline constexpr ii::gui::WidgetColor panel_edge = Color::canvas;

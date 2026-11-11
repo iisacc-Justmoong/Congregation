@@ -51,8 +51,8 @@ int main()
         check(std::abs(linear_edge.red - .005092162612308555) < 1e-9 &&
                   std::abs(linear_edge.blue - .005287150125039124) < 1e-9,
               "Panel borders must be converted from shared sRGB to linear light");
-        const ii::gui::WidgetColor window{26. / 255, 27. / 255, 29. / 255, 1};
-        check(editor::window_background() == window, "Main window must preserve the authored blue accent tint");
+        const auto window=Color::window;
+        check(editor::window_background() == window, "Main window must use the shared window token without accent tint");
         const auto detail = editor::detail_line_color();
         const auto dense = Color::materialSurfaceDenseEdge;
         check(std::abs(detail.red - (dense.red * dense.alpha + window.red * (1-dense.alpha))) < 1e-12 &&
