@@ -1,5 +1,6 @@
 #include "Artwork.h"
 #include "StreamingBrush.h"
+#include "StrokeProfile.h"
 #include <Render/Compositor.h>
 #include "Shapes.h"
 #include "LegacyCanvas.h"
@@ -9,6 +10,7 @@
 #include <iiFileProviderPresentation.h>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -1795,8 +1797,10 @@ bool Artwork::begin(DocumentPoint point, double pressure, BitmapBrush brush, Fra
     StrokePoint sample; sample.position = point; sample.pressure = pressure; sample.time = legacy_stroke_time_;
     return begin_input(sample, std::move(brush), frame);
 }
-bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex frame, StrokeTaper taper)
+bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex frame, StrokeTaper taper,
+                          StrokeInputSample* profile)
 {
+    if (profile) *profile = {};
     auto point = sample.position;
     if (stroke_active())
         cancel();
@@ -1984,13 +1988,13 @@ bool Artwork::begin_input(StrokePoint sample, BitmapBrush brush, FrameIndex fram
         if (!state) return rollback("Unable to initialize the active brush");
         streaming_brush_ = std::make_shared<StreamingBrush>(std::move(*state), taper.start, taper.end,
                                                             taper.minimum, taper.strength);
-        if (!update_stream_input(sample, false)) return rollback(error_);
+        if (!update_stream_input(sample, false, profile)) return rollback(error_);
     } catch (const std::bad_alloc&) { return rollback("Insufficient memory for stroke input"); }
     legacy_stroke_time_ = sample.time;
     return true;
 }
 
-bool Artwork::update_stream_input(StrokePoint sample, bool finish)
+bool Artwork::update_stream_input(StrokePoint sample, bool finish, StrokeInputSample* profile)
 {
     if (!streaming_brush_) return fail("No streaming brush is active");
     DevicePixelRect clip{};
@@ -2008,11 +2012,26 @@ bool Artwork::update_stream_input(StrokePoint sample, bool finish)
         return art.raster_.isBound() ? art.raster_.strokeSourceAt(point.x, point.y).value_or(0) :
                                        art.chunks_.strokeSourceAt(point.x, point.y).value_or(0);
     }, clip.origin, clip.width, clip.height};
-    auto pixels = streaming_brush_->append(sample, finish, source, clip);
+    using Clock = std::chrono::steady_clock;
+    const auto elapsed = [](Clock::time_point start) {
+        return std::uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - start).count());
+    };
+    const auto projection_started = profile ? Clock::now() : Clock::time_point{};
+    auto pixels = streaming_brush_->append(sample, finish, source, clip, profile != nullptr);
+    if (profile) {
+        profile->captured = true;
+        profile->projection_us = elapsed(projection_started);
+        if (pixels) {
+            profile->projected_dabs = pixels->projected_dabs;
+            profile->projected_samples = pixels->stable.size() + pixels->transient.size();
+        }
+    }
     if (!pixels) return fail(pixels.error());
     if (pixels->unchanged) return true;
+    const auto tiles_started = profile ? Clock::now() : Clock::time_point{};
     const bool accepted = raster_.isBound() ? raster_.updateProjectedStroke(pixels->stable, pixels->transient) :
                                               chunks_.updateProjectedStroke(pixels->stable, pixels->transient);
+    if (profile) profile->tile_update_us = elapsed(tiles_started);
     if (!accepted) return fail(raster_.isBound() ? raster_.lastError() : chunks_.lastError());
     collect_stroke_damage();
     return true;
@@ -2023,8 +2042,9 @@ bool Artwork::extend(DocumentPoint point, double pressure)
     StrokePoint sample; sample.position = point; sample.pressure = pressure; sample.time = (legacy_stroke_time_ += 1.0 / 120.0);
     return extend_input(sample);
 }
-bool Artwork::extend_input(StrokePoint sample)
+bool Artwork::extend_input(StrokePoint sample, StrokeInputSample* profile)
 {
+    if (profile) *profile = {};
     auto point = sample.position;
     if (!stroke_active())
         return fail("No stroke is active");
@@ -2038,7 +2058,7 @@ bool Artwork::extend_input(StrokePoint sample)
         return reject_stroke(error_);
     sample.position = point;
     if (streaming_brush_) {
-        if (!update_stream_input(sample, false)) return reject_stroke(error_);
+        if (!update_stream_input(sample, false, profile)) return reject_stroke(error_);
     } else {
         if (!chunks_.continueStrokeInput(sample)) return reject_stroke(chunks_.lastError());
         collect_stroke_damage();
@@ -2051,8 +2071,9 @@ bool Artwork::end(DocumentPoint point, double pressure)
     StrokePoint sample; sample.position = point; sample.pressure = pressure; sample.time = (legacy_stroke_time_ += 1.0 / 120.0);
     return end_input(sample);
 }
-bool Artwork::end_input(StrokePoint sample)
+bool Artwork::end_input(StrokePoint sample, StrokeInputSample* profile)
 {
+    if (profile) *profile = {};
     auto point = sample.position;
     if (!stroke_active())
         return fail("No stroke is active");
@@ -2073,7 +2094,7 @@ bool Artwork::end_input(StrokePoint sample)
     sample.position = point;
     bool result;
     if (streaming_brush_) {
-        if (!update_stream_input(sample, true)) return reject_stroke(error_);
+        if (!update_stream_input(sample, true, profile)) return reject_stroke(error_);
         result = raster_.isBound() ? raster_.endProjectedStroke() : chunks_.endProjectedStroke();
     } else result = chunks_.endStrokeInput(sample);
     if (!result)

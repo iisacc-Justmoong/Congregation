@@ -32,6 +32,7 @@ struct StrokeTaper final { double start = 0, end = 0, minimum = 1, strength = 0;
 // A conservative, half-open document-space rectangle affected by a stroke.
 struct StrokeDamage final { double left = 0, top = 0, right = 0, bottom = 0; };
 class StreamingBrush;
+struct StrokeInputSample;
 struct FloodOptions final { double tolerance = 0; bool contiguous = true; bool current_layer = false; bool target_current = false; bool preserve_alpha = false; bool antialias = false; };
 struct SelectionPreview final
 {
@@ -81,9 +82,9 @@ class Artwork final
                iiSharedCanvas::FrameIndex frame = 0);
     bool extend(::DocumentPoint, double);
     bool end(::DocumentPoint, double);
-    bool begin_input(::StrokePoint, iiSharedCanvas::BitmapBrush, iiSharedCanvas::FrameIndex frame = 0, StrokeTaper taper = {});
-    bool extend_input(::StrokePoint);
-    bool end_input(::StrokePoint);
+    bool begin_input(::StrokePoint, iiSharedCanvas::BitmapBrush, iiSharedCanvas::FrameIndex frame = 0, StrokeTaper taper = {}, StrokeInputSample* profile = nullptr);
+    bool extend_input(::StrokePoint, StrokeInputSample* profile = nullptr);
+    bool end_input(::StrokePoint, StrokeInputSample* profile = nullptr);
     void cancel();
     [[nodiscard]] std::optional<StrokeDamage> take_stroke_damage() noexcept;
     bool shape(std::string kind, iiSharedCanvas::Point from, iiSharedCanvas::Point to,
@@ -223,7 +224,7 @@ class Artwork final
     bool sparse_gradient(iiSharedCanvas::GradientDefinition, iiSharedCanvas::FrameIndex, RasterBlendMode);
     bool finish_compact_chunk_stroke();
     bool finish_masked_raster_stroke();
-    bool update_stream_input(::StrokePoint, bool finish);
+    bool update_stream_input(::StrokePoint, bool finish, StrokeInputSample* profile);
     bool commit_raster_stroke_history(std::shared_ptr<iiSharedCanvas::BitmapEditor>, std::string);
     bool commit_compact_chunk_history(std::shared_ptr<iiSharedCanvas::ChunkedBitmapEditor>, std::string,
                                       std::optional<iiSharedCanvas::CanvasRegion> before,

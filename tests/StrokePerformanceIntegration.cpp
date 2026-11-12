@@ -76,12 +76,20 @@ void print(const char* stage, Measurement value)
     std::cout << ' ' << stage << "_us=" << value.microseconds << ' ' << stage << "_bytes=" << value.bytes;
 }
 
-void run(const std::filesystem::path& directory, int side, int brush_size)
+void run(const std::filesystem::path& directory, int side, int brush_size, bool textured = false)
 {
     Artwork artwork(directory);
     check(artwork.create(side, side), "canvas setup failed");
     BitmapBrush brush;
     brush.size = brush_size; brush.argb = 0xff6533ff; brush.pressureToOpacityEnabled = false;
+    if (textured) {
+        brush.engineState.emplace();
+        auto& texture = brush.engineState->material.texture;
+        texture.enabled = true; texture.width = texture.height = 4;
+        texture.alpha = {64, 96, 128, 255, 255, 128, 96, 64,
+                         96, 192, 128, 224, 224, 128, 192, 96};
+        texture.grainStrength = .75;
+    }
     const int x = side / 2, y = side / 2;
     const auto original = pixel(artwork, x, y);
     bool ok = false;
@@ -124,7 +132,8 @@ void run(const std::filesystem::path& directory, int side, int brush_size)
     check(ok && pixel(artwork, x + 32, y) == original, "stroke undo failed");
     const auto redo = measure([&] { ok = artwork.redo(); });
     check(ok && pixel(artwork, x + 32, y) == painted, "stroke redo failed");
-    std::cout << "STROKE_PERFORMANCE canvas=" << side << " brush=" << brush_size;
+    std::cout << "STROKE_PERFORMANCE canvas=" << side << " brush=" << brush_size
+              << " textured=" << textured;
     print("encode", snapshot); print("begin", begin); print("move", move);
     print("composite_512", composite); print("composite_256", small_composite);
     print("end", end); print("undo", undo); print("redo", redo); std::cout << std::endl;
@@ -201,6 +210,14 @@ try {
     }
     if (argc > 1 && std::string_view(argv[1]) == "--4k-only") {
         run(directory.path(), 4096, 32);
+        return 0;
+    }
+    if (argc > 1 && std::string_view(argv[1]) == "--8k-only") {
+        run(directory.path(), 8192, 32);
+        return 0;
+    }
+    if (argc > 1 && std::string_view(argv[1]) == "--4k-textured-only") {
+        run(directory.path(), 4096, 128, true);
         return 0;
     }
     if (argc > 1 && std::string_view(argv[1]) == "--4k-variants-only") {

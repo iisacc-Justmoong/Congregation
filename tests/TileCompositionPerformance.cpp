@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 using namespace iiSharedCanvas;
@@ -17,7 +18,7 @@ void check(bool value, const char* message)
     if (!value) throw std::runtime_error(message);
 }
 
-Document fixture(bool filtered)
+Document fixture(bool filtered, int paint_layers)
 {
     Document document;
     document.extent = {1024, 1024};
@@ -27,7 +28,11 @@ Document fixture(bool filtered)
         paint.pixels[i] = 0x80000000U | (std::uint32_t(i * 2654435761U) & 0x00ffffffU);
     document.assets.emplace_back(RasterAsset{"paint", std::move(paint)});
     document.layers.emplace_back(StaticBitmapLayer{{"paper-layer", "Paper"}, StaticSource{"paper"}});
-    document.layers.emplace_back(StaticBitmapLayer{{"paint-layer", "Paint"}, StaticSource{"paint"}});
+    for (int i = 0; i < paint_layers; ++i) {
+        const auto suffix = std::to_string(i);
+        document.layers.emplace_back(StaticBitmapLayer{{"paint-layer-" + suffix, "Paint " + suffix},
+                                                     StaticSource{"paint"}});
+    }
     if (filtered) {
         LayerFilter filter;
         filter.operation = RasterEffect{RasterEffectKind::Invert};
@@ -36,9 +41,9 @@ Document fixture(bool filtered)
     return document;
 }
 
-void run(bool filtered)
+void run(bool filtered, int paint_layers = 1)
 {
-    const auto document = fixture(filtered);
+    const auto document = fixture(filtered, paint_layers);
     const std::vector<FrameRenderTileRequest> requests{
         {{{0, 0}, {512, 512}}, {512, 512}, RasterSampling::Smooth},
         {{{512, 0}, {512, 512}}, {512, 512}, RasterSampling::Smooth},
@@ -75,7 +80,8 @@ void run(bool filtered)
     }
     std::ranges::sort(separate_times);
     std::ranges::sort(batched_times);
-    std::cout << "TILE_COMPOSITION filtered=" << filtered << " tiles=" << requests.size()
+    std::cout << "TILE_COMPOSITION filtered=" << filtered << " layers=" << document.layers.size()
+              << " tiles=" << requests.size()
               << " iterations=" << separate_times.size()
               << " separate_median_us=" << separate_times[separate_times.size() / 2]
               << " batch_median_us=" << batched_times[batched_times.size() / 2] << '\n';
@@ -86,6 +92,7 @@ int main()
 try {
     run(false);
     run(true);
+    run(false, 7);
     return 0;
 } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

@@ -5,6 +5,7 @@
 #include "StrokeProfile.h"
 #include <iiGUI/NativeWidgets.h>
 #include <iiGUI/Image.h>
+#include <chrono>
 #include <map>
 #include <tuple>
 #include <vector>
@@ -30,6 +31,8 @@ class CanvasView final
     void resize(ii::gui::Rect);
     void refresh(bool document_changed = true);
     void render();
+    [[nodiscard]] bool paint_profiling_enabled() const noexcept { return stroke_profile_.enabled(); }
+    void presentation_queued(std::chrono::steady_clock::time_point timestamp) noexcept;
     void fit();
     void zoom(double factor, double x = -1, double y = -1);
     void set_frame(int);

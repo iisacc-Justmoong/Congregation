@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/PERFORMANCE_REPORT_2026-11-10.md",
-    "sha256": "97a797a990a4076a71ff184d835be9e5a26812d26d023ede3d5577d7cc436a06",
-    "bytes": 14364,
-    "line_count": 190,
+    "sha256": "e44863696f204596a25a9f809b8688ab14ebc37f114160d72f5e40b9a9436d55",
+    "bytes": 18052,
+    "line_count": 236,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -531,6 +531,106 @@
       "start_line": 187,
       "end_line": 190,
       "raw": "이 단일 조각 개선을 포함한 빌드(UUID\n`FE174E94-E440-321B-A0FD-C228EF9F880E`)도 iPad에 설치했다. 첫 실행의\n검은 화면 뒤 재실행에서는 빈 캔버스가 표시됐다. 이 빌드의 실제 펜 입력은\n아직 측정하지 못했다.\n"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 191,
+      "end_line": 191,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "heading",
+      "start_line": 192,
+      "end_line": 192,
+      "raw": "## 2026-11-12 현재 코드 재측정\n",
+      "level": 2,
+      "title": "2026-11-12 현재 코드 재측정"
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 193,
+      "end_line": 193,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "paragraph",
+      "start_line": 194,
+      "end_line": 201,
+      "raw": "현재 macOS Release 구성에서 빈 단일 레이어의 512×512·2048×2048 문서와\n8px·128px 붓을 각각 한 번 검사했다. 각 획의 중간 픽셀과 Undo/Redo도 확인했다.\n입력 한 번의 처리 시간은 0.213–1.062ms였고, 512×512 CPU 합성은\n0.824–1.088ms였다. 내구성 획 확정은 1.253–5.677초, Undo는\n1.210–2.997초, Redo는 1.048–1.645초였다. 시험 파일은 외장 Storage 볼륨의\n프로젝트 `resources/`에 만들어졌다. 이 값은 각 한 번의 Mac 결과이며 파일 시스템과\n부하의 영향을 받는다. iPad 표시 지연이나 사용자 체감 지연이 아니다. 원본은\n[기준 시험 로그](../build/performance-20261112/baseline-tests.log)이다.\n"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 202,
+      "end_line": 202,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "paragraph",
+      "start_line": 203,
+      "end_line": 208,
+      "raw": "별도 Mac Time Profiler 기록은 128px 합성 시험 전체 35.4초 중 실행 중인 CPU\n표본 60개를 남겼다. 전체 기록에는 프로세스 시작과 파일 작업도 포함된다.\n그중 획 종료, 타일 이력 게시, SQLite 커밋과 `fcntl` 경로가 관찰됐지만 대기\n시간이나 입력 구간별 점유율을 이 표본만으로 계산할 수 없다. 기록은\n[프로파일](../build/performance-20261112/mac-large-brush.trace)과\n[내보낸 표](../build/performance-20261112/mac-large-brush-profile.xml)이다.\n"
+    },
+    {
+      "id": "b000068",
+      "kind": "blank",
+      "start_line": 209,
+      "end_line": 209,
+      "raw": "\n"
+    },
+    {
+      "id": "b000069",
+      "kind": "paragraph",
+      "start_line": 210,
+      "end_line": 216,
+      "raw": "한 타일에 들어가는 입력은 표본 전체의 복사본 대신 최대 1,024개짜리 임시 버퍼를\n재사용한다. 32,768개 표본의 단일 타일 회귀 시험에서 일반 C++ 할당 요청 합은\n819,496바이트에서 184,616바이트로 77.5% 감소했다. 별도 미세 시험을 전후\n각각 다섯 번 교차 실행하고, 매 실행에서 11회 중앙값을 구했다. 이 중앙값의\n중앙값은 단일 타일에서 418µs에서 381µs였다. 여러 타일의 기존 그룹화 경로는\n유지하며 소스 오버·지우개·Multiply의 픽셀 순서와 준비 중 원본 보존을 검사한다.\n이것은 부분 합성 함수에 대한 Mac 측정이며 iPad나 전체 획의 성능 개선율이 아니다.\n"
+    },
+    {
+      "id": "b000070",
+      "kind": "blank",
+      "start_line": 217,
+      "end_line": 217,
+      "raw": "\n"
+    },
+    {
+      "id": "b000071",
+      "kind": "paragraph",
+      "start_line": 218,
+      "end_line": 222,
+      "raw": "앱의 스트리밍 작성기는 각 출력의 첫 자국에 이미 생성된 표본 버퍼를 넘겨 추가\n복사를 피한다. 128px 브러시의 첫 자국 13,069표본에 대한 별도 회귀 시험에서\n일반 C++ 할당 요청 합은 599,512바이트에서 338,132바이트로 감소했다. 여러 자국과\n캔버스 경계의 표본 순서 및 값은 기존 투영 결과와 비교했다. 이 역시 메모리 요청량에\n대한 합성 시험이며 실제 iPad의 지연 측정이 아니다.\n"
+    },
+    {
+      "id": "b000072",
+      "kind": "blank",
+      "start_line": 223,
+      "end_line": 223,
+      "raw": "\n"
+    },
+    {
+      "id": "b000073",
+      "kind": "paragraph",
+      "start_line": 224,
+      "end_line": 230,
+      "raw": "획별 선택적 계측은 스트리밍 입력의 자국 생성·투영, 편집기 타일 반영, CPU 타일\n합성, RGBA 변환·캐시 등록, 위젯 표시 내용 전달의 시간 분포를 구분한다. 자국과\n표본, 합성 타일과 픽셀 수도 집계한다. iiGUI가 장면 제출을 수락하기까지의\n시간을 별도로 관찰하되 다른 화면 변경과 합쳐질 수 있고 최종 제출은 기록에서\n빠질 수 있다. GPU 실행 완료, 실제 화면 표시 시각이나 펜 끝 지연은 측정하지\n않는다. iPad의 기존 프로파일링 실행에서 검은 화면이\n관찰된 원인은 아직 미확인이다.\n"
+    },
+    {
+      "id": "b000074",
+      "kind": "blank",
+      "start_line": 231,
+      "end_line": 231,
+      "raw": "\n"
+    },
+    {
+      "id": "b000075",
+      "kind": "paragraph",
+      "start_line": 232,
+      "end_line": 236,
+      "raw": "11월 12일 연결된 iPad에는 Congregation 프로세스가 있었지만 Instruments가 해당\nPID에 연결하지 못했고, 사용자는 당시 iPad를 조작할 수 없다고 답했다. 따라서\n새 펜 입력, 색상 변경, 도구 전환, 검은 화면 재발 및 동일 iPad의 Photoshop\n비교에 대한 새 결과는 없다. 파일 내구성 커밋과 Undo/Redo는 여전히 동기적이며,\n입력 작업자를 분리하거나 GPU 브러시 스탬핑을 도입하지 않았다.\n"
     }
   ],
   "outline": [
@@ -589,6 +689,14 @@
       "title": "iPad 후속 기록",
       "anchor": "ipad-후속-기록",
       "start_line": 142
+    },
+    {
+      "block_id": "b000063",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "2026-11-12 현재 코드 재측정",
+      "anchor": "2026-11-12-현재-코드-재측정",
+      "start_line": 192
     }
   ],
   "indexes": {
@@ -819,6 +927,27 @@
         "target": "../build/performance-20261110/ipad-optimized-hangs.xml",
         "kind": "relative",
         "line": 158
+      },
+      {
+        "block_id": "b000065",
+        "label": "기준 시험 로그",
+        "target": "../build/performance-20261112/baseline-tests.log",
+        "kind": "relative",
+        "line": 201
+      },
+      {
+        "block_id": "b000067",
+        "label": "프로파일",
+        "target": "../build/performance-20261112/mac-large-brush.trace",
+        "kind": "relative",
+        "line": 207
+      },
+      {
+        "block_id": "b000067",
+        "label": "내보낸 표",
+        "target": "../build/performance-20261112/mac-large-brush-profile.xml",
+        "kind": "relative",
+        "line": 208
       }
     ],
     "tables": []

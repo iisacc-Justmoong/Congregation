@@ -24,6 +24,11 @@ std::uint64_t profile_elapsed(ProfileClock::time_point started) noexcept
 {
     return std::uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(ProfileClock::now() - started).count());
 }
+std::uint64_t profile_timestamp(ProfileClock::time_point time) noexcept
+{
+    const auto value = std::chrono::duration_cast<std::chrono::microseconds>(time.time_since_epoch()).count();
+    return value > 0 ? std::uint64_t(value) : 0;
+}
 bool stroke_profiling_enabled() noexcept
 {
     const auto *value = std::getenv("CONGREGATION_PAINT_PROFILE");
@@ -37,11 +42,32 @@ void report_stroke_profile(const StrokeProfileReport& report) noexcept
         "CONGREGATION_PAINT_PROFILE ok=%d moves=%llu renders=%llu begin_us=%llu "
         "move_p50_upper_us=%llu move_p95_upper_us=%llu move_p99_upper_us=%llu move_max_us=%llu "
         "render_p50_upper_us=%llu render_p95_upper_us=%llu render_p99_upper_us=%llu render_max_us=%llu "
-        "finish_us=%llu max_input_gap_us=%llu\n",
+        "finish_us=%llu max_input_gap_us=%llu composed_tiles=%llu converted_pixels=%llu "
+        "composite_total_us=%llu composite_p50_upper_us=%llu composite_p95_upper_us=%llu composite_p99_upper_us=%llu composite_max_us=%llu "
+        "conversion_total_us=%llu conversion_p50_upper_us=%llu conversion_p95_upper_us=%llu conversion_p99_upper_us=%llu conversion_max_us=%llu "
+        "widget_publish_total_us=%llu widget_publish_p50_upper_us=%llu widget_publish_p95_upper_us=%llu widget_publish_p99_upper_us=%llu widget_publish_max_us=%llu "
+        "profiled_inputs=%llu projected_dabs=%llu projected_samples=%llu "
+        "projection_total_us=%llu projection_p50_upper_us=%llu projection_p95_upper_us=%llu projection_p99_upper_us=%llu projection_max_us=%llu "
+        "tile_update_total_us=%llu tile_update_p50_upper_us=%llu tile_update_p95_upper_us=%llu tile_update_p99_upper_us=%llu tile_update_max_us=%llu "
+        "queued_frames=%llu queue_delay_total_us=%llu queue_delay_p50_upper_us=%llu queue_delay_p95_upper_us=%llu queue_delay_p99_upper_us=%llu queue_delay_max_us=%llu superseded_publications=%llu pending_presentation=%d\n",
         report.succeeded ? 1 : 0, u(report.moves), u(report.renders), u(report.begin_us),
         u(report.move_p50_upper_us), u(report.move_p95_upper_us), u(report.move_p99_upper_us), u(report.move_max_us),
         u(report.render_p50_upper_us), u(report.render_p95_upper_us), u(report.render_p99_upper_us), u(report.render_max_us),
-        u(report.finish_us), u(report.max_input_gap_us));
+        u(report.finish_us), u(report.max_input_gap_us), u(report.composed_tiles), u(report.converted_pixels),
+        u(report.composition.total_us), u(report.composition.p50_upper_us), u(report.composition.p95_upper_us),
+        u(report.composition.p99_upper_us), u(report.composition.maximum_us),
+        u(report.conversion.total_us), u(report.conversion.p50_upper_us), u(report.conversion.p95_upper_us),
+        u(report.conversion.p99_upper_us), u(report.conversion.maximum_us),
+        u(report.widget_publish.total_us), u(report.widget_publish.p50_upper_us), u(report.widget_publish.p95_upper_us),
+        u(report.widget_publish.p99_upper_us), u(report.widget_publish.maximum_us),
+        u(report.input_projection.count), u(report.projected_dabs), u(report.projected_samples),
+        u(report.input_projection.total_us), u(report.input_projection.p50_upper_us),
+        u(report.input_projection.p95_upper_us), u(report.input_projection.p99_upper_us), u(report.input_projection.maximum_us),
+        u(report.input_tile_update.total_us), u(report.input_tile_update.p50_upper_us),
+        u(report.input_tile_update.p95_upper_us), u(report.input_tile_update.p99_upper_us), u(report.input_tile_update.maximum_us),
+        u(report.presentation_queue.count), u(report.presentation_queue.total_us), u(report.presentation_queue.p50_upper_us),
+        u(report.presentation_queue.p95_upper_us), u(report.presentation_queue.p99_upper_us), u(report.presentation_queue.maximum_us),
+        u(report.superseded_publications), report.pending_presentation ? 1 : 0);
     std::fflush(stderr);
 }
 template <class T> T take(ii::core::Result<T> result)
@@ -369,6 +395,10 @@ std::optional<SelectionPreview> CanvasView::clone_preview() const
     return artwork_.clone_preview(*clone_reference_,*clone_mask_->pixels(),clone_offset_,static_cast<FrameIndex>(frame_),clone_mask_->dirty_bounds());
 }
 void CanvasView::render() { render_stroke(std::nullopt); }
+void CanvasView::presentation_queued(std::chrono::steady_clock::time_point timestamp) noexcept
+{
+    if (stroke_profile_.active()) stroke_profile_.presentation_queued(profile_timestamp(timestamp));
+}
 
 void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
 {
@@ -380,6 +410,7 @@ void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
         return;
     const bool profiling = stroke_profile_.active();
     const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
+    StrokeRenderSample profile_sample;
     ii::gui::WidgetDrawing drawing;
     auto preview = artwork_.selection_preview(document_region);
     if(clone_mask_) {preview=clone_preview();cache_.clear();}
@@ -443,13 +474,21 @@ void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
     std::array<std::size_t, canvas_composition_max_tiles> image_positions;
     const auto compose = [&] {
         if (requests.empty()) return;
+        const auto started = profiling ? ProfileClock::now() : ProfileClock::time_point{};
         auto result = renderFrameTiles(doc, frame_, requests, overlays);
+        if (profiling) profile_sample.composition_us += profile_elapsed(started);
         if (!result.ok()) throw std::runtime_error(result.message);
         if (result.tiles.size() != requests.size())
             throw std::runtime_error("canvas composition returned the wrong number of tiles");
         ++viewport_.composition_batches;
         for (std::size_t i = 0; i < requests.size(); ++i) {
+            const auto conversion_started = profiling ? ProfileClock::now() : ProfileClock::time_point{};
             auto [found, inserted] = cache_.emplace(keys[i], image(result.tiles[i].pixels));
+            if (profiling) {
+                profile_sample.conversion_us += profile_elapsed(conversion_started);
+                ++profile_sample.composed_tiles;
+                profile_sample.converted_pixels += result.tiles[i].pixels.pixels.size();
+            }
             drawing.images[image_positions[i]].image = found->second;
             if (inserted) ++viewport_.uploads;
         }
@@ -657,8 +696,14 @@ void CanvasView::render_stroke(std::optional<CanvasRegion> document_region)
             drawing.panels.push_back(
                 {{0, float(y), float(viewport_.width), Metric::stroke1}, color, color});
     }
+    const auto publish_started = profiling ? ProfileClock::now() : ProfileClock::time_point{};
+    if (profiling) stroke_profile_.render_ready(profile_timestamp(publish_started));
     present_drawing(std::move(drawing), viewport_.visible_tiles);
-    if (profiling) stroke_profile_.render(profile_elapsed(profile_start));
+    if (profiling) {
+        profile_sample.widget_publish_us = profile_elapsed(publish_started);
+        profile_sample.total_us = profile_elapsed(profile_start);
+        stroke_profile_.render(profile_sample);
+    }
     // Never evict a tile still visible in the submitted scene, even if a very
     // large viewport exceeds the ordinary offscreen cache capacity.
     trim_canvas_tile_cache(cache_, {lod, left, top, right, bottom, frame_, viewport_.visible_tiles}, 96);
@@ -1241,11 +1286,16 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
                 taper_options.strength = 0;
                 if (status) status("Whole-stroke taper is not yet available for infinite canvases");
             }
-            const auto profile_start = stroke_profile_.enabled() ? ProfileClock::now() : ProfileClock::time_point{};
+            const bool profiling = stroke_profile_.enabled();
+            StrokeInputSample input_profile;
+            const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
             const auto ok = artwork_.begin_input(stroke_sample(event, down_, true), brush,
-                                                 static_cast<FrameIndex>(frame_), taper_options);
-            if (ok && stroke_profile_.enabled())
+                                                 static_cast<FrameIndex>(frame_), taper_options,
+                                                 profiling ? &input_profile : nullptr);
+            if (ok && profiling) {
                 stroke_profile_.begin(profile_elapsed(profile_start), event.timestamp);
+                stroke_profile_.input(input_profile);
+            }
             if (!ok && status)
                 status(artwork_.error());
             airbrush_stroke_ = ok && !brush.eraser && brush.engineState && brush.engineState->rasterizer.airbrushEnabled;
@@ -1338,9 +1388,14 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         {
             auto point = world(event.x, event.y);
             const bool profiling = stroke_profile_.active();
+            StrokeInputSample input_profile;
             const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
-            const bool extended = artwork_.extend_input(stroke_sample(event, point, false));
-            if (profiling) stroke_profile_.move(profile_elapsed(profile_start), event.timestamp);
+            const bool extended = artwork_.extend_input(stroke_sample(event, point, false),
+                                                        profiling ? &input_profile : nullptr);
+            if (profiling) {
+                stroke_profile_.move(profile_elapsed(profile_start), event.timestamp);
+                stroke_profile_.input(input_profile);
+            }
             if (!extended) {
                 stroke_profile_.cancel();
                 if (status) status(artwork_.error());
@@ -1388,6 +1443,7 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         if (artwork_.stroke_active())
         {
             const bool profiling = stroke_profile_.active();
+            StrokeInputSample input_profile;
             const auto profile_start = profiling ? ProfileClock::now() : ProfileClock::time_point{};
             struct CommitGuard {
                 bool& flag;
@@ -1397,9 +1453,12 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
             bool ok;
             {
                 CommitGuard guard(committing_stroke_);
-                ok = artwork_.end_input(stroke_sample(event, point, false));
+                ok = artwork_.end_input(stroke_sample(event, point, false), profiling ? &input_profile : nullptr);
             }
-            if (profiling) report_stroke_profile(stroke_profile_.finish(profile_elapsed(profile_start), ok));
+            if (profiling) {
+                stroke_profile_.input(input_profile);
+                report_stroke_profile(stroke_profile_.finish(profile_elapsed(profile_start), ok));
+            }
             if (!ok && status)
                 status(artwork_.error());
             schedule_stroke_render();

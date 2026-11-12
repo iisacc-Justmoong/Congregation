@@ -189,6 +189,7 @@ struct State final : std::enable_shared_from_this<State>
     std::shared_ptr<ui::EditorColor> color = std::make_shared<ui::EditorColor>();
     ii::core::ObservableSubscription color_subscription;
     ii::core::ObservableSubscription first_presentation_subscription;
+    ii::core::ObservableSubscription paint_presentation_subscription;
     ui::EditorBackend* main = nullptr;
     ui::EditorBackend* secondary = nullptr;
     AsyncLicenseService license;
@@ -422,6 +423,18 @@ struct State final : std::enable_shared_from_this<State>
         });
         if (fallback) first_presentation_fallback=fallback.token;
         else { first_presentation_pending=false; first_presentation_subscription.reset(); }
+    }
+    void observe_paint_presentations()
+    {
+        if (!canvas.paint_profiling_enabled()) return;
+        const auto source = host->presentation_source();
+        if (!source || !*source) return;
+        const auto weak = weak_from_this();
+        auto observed = (*source)->observe([weak](const ii::gui::PresentationEvent& event) {
+            if (event.kind != ii::gui::PresentationKind::queued) return;
+            if (auto state = weak.lock()) state->canvas.presentation_queued(event.timestamp);
+        });
+        if (observed) paint_presentation_subscription = std::move(*observed);
     }
     void status(std::string value)
     {
@@ -1378,6 +1391,7 @@ struct State final : std::enable_shared_from_this<State>
                 p->status("A canvas invitation is waiting in Preferences");
             }
         };
+        observe_paint_presentations();
         if (!test)
         {
             // Keep the workspace through its first submitted frame, even if a

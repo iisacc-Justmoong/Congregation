@@ -1,4 +1,5 @@
 #include <Native/Artwork.h>
+#include <Native/StrokeProfile.h>
 #include <Native/ToolSettings.h>
 #include <iiFileProviderNative.h>
 #include <iiSharedCanvasNative.h>
@@ -41,7 +42,7 @@ std::vector<std::uint32_t> displayed(const Artwork& artwork) {
     return frame.pixels.pixels;
 }
 
-void pressureAndSelection(const std::filesystem::path& directory, bool selected, bool erase) {
+void pressureAndSelection(const std::filesystem::path& directory, bool selected, bool erase, bool textured = false) {
     Artwork artwork(directory);
     check(artwork.create(192, 96), "pressure fixture failed");
     if (erase) check(artwork.import_pixels(makeRasterLayer(192, 96, 0xffccbb99), "source", 0, 0),
@@ -54,6 +55,14 @@ void pressureAndSelection(const std::filesystem::path& directory, bool selected,
     brush.size = 16;
     brush.argb = 0xff6533ff;
     brush.eraser = erase;
+    if (textured) {
+        check(bool(brush.engineState), "textured brush state unavailable");
+        auto& texture = brush.engineState->material.texture;
+        texture.enabled = true; texture.width = texture.height = 4;
+        texture.alpha = {0, 64, 128, 255, 255, 128, 64, 0,
+                         32, 192, 96, 224, 224, 96, 192, 32};
+        texture.grainStrength = .75;
+    }
     const StrokeTaper taper{settings.value(ToolParameter::start)/100.,
         settings.value(ToolParameter::end)/100., settings.value(ToolParameter::minimum_size)/100.,
         settings.value(ToolParameter::taper)/100.};
@@ -93,18 +102,26 @@ int main() try {
     brush.argb = 0xff6533ff;
     const StrokeTaper taper{.75, .75, .25, 1};
     const auto before = pixels(artwork);
-    check(artwork.begin_input(point(16, 48, 0), brush, 0, taper), "stroke begin failed");
+    StrokeInputSample measured;
+    check(artwork.begin_input(point(16, 48, 0), brush, 0, taper, &measured), "stroke begin failed");
+    check(measured.captured && measured.projected_dabs > 0 && measured.projected_samples > 0,
+          "stroke start did not report its real brush projection");
     std::vector<std::uint32_t> early;
+    std::uint64_t measuredSamples = 0;
     for (int x = 24; x <= 144; x += 8) {
-        check(artwork.extend_input(point(x, 48, x / 120.)), "stroke update failed");
+        check(artwork.extend_input(point(x, 48, x / 120.), &measured), "stroke update failed");
+        check(measured.captured, "stroke update did not separate projection and tile work");
+        measuredSamples += measured.projected_samples;
         if (x == 48) early = pixels(artwork);
     }
+    check(measuredSamples > 0, "stroke updates did not report projected samples");
     const auto live = pixels(artwork);
     check(live != before, "stroke was not painted during input");
     for (int y=0; y<96; ++y) for (int x=0; x<24; ++x)
         check(early[std::size_t(y)*192+x] == live[std::size_t(y)*192+x],
               "later input changed a completed start taper");
-    check(artwork.end_input(point(144, 48, 144 / 120.)), "stroke finish failed");
+    check(artwork.end_input(point(144, 48, 144 / 120.), &measured) && measured.captured,
+          "stroke finish or its input measurement failed");
     const auto finished = pixels(artwork);
     check(live == finished, "release changed the shape of the already displayed stroke");
     check(artwork.undo() && pixels(artwork) == before && artwork.redo() &&
@@ -149,6 +166,7 @@ int main() try {
     pressureAndSelection(directory.path(), false, false);
     pressureAndSelection(directory.path(), true, false);
     pressureAndSelection(directory.path(), true, true);
+    pressureAndSelection(directory.path(), true, false, true);
     std::cout << "STROKE_STREAMING_INTEGRATION_OK\n";
     return 0;
 } catch (const std::exception& error) {

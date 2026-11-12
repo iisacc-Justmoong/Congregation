@@ -3,6 +3,7 @@
 #include <Stroke/Rasterizer.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <deque>
 #include <expected>
 #include <optional>
@@ -20,6 +21,7 @@ public:
         std::vector<RasterSample> stable;
         std::vector<RasterSample> transient;
         bool unchanged = false;
+        std::uint64_t projected_dabs = 0;
     };
 
     StreamingBrush(BrushState state, double start, double end, double minimum, double strength)
@@ -27,7 +29,8 @@ public:
           end_(end * state_.rasterizer.brushSize), minimum_(minimum), strength_(strength) {}
 
     [[nodiscard]] std::expected<Pixels, std::string> append(
-        const StrokePoint& sample, bool finish, const RasterSourceSampler& source, DevicePixelRect clip)
+        const StrokePoint& sample, bool finish, const RasterSourceSampler& source, DevicePixelRect clip,
+        bool count_work = false)
     {
         try {
             auto observed = sample;
@@ -82,6 +85,7 @@ public:
                 if (end_ > 0) progress = std::min(progress, smooth(distanceToEnd / end_));
                 dab.scale *= 1.0 - strength_ * (1.0 - minimum_) * (1.0 - progress);
                 if (dab.scale <= 0) return;
+                if (count_work) ++output.projected_dabs;
                 auto projected = projectBrushDabs(BrushDabSpan{&dab, 1}, state_.rasterizer,
                                                   RasterProjection{}, source, state_.material);
                 std::erase_if(projected, [&](const RasterSample& value) {
@@ -89,7 +93,9 @@ public:
                         std::int64_t(value.position.x) >= std::int64_t(clip.origin.x) + clip.width ||
                         std::int64_t(value.position.y) >= std::int64_t(clip.origin.y) + clip.height;
                 });
-                destination.insert(destination.end(), projected.begin(), projected.end());
+                if (projected.empty()) return;
+                if (destination.empty()) destination = std::move(projected);
+                else destination.insert(destination.end(), projected.begin(), projected.end());
             };
             // Bound both command count and an estimate of the projected tip
             // pixels. Otherwise a stationary large airbrush could retain a

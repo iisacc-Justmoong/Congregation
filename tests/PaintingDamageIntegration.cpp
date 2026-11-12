@@ -3,6 +3,7 @@
 #include <Native/CanvasTilePolicy.h>
 #include <iiFileProviderNative.h>
 #include <iiGUI/WidgetState.h>
+#include <iiGUI/Presentation.h>
 #include <iiSDKCore/Runtime/EventLoop.h>
 #include <iiSDKCore/Runtime/FrameLoop.h>
 #include <iiSharedCanvasNative.h>
@@ -131,6 +132,12 @@ int main() try {
     check(bool(paint_host.set_frame({0, 0, 1280, 960})), "paint host placement failed");
     (void)take(tree->drawing_snapshot({1280, 960}));
     CanvasView canvas(artwork);
+    // Simulate renderer acceptance without creating a native window or
+    // pretending that a GPU has completed or that pixels reached a display.
+    auto presentations = std::make_shared<ii::gui::PresentationStream>();
+    auto presentation_observer = take(presentations->observe([&](const auto& event) {
+        if (event.kind == ii::gui::PresentationKind::queued) canvas.presentation_queued(event.timestamp);
+    }));
     canvas.brush_size = 12;
     canvas.color = 0xff123456;
     canvas.attach(surface, paint_host);
@@ -159,6 +166,8 @@ int main() try {
     check(canvas.viewport().uploads == before, "input rendered before the display frame");
     const auto now = ii::runtime::Clock::now();
     frames.step(now);
+    check(bool(presentations->queued(ii::runtime::Clock::now(), ii::gui::GraphicsApi::metal)),
+          "test presentation was not queued");
     check(canvas.viewport().uploads == before + 1, "one changed tile must be composited once");
     check(tile(tree, canvas, 1, 1) == untouched, "untouched tile was replaced");
     check_tile_layers(tree, canvas);

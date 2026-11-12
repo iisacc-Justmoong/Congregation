@@ -130,17 +130,23 @@ int main(int argc, char** argv) try {
                                0, take(color_anchor.snapshot()).bounds.height));
     check(take(color_popup.snapshot()).opened, "workspace color popup did not open");
     good(color_popup.close_popup());
-    const double initial_size = model->brush_size.get();
-    const auto button_press = [&](std::string_view id) {
-        const auto rect = take(widget(tree, id).snapshot()).bounds;
+    // The size +/- controls were replaced by the declarative Tool panel.
+    // Exercise the current tool buttons without assuming that separately
+    // mounted panel is part of this MainWindow-only fixture.
+    const auto pencil = widget(tree, "/tool-pencil");
+    const auto brush_button = widget(tree, "/brush");
+    const auto button_press = [&](const ii::gui::Widget& button) {
+        const auto rect = take(button.snapshot()).bounds;
         const auto x = rect.x + rect.width / 2, y = rect.y + rect.height / 2;
         good(tree->input({.kind = ii::gui::WidgetInputKind::pointer_down, .x = x, .y = y, .buttons = 1}));
         good(tree->input({.kind = ii::gui::WidgetInputKind::pointer_up, .x = x, .y = y}));
     };
-    for (int i = 0; i < 32; ++i) button_press("/size-plus");
-    check(model->brush_size.get() > initial_size, "rapid button presses did not change brush size");
-    for (int i = 0; i < 32; ++i) button_press("/size-minus");
-    check(model->brush_size.get() == initial_size, "rapid button presses did not restore brush size");
+    for (int i = 0; i < 32; ++i) {
+        button_press(pencil);
+        check(model->selected_tool.get() == "pencil", "rapid tool selection did not choose pencil");
+        button_press(brush_button);
+        check(model->selected_tool.get() == "brush", "rapid tool selection did not restore brush");
+    }
     auto surface = widget(tree, "/canvas");
     auto paint_host = widget(tree, "/canvas-paint-layers");
     CanvasView canvas(artwork);

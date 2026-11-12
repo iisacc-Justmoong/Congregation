@@ -196,14 +196,14 @@
       "document_id": "urn:iisacc:document:2d1a1a6fb7e602965a130d26c43ac2e500091c5b397640c3270d1b356f7eaa3f",
       "source": "docs/PAINTING_INCREMENTAL_RENDERING.md",
       "agent_json": "docs/PAINTING_INCREMENTAL_RENDERING.agent.json",
-      "source_sha256": "054d7e7cf0fa10567ba502102128e20387b30a5b0d5249ccdb53bf7ad10bc1fa",
+      "source_sha256": "5f81d3fa969e3a38e59f3234eee3c9184979fbb5d8312a676c683c7835dd33a6",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:b75177b8d77263769c1100d3babec0ea20780a80e6a0ecd2e1bba659e1baf860",
       "source": "docs/PERFORMANCE_REPORT_2026-11-10.md",
       "agent_json": "docs/PERFORMANCE_REPORT_2026-11-10.agent.json",
-      "source_sha256": "97a797a990a4076a71ff184d835be9e5a26812d26d023ede3d5577d7cc436a06",
+      "source_sha256": "e44863696f204596a25a9f809b8688ab14ebc37f114160d72f5e40b9a9436d55",
       "role": "evidence"
     },
     {
