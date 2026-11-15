@@ -40,6 +40,7 @@ Markdown is the maintained human source. Agent JSON is a structured, source-trac
 | [`docs/SHARED_CANVAS.md`](SHARED_CANVAS.md) | [JSON](SHARED_CANVAS.agent.json) |
 | [`docs/SingleAppBuild.md`](SingleAppBuild.md) | [JSON](SingleAppBuild.agent.json) |
 | [`docs/TOOLBAR_FUNCTIONAL_SPEC_2026-10-30.md`](TOOLBAR_FUNCTIONAL_SPEC_2026-10-30.md) | [JSON](TOOLBAR_FUNCTIONAL_SPEC_2026-10-30.agent.json) |
+| [`docs/TOOL_SHORTCUTS.md`](TOOL_SHORTCUTS.md) | [JSON](TOOL_SHORTCUTS.agent.json) |
 | [`docs/UI_STYLE_TOKENS.md`](UI_STYLE_TOKENS.md) | [JSON](UI_STYLE_TOKENS.agent.json) |
 | [`docs/VINCENT_UI.md`](VINCENT_UI.md) | [JSON](VINCENT_UI.agent.json) |
 | [`docs/WEB_ACCOUNT.md`](WEB_ACCOUNT.md) | [JSON](WEB_ACCOUNT.agent.json) |

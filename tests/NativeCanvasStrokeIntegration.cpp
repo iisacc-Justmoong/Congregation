@@ -169,6 +169,10 @@ int main(int argc, char** argv) try {
     engine.dynamics.opacityResponse.pressure = {true, model->pressure_min.get(),
                                                model->pressure_mid.get(), model->pressure_max.get()};
     canvas.attach(surface, paint_host);
+    // This fixture inspects the single 512x256 raster tile directly. Fit can
+    // zoom above 200%, where the current renderer correctly uses smaller tiles.
+    canvas.zoom(1.0 / canvas.viewport().scale);
+    check(std::abs(canvas.viewport().scale - 1) < 1e-9, "fixture zoom was not normalized");
     const auto baseline = displayed_canvas(tree);
     const auto bounds = take(surface.snapshot()).bounds;
     const auto viewport = canvas.viewport();
@@ -296,7 +300,7 @@ int main(int argc, char** argv) try {
     check(alpha_at(artwork, 240, 75) > 0, "rapid input lost its moving pixels");
     check(artwork.undo() && artwork.redo(), "rapid input lost its stroke history");
 
-    // The default brush retains every input for whole-stroke taper replay.
+    // The default streaming brush remains correct through a burst of samples.
     check(artwork.create(512, 256), "cannot create default-brush burst canvas");
     canvas.settings = product_brush;
     canvas.brush_size = product_brush_size;

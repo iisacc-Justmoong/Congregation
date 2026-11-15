@@ -8,6 +8,7 @@
 #include "EditorLayout.h"
 #include "MainWindow.h"
 #include "Style.h"
+#include "ToolShortcuts.h"
 #include "PreferencesView.generated.h"
 #include "CanvasSetupWindow.h"
 #include <LVUI/NativeAuthoredIcons.h>
@@ -177,6 +178,7 @@ struct State final : std::enable_shared_from_this<State>
     Preferences preferences;
     Artwork artwork;
     CanvasView canvas;
+    ToolShortcuts tool_shortcuts;
     std::shared_ptr<ii::gui::Host> host, preferences_host, setup_host;
     ChildWindowGeneration preferences_generation, setup_generation;
     std::shared_ptr<CanvasSetupView> setup_view;
@@ -1615,6 +1617,22 @@ struct State final : std::enable_shared_from_this<State>
     {
         if (event.kind != ii::gui::WidgetInputKind::key_down || event.text_input_active)
             return false;
+        if (main)
+            if (const auto command = tool_shortcuts.resolve(event, main->selected_tool.get()))
+            {
+                using Kind = ToolShortcutCommand::Kind;
+                switch (command->kind)
+                {
+                case Kind::select_tool:
+                    main->select_tool(std::string(command->tool));
+                    tool_shortcuts.observe_selection(main->selected_tool.get());
+                    break;
+                case Kind::toggle_rulers: main->choose_tool_rulers(); break;
+                case Kind::toggle_symmetry: main->symmetry_paint(); break;
+                case Kind::brush_size: act(command->step > 0 ? Action::size_plus : Action::size_minus); break;
+                }
+                return true;
+            }
         if ((canvas.polygon_active() || canvas.crop_active()) && (event.key == ii::gui::WidgetKey::enter || event.key == ii::gui::WidgetKey::escape))
             return canvas.input(event);
         if (event.key == ii::gui::WidgetKey::delete_forward ||
@@ -1635,6 +1653,8 @@ struct State final : std::enable_shared_from_this<State>
         std::string key = lower(event.text);
         if (event.meta || event.control)
         {
+            if (event.alt)
+                return false;
             if (key == "n")
                 act(Action::new_document);
             else if (key == "o")
@@ -1659,21 +1679,7 @@ struct State final : std::enable_shared_from_this<State>
                 return false;
             return true;
         }
-        if (key == "b")
-            act(Action::brush);
-        else if (key == "e")
-            act(Action::eraser);
-        else if (key == "t")
-            act(Action::text);
-        else if (key == "v")
-            act(Action::select);
-        else if (key == "z")
-            act(Action::zoom_tool);
-        else if (key == "h")
-            act(Action::pan);
-        else
-            return false;
-        return true;
+        return false;
     }
     void install_menu()
     {

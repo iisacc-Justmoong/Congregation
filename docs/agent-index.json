@@ -196,14 +196,14 @@
       "document_id": "urn:iisacc:document:2d1a1a6fb7e602965a130d26c43ac2e500091c5b397640c3270d1b356f7eaa3f",
       "source": "docs/PAINTING_INCREMENTAL_RENDERING.md",
       "agent_json": "docs/PAINTING_INCREMENTAL_RENDERING.agent.json",
-      "source_sha256": "5f81d3fa969e3a38e59f3234eee3c9184979fbb5d8312a676c683c7835dd33a6",
+      "source_sha256": "fd7a750e4c266e2e7502edd18c1092818366ddd9f5178596d6a3a3a348c38127",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:b75177b8d77263769c1100d3babec0ea20780a80e6a0ecd2e1bba659e1baf860",
       "source": "docs/PERFORMANCE_REPORT_2026-11-10.md",
       "agent_json": "docs/PERFORMANCE_REPORT_2026-11-10.agent.json",
-      "source_sha256": "e44863696f204596a25a9f809b8688ab14ebc37f114160d72f5e40b9a9436d55",
+      "source_sha256": "2a5f0d732f5a62424c3597c9e56d30e1674ec711b5effea82b171e5aba17775a",
       "role": "evidence"
     },
     {
@@ -217,7 +217,7 @@
       "document_id": "urn:iisacc:document:49223109d0b9ad68cf14eb96d3dfab1be34e1d01a89486a4b4612688d2a98e60",
       "source": "docs/README.md",
       "agent_json": "docs/README.agent.json",
-      "source_sha256": "9b2facb9a7a8de4ae7b1283f2b0e20b0ec6ac05d72f17bd084d07c7ae5325380",
+      "source_sha256": "37190a5af2f69e68b3955b93f17ca2ecacd69d4a78e0e70121527bcbbb6f4a32",
       "role": "overview"
     },
     {
@@ -372,6 +372,13 @@
       "source": "docs/BRUSH_TOOL_PANEL.md",
       "agent_json": "docs/BRUSH_TOOL_PANEL.agent.json",
       "source_sha256": "d78579d78c840cb1d4d2c2daaba33643ca59cba840a7404b2a6a83e984dcf305",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:6b873b845cac5c8ed818fb98c5c9ff454540011714264783e9af96db56b19d04",
+      "source": "docs/TOOL_SHORTCUTS.md",
+      "agent_json": "docs/TOOL_SHORTCUTS.agent.json",
+      "source_sha256": "1faa00d6cde46951aeb0c40be5e6c74dfee67136d60b185dc53fef2f59b8dfe0",
       "role": "guide"
     }
   ],
