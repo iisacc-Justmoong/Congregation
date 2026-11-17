@@ -67,6 +67,18 @@ Navigation and selection do not change document revisions. Each finished stroke 
 
 The current source declares version 1.0.2 and bundle build 3. A successful local build does not establish Windows/Linux runtime compatibility, physical-tablet validation, execution on an older macOS machine, or production account/update-server behavior.
 
+## License
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+Congregation is licensed under the GNU Affero General Public License
+version 3, or any later version. The terms are in [LICENSE](LICENSE). The
+Korean policy is [docs/License.md](docs/License.md).
+
+The iiSDK (SDK) is Apache-2.0, which is compatible for products to link.
+First-party folders in this repository that do not carry a license file use
+the root license. Third-party code keeps its own license.
+
 <!-- workspace-docs:readme:start -->
 ## Documentation entry points
 

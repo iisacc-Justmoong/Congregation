@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "AGENT.md",
-    "sha256": "2c357de60c18deacab4ceadd6b19688d1bcc77d4967956782c6813ed1b0be7d8",
-    "bytes": 3404,
-    "line_count": 41,
+    "sha256": "21cd7de682dbf06089958e781add6d016bcbe9f3e859a8d44951f60a2b281680",
+    "bytes": 3673,
+    "line_count": 47,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -109,17 +109,47 @@
       "raw": "\n"
     },
     {
-      "id": "b000013",
-      "kind": "html",
+      "id": "b000022",
+      "kind": "heading",
       "start_line": 25,
       "end_line": 25,
+      "raw": "## 라이선스\n",
+      "level": 2,
+      "title": "라이선스"
+    },
+    {
+      "id": "b000023",
+      "kind": "blank",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "paragraph",
+      "start_line": 27,
+      "end_line": 29,
+      "raw": "Congregation는 `AGPL-3.0-or-later`이다. iiSDK(SDK)는 Apache-2.0이며, 제품이\nSDK를 링크할 수 있다. 한국어 정책은 [docs/License.md](docs/License.md), 전문은\n[LICENSE](LICENSE)이다. 제3자 라이선스는 바꾸지 않는다.\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "html",
+      "start_line": 31,
+      "end_line": 31,
       "raw": "<!-- workspace-docs:agent:start -->\n"
     },
     {
       "id": "b000014",
       "kind": "heading",
-      "start_line": 26,
-      "end_line": 26,
+      "start_line": 32,
+      "end_line": 32,
       "raw": "## 문서 구조와 에이전트 탐색\n",
       "level": 2,
       "title": "문서 구조와 에이전트 탐색"
@@ -127,15 +157,15 @@
     {
       "id": "b000015",
       "kind": "blank",
-      "start_line": 27,
-      "end_line": 27,
+      "start_line": 33,
+      "end_line": 33,
       "raw": "\n"
     },
     {
       "id": "b000016",
       "kind": "list",
-      "start_line": 28,
-      "end_line": 34,
+      "start_line": 34,
+      "end_line": 40,
       "raw": "- 프로젝트 루트의 `README.md`는 사람용 영문 진입 문서이며 `AGENT.md`는 에이전트 진입점이다.\n- 하위 인간용 Markdown과 구조화된 agent JSON을 함께 유지한다. Markdown이 원본이며 JSON은 원문 해시와 줄 범위를 가진 파생 문서이다.\n- 먼저 [docs/agent-index.json](docs/agent-index.json)에서 관련 문서와 JSON 투영을 찾는다. 원문 SHA-256이 다르면 현재 Markdown을 읽고 투영을 갱신한다.\n- JSON의 규칙 후보는 검색용 어휘 일치 결과이다. 과거 기록·예제·실패 상태를 현재 지시나 검증 완료로 자동 해석하지 않는다.\n- 기존 프로젝트별 규칙, 동결된 증거, 라이선스, 외부 원본, 사용자 데이터와 다른 작업의 변경을 보존한다.\n- 이 문서 재편 지침은 과거 작업의 기능 구현·배포를 자동 재개하라는 요청이 아니다. 현재 사용자의 작업 범위를 우선한다.\n- 문서를 수정하면 JSON 쌍·색인을 함께 갱신하고 검증한다. 기존 소스 변경에 대한 빌드·테스트 규칙은 계속 따른다.\n",
       "items": [
         {
@@ -178,29 +208,29 @@
     {
       "id": "b000017",
       "kind": "blank",
-      "start_line": 35,
-      "end_line": 35,
+      "start_line": 41,
+      "end_line": 41,
       "raw": "\n"
     },
     {
       "id": "b000018",
       "kind": "paragraph",
-      "start_line": 36,
-      "end_line": 36,
+      "start_line": 42,
+      "end_line": 42,
       "raw": "Workspace에서 이 프로젝트의 문서를 갱신하는 명령은 다음과 같다.\n"
     },
     {
       "id": "b000019",
       "kind": "blank",
-      "start_line": 37,
-      "end_line": 37,
+      "start_line": 43,
+      "end_line": 43,
       "raw": "\n"
     },
     {
       "id": "b000020",
       "kind": "fenced_code",
-      "start_line": 38,
-      "end_line": 40,
+      "start_line": 44,
+      "end_line": 46,
       "raw": "```sh\npython3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project Product/Congregation\n```\n",
       "language": "sh",
       "code": "python3 ../../Engineering/WorkspaceDocumentation/App/workspace_docs.py --workspace ../.. sync --project Product/Congregation\n",
@@ -209,8 +239,8 @@
     {
       "id": "b000021",
       "kind": "html",
-      "start_line": 41,
-      "end_line": 41,
+      "start_line": 47,
+      "end_line": 47,
       "raw": "<!-- workspace-docs:agent:end -->\n"
     }
   ],
@@ -224,12 +254,20 @@
       "start_line": 1
     },
     {
+      "block_id": "b000022",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "라이선스",
+      "anchor": "라이선스",
+      "start_line": 25
+    },
+    {
       "block_id": "b000014",
       "parent_id": "b000001",
       "level": 2,
       "title": "문서 구조와 에이전트 탐색",
       "anchor": "문서-구조와-에이전트-탐색",
-      "start_line": 26
+      "start_line": 32
     }
   ],
   "indexes": {
@@ -250,7 +288,7 @@
       },
       {
         "block_id": "b000016",
-        "line": 31,
+        "line": 37,
         "text": "- JSON의 규칙 후보는 검색용 어휘 일치 결과이다. 과거 기록·예제·실패 상태를 현재 지시나 검증 완료로 자동 해석하지 않는다.",
         "basis": "lexical_match",
         "context": "list"
@@ -283,7 +321,21 @@
         "label": "docs/agent-index.json",
         "target": "docs/agent-index.json",
         "kind": "relative",
-        "line": 30
+        "line": 36
+      },
+      {
+        "block_id": "b000024",
+        "label": "docs/License.md",
+        "target": "docs/License.md",
+        "kind": "relative",
+        "line": 28
+      },
+      {
+        "block_id": "b000024",
+        "label": "LICENSE",
+        "target": "LICENSE",
+        "kind": "relative",
+        "line": 29
       }
     ],
     "tables": []

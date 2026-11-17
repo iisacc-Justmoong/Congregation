@@ -6,7 +6,7 @@ license texts and machine-readable Qt package information are installed beside
 this file under legal/. Corresponding-source information is in SOURCE_OFFER.txt.
 
 Congregation
-  License: GNU Affero General Public License v3.0
+  License: GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)
   Source: https://github.com/iisacc-Justmoong/Congregation
 
 LVRS
