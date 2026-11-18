@@ -254,7 +254,10 @@ void tst_WindowsBuildWorkflowContract::windowsBuildScriptDefinesRunnablePackageC
     QVERIFY2(!noticesPath.isEmpty(), "Windows third-party notices were not found");
     const QString notices = readTextFile(noticesPath);
     QVERIFY(notices.contains(QStringLiteral("iiPaintEngine")));
-    QVERIFY(notices.contains(QStringLiteral("AGPL-3.0-only")));
+    QVERIFY(notices.contains(QStringLiteral("LVRS\n  License: Apache License 2.0 (Apache-2.0)")));
+    QVERIFY(notices.contains(QStringLiteral("iiPaintEngine\n  License: Apache License 2.0 (Apache-2.0)")));
+    QVERIFY(notices.contains(QStringLiteral("iiSharedCanvas\n  License: Apache License 2.0 (Apache-2.0)")));
+    QVERIFY(!notices.contains(QStringLiteral("AGPL-3.0-only")));
     QVERIFY(notices.contains(QStringLiteral("legal/iiPaintEngine/LICENSE.txt")));
     QVERIFY(notices.contains(QStringLiteral("psd_sdk")));
     QVERIFY(notices.contains(QStringLiteral("Pretendard 1.3.9")));

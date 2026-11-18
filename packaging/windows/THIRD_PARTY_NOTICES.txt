@@ -10,17 +10,17 @@ Congregation
   Source: https://github.com/iisacc-Justmoong/Congregation
 
 LVRS
-  License: GNU Affero General Public License v3.0
-  Source: https://github.com/iisacc-Justmoong/LVRS
+  License: Apache License 2.0 (Apache-2.0)
+  Source: https://github.com/iisacc-Justmoong/SDK/tree/main/LVRS
 
 iiPaintEngine
-  License: GNU Affero General Public License v3.0 only (AGPL-3.0-only)
-  Source: https://github.com/iisacc-Justmoong/iiPaintEngine
+  License: Apache License 2.0 (Apache-2.0)
+  Source: https://github.com/iisacc-Justmoong/SDK/tree/main/iiPaintEngine
   Full text: legal/iiPaintEngine/LICENSE.txt
 
 iiSharedCanvas
-  License: GNU Affero General Public License v3.0 only (AGPL-3.0-only)
-  Source: https://github.com/iisacc-Justmoong/iiSharedCanvas
+  License: Apache License 2.0 (Apache-2.0)
+  Source: https://github.com/iisacc-Justmoong/SDK/tree/main/iiSharedCanvas
   Full text: legal/iiSharedCanvas/LICENSE.txt
 
 iiLicenseManager 0.2
