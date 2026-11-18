@@ -14,7 +14,7 @@
       "document_id": "urn:iisacc:document:ef8c573667502a1b2d48319475d569fa41e27dd96fef8c96a0740a938208f3f5",
       "source": "AGENT.md",
       "agent_json": "docs/entrypoints/AGENT.agent.json",
-      "source_sha256": "2c357de60c18deacab4ceadd6b19688d1bcc77d4967956782c6813ed1b0be7d8",
+      "source_sha256": "21cd7de682dbf06089958e781add6d016bcbe9f3e859a8d44951f60a2b281680",
       "role": "instructions"
     },
     {
@@ -42,7 +42,7 @@
       "document_id": "urn:iisacc:document:6c378fe07f847e0922f26b171278b812de8a16ddf6d88c5f42bded4ec0c429e3",
       "source": "README.md",
       "agent_json": "docs/entrypoints/README.agent.json",
-      "source_sha256": "2d523b20a7ff3406d4bde93f036a20b6eccf2af4ae3090174919f13b43013fdd",
+      "source_sha256": "96959d215accc5e53b9c8f98fb84d487ca4cd9e99a83907e0c51552fb5718393",
       "role": "overview"
     },
     {
@@ -70,7 +70,7 @@
       "document_id": "urn:iisacc:document:43fc32ce06aeba458e4548781623a6ad6eeaaf0ba821a109b4cb0ec01c40cf13",
       "source": "docs/BUILD.md",
       "agent_json": "docs/BUILD.agent.json",
-      "source_sha256": "7a6b1b7eb49c5fbf02e72fdd79ea4325b2c2b9bb7471339feaf43ed98622e1c9",
+      "source_sha256": "ae5b931e5dcdce1d3fb892b0e590615c00669f13ecf952bee1dc578540f1548b",
       "role": "guide"
     },
     {
@@ -158,6 +158,13 @@
       "role": "guide"
     },
     {
+      "document_id": "urn:iisacc:document:0cdf8376f4624b20970a6decf541af5735a63e52826a7543ba76f046508c0ac5",
+      "source": "docs/License.md",
+      "agent_json": "docs/License.agent.json",
+      "source_sha256": "4ce03080e2b73cc678096b7f97b2afbff40c71264132941399d63cde969c26c4",
+      "role": "guide"
+    },
+    {
       "document_id": "urn:iisacc:document:c01dec5c9ea2660845a497c9ae224ff13890deb9bb76239ebfcc09ea75acab3c",
       "source": "docs/MACOS_INSTALLER.md",
       "agent_json": "docs/MACOS_INSTALLER.agent.json",
@@ -217,7 +224,7 @@
       "document_id": "urn:iisacc:document:49223109d0b9ad68cf14eb96d3dfab1be34e1d01a89486a4b4612688d2a98e60",
       "source": "docs/README.md",
       "agent_json": "docs/README.agent.json",
-      "source_sha256": "37190a5af2f69e68b3955b93f17ca2ecacd69d4a78e0e70121527bcbbb6f4a32",
+      "source_sha256": "a50869d4cd4e68f8a24da3588a04a293dd26459f94535156e8cc658a7d5950de",
       "role": "overview"
     },
     {
@@ -336,7 +343,7 @@
       "document_id": "urn:iisacc:document:77ba0d84ce774bccd2c772b29e2d6399d0c99337b161bb563576267ec77ee12e",
       "source": "docs/marketing/PLATFORM_COPY.md",
       "agent_json": "docs/marketing/PLATFORM_COPY.agent.json",
-      "source_sha256": "54b661aed16a80b06b26952464b2b894b23f30ca8ad9a2b5388df79728aa368a",
+      "source_sha256": "0a7550d11249a82d0cc7bad4fd469b309d64c6b41a6aada0c07771d2cc6187c1",
       "role": "guide"
     },
     {

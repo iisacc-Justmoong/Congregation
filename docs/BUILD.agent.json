@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/BUILD.md",
-    "sha256": "7a6b1b7eb49c5fbf02e72fdd79ea4325b2c2b9bb7471339feaf43ed98622e1c9",
-    "bytes": 15724,
+    "sha256": "ae5b931e5dcdce1d3fb892b0e590615c00669f13ecf952bee1dc578540f1548b",
+    "bytes": 15743,
     "line_count": 136,
     "encoding": "utf-8",
     "language": "ko"
@@ -666,7 +666,7 @@
       "kind": "paragraph",
       "start_line": 124,
       "end_line": 127,
-      "raw": "원근 자르기에는 Qt 없는 iiGraphicAdjust 0.6.2 이상이 필요하다. 개발용 설치본은\n`CONGREGATION_GRAPHIC_ADJUST_PREFIX`로 지정할 수 있다. SDK 설치본은\n`share/licenses/iiGraphicAdjust`에 자체 MIT 및 Photocraft·Lightcraft 고지를 제공해야 하며,\nmacOS와 iPadOS 번들에 이 고지를 포함한다.\n"
+      "raw": "원근 자르기에는 Qt 없는 iiGraphicAdjust 0.6.2 이상이 필요하다. 개발용 설치본은\n`CONGREGATION_GRAPHIC_ADJUST_PREFIX`로 지정할 수 있다. SDK 설치본은\n`share/licenses/iiGraphicAdjust`에 자체 Apache-2.0 라이선스와 Photocraft·Lightcraft 고지를 제공해야 하며,\nmacOS와 iPadOS 번들에 이 고지를 포함한다.\n"
     },
     {
       "id": "b000084",

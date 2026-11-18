@@ -22,6 +22,12 @@ Qt·QML·LVRS 타입을 요구하지 않는다. 네 선언 화면과 작업 영�
 
 실행과 검사는 `docs/NATIVE_RUNTIME.md`, `docs/BUILD.md`, `tests/`에 있다. README.md는 영어로, docs/ 문서는 한국어로 작성한다.
 
+## 라이선스
+
+Congregation는 `AGPL-3.0-or-later`이다. iiSDK(SDK)는 Apache-2.0이며, 제품이
+SDK를 링크할 수 있다. 한국어 정책은 [docs/License.md](docs/License.md), 전문은
+[LICENSE](LICENSE)이다. 제3자 라이선스는 바꾸지 않는다.
+
 <!-- workspace-docs:agent:start -->
 ## 문서 구조와 에이전트 탐색
 

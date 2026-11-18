@@ -123,7 +123,7 @@ macOS 번들 수집기, 설치 패키지의 원본 번들 검사와 실제 로�
 
 원근 자르기에는 Qt 없는 iiGraphicAdjust 0.6.2 이상이 필요하다. 개발용 설치본은
 `CONGREGATION_GRAPHIC_ADJUST_PREFIX`로 지정할 수 있다. SDK 설치본은
-`share/licenses/iiGraphicAdjust`에 자체 MIT 및 Photocraft·Lightcraft 고지를 제공해야 하며,
+`share/licenses/iiGraphicAdjust`에 자체 Apache-2.0 라이선스와 Photocraft·Lightcraft 고지를 제공해야 하며,
 macOS와 iPadOS 번들에 이 고지를 포함한다.
 
 `Congregation.ui_style_tokens`는 UI 스타일에 지정된 하드코딩 색상과 크기를 검사한다.

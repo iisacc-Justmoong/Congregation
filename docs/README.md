@@ -27,6 +27,7 @@ Markdown is the maintained human source. Agent JSON is a structured, source-trac
 | [`docs/IPADOS_INCREMENTAL_UPDATES_2026-11-08.md`](IPADOS_INCREMENTAL_UPDATES_2026-11-08.md) | [JSON](IPADOS_INCREMENTAL_UPDATES_2026-11-08.agent.json) |
 | [`docs/LVUI_VIEWMODELS.md`](LVUI_VIEWMODELS.md) | [JSON](LVUI_VIEWMODELS.agent.json) |
 | [`docs/LVUI_VIEW_MIGRATION.md`](LVUI_VIEW_MIGRATION.md) | [JSON](LVUI_VIEW_MIGRATION.agent.json) |
+| [`docs/License.md`](License.md) | [JSON](License.agent.json) |
 | [`docs/MACOS_INSTALLER.md`](MACOS_INSTALLER.md) | [JSON](MACOS_INSTALLER.agent.json) |
 | [`docs/NATIVE_RUNTIME.md`](NATIVE_RUNTIME.md) | [JSON](NATIVE_RUNTIME.agent.json) |
 | [`docs/NATIVE_UI.md`](NATIVE_UI.md) | [JSON](NATIVE_UI.agent.json) |

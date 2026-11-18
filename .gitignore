@@ -100,7 +100,7 @@ bundling.sh
 !/resources/figma/**
 !/resources/licenses/
 /resources/licenses/*
-!/resources/licenses/iiColorManager-MIT.txt
+!/resources/licenses/iiColorManager-Apache-2.0.txt
 !/resources/windows/
 !/resources/UIIcons/
 !/resources/UIIcons/**
@@ -131,3 +131,7 @@ packaging.sh
 dist.sh
 bundling.sh
 resources/
+!/resources/
+!/resources/licenses/
+/resources/licenses/*
+!/resources/licenses/iiColorManager-Apache-2.0.txt
