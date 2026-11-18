@@ -1,7 +1,6 @@
-#include <Native/Artwork.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderDatabase.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 
 #include <algorithm>
 #include <chrono>
@@ -87,6 +86,47 @@ int main()
 try {
     iiFileProvider::native::TemporaryDirectory directory(std::filesystem::temp_directory_path());
     check(directory.isValid(), "temporary directory unavailable");
+    {
+        Artwork scoped(directory.path());
+        std::vector<DocumentChange> changes;
+        scoped.document_changed = [&](const DocumentChange& change) { changes.push_back(change); };
+        check(scoped.create(32, 32), "change-scope fixture failed");
+        changes.clear();
+        check(scoped.rename("paint-layer", "Ink") && changes.size() == 1 &&
+              changes.back().kind == DocumentChangeKind::name && changes.back().layer == "paint-layer",
+              "Rename did not publish its layer scope");
+        check(scoped.undo() && changes.back().kind == DocumentChangeKind::name &&
+              changes.back().layer == "paint-layer", "Rename undo lost its scope");
+        check(scoped.redo() && changes.back().kind == DocumentChangeKind::name,
+              "Rename redo lost its scope");
+        changes.clear();
+        check(scoped.visible("paint-layer", false) && changes.size() == 1 &&
+              changes.back().kind == DocumentChangeKind::properties, "Visibility scope missing");
+        changes.clear();
+        check(scoped.visible("paint-layer", false) && changes.empty(), "No-op edit published a change");
+        check(scoped.timing(30, 60) && changes.back().kind == DocumentChangeKind::frames,
+              "Timeline timing scope missing");
+        check(scoped.undo() && changes.back().kind == DocumentChangeKind::frames,
+              "Timing undo lost its scope");
+        changes.clear();
+        check(scoped.add_layer("Another") && changes.back().kind == DocumentChangeKind::structure,
+              "Layer insertion scope missing");
+        check(scoped.undo() && changes.back().kind == DocumentChangeKind::structure,
+              "Layer insertion undo lost its scope");
+        check(scoped.redo() && changes.back().kind == DocumentChangeKind::structure,
+              "Layer insertion redo lost its scope");
+        changes.clear();
+        check(scoped.select("paint-layer") && changes.size() == 1 &&
+              changes.back().kind == DocumentChangeKind::selection,
+              "Layer selection scope missing");
+        changes.clear();
+        const auto selection_revision = scoped.revision();
+        check(scoped.set_selection(SelectionGeometry::Rectangle,{2,2},{8,8}) &&
+              changes.size()==1 && changes.back().kind==DocumentChangeKind::selection &&
+              scoped.revision()==selection_revision, "Selection mask must not modify document pixels");
+        check(scoped.undo() && changes.back().kind==DocumentChangeKind::selection &&
+              scoped.revision()==selection_revision, "Selection undo scope missing");
+    }
     Document document; document.extent = {256, 256};
     auto raster = makeRasterLayer(256, 256);
     std::uint32_t noise = 0x12345678;

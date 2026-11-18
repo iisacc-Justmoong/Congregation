@@ -1,5 +1,5 @@
-#include <Native/EditorColor.h>
-#include <LVUI/NativeColorSurface.h>
+#include <Color/EditorColor.h>
+#include <LVUI>
 #include <iiGUI/WidgetState.h>
 
 #include <cmath>

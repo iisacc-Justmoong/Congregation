@@ -1,8 +1,8 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <Native/ToolSettings.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <Tools/ToolSettings.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <filesystem>
 #include <iostream>
 #include <limits>
@@ -20,5 +20,29 @@ int main() try {
  input(view,K::pointer_down,102);check(view.airbrush_tick(.1),"tool change tick failed");view.tool="crop";check(!view.airbrush_active()&&!view.airbrush_tick(.2),"tool change left airbrush timer active");view.cancel_airbrush_stroke();check(art.can_redo()&&art.revision()==undoRevision,"tool change cancel changed history");view.tool="brush";
  Artwork selected(dir.path());check(selected.create(32,32)&&selected.set_selection(SelectionGeometry::Rectangle,{16,0},{32,32}),"selected fixture failed");CanvasView sv(selected);sv.tool="brush";sv.settings=brush;sv.brush_size=12;sv.opacity=1;sv.color=0xff000000U;input(sv,K::pointer_down,200);check(sv.airbrush_tick(.2),"selected tick failed");input(sv,K::pointer_up,200.2);auto selectedPixels=pixels(selected).pixels;bool painted=false;for(int y=0;y<32;++y)for(int x=0;x<32;++x){auto alpha=selectedPixels[std::size_t(y)*32+x]>>24;if(x<16)check(alpha==0,"airbrush escaped selection");else painted|=alpha!=0;}check(painted&&selected.undo()&&selected.redo()&&pixels(selected).pixels==selectedPixels,"selected airbrush history failed");
  Artwork masked(dir.path());check(masked.create(32,32),"quick mask fixture failed");CanvasView qv(masked);qv.tool="brush";qv.settings=brush;qv.brush_size=12;qv.opacity=1;check(qv.begin_quick_mask(),"quick mask start failed");const auto maskRevision=masked.revision();input(qv,K::pointer_down,300);check(qv.airbrush_active()&&qv.airbrush_tick(.2),"quick mask tick failed");input(qv,K::pointer_up,300.2);check(qv.commit_quick_mask()&&masked.selection_mask()&&masked.selection_mask()->alpha[16*32+16]<255&&masked.revision()==maskRevision,"quick mask airbrush failed");const auto completedMask=masked.selection_mask()->alpha;check(qv.begin_quick_mask(),"second quick mask start failed");input(qv,K::pointer_down,301);check(qv.airbrush_tick(.1),"second quick mask tick failed");qv.cancel_airbrush_stroke();check(qv.quick_mask_active()&&!qv.airbrush_active(),"quick mask session lost on tool change");check(qv.commit_quick_mask()&&masked.selection_mask()->alpha==completedMask,"quick mask cancellation changed earlier work");check(masked.undo()&&!masked.selection_mask()&&masked.redo()&&masked.selection_mask(),"quick mask airbrush history failed");
+ auto press_at=[](CanvasView& target, double x, double y, double time) {
+  ii::gui::WidgetInput e;e.kind=ii::gui::WidgetInputKind::pointer_down;e.x=x;e.y=y;e.buttons=1;e.timestamp=time;
+  check(target.input(e).has_value(),"brush press failed");e.kind=ii::gui::WidgetInputKind::pointer_up;e.buttons=0;e.timestamp=time+.01;
+  check(target.input(e).has_value(),"brush release failed");
+ };
+ Artwork mixerArt(dir.path());check(mixerArt.create(64,32),"mixer reservoir fixture failed");
+ ToolSettings mixerSettings;mixerSettings.set(ToolParameter::size,6);mixerSettings.set(ToolParameter::taper,0);
+ mixerSettings.set(ToolParameter::scatter,0);mixerSettings.set(ToolParameter::smoothing_enabled,0);
+ CanvasView mixerView(mixerArt);mixerView.tool="brush";mixerView.settings=mixerSettings.brush("mixer-brush");
+ mixerView.brush_size=6;mixerView.opacity=1;mixerView.color=0xffff0000U;mixerView.mixer_brush=true;
+ mixerView.mixer_clean_after=true;mixerView.mixer_load_after=false;
+ press_at(mixerView,8,16,400);check((pixels(mixerArt).pixels[16*64+8]>>24)>0,"mixer did not paint its initial load");
+ press_at(mixerView,24,16,401);check((pixels(mixerArt).pixels[16*64+24]>>24)==0,"cleaned mixer deposited pigment");
+ mixerView.mixer_load_after=true;press_at(mixerView,48,16,402);
+ check((pixels(mixerArt).pixels[16*64+48]>>24)>0,"mixer did not reload foreground pigment");
+
+ Artwork pencilArt(dir.path());check(pencilArt.create(32,32),"pencil auto erase fixture failed");
+ ToolSettings pencilSettings;pencilSettings.set(ToolParameter::size,6);pencilSettings.set(ToolParameter::flow,100);
+ pencilSettings.set(ToolParameter::opacity,100);pencilSettings.set(ToolParameter::scatter,0);
+ pencilSettings.set(ToolParameter::taper,0);pencilSettings.set(ToolParameter::smoothing_enabled,0);
+ CanvasView pencilView(pencilArt);pencilView.tool="brush";pencilView.settings=pencilSettings.brush("pencil");
+ pencilView.brush_size=6;pencilView.opacity=1;pencilView.color=0xffff0000U;pencilView.pencil_auto_erase=true;
+ press_at(pencilView,16,16,500);check((pixels(pencilArt).pixels[16*32+16]&0xffffffU)==0xff0000U,"pencil did not deposit foreground");
+ press_at(pencilView,16,16,501);check((pixels(pencilArt).pixels[16*32+16]&0xffffffU)==0xffffffU,"pencil auto erase did not paint background");
  std::cout<<"AIRBRUSH_TIMER_INTEGRATION_OK\n";return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

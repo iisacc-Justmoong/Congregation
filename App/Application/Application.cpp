@@ -1,0 +1,2917 @@
+#include "Canvas/Artwork.h"
+#include "Tools/BrushPressure.h"
+#include "Canvas/StartupCanvas.h"
+#include "AppMenu.h"
+#include "Canvas/CanvasView.h"
+#include "CanvasToolBindings.h"
+#include "ChildWindowGeneration.h"
+#include "Workspace/EditorBackend.h"
+#include "Workspace/ToolPreferences.h"
+#include "Shared/EditorLayout.h"
+#include "Shared/ScopeExit.h"
+#include "MainWindow.h"
+#include "Shared/Style.h"
+#include "Tools/ToolShortcuts.h"
+#include "PreferencesView.generated.h"
+#include "Canvas/CanvasSetupWindow.h"
+#include <LVUI>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+#include <Application/ApplicationEngine.h>
+#include <Preferences/Preferences.h>
+#include <Account/AsyncLicenseService.h>
+#include <Update/SocietyUpdateFeed.h>
+#include <Collaboration/CanvasSession.h>
+#include <Collaboration/CanvasCollaboration.h>
+#include <Collaboration/NearbyDiscovery.h>
+#include <Agent/WorkspaceAgentClient.h>
+#include <iiGUI>
+#include <iiVisualCodec>
+#include <iiUpdateManager>
+#include <iiFileProvider>
+#include <iiSocietyContainer>
+#include <iiSDKCore>
+#include <algorithm>
+#include <charconv>
+#include <cstdint>
+#include <future>
+#include <iostream>
+#include <optional>
+#include <thread>
+#include <utility>
+
+namespace congregation::native
+{
+using namespace iiSharedCanvas;
+using MainView = MainWindow;
+using PreferencesView = lvui_generated::PreferencesView;
+using CanvasSetupView = CanvasSetupWindow;
+using ui::Action;
+namespace
+{
+void check(bool value, std::string message)
+{
+    if (!value)
+        throw std::runtime_error(std::move(message));
+}
+template <class T> T take(ii::core::Result<T> result)
+{
+    if (!result)
+    {
+        if (result.error().cause)
+            std::rethrow_exception(result.error().cause);
+        throw std::runtime_error(result.error().message);
+    }
+    return std::move(*result);
+}
+template <class T> T take(ii::image::Result<T> result)
+{
+    if(!result)throw std::runtime_error(result.error().message);
+    return std::move(*result);
+}
+void good(ii::core::Result<void> result)
+{
+    if (!result)
+    {
+        if (result.error().cause)
+            std::rethrow_exception(result.error().cause);
+        throw std::runtime_error(result.error().message);
+    }
+}
+iisacc::accounts::native::SocietySessionOptions account_options(const std::filesystem::path& directory,bool test,
+                                                                 ii::runtime::EventLoop::Sender ui)
+{
+    using namespace iisacc::accounts::native;
+    std::string fallback(64,'a');
+    if(!test) {
+        const auto path=directory/"account-device.id";std::error_code error;
+        if(std::filesystem::is_regular_file(path,error)) fallback=iiFileProvider::native::File::read(path,64);
+        else {
+            fallback=BrowserSession::random_device_id();
+            iiFileProvider::native::File::createDirectories(directory);
+            iiFileProvider::native::File::write(path,fallback);
+        }
+    }
+#if defined(__APPLE__) && TARGET_OS_IOS
+    // UIDevice belongs to UIKit's main thread. Only this small platform query
+    // is dispatched there; disk and license operations stay on the worker.
+    const std::string marker(64,'\0');
+    auto promise=std::make_shared<std::promise<AppDevice>>();
+    auto future=promise->get_future();
+    auto queued=ui.post([promise,marker] {
+        try { promise->set_value(detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,marker)); }
+        catch (...) { promise->set_exception(std::current_exception()); }
+    });
+    if (!queued || future.wait_for(std::chrono::seconds(10))!=std::future_status::ready)
+        throw std::runtime_error("Cannot obtain the iOS account device");
+    auto device=future.get();
+    if (device.id==marker) device.id=std::move(fallback);
+    return {.product_id="congregation",.device=std::move(device)};
+#else
+    (void)ui;
+    return {.product_id="congregation",.device=detected_device("com.iisacc.congregation.painter",CONGREGATION_VERSION,fallback)};
+#endif
+}
+LicenseService::Authority account_authority()
+{
+#if defined(__APPLE__) && TARGET_OS_IOS
+    return LicenseService::Authority::web;
+#else
+    return LicenseService::Authority::society;
+#endif
+}
+iisacc::accounts::native::SessionPersistence account_store(bool test)
+{
+#if defined(__APPLE__) && TARGET_OS_IOS
+    if(!test) {
+        auto store=std::make_shared<iisacc::accounts::native::SecureStore>(
+            "com.iisacc.congregation.painter","web-app-session-v1");
+        return {.read=[store]{return store->read();},
+                .write=[store](std::string_view bytes){return store->write(bytes);},
+                .remove=[store]{return store->remove();}};
+    }
+#else
+    (void)test;
+#endif
+    return {};
+}
+std::string account_message(const AsyncLicenseService& license)
+{
+    if(license.code=="waiting_for_browser") return "Finish connecting this iPad in your browser, then return.";
+#if defined(__APPLE__) && TARGET_OS_IOS
+    if(license.code=="sign_in_required" || license.code=="unauthenticated" ||
+       license.code=="saved_session_invalid") return "Sign in with your iisacc account.";
+    if(license.code=="checking_license") return "Checking your Congregation license…";
+#endif
+    if(license.code=="society_unavailable") return "Open Society and sign in to check your license.";
+    if(license.code=="society_account_required" || license.code=="sign_in_required") return "Sign in to Society with your iisacc account.";
+    if(license.code=="checking_license") return "Checking your license through Society…";
+    if(license.code=="license_not_owned") return "Your account does not have access to Congregation.";
+    if(license.code=="licensed") return "Congregation license verified.";
+    if(license.code=="secure_storage_unavailable") return "Signed in for this run. Secure session storage is unavailable.";
+    if(license.code=="sign_in_cancelled") return "Sign-in cancelled.";
+    if(license.code=="unauthenticated"||license.code=="saved_session_invalid") return "Your session has expired. Sign in again.";
+    if(license.code=="app_request_expired") return "Sign-in expired. Start a new sign-in request.";
+    if(license.code=="device_limit_reached") return "This device limit was reached. Manage connected devices in your account.";
+    if(!license.code.empty()) return "Verification unavailable. Check your connection and retry.";
+#if defined(__APPLE__) && TARGET_OS_IOS
+    return "Sign in with your iisacc account to check your license.";
+#else
+    return "Open Society to check your Congregation license.";
+#endif
+}
+} // namespace
+struct State final : std::enable_shared_from_this<State>
+{
+    ii::runtime::Application& app;
+    bool test = false, closed = false, device_evidence = false, placeholder = false, startup_pending = false;
+    std::string storage_error;
+    std::optional<SocietyFiles> mobile_files;
+    std::unique_ptr<ii::runtime::Runtime> mobile_storage_worker;
+    std::jthread agent_worker;
+    std::uint64_t agent_generation = 0;
+    bool mobile_storage_pending = false;
+    bool license_rejection_deferred = false;
+    bool first_presentation_pending = false;
+    unsigned startup_attempts = 0;
+    int pressure_handle = -1;
+    ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
+    std::filesystem::path directory, initial_file, reference_image;
+    ApplicationEngine engine;
+    Preferences preferences;
+    Artwork artwork;
+    CanvasView canvas;
+    std::unique_ptr<CanvasToolBindings> canvas_tool_bindings;
+    ToolShortcuts tool_shortcuts;
+    std::shared_ptr<ii::gui::Host> host, preferences_host, setup_host;
+    ChildWindowGeneration preferences_generation, setup_generation;
+    std::shared_ptr<CanvasSetupView> setup_view;
+    CanvasSetupModel* setup = nullptr;
+    bool setup_add_canvas = false;
+    std::filesystem::path setup_target_document;
+    std::shared_ptr<const ii::gui::RasterImage> avatar;
+    std::shared_ptr<MainView> view = std::make_shared<MainView>();
+    std::shared_ptr<PreferencesView> preferences_view;
+    std::shared_ptr<ui::PresentationList> layer_source = std::make_shared<ui::PresentationList>(),
+                                          member_source = std::make_shared<ui::PresentationList>();
+    std::shared_ptr<ui::EditorColor> color = std::make_shared<ui::EditorColor>();
+    ii::core::ObservableSubscription first_presentation_subscription;
+    ii::core::ObservableSubscription paint_presentation_subscription;
+    ui::EditorBackend* main = nullptr;
+    ui::EditorBackend* secondary = nullptr;
+    AsyncLicenseService license;
+    std::unique_ptr<SocietyUpdateFeed> update_feed;
+    iisacc::updates::native::UpdateManager updater;
+    ii::network::Http image_http;
+    std::string selected_member;
+    NearbyDiscovery discovery;
+    CanvasSession session;
+    std::unique_ptr<CanvasCollaboration> collaboration;
+    ii::runtime::TaskToken deadline, notice_deadline, airbrush_timer, startup_retry, first_presentation_fallback;
+    std::uint64_t airbrush_timer_generation = 0;
+    std::shared_ptr<ToolSettings> tool_settings = std::make_shared<ToolSettings>();
+    std::shared_ptr<TimelineModel> timeline_model = std::make_shared<TimelineModel>();
+    ii::core::ObservableSubscription timeline_subscription;
+    std::function<void()> after_setup, after_preferences;
+    std::size_t self_test_preference_round = 0;
+    State(ii::runtime::Application& application, bool self_test, std::filesystem::path data)
+        : app(application), test(self_test), directory(std::move(data)), engine(app.event_loop()),
+          preferences(test ? directory / "preferences.ini" : std::filesystem::path{},
+                      directory / "recovery"),
+          artwork(directory / "recovery"), canvas(artwork),
+          license(app.event_loop(), !test, account_authority(),
+                  [path=directory,self_test,ui=app.event_loop().sender()] { return account_options(path,self_test,ui); },
+                  account_store(test)),
+          updater(app.event_loop(), "congregation", CONGREGATION_VERSION),
+          image_http(app.event_loop()),
+          discovery(app.event_loop(), {}), session(app.event_loop(), discovery.id)
+    {
+        good(color->set_color({.36, .18, 1, 1}));
+        if (test) {
+            check(artwork.create(128, 96), artwork.error());
+        } else {
+            // The actual screen is known only after the native window opens.
+            // This private inert document cannot receive user edits.
+            placeholder = startup_pending = true;
+            storage_error = "Waiting for the window display";
+            check(artwork.create_startup_placeholder(), artwork.error());
+        }
+        const auto program = std::filesystem::absolute(native_path(app.arguments().front()));
+#if defined(__APPLE__) && TARGET_OS_IOS
+        view->set_assets(program.parent_path() / "figma");
+#elif defined(__APPLE__)
+        view->set_assets(program.parent_path().parent_path() / "Resources" / "figma");
+#else
+        view->set_assets(program.parent_path() / "resources");
+#endif
+    }
+    ~State() { (void)airbrush_timer.cancel(); (void)startup_retry.cancel(); (void)first_presentation_fallback.cancel(); }
+    std::expected<SocietyFiles,std::string> society_files() const {
+#if (defined(__APPLE__) && TARGET_OS_IOS) || defined(__ANDROID__)
+        if(mobile_files && mobile_files->available())return *mobile_files;
+        return std::unexpected(storage_error.empty() ? "Mobile Society storage is unavailable" : storage_error);
+#else
+        return SocietyFiles::discover();
+#endif
+    }
+    void initialize_startup_canvas()
+    {
+        if (!startup_pending || closed) return;
+        const auto pixels=host->display_pixels();
+        if (!pixels) {
+            if (pixels.error().code==ii::core::ErrorCode::busy && startup_attempts++<100) {
+                const auto weak=weak_from_this();
+                auto scheduled=host->executor().after(std::chrono::milliseconds(50),[weak] {
+                    if (auto p=weak.lock()) p->initialize_startup_canvas();
+                });
+                if (scheduled) { startup_retry=scheduled.token; return; }
+            }
+            startup_pending=false;
+            storage_error=pixels.error().message;
+            status(storage_error);
+            return;
+        }
+        const auto definition=startup_canvas_definition(*pixels);
+        if (!definition) {
+            startup_pending=false;storage_error=definition.error();status(storage_error);return;
+        }
+        const auto files=society_files();
+        if (!files) {
+            startup_pending=false;storage_error=files.error();status(storage_error);return;
+        }
+        if (!artwork.create_in_society(*definition,*files)) {
+            startup_pending=false;storage_error=artwork.error();status(storage_error);return;
+        }
+        startup_pending=false;
+        placeholder=false;
+        canvas.fit();
+        update_document_info();
+    }
+    void finish_document_startup()
+    {
+        if(closed)return;
+        if (!test && preferences.start_recent && initial_file.empty() && startup_pending) {
+            const auto path=preferences.existing_canvas();
+            if(!path.empty()) {
+                const bool recovered=artwork.recover(path);
+                result(recovered);
+                if(recovered) {placeholder=false;startup_pending=false;}
+            }
+        }
+        if (!initial_file.empty() && startup_pending) {
+            const bool opened=artwork.open(initial_file);
+            result(opened);
+            if(opened) {placeholder=false;startup_pending=false;}
+            canvas.fit();update_document_info();
+        }
+        if(startup_pending)initialize_startup_canvas();
+        if(placeholder)status(storage_error);
+    }
+    bool prepare_mobile_storage()
+    {
+#if (defined(__APPLE__) && TARGET_OS_IOS) || defined(__ANDROID__)
+        if(test)return false;
+        std::error_code error;
+        const auto root=std::filesystem::canonical(directory,error);
+        if(error){storage_error="The application storage is unavailable";return false;}
+        const auto group=iiSocietyContainer::MobileStorage::app_group_root("group.com.iisacc.society");
+        const auto private_package=root/"Society.societycontainer";
+        const bool local_exists=std::filesystem::exists(std::filesystem::symlink_status(private_package,error));
+        if(error && error!=std::errc::no_such_file_or_directory) {
+            storage_error="The application storage cannot be inspected";return false;
+        }
+        const auto complete=[this](const auto& value) {
+            if(value){mobile_files=*value;storage_error.clear();}
+            else storage_error=value.error();
+        };
+        if(!group || !local_exists) {
+            complete(SocietyFiles::from_mobile(root,group,false));
+            return false;
+        }
+        // A migration can involve large files: keep it off the UI thread and
+        // postpone document opening until the source is no longer being copied.
+        try {
+            mobile_storage_worker=std::make_unique<ii::runtime::Runtime>(ii::runtime::RuntimeOptions{.workers=1,.capacity=4});
+            mobile_storage_pending=true;
+            status("Preparing Society storage…");
+            const auto weak=weak_from_this();const auto executor=host->executor();
+            auto submitted=mobile_storage_worker->post([weak,executor,root,group] {
+                auto value=SocietyFiles::from_mobile(root,group,true);
+                (void)executor.post([weak,root,value=std::move(value)]() mutable {
+                    if(auto state=weak.lock();state && !state->closed) {
+                        state->mobile_storage_pending=false;
+                        if(value){state->mobile_files=*value;state->storage_error.clear();}
+                        else {
+                            state->storage_error="Society migration was postponed: "+value.error();
+                            auto local=SocietyFiles::from_mobile(root,{},false);
+                            if(local)state->mobile_files=*local;
+                        }
+                        state->finish_document_startup();
+                        if(!state->storage_error.empty() && state->mobile_files)state->status(state->storage_error);
+                    }
+                });
+            });
+            if(submitted)return true;
+            mobile_storage_pending=false;
+            storage_error="Cannot start Society storage migration";
+        } catch(const std::exception& failure) {storage_error=failure.what();mobile_storage_pending=false;}
+        const auto local=SocietyFiles::from_mobile(root,{},false);
+        if(local)mobile_files=*local;
+        else storage_error=local.error();
+#endif
+        return false;
+    }
+    void synchronize_airbrush_timer()
+    {
+        if (!canvas.airbrush_active()) { (void)airbrush_timer.cancel(); airbrush_timer = {}; return; }
+        const auto generation = canvas.airbrush_generation();
+        if (airbrush_timer.pending() && airbrush_timer_generation == generation) return;
+        (void)airbrush_timer.cancel();
+        airbrush_timer_generation = generation;
+        const auto started = ii::runtime::Clock::now();
+        const auto weak = weak_from_this();
+        auto scheduled = host->executor().every(std::chrono::milliseconds(33), [weak, started, generation] {
+            if (auto p = weak.lock()) {
+                if (!p->test && !p->license.local_edits_allowed() && !p->license_rejection_deferred && p->canvas.airbrush_active()) {
+                    p->canvas.cancel_airbrush_stroke();
+                    p->status("Sign in to verify your Congregation license");
+                }
+                if (!p->canvas.airbrush_active() || p->canvas.airbrush_generation() != generation) {
+                    (void)p->airbrush_timer.cancel(); p->airbrush_timer = {}; return;
+                }
+                const auto elapsed = std::chrono::duration<double>(ii::runtime::Clock::now() - started).count();
+                if (!p->canvas.airbrush_tick(elapsed)) { (void)p->airbrush_timer.cancel(); p->airbrush_timer = {}; }
+            }
+        });
+        if (scheduled) airbrush_timer = scheduled.token;
+        else status("Airbrush preview timer is unavailable");
+    }
+    void synchronize_license()
+    {
+        license_rejection_deferred = !test && license_defer_rejection(
+            license.workspace_visible(), canvas.interaction_active(), first_presentation_pending);
+        const bool visible = test || license.workspace_visible() || license_rejection_deferred;
+        for (auto* backend : {main,secondary}) if (backend) {
+            backend->licensed.set(test || license.licensed);
+            backend->workspace_visible.set(visible);
+            backend->needs_license.set(!visible);
+            backend->can_activate.set(!license.verifying);
+            backend->signing_in.set(license.verifying);
+            backend->signed_in.set(license.signed_in);
+            backend->account_email.set(license.signed_in ? license.email : "Not connected");
+            backend->account_status.set(account_message(license));
+        }
+    }
+    void await_first_presentation()
+    {
+        const auto source=host->presentation_source();
+        if (!source || !*source) return;
+        const auto weak=weak_from_this();
+        auto observed=(*source)->observe([weak](const ii::gui::PresentationEvent& event) {
+            if (event.kind!=ii::gui::PresentationKind::queued) return;
+            if (auto p=weak.lock(); p && p->first_presentation_pending) {
+                p->first_presentation_pending=false;
+                (void)p->first_presentation_fallback.cancel();
+                p->first_presentation_subscription.reset();
+                p->synchronize_license();
+            }
+        });
+        if (!observed) return;
+        first_presentation_pending=true;
+        first_presentation_subscription=std::move(*observed);
+        auto fallback=host->executor().after(std::chrono::seconds(3),[weak] {
+            if (auto p=weak.lock(); p && p->first_presentation_pending) {
+                p->first_presentation_pending=false;
+                p->first_presentation_subscription.reset();
+                p->synchronize_license();
+            }
+        });
+        if (fallback) first_presentation_fallback=fallback.token;
+        else { first_presentation_pending=false; first_presentation_subscription.reset(); }
+    }
+    void observe_paint_presentations()
+    {
+        if (!canvas.paint_profiling_enabled()) return;
+        const auto source = host->presentation_source();
+        if (!source || !*source) return;
+        const auto weak = weak_from_this();
+        auto observed = (*source)->observe([weak](const ii::gui::PresentationEvent& event) {
+            if (event.kind != ii::gui::PresentationKind::queued) return;
+            if (auto state = weak.lock()) state->canvas.presentation_queued(event.timestamp);
+        });
+        if (observed) paint_presentation_subscription = std::move(*observed);
+    }
+    void status(std::string value)
+    {
+        if(setup)setup->status.set(value);
+        if (main)
+            main->status.set(value);
+        if (secondary)
+            secondary->status.set(std::move(value));
+    }
+    void result(bool ok, std::string success = {})
+    {
+        if (!ok) {
+            status(artwork.error().empty() ? "The operation could not be completed" : artwork.error());
+            if(view&&host) {
+                auto mount=view->widgets();auto anchor=mount.find("canvas");auto notice=mount.find("status-notice");
+                if (anchor && notice)
+                {
+                    good(open_scoped_popup_for(take(mount.find("root")), *notice, *anchor,
+                        Metric::space16,
+                        std::max(0.f, take(anchor->snapshot()).bounds.height - Metric::size108)));
+                    (void)notice_deadline.cancel();
+                    const auto weak=weak_from_this();
+                    auto scheduled=host->executor().after(std::chrono::seconds(5),[weak]{if(auto p=weak.lock())if(auto widget=p->view->widgets().find("status-notice"))(void)widget->close_popup();});
+                    if(scheduled)notice_deadline=scheduled.token;
+                }
+            }
+        }
+        else if (!success.empty())
+            status(std::move(success));
+    }
+    void publish_rows(const std::shared_ptr<ui::PresentationList>& source,
+                      std::vector<ui::PresentationRow> rows)
+    {
+        if (auto published = source->replace(std::move(rows)); !published)
+            throw std::runtime_error(published.error().message);
+    }
+    void update_timing()
+    {
+        const auto& timing = artwork.document().timeline;
+        const auto rate = std::max(1, int(std::round(double(timing.frameRate.numerator) /
+                                                     std::max(1u, timing.frameRate.denominator))));
+        timeline_model->set_rate(rate);
+        timeline_model->set_duration(double(timing.frameCount) / rate);
+    }
+    void update_layer_rows()
+    {
+        std::vector<ui::PresentationRow> rows;
+        for (auto it = artwork.document().layers.rbegin(); it != artwork.document().layers.rend();
+             ++it)
+        {
+            const auto& p = layerProperties(*it);
+            rows.push_back({p.id, p.name, "", true, true, p.visible, true});
+        }
+        for (auto it = artwork.document().audioTracks.rbegin(); it != artwork.document().audioTracks.rend(); ++it)
+            rows.push_back({it->id, it->name, "", true, true, !it->muted, true});
+        publish_rows(layer_source, std::move(rows));
+    }
+    void update_layer_rows(const iiSharedCanvas::IiscEditImpact& impact)
+    {
+        const auto& doc = artwork.document();
+        std::vector<std::string> order;
+        std::vector<ui::PresentationRow> edits;
+        order.reserve(doc.layers.size() + doc.audioTracks.size());
+        edits.reserve(impact.layers.size() + impact.audioTracks.size());
+        for (auto i = doc.layers.rbegin(); i != doc.layers.rend(); ++i) {
+            const auto& p = layerProperties(*i);
+            order.push_back(p.id);
+            if (std::ranges::find(impact.layers, p.id) != impact.layers.end())
+                edits.push_back({p.id, p.name, "", true, true, p.visible, true});
+        }
+        for (auto i = doc.audioTracks.rbegin(); i != doc.audioTracks.rend(); ++i) {
+            order.push_back(i->id);
+            if (std::ranges::find(impact.audioTracks, i->id) != impact.audioTracks.end())
+                edits.push_back({i->id, i->name, "", true, true, !i->muted, true});
+        }
+        if (const auto result = layer_source->apply_rows(order, edits); !result)
+            throw std::runtime_error(result.error().message);
+    }
+    void update_document_info()
+    {
+        const auto title =
+            artwork.source().empty() ? "Untitled" : path_text(artwork.source().filename());
+        if (main)
+            main->title.set(title);
+        if (secondary)
+            secondary->title.set(title);
+        if (main)
+            main->document_info.set(std::to_string(artwork.document().extent.width) + " × " +
+                                    std::to_string(artwork.document().extent.height) +
+                                    " · RGB / 8-bit · sRGB");
+        if (main)
+            main->zoom.set(
+                ii::core::format_decimal(std::round(canvas.viewport().scale * 1000) / 10) + "%");
+    }
+    void refresh()
+    {
+        update_timing();
+        update_layer_rows();
+        update_document_info();
+        canvas.initialize_document();
+        view->refresh_document(artwork.document(), artwork.selected());
+    }
+    bool applying_document_timing = false;
+    void changed(const DocumentChange& change)
+    {
+        if (collaboration) collaboration->local_change(change);
+        if (change.kind == DocumentChangeKind::selection) {
+            view->select_layer(artwork.selected());
+            canvas.render();
+            return;
+        }
+        if (change.kind == DocumentChangeKind::reset) {
+            refresh();
+            if (!test) preferences.record_recovery(artwork.recovery());
+            return;
+        }
+        const int previous_frame = timeline_model->frame();
+        if (change.timing) {
+            applying_document_timing = true;
+            const ScopeExit release([&] { applying_document_timing = false; });
+            update_timing();
+        }
+        if (change.geometry) update_document_info();
+        if (change.impact && (!change.impact->layers.empty() || !change.impact->audioTracks.empty()))
+            update_layer_rows(*change.impact);
+        canvas.refresh_change(change);
+        view->apply_document_change(artwork.document(), artwork.selected(), change);
+        if (previous_frame != timeline_model->frame()) {
+            canvas.set_frame(timeline_model->frame());
+            view->refresh_frame(artwork.document(), timeline_model->frame());
+        }
+    }
+    void request_new_layer(NewLayerType type)
+    {
+        if (placeholder || mobile_storage_pending) { status(storage_error.empty() ? "Preparing Society storage…" : storage_error); return; }
+        const auto option = std::ranges::find(layer_creation_options, type, &NewLayerOption::type);
+        if (option == layer_creation_options.end()) { status("Unknown layer type"); return; }
+        if (option->source == LayerSourceRequirement::none) { result(artwork.add_layer(type)); return; }
+        ii::gui::FileDialogOptions options;
+        options.title = "Choose a document containing the layer";
+        options.filters = {{"iiSharedCanvas documents", {"iisc"}}};
+        const auto target = artwork.recovery();
+        const auto weak = weak_from_this();
+        good(host->choose_file(std::move(options), [weak, target, type](auto choice) {
+            if (auto p = weak.lock(); p && choice && !choice->canceled && !choice->paths.empty()) {
+                if (p->artwork.recovery() != target) {
+                    p->status("The active document changed; choose the source again"); return;
+                }
+                p->result(p->artwork.add_layer_from_file(type, native_path(choice->paths.front())));
+            }
+        }));
+    }
+    void bind(ui::EditorBackend& backend, bool auxiliary)
+    {
+        if (auxiliary)
+            secondary = &backend;
+        else
+            main = &backend;
+        backend.set_presentation_lists(layer_source, member_source);
+        const auto new_layer_owner = weak_from_this();
+        backend.new_layer_requested = [new_layer_owner](NewLayerType type) {
+            if (auto p = new_layer_owner.lock()) p->request_new_layer(type);
+        };
+        backend.set_color_model(color);
+        backend.parameters = tool_settings;
+        backend.timeline = timeline_model;
+        if (!auxiliary) {
+            const auto restored=ui::ToolPreferences(directory).load(backend);
+            if (!restored) backend.status.set("Could not restore tool settings: " + restored.error());
+        }
+        backend.sync_parameter_fields();
+        if (!auxiliary)
+            canvas_tool_bindings = std::make_unique<CanvasToolBindings>(backend, canvas);
+        if (!auxiliary)
+        {
+            std::error_code ec;
+            if (std::filesystem::is_regular_file(directory / "asset-library.path", ec))
+                backend.asset_root.set(
+                    iiFileProvider::native::File::read(directory / "asset-library.path", 8192));
+        }
+        backend.licensed.set(test || license.licensed);
+        backend.workspace_visible.set(test || license.workspace_visible());
+        backend.needs_license.set(!test && !license.workspace_visible());
+        backend.start_recent.set(preferences.start_recent);
+        backend.start_new.set(!preferences.start_recent);
+        backend.can_invite.set(preferences.invitations_allowed);
+        backend.discover.set(preferences.discover_nearby);
+        backend.display_name.set(preferences.profile_name);
+        backend.profile_avatar.set(avatar);
+        if (!auxiliary) {
+            const auto chrome=ii::gui::window_chrome_presentation(ii::gui::host_capabilities().backend);
+            backend.custom_titlebar_visible.set(chrome.titlebar);
+            backend.native_titlebar_controls.set(chrome.native_controls);
+            backend.client_titlebar_controls.set(chrome.client_controls);
+        }
+        backend.account_email.set(license.signed_in ? license.email : "Not connected");
+#if defined(__APPLE__) && TARGET_OS_IOS
+        backend.account_title.set("Connect your iisacc account");
+        backend.account_description.set("Sign in to verify your Congregation license.");
+        backend.account_button.set("Sign in with iisacc");
+        backend.account_guide.set("Your iisacc account verifies your Congregation license.");
+        backend.account_status.set(account_message(license));
+#endif
+        if (auxiliary && main)
+        {
+            backend.spacing_pixels.set(main->spacing_pixels.get());
+            backend.flow.set(main->flow.get());
+            backend.hardness.set(main->hardness.get());
+            backend.spacing.set(main->spacing.get());
+            backend.stabilizer.set(main->stabilizer.get());
+            backend.pressure_enabled.set(main->pressure_enabled.get());
+            backend.pressure_min.set(main->pressure_min.get());
+            backend.pressure_mid.set(main->pressure_mid.get());
+            backend.pressure_max.set(main->pressure_max.get());
+        }
+        const auto weak = weak_from_this();
+        if (!auxiliary) {
+            backend.agent_present=[weak] {
+                if (auto p=weak.lock();p && !p->closed && p->view) p->popup("agent-popup","titlebar-agent");
+            };
+            backend.agent_dismiss=[weak] {
+                if (auto p=weak.lock();p && p->view)
+                    if (auto popup=p->view->widgets().find("agent-popup")) (void)popup->close_popup();
+            };
+            backend.agent_submit=[weak](std::string prompt) {
+                auto p=weak.lock();
+                if (!p || p->closed || !p->main || !p->host) return;
+                const auto executor=p->host->executor();
+                const auto generation=++p->agent_generation;
+                try {
+                    p->agent_worker=std::jthread([weak,executor,generation,prompt=std::move(prompt)](std::stop_token stop) {
+                        auto deliver=[weak,executor,generation,prompt,stop](WorkspaceAgentUpdate update) {
+                            while (!stop.stop_requested() && !weak.expired()) {
+                                auto submitted=executor.post([weak,generation,prompt,update] {
+                                    if (auto owner=weak.lock();owner && !owner->closed && owner->main && owner->agent_generation==generation)
+                                        owner->main->receive_agent_update(update,prompt);
+                                });
+                                if (submitted || (submitted.error!=ii::runtime::SubmitError::full &&
+                                                  submitted.error!=ii::runtime::SubmitError::overloaded)) return;
+                                std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                            }
+                        };
+                        try { WorkspaceAgentClient(society_agent_command).run(prompt,deliver,stop); }
+                        catch (...) { deliver({WorkspaceAgentUpdate::Phase::failed,"The Society agent request failed.",{}}); }
+                    });
+                } catch (...) {
+                    p->main->receive_agent_update({WorkspaceAgentUpdate::Phase::failed,"Could not start the agent request.",{}},prompt);
+                }
+            };
+        }
+        if (!auxiliary) backend.titlebar_drag = [weak]() -> ii::core::Result<void> {
+            auto owner=weak.lock();
+            if(!owner || !owner->host) return ii::core::fail(ii::core::ErrorCode::closed,"Window is closed");
+            return owner->host->begin_window_drag();
+        };
+        backend.tool_selected = [weak](std::string name)
+        {
+            if (auto p = weak.lock())
+                p->select_native_tool(std::move(name));
+        };
+        backend.asset_inserted = [weak](std::filesystem::path path)
+        {
+            if (auto p = weak.lock())
+            {
+                p->result(p->artwork.import_image(path));
+            }
+        };
+        backend.builtin_asset_inserted = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+                p->insert_builtin_asset(key);
+        };
+        backend.layer_opacity_changed = [weak](std::string key, double value)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.opacity(std::move(key), value));
+        };
+        backend.layer_mode_changed = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.cycle_blend(std::move(key)));
+        };
+        backend.frame_rate_changed = [weak](int rate)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.timing(
+                    rate, int(std::round(p->timeline_model->state.get().duration * rate))));
+        };
+        backend.command = [weak](std::string name)
+        {
+            if (auto p = weak.lock())
+                p->workspace_command(std::move(name));
+        };
+        backend.perform = [weak](Action action)
+        {
+            if (auto p = weak.lock())
+                p->act(action);
+        };
+        backend.selected = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.select(std::move(key)));
+        };
+        backend.renamed = [weak](std::string key, std::string name)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.rename(std::move(key), std::move(name)));
+        };
+        backend.moved = [weak](std::string key, std::string parent, std::string before)
+        {
+            if (auto p = weak.lock())
+            {
+                if (!parent.empty())
+                {
+                    p->status("Canvas layers form a flat compositing stack");
+                    return;
+                }
+                p->result(p->artwork.move(std::move(key), std::move(before)));
+            }
+        };
+        backend.checked = [weak](std::string key, bool value)
+        {
+            if (auto p = weak.lock())
+                p->result(p->artwork.visible(std::move(key), value));
+        };
+        backend.member_selected = [weak](std::string key)
+        {
+            if (auto p = weak.lock())
+            {
+                p->selected_member = key;
+                if (key.starts_with("nearby-"))
+                    for (const auto& item : p->discovery.canvases())
+                    {
+                        auto peer = object(item);
+                        if (key == "nearby-" + text(field(peer, "sessionId")) && p->secondary)
+                            p->secondary->session_address.set(
+                                text(field(peer, "sessionId")) + "@" +
+                                text(field(peer, "address")) + ":" +
+                                std::to_string(int(number(field(peer, "port")))));
+                    }
+            }
+        };
+        backend.pressure_input=[weak](const ii::gui::WidgetInput& e)->ii::core::Result<bool>{
+            auto p=weak.lock();if(!p||!p->main)return false;
+            auto widget=take(p->view->widgets().find("pressure-curve"));
+            using K=ii::gui::WidgetInputKind;
+            const auto bounds=take(widget.snapshot()).bounds;
+            const auto x=e.x-bounds.x,y=e.y-bounds.y;
+            if(e.kind==K::pointer_down){p->pressure_handle=editor::pressure_point(x,bounds.width);good(widget.focus());}
+            if(e.kind==K::focus_lost||e.kind==K::pointer_leave){p->pressure_handle=-1;return false;}
+            if((e.kind==K::pointer_down||e.kind==K::pointer_move||e.kind==K::pointer_up)&&p->pressure_handle>=0){
+                const auto value=editor::pressure_value(y,bounds.height);
+                if(p->pressure_handle==0)p->main->set_pressure_min(value);
+                else if(p->pressure_handle==1)p->main->set_pressure_mid(value);
+                else p->main->set_pressure_max(value);
+                if(e.kind==K::pointer_up)p->pressure_handle=-1;
+                return true;
+            }
+            return false;
+        };
+        backend.input = [weak](const ii::gui::WidgetInput& event) -> ii::core::Result<bool>
+        {
+            if (auto p = weak.lock())
+            {
+                if (!p->test && !p->license.local_edits_allowed()) {
+                    using K = ii::gui::WidgetInputKind;
+                    const bool completing = p->license_rejection_deferred && p->canvas.interaction_active() &&
+                        (event.kind==K::pointer_move || event.kind==K::pointer_up ||
+                         event.kind==K::pointer_cancel || event.kind==K::focus_lost);
+                    if (!completing) return false;
+                }
+                if (p->placeholder) {
+                    p->status(p->storage_error);
+                    return false;
+                }
+                auto local = p->canvas.localize_input(event);
+                if (event.kind == ii::gui::WidgetInputKind::drop && event.content &&
+                    !event.content->url.empty() && event.content->image.empty() &&
+                    event.content->files.empty())
+                {
+                    auto v = p->canvas.viewport();
+                    p->fetch_image(event.content->url,
+                                   {(local.x - v.x) / v.scale, (local.y - v.y) / v.scale});
+                    return true;
+                }
+                const auto previous_scale = p->canvas.viewport().scale;
+                auto result = p->canvas.input(local);
+                p->synchronize_airbrush_timer();
+                if (p->license_rejection_deferred && !p->canvas.interaction_active())
+                    p->synchronize_license();
+                if (p->main && p->canvas.viewport().scale != previous_scale)
+                    p->main->zoom.set(
+                        ii::core::format_decimal(std::round(p->canvas.viewport().scale * 100)) +
+                        "%");
+                return result;
+            }
+            return false;
+        };
+        backend.resized = [weak](ii::gui::Rect bounds)
+        {
+            if (auto p = weak.lock())
+            {
+                const auto previous_scale = p->canvas.viewport().scale;
+                p->canvas.resize(bounds);
+                if (p->main && p->canvas.viewport().scale != previous_scale)
+                    p->main->zoom.set(
+                        ii::core::format_decimal(std::round(p->canvas.viewport().scale * 100)) + "%");
+            }
+        };
+        backend.name_changed = [weak, &backend]
+        {
+            if (auto p = weak.lock())
+            {
+                p->preferences.set_profile_name(backend.display_name.get());
+                p->session.set_profile(p->preferences.profile_name);
+                if (p->main)
+                    p->main->display_name.set(p->preferences.profile_name);
+            }
+        };
+        backend.brush_changed = [weak, &backend]
+        {
+            if (auto p = weak.lock())
+                p->apply_brush(backend);
+        };
+        backend.preference_changed = [weak, &backend]
+        {
+            if (auto p = weak.lock())
+            {
+                p->preferences.set_start_recent(backend.start_recent.get());
+                p->preferences.set_invitations_allowed(backend.can_invite.get());
+                p->session.set_invitations(backend.can_invite.get());
+                p->preferences.set_discover_nearby(backend.discover.get());
+                if (!p->test)
+                {
+                    if (backend.discover.get())
+                        p->discovery.start();
+                    else
+                        p->discovery.stop();
+                }
+            }
+        };
+    }
+    std::expected<void, std::string> save_tool_preferences()
+    {
+        if (!main) return std::unexpected("The tool panel is unavailable");
+        return ui::ToolPreferences(directory).save(*main);
+    }
+    void choose_asset_library()
+    {
+        const auto weak = weak_from_this();
+        good(host->choose_file({.mode = ii::gui::FileDialogMode::directory,
+                                .title = "Choose Society Asset Library folder"},
+                               [weak](auto selected)
+                               {
+                                   if (auto p = weak.lock())
+                                   {
+                                       if (!selected)
+                                       {
+                                           p->status(selected.error().message);
+                                           return;
+                                       }
+                                       if (selected->canceled || selected->paths.empty())
+                                           return;
+                                       const auto path = selected->paths.front();
+                                       p->main->asset_root.set(path);
+                                       iiFileProvider::native::File::write(
+                                           p->directory / "asset-library.path", path);
+                                       p->status("Society Asset Library folder connected");
+                                   }
+                               }));
+    }
+    void select_native_tool(std::string name)
+    {
+        if (name == "quick-mask") {
+            if (!test && !license.local_edits_allowed()) { status("Sign in to verify your Congregation license"); return; }
+            if (canvas.quick_mask_active()) {
+                if (canvas.commit_quick_mask()) status("Quick mask applied");
+            } else {
+                if (canvas.tool != "brush" && canvas.tool != "eraser") {
+                    canvas.cancel_interaction(); canvas.tool="brush"; main->selected_tool.set("brush"); apply_brush(*main);
+                }
+                if (canvas.begin_quick_mask()) status("Quick mask: paint to exclude; erase to restore");
+            }
+            return;
+        }
+        if (canvas.quick_mask_active() && name != "brush" && name != "pencil" && name != "dry-brush" &&
+            name != "airbrush" && name != "mixer-brush" && name != "bristle-brush" && name != "smudge" &&
+            name != "eraser" && name != "hand" && name != "imagezoomIn" && name != "rulers") {
+            status("Apply or cancel quick mask before selecting another tool"); return;
+        }
+        const std::map<std::string, Action, std::less<>> actions{
+            {"brush", Action::brush},
+            {"pencil", Action::brush},
+            {"dry-brush", Action::brush},
+            {"airbrush", Action::brush},
+            {"mixer-brush", Action::brush},
+            {"bristle-brush", Action::brush},
+            {"smudge", Action::brush},
+            {"eraser", Action::eraser},
+            {"paint-bucket", Action::fill},
+            {"rectangle", Action::rectangle},
+            {"ellipse", Action::ellipse},
+            {"area-text", Action::text},
+            {"move", Action::select},
+            {"direct-select", Action::select},
+            {"hand", Action::pan},
+            {"imagezoomIn", Action::zoom_tool},
+            {"color-picker", Action::eyedropper}};
+        if (name == "clone-stamp" || name == "rect-marquee" || name == "ellipse-marquee" || name == "lasso" || name == "polygon-lasso" || name == "magnetic-lasso" || name == "crop" || name == "perspective-crop" || name == "magic-wand" || name == "gradient" || name == "polygon") {
+            if (!test && !license.local_edits_allowed()) {
+                status("Sign in to verify your Congregation license");
+                return;
+            }
+            canvas.cancel_interaction(); canvas.tool = name; main->selected_tool.set(name); if(name=="clone-stamp")apply_brush(*main); return;
+        }
+        if (name == "rulers")
+        {
+            main->rulers_visible.set(!main->rulers_visible.get());
+            return;
+        }
+        if (auto item = actions.find(name); item != actions.end())
+        {
+            if (!test && !license.local_edits_allowed()) {
+                status("Sign in to verify your Congregation license");
+                return;
+            }
+            act(item->second);
+            main->selected_tool.set(std::move(name));
+            apply_brush(*main);
+        }
+        else
+            status("The " + name + " tool is not available in this document editor yet");
+    }
+    void insert_builtin_asset(const std::string& key)
+    {
+        using P = ToolParameter;
+        if (key == "oil")
+        {
+            main->parameters->reset();
+            main->preset.set("Textured oil · Normal");
+            main->sync_parameter_fields();
+            apply_brush(*main);
+            return;
+        }
+        if (key == "graphite")
+        {
+            main->parameters->reset();
+            main->set_parameter(P::size, 24);
+            main->set_parameter(P::hardness, 100);
+            main->set_parameter(P::wetness, 0);
+            main->preset.set("Graphite pencil · Normal");
+            return;
+        }
+        if (key == "palette")
+        {
+            good(color->set_color({.94, .36, .22, 1}));
+            status("Warm dusk palette selected");
+            return;
+        }
+        if (key == "guide")
+        {
+            main->grid_visible.set(true);
+            canvas.grid = true;
+            canvas.render();
+            status("Perspective guide selected");
+            return;
+        }
+        if (key == "linen" || key == "paper")
+        {
+            auto pixels = makeRasterLayer(2048, 2048, 0);
+            std::uint32_t seed = 1;
+            for (int y = 0; y < 2048; ++y)
+                for (int x = 0; x < 2048; ++x)
+                {
+                    seed = seed * 1664525u + 1013904223u;
+                    const auto noise = (seed >> 24) % 18;
+                    const unsigned shade = key == "linen"
+                                               ? 210 + ((x % 4 == 0 || y % 4 == 0) ? 10 : 0) + noise
+                                               : 226 + noise;
+                    pixels.pixels[std::size_t(y) * 2048 + x] =
+                        0xff000000u | (shade << 16) | (shade << 8) | shade;
+                }
+            const auto origin = artwork.active_canvas_origin();
+            result(artwork.import_pixels(std::move(pixels),
+                                         key == "linen" ? "Linen grain" : "Paper fibers", origin.x, origin.y));
+        }
+    }
+    void workspace_command(std::string name)
+    {
+        if (name == "rulers")
+        {
+            main->rulers_visible.set(!main->rulers_visible.get());
+            return;
+        }
+        if (name == "grid")
+            main->grid_visible.set(!main->grid_visible.get());
+        if (name == "grid" || name == "update-view")
+        {
+            canvas.grid = main->grid_visible.get();
+            canvas.render();
+            return;
+        }
+        if (name == "reset-view")
+        {
+            canvas.fit();
+            update_document_info();
+            return;
+        }
+        if (name == "symmetry-paint")
+        {
+            auto& symmetry = canvas.settings.engineState->rasterizer.symmetry;
+            symmetry.mode = symmetry.mode == BrushSymmetryMode::None ? BrushSymmetryMode::Vertical
+                                                                     : BrushSymmetryMode::None;
+            symmetry.center = {double(artwork.document().extent.width) / 2,
+                               double(artwork.document().extent.height) / 2};
+            status(symmetry.mode == BrushSymmetryMode::None ? "Symmetry off" : "Vertical symmetry");
+            return;
+        }
+        const std::map<std::string, LayerTransform, std::less<>> transforms{
+            {"flip-horizontal", LayerTransform::flip_horizontal},
+            {"flip-vertical", LayerTransform::flip_vertical},
+            {"rotate-left", LayerTransform::rotate_left},
+            {"rotate-right", LayerTransform::rotate_right}};
+        if (const auto found = transforms.find(name); found != transforms.end())
+        {
+            result(artwork.transform(found->second));
+            return;
+        }
+        status("The " + name + " command requires an editable compatible layer");
+    }
+    void apply_brush(ui::EditorBackend& backend)
+    {
+        backend.size_label.set(ii::core::format_decimal(std::round(backend.brush_size.get()))+" px");
+        backend.flow_label.set(ii::core::format_decimal(std::round(backend.flow.get()*100))+"%");
+        backend.opacity_label.set(ii::core::format_decimal(std::round(backend.opacity.get()*100))+"%");
+        backend.hardness_label.set(ii::core::format_decimal(std::round(backend.hardness.get()*100))+"%");
+        const auto effective_spacing = backend.spacing_pixels.get() > 0 ? backend.spacing_pixels.get() :
+                                       backend.brush_size.get() * backend.spacing.get();
+        backend.spacing_label.set(ii::core::format_decimal(effective_spacing)+" px");
+        backend.spacing_ratio_label.set(ii::core::format_decimal(std::round(backend.spacing.get()*100))+"%");
+        backend.pressure_min_label.set(ii::core::format_decimal(std::round(backend.pressure_min.get()*100))+"%");
+        backend.pressure_mid_label.set(ii::core::format_decimal(std::round(backend.pressure_mid.get()*100))+"%");
+        backend.pressure_max_label.set(ii::core::format_decimal(std::round(backend.pressure_max.get()*100))+"%");
+        backend.stabilizer_label.set(ii::core::format_decimal(std::round(backend.stabilizer.get()*100))+"%");
+        using P = ToolParameter;
+        canvas.settings = backend.parameters->brush(backend.selected_tool.get());
+        canvas.taper = {backend.parameters->value(P::start) / 100., backend.parameters->value(P::end) / 100.,
+                        backend.parameters->value(P::minimum_size) / 100., backend.parameters->value(P::taper) / 100.};
+        canvas.snap_brush_to_pixels = backend.selected_tool.get() == "pencil" && backend.parameters->value(P::pencil_snap) != 0;
+        canvas.pencil_auto_erase = backend.selected_tool.get() == "pencil" && backend.parameters->value(P::pencil_auto_erase) != 0;
+        canvas.mixer_brush = backend.selected_tool.get() == "mixer-brush";
+        canvas.mixer_sample_all_layers = canvas.mixer_brush && backend.parameters->value(P::mixer_sample_all) != 0;
+        canvas.mixer_clean_after = backend.parameters->value(P::mixer_clean_after) != 0;
+        canvas.mixer_load_after = backend.parameters->value(P::mixer_load_after) != 0;
+        canvas.settings.spacing=backend.spacing_pixels.get();
+        paint_tools();
+        canvas.settings.flow = backend.flow.get();
+        canvas.settings.hardness = backend.hardness.get();
+        canvas.settings.spacingRatio = backend.spacing.get();
+        canvas.settings.pressureToOpacityEnabled = backend.pressure_enabled.get();
+        BrushState engine = *canvas.settings.engineState;
+        engine.rasterizer.symmetry.center = {double(artwork.document().extent.width) / 2,
+                                              double(artwork.document().extent.height) / 2};
+        engine.rasterizer.smoothing = backend.stabilizer.get();
+        configure_pressure_opacity(engine,backend.pressure_enabled.get(),backend.pressure_min.get(),
+                                   backend.pressure_mid.get(),backend.pressure_max.get(),
+                                   backend.parameters->value(P::transfer_opacity_jitter)/100.);
+        canvas.settings.engineState = std::move(engine);
+        if (main && &backend != main)
+        {
+            main->spacing_pixels.set(backend.spacing_pixels.get());
+            main->flow.set(backend.flow.get());
+            main->hardness.set(backend.hardness.get());
+            main->spacing.set(backend.spacing.get());
+            main->stabilizer.set(backend.stabilizer.get());
+            main->pressure_enabled.set(backend.pressure_enabled.get());
+            main->pressure_min.set(backend.pressure_min.get());
+            main->pressure_mid.set(backend.pressure_mid.get());
+            main->pressure_max.set(backend.pressure_max.get());
+        }
+    }
+    void fetch_image(std::string url, Point point)
+    {
+        if (!url.starts_with("https://") && !url.starts_with("http://"))
+        {
+            status("Choose an HTTP or HTTPS image URL");
+            return;
+        }
+        image_http.cancel();
+        ii::network::HttpRequest request;
+        request.url = std::move(url);
+        request.maximum_bytes = 16 * 1024 * 1024;
+        request.follow_redirects = true;
+        request.maximum_redirects = 3;
+        request.timeout = std::chrono::seconds(15);
+        const auto document = artwork.recovery();
+        auto weak = weak_from_this();
+        if (!image_http.start(
+                std::move(request),
+                [weak, document, point](auto response)
+                {
+                    if (auto p = weak.lock(); p && !p->closed)
+                    {
+                        if (p->artwork.recovery() != document)
+                            return;
+                        if (!response.ok())
+                        {
+                            p->status(response.error.empty() ? "The image download failed"
+                                                             : response.error);
+                            return;
+                        }
+                        auto decoded = decodeBitmap(
+                            {reinterpret_cast<const std::uint8_t*>(response.body.data()),
+                             response.body.size()});
+                        if (!decoded.ok())
+                        {
+                            p->status(decoded.result.message);
+                            return;
+                        }
+                        if (!p->artwork.select_canvas_at(point, p->timeline_model->state.get().frame)) {
+                            p->status(p->artwork.error());
+                            return;
+                        }
+                        p->result(p->artwork.import_pixels(std::move(decoded.asset.pixels),
+                                                           "Dropped web image", point.x, point.y));
+                    }
+                }))
+            status("The image download could not start");
+    }
+    void publish_avatar()
+    {
+        if (main) main->profile_avatar.set(avatar);
+        if (preferences_view && secondary) secondary->profile_avatar.set(avatar);
+    }
+    void set_avatar(const std::filesystem::path& path)
+    {
+        auto bytes = iiFileProvider::native::File::read(path, 64 * 1024 * 1024);
+        auto decoded =
+            ii::image::decode({reinterpret_cast<const std::uint8_t*>(bytes.data()), bytes.size()});
+        if (!decoded)
+        {
+            status(decoded.error().message);
+            return;
+        }
+        auto circle = ii::image::thumbnail(decoded->view(), 256, true);
+        if (!circle)
+        {
+            status(circle.error().message);
+            return;
+        }
+        auto converted = ii::image::to_srgb(*circle);
+        if (!converted)
+        {
+            status(converted.error().message);
+            return;
+        }
+        auto png = ii::image::encode_png(circle->view());
+        if (!png)
+        {
+            status(png.error().message);
+            return;
+        }
+        iiFileProvider::native::writeCompatible(
+            directory / "profile.png", {reinterpret_cast<const char*>(png->data()), png->size()});
+        avatar = take(
+            ii::gui::rgba_image(converted->width, converted->height, std::move(converted->rgba)));
+        publish_avatar();
+        status("Profile photo updated");
+    }
+    void open_setup(bool add_to_document = false)
+    {
+        if (setup_host)
+        {
+            auto current = setup_host->snapshot();
+            if (current && !current->closed)
+            {
+                if (setup_add_canvas != add_to_document)
+                    status("Finish or close the current canvas setup first");
+                good(setup_host->window_action(ii::gui::WindowAction::raise));
+                return;
+            }
+        }
+        setup_add_canvas = add_to_document;
+        setup_target_document = add_to_document ? artwork.recovery() : std::filesystem::path{};
+        const auto generation = setup_generation.begin();
+        setup = nullptr;
+        // Detach both slots before releasing either previous owner.
+        [[maybe_unused]] auto previous_view = std::move(setup_view);
+        [[maybe_unused]] auto previous_host = std::move(setup_host);
+        setup_view = std::make_shared<CanvasSetupView>();
+        auto options = CanvasSetupView::options();
+        options.title = add_to_document ? "Add canvas" : "New document";
+        options.renderer = renderer;
+        options.event_loop = &app.event_loop();
+        setup_host = std::make_shared<ii::gui::Host>(options);
+        const auto opening_host = setup_host;
+        const auto weak = weak_from_this();
+        auto shown = opening_host->show(
+            *host, {.opened =
+                        [weak, generation]
+                    {
+                        if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
+                        {
+                            auto window = p->setup_host;
+                            auto view = p->setup_view;
+                            if (!window || !view) return;
+                            auto attached = view->attach(*window,
+                                                       [weak, generation](CanvasSetupView::Scope& scope)
+                                                       {
+                                                           auto p = weak.lock();
+                                                           if (!p || !p->setup_generation.accepts(generation)) return;
+                                                           p->setup = &scope.backend_0;
+                                                           scope.backend_0.add_to_document = p->setup_add_canvas;
+                                                           scope.backend_0.status.set("");
+                                                           scope.backend_0.create_requested = [weak, generation]
+                                                           {
+                                                               if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
+                                                                   p->act(Action::create_canvas);
+                                                           };
+                                                           scope.backend_0.close_requested = [weak, generation]
+                                                           {
+                                                               if (auto p = weak.lock(); p && p->setup_generation.accepts(generation))
+                                                                   p->act(Action::cancel_canvas);
+                                                           };
+                                                       });
+                            if (!attached && p->setup_generation.owns(generation)) p->setup = nullptr;
+                            good(std::move(attached));
+                            if (!p->setup_generation.accepts(generation)) return;
+                            if (p->test && p->after_setup)
+                            {
+                                auto call = std::exchange(p->after_setup, {});
+                                check(bool(p->host->executor().post(std::move(call))),
+                                      "Setup test continuation was rejected");
+                            }
+                        }
+                    },
+                    .closed =
+                        [weak, generation]
+                    {
+                        if (auto p = weak.lock(); p && p->setup_generation.close(generation)) {
+                            p->setup = nullptr;
+                            (void)p->setup_generation.retire(generation);
+                        }
+                    }});
+        if (!shown && setup_generation.retire(generation)) {
+            setup = nullptr;
+            [[maybe_unused]] auto failed_view = std::move(setup_view);
+            [[maybe_unused]] auto failed_host = std::move(setup_host);
+        }
+        good(std::move(shown));
+    }
+
+    void start()
+    {
+        const auto weak = weak_from_this();
+        collaboration = std::make_unique<CanvasCollaboration>(session, CanvasCollaboration::DocumentPort{
+            [weak] { if (auto p = weak.lock()) return p->artwork.snapshot(); return std::string{}; },
+            [weak](std::string_view bytes) { if (auto p = weak.lock()) return p->artwork.receive(bytes); return false; },
+            [weak](std::string_view bytes) { if (auto p = weak.lock()) return p->artwork.receive_edit(bytes); return false; }
+        });
+        collaboration->received = [weak](bool received) {
+            if (auto p = weak.lock()) {
+                p->result(received);
+                if (received) { p->placeholder = false; p->startup_pending = false; }
+            }
+        };
+        collaboration->status = [weak](std::string message) { if (auto p = weak.lock()) p->status(std::move(message)); };
+        artwork.document_prepared = [weak](const auto& change, const auto& before, const auto& after) {
+            if (auto p = weak.lock()) p->canvas.prepare_change(change, before, after);
+        };
+        artwork.document_changed = [weak](const DocumentChange& change)
+        {
+            if (auto p = weak.lock()) {
+                try { p->changed(change); }
+                catch (const std::exception& error) { p->status(error.what()); }
+            }
+        };
+        canvas.status = [weak](std::string message)
+        {
+            if (auto p = weak.lock())
+                p->status(std::move(message));
+        };
+        canvas.quick_mask_changed = [weak](bool active) { if (auto p=weak.lock(); p && p->main) p->main->quick_mask_mode.set(active); };
+        canvas.color_picked = [weak](std::uint32_t value)
+        {
+            if (auto p = weak.lock())
+            {
+                good(p->color->set_color({double((value >> 16) & 255) / 255,
+                                          double((value >> 8) & 255) / 255,
+                                          double(value & 255) / 255, double(value >> 24) / 255}));
+                if (p->main)
+                    p->main->tool.set("brush");
+                p->status("Canvas color sampled");
+            }
+        };
+        const auto mounted=view->widgets();
+        good(bind_scoped_context_menus(
+            take(mounted.find("workspace")), take(mounted.find("root")),
+            {{"layers", take(mounted.find("layer-menu"))}}));
+        good(bind_scoped_context_menus(
+            take(mounted.find("tool-rail")), take(mounted.find("root")),
+            {{"shape", take(mounted.find("shape-menu"))}}));
+        good(bind_scoped_context_menus(
+            take(mounted.find("toolbar")), take(mounted.find("root")),
+            {{"brush-color", take(mounted.find("color-actions"))}}));
+        timeline_subscription = timeline_model->state.observe(
+            [weak](const TimelinePosition& value, std::uint64_t)
+            {
+                if (auto p = weak.lock(); p && !p->applying_document_timing) {
+                    p->canvas.set_frame(value.frame);
+                    p->view->refresh_frame(p->artwork.document(), value.frame);
+                }
+            });
+        canvas.attach(take(mounted.find("canvas")), take(mounted.find("canvas-paint-layers")));
+        refresh();
+        good(take(view->widgets().find("root"))
+                 .set_input_handler(
+                     [weak](const ii::gui::WidgetInput& event) -> ii::core::Result<bool>
+                     {
+                         if (auto p = weak.lock())
+                             return p->shortcut(event);
+                         return false;
+                     }));
+        install_menu();
+        apply_brush(*main);
+        session.set_profile(preferences.profile_name);
+        session.set_invitations(preferences.invitations_allowed);
+        if (!test)
+        {
+            std::error_code ec;
+            if (std::filesystem::is_regular_file(directory / "profile.png", ec))
+                try
+                {
+                    set_avatar(directory / "profile.png");
+                }
+                catch (const std::exception& error)
+                {
+                    status(error.what());
+                }
+        }
+        license.open_society_action = [weak] {
+            if(auto p=weak.lock()) {
+                auto opened=ii::gui::open_external_url("society://");
+                if(!opened) p->status("Could not open Society. Open it on this device and try again.");
+            }
+        };
+        license.open_browser_action = [weak](std::string url) {
+            if(auto p=weak.lock()) {
+                auto opened=ii::gui::open_external_url(url);
+                if(!opened) { p->license.cancel(); p->status("The sign-in page could not be opened."); }
+            }
+        };
+        license.changed = [weak](LicenseService::Notice) { if(auto p=weak.lock()) p->synchronize_license(); };
+        license.validated = [weak](bool valid) {
+            if(auto p=weak.lock()) {
+                if(valid) p->status("Congregation license verified");
+            }
+        };
+        license.device_ready = [weak](std::string id) {
+            if (auto p=weak.lock(); p && !p->update_feed) {
+                p->update_feed=std::make_unique<SocietyUpdateFeed>(p->app.event_loop(),std::move(id));
+                p->updater.setUpdateFeed(p->update_feed.get());
+            }
+        };
+        updater.upToDate = [weak](std::string version)
+        {
+            if (auto p = weak.lock())
+                p->update_status("Congregation " + version + " is up to date");
+        };
+        updater.updateAvailable = [weak](std::string version, std::string)
+        {
+            if (auto p = weak.lock())
+                p->update_status("Update available: " + version);
+        };
+        updater.checkFailed = [weak](auto, std::string message)
+        {
+            if (auto p = weak.lock())
+                p->update_status(std::move(message));
+        };
+        updater.updateFailed = [weak](auto, std::string message)
+        {
+            if (auto p = weak.lock())
+                p->update_status(std::move(message));
+        };
+        updater.installerLaunched = [weak](std::string)
+        {
+            if (auto p = weak.lock())
+                good(p->app.quit());
+        };
+        session.changed = [weak](auto notice)
+        {
+            if (auto p = weak.lock()) {
+                p->participants();
+                if (p->collaboration) p->collaboration->session_changed(notice);
+            }
+        };
+        session.advertise = [weak](std::uint16_t port)
+        {
+            if (auto p = weak.lock())
+                p->discovery.set_port(port);
+        };
+        discovery.changed = [weak]
+        {
+            if (auto p = weak.lock())
+                p->participants();
+        };
+        discovery.invited = [weak](Object invitation)
+        {
+            if (auto p = weak.lock())
+            {
+                p->session.receive_invitation(std::move(invitation));
+                p->status("A canvas invitation is waiting in Preferences");
+            }
+        };
+        observe_paint_presentations();
+        if (!test)
+        {
+            // Keep the workspace through its first submitted frame, even if a
+            // local denial arrives before the renderer has presented it.
+            await_first_presentation();
+            auto scheduled = host->executor().post([weak] {
+                if (auto p = weak.lock()) p->license.restore();
+            });
+            check(bool(scheduled), "Cannot schedule license verification");
+            if (preferences.discover_nearby)
+                discovery.start();
+        }
+        check(bool(engine.start([] {})), "Core engine startup was rejected");
+        if (device_evidence)
+        {
+            const auto capture = host->executor().after(std::chrono::seconds(3), [weak] {
+                if (auto p = weak.lock()) p->capture_evidence(*p->host, "startup");
+            });
+            check(bool(capture), "Cannot schedule device startup evidence");
+        }
+        if(!prepare_mobile_storage())finish_document_startup();
+        if (test)
+        {
+            auto submitted = host->executor().post(
+                [weak]
+                {
+                    if (auto p = weak.lock()) {
+                        if(p->reference_image.empty())p->self_test();else p->reference_capture();
+                    }
+                });
+            check(bool(submitted), "Self-test admission failed");
+        }
+    }
+    void update_status(std::string message)
+    {
+        if (main)
+            main->update_status.set(message);
+        if (secondary)
+            secondary->update_status.set(message);
+        status(std::move(message));
+    }
+    void participants()
+    {
+        std::vector<ui::PresentationRow> rows;
+        rows.push_back({session.peer_id, preferences.profile_name + " (you)", "", false, false});
+        for (const auto& item : session.profiles)
+        {
+            auto profile = object(item);
+            rows.push_back({text(field(profile, "peerId")), text(field(profile, "profileName")), "",
+                            true, false});
+        }
+        for (const auto& item : discovery.canvases())
+        {
+            auto peer = object(item);
+            rows.push_back({"nearby-" + text(field(peer, "sessionId")),
+                            text(field(peer, "address")) + ":" +
+                                std::to_string(int(number(field(peer, "port")))),
+                            "", true, false});
+        }
+        publish_rows(member_source, std::move(rows));
+        if (!session.error.empty())
+            status(session.error);
+    }
+    void open_preferences()
+    {
+        if (preferences_host)
+        {
+            auto current = preferences_host->snapshot();
+            if (current && !current->closed)
+            {
+                good(preferences_host->window_action(ii::gui::WindowAction::raise));
+                return;
+            }
+        }
+        const auto generation = preferences_generation.begin();
+        secondary = nullptr;
+        [[maybe_unused]] auto previous_view = std::move(preferences_view);
+        [[maybe_unused]] auto previous_host = std::move(preferences_host);
+        auto options = PreferencesView::options();
+        options.renderer = renderer;
+        options.event_loop = &app.event_loop();
+        preferences_host = std::make_shared<ii::gui::Host>(options);
+        preferences_view = std::make_shared<PreferencesView>();
+        const auto opening_host = preferences_host;
+        auto weak = weak_from_this();
+        auto shown = opening_host->show(
+            *host, {.opened =
+                        [weak, generation]
+                    {
+                        if (auto p = weak.lock(); p && p->preferences_generation.accepts(generation))
+                        {
+                            auto window = p->preferences_host;
+                            auto view = p->preferences_view;
+                            if (!window || !view) return;
+                            auto attached = view->attach(*window,
+                                [weak, generation](PreferencesView::Scope& scope) {
+                                    if (auto p = weak.lock(); p && p->preferences_generation.accepts(generation))
+                                        p->bind(scope.backend_0, true);
+                                });
+                            if (!attached && p->preferences_generation.owns(generation)) p->secondary = nullptr;
+                            good(std::move(attached));
+                            if (!p->preferences_generation.accepts(generation)) return;
+                            editor::panel(take(view->widgets().find("preferences-root")),editor::workspace);
+                            if (!p->preferences_generation.accepts(generation)) return;
+                            p->preference_tab(Action::general_tab);
+                            if (!p->preferences_generation.accepts(generation)) return;
+                            if (p->test && p->after_preferences)
+                            {
+                                auto call = std::exchange(p->after_preferences, {});
+                                check(bool(p->host->executor().post(std::move(call))),
+                                      "Preferences test continuation was rejected");
+                            }
+                        }
+                    },
+                    .resized = [weak, generation](ii::gui::Size size) { if(auto p=weak.lock();p&&p->preferences_generation.accepts(generation)&&p->preferences_view) if(auto root=p->preferences_view->widgets().find("preferences-root"))good(root->set_extent(size)); },
+                    .closed =
+                        [weak, generation]
+                    {
+                        if (auto p = weak.lock(); p && p->preferences_generation.close(generation))
+                        {
+                            p->secondary = nullptr;
+                            auto submitted = p->host->executor().post(
+                                [weak, generation]
+                                {
+                                    if (auto p = weak.lock(); p && p->preferences_generation.retire(generation))
+                                    {
+                                        [[maybe_unused]] auto retired_view = std::move(p->preferences_view);
+                                        [[maybe_unused]] auto retired_host = std::move(p->preferences_host);
+                                    }
+                                });
+                            (void) submitted;
+                        }
+                    }});
+        if (!shown && preferences_generation.retire(generation)) {
+            secondary = nullptr;
+            [[maybe_unused]] auto failed_view = std::move(preferences_view);
+            [[maybe_unused]] auto failed_host = std::move(preferences_host);
+        }
+        good(std::move(shown));
+    }
+    void choose(bool export_file, bool save_as = false)
+    {
+        ii::gui::FileDialogOptions options;
+        std::filesystem::path selected_root;
+        if (save_as) {
+#if defined(__APPLE__) && TARGET_OS_IOS
+            // The current UIKit adapter asks only for a folder and silently
+            // appends Canvas.iisc. That cannot satisfy an explicit filename.
+            status("Choosing a Society canvas filename is not yet available on iPad");
+            return;
+#endif
+            const auto files = society_files();
+            if (!files) { status(files.error()); return; }
+            selected_root = files->root();
+            options.initial_directory = path_text(selected_root);
+        }
+        options.mode =
+            export_file || save_as ? ii::gui::FileDialogMode::save : ii::gui::FileDialogMode::open;
+        options.title = export_file ? "Export canvas" : save_as ? "Save canvas" : "Open canvas";
+        options.filename = export_file ? "Canvas.png" : save_as ? "Canvas.iisc" : "";
+        options.filters =
+            save_as ? std::vector<ii::gui::FileFilter>{{"Congregation canvas", {"iisc"}}}
+            : export_file ? std::vector<ii::gui::FileFilter>{{"Images",
+                                                            {"png", "jpg", "jpeg", "bmp", "tga",
+                                                             "webp", "tif", "tiff", "psd"}}}
+                        : std::vector<ii::gui::FileFilter>{
+                              {"Canvas and images",
+                               {"vrc", "iisc", "psd", "ora", "png", "jpg", "jpeg", "bmp", "gif",
+                                "tga", "webp", "tif", "tiff"}}};
+        auto weak = weak_from_this();
+        const auto document = artwork.recovery();
+        auto result =
+            host->choose_file(std::move(options),
+                              [weak, export_file, save_as, selected_root, document](auto result)
+                              {
+                                  if (auto p = weak.lock(); p && !p->closed)
+                                  {
+                                      if (!result)
+                                      {
+                                          p->status(result.error().message);
+                                          return;
+                                      }
+                                      if (result->canceled || result->paths.empty())
+                                          return;
+                                      auto path = native_path(result->paths[0]);
+                                      if (export_file)
+                                      {
+                                          auto extension = lower(path.extension().string());
+                                          if (!extension.empty())
+                                              extension.erase(0, 1);
+                                          p->result(p->artwork.export_image(path, extension),
+                                                    "Exported " + path_text(path.filename()));
+                                      }
+                                      else if (save_as)
+                                      {
+                                          const auto files = p->society_files();
+                                          if (!files || files->root() != selected_root || p->artwork.recovery() != document) {
+                                              p->status("The canvas or Society storage changed while choosing a path");
+                                              return;
+                                          }
+                                          const auto destination = files->destination(path);
+                                          if (!destination) { p->status(destination.error()); return; }
+                                          p->result(p->artwork.has_society_temporary()
+                                                        ? p->artwork.save_in_society(*destination)
+                                                        : p->artwork.save(*destination), "Canvas saved");
+                                      }
+                                      else
+                                      {
+                                          const bool opened = p->artwork.open(path);
+                                          p->result(opened);
+                                          if (opened) { p->placeholder = false; p->startup_pending = false; }
+                                          p->canvas.fit();
+                                          p->update_document_info();
+                                      }
+                                  }
+                              });
+        if (!result)
+            status(result.error().message);
+    }
+    ii::core::Result<bool> shortcut(const ii::gui::WidgetInput& event)
+    {
+        if (event.kind != ii::gui::WidgetInputKind::key_down || event.text_input_active)
+            return false;
+        if (main)
+            if (const auto command = tool_shortcuts.resolve(event, main->selected_tool.get()))
+            {
+                using Kind = ToolShortcutCommand::Kind;
+                switch (command->kind)
+                {
+                case Kind::select_tool:
+                    main->select_tool(std::string(command->tool));
+                    tool_shortcuts.observe_selection(main->selected_tool.get());
+                    break;
+                case Kind::toggle_rulers: main->choose_tool_rulers(); break;
+                case Kind::toggle_symmetry: main->symmetry_paint(); break;
+                case Kind::brush_size: act(command->step > 0 ? Action::size_plus : Action::size_minus); break;
+                }
+                return true;
+            }
+        if ((canvas.polygon_active() || canvas.crop_active()) && (event.key == ii::gui::WidgetKey::enter || event.key == ii::gui::WidgetKey::escape))
+            return canvas.input(event);
+        if (event.key == ii::gui::WidgetKey::delete_forward ||
+            event.key == ii::gui::WidgetKey::backspace)
+        {
+            if (canvas.polygon_active()) return canvas.input(event);
+            act(Action::delete_layer);
+            return true;
+        }
+        if (event.key == ii::gui::WidgetKey::escape)
+        {
+            if (canvas.quick_mask_active()) { canvas.cancel_interaction(); status("Quick mask canceled"); return true; }
+            if(canvas.presentation) { act(Action::presentation); return true; }
+            canvas.cancel_interaction();
+            return false;
+        }
+        std::string key = lower(event.text);
+        if (event.meta || event.control)
+        {
+            if (event.alt)
+                return false;
+            if (key == "n")
+                act(Action::new_document);
+            else if (key == "o")
+                act(Action::open);
+            else if (key == "s")
+                act(event.shift ? Action::save_as : Action::save);
+            else if (key == "z")
+                act(event.shift ? Action::redo : Action::undo);
+            else if (key == "d")
+                act(Action::clear_selection);
+            else if (key == "i" && event.shift)
+                act(Action::invert_selection);
+            else if (key == "c")
+                act(Action::copy);
+            else if (key == "v")
+                act(Action::paste);
+            else if (key == "+" || key == "=")
+                act(Action::zoom_in);
+            else if (key == "-")
+                act(Action::zoom_out);
+            else
+                return false;
+            return true;
+        }
+        return false;
+    }
+    void install_menu()
+    {
+        auto weak = weak_from_this();
+        good(host->set_app_menu(application_menu([weak](Action action) {
+            if (auto p = weak.lock()) p->act(action);
+        })));
+    }
+    void act(Action action)
+    {
+        if (action == Action::undo || action == Action::redo || action == Action::copy ||
+            action == Action::paste)
+        {
+            for (const auto& current :
+                 {view->widgets().native(),
+                  preferences_view ? preferences_view->widgets() : ii::gui::WidgetMount{}})
+            {
+                auto snapshots = current.snapshot();
+                if (snapshots)
+                    for (const auto& widget : *snapshots)
+                        if (widget.focused && widget.text_input)
+                            return;
+            }
+        }
+        if (action == Action::quit)
+        {
+            good(app.quit());
+            return;
+        }
+        if(action==Action::window_close || action==Action::window_minimize || action==Action::window_toggle_maximize) {
+            auto window=host;
+            if(!window){status("Window is unavailable");return;}
+            auto outcome=action==Action::window_close ? window->request_close() :
+                window->window_action(action==Action::window_minimize ? ii::gui::WindowAction::minimize : ii::gui::WindowAction::toggle_maximize);
+            if(!outcome)status(outcome.error().message);
+            return;
+        }
+        if (action == Action::preferences)
+        {
+            open_preferences();
+            return;
+        }
+        if(action==Action::activate) { license.sign_in(); return; }
+        if(action==Action::open_society) { license.open_society(); return; }
+        if(action==Action::restore_license) { license.retry(); return; }
+        if(action==Action::forget_license) { license.forget(); return; }
+        if(action==Action::cancel_sign_in) { license.cancel(); return; }
+        if (action == Action::profile)
+        {
+            license.open_society();
+            return;
+        }
+        if (!test && !license.local_edits_allowed())
+        {
+            status("Sign in to verify your Congregation license");
+            return;
+        }
+        if (!test && !license.licensed && (action==Action::host_session || action==Action::join_session)) {
+            status("Wait for license verification before sharing a canvas");
+            return;
+        }
+        if(mobile_storage_pending && (action==Action::new_document || action==Action::create_canvas || action==Action::open)) {
+            status("Preparing Society storage…");
+            return;
+        }
+        if (placeholder && action != Action::new_document && action != Action::create_canvas &&
+            action != Action::cancel_canvas && action != Action::open) {
+            status(storage_error);
+            return;
+        }
+        if (canvas.quick_mask_active() && action != Action::brush && action != Action::eraser &&
+            action != Action::pan && action != Action::zoom_tool && action != Action::zoom_in &&
+            action != Action::zoom_out && action != Action::fit && action != Action::undo && action != Action::redo &&
+            action != Action::save_tool_settings) { status("Apply or cancel quick mask before editing the document"); return; }
+        const std::map<Action, const char*> active_tools{{Action::brush, "brush"},
+                                                         {Action::eraser, "eraser"},
+                                                         {Action::fill, "paint-bucket"},
+                                                         {Action::select, "move"},
+                                                         {Action::pan, "hand"},
+                                                         {Action::zoom_tool, "imagezoomIn"},
+                                                         {Action::eyedropper, "color-picker"},
+                                                         {Action::text, "area-text"},
+                                                         {Action::rectangle, "rectangle"},
+                                                         {Action::ellipse, "ellipse"},
+                                                         {Action::triangle, "triangle"}};
+        if (main)
+            if (const auto tool = active_tools.find(action); tool != active_tools.end())
+            {
+                if (canvas.airbrush_active()) canvas.cancel_airbrush_stroke();
+                if (canvas.polygon_active() || canvas.crop_active()) canvas.cancel_interaction();
+                main->selected_tool.set(tool->second);
+                apply_brush(*main);
+            }
+        switch (action)
+        {
+        case Action::save_tool_settings:
+            if (const auto saved=save_tool_preferences(); saved)
+                status("Tool settings saved");
+            else
+                status("Could not save tool settings: " + saved.error());
+            break;
+        case Action::choose_texture:
+        {
+            ii::gui::FileDialogOptions options;
+            options.title = "Choose brush texture";
+            options.filters = {{"Images", {"png", "jpg", "jpeg", "bmp", "webp", "tif", "tiff"}}};
+            auto weak = weak_from_this();
+            good(host->choose_file(std::move(options), [weak](auto result) {
+                if (auto p = weak.lock(); p && result && !result->canceled && !result->paths.empty() && p->main) {
+                    try {
+                        auto path = native_path(result->paths[0]);
+                        auto bytes = iiFileProvider::native::File::read(path, 64 * 1024 * 1024);
+                        auto image = take(ii::image::to_srgb(take(ii::image::decode(
+                            {reinterpret_cast<const std::uint8_t*>(bytes.data()), bytes.size()}))));
+                        std::vector<std::uint8_t> mask(std::size_t(image.width) * image.height);
+                        for (std::size_t i = 0; i < mask.size(); ++i) {
+                            const auto* px = image.rgba.data() + 4 * i;
+                            mask[i] = std::uint8_t(((std::uint32_t(px[0])*54 + std::uint32_t(px[1])*183 + std::uint32_t(px[2])*19) * px[3]) / (256 * 255));
+                        }
+                        p->main->parameters->set_texture(path_text(path.filename()), image.width, image.height, std::move(mask));
+                        p->apply_brush(*p->main);
+                        p->status("Brush texture loaded");
+                    } catch (const std::exception& error) { p->status(error.what()); }
+                }
+            }));
+            break;
+        }
+        case Action::choose_asset_library:
+            choose_asset_library();
+            break;
+        case Action::open_asset_library:
+        {
+            auto opened = ii::gui::open_external_url("society://storage/asset-library");
+            if (!opened)
+                status("Choose the Society Asset Library folder to browse local assets");
+            break;
+        }
+        case Action::close_notice:
+            (void)notice_deadline.cancel();
+            good(take(view->widgets().find("status-notice")).close_popup());break;
+        case Action::toggle_layer_visibility:
+            for(const auto& layer:artwork.document().layers)if(layerProperties(layer).id==artwork.selected()) {
+                const auto key=artwork.selected();const bool visible=layerProperties(layer).visible;
+                result(artwork.visible(key,!visible));break;
+            }
+            break;
+        case Action::open_join:
+            if(preferences_view) {
+                auto mount=preferences_view->widgets();auto anchor=take(mount.find("join-session"));
+                good(take(mount.find("join-popup")).open_for(anchor,0,take(anchor.snapshot()).bounds.height));
+            }
+            break;
+        case Action::general_tab: case Action::profile_tab: case Action::members_tab:
+            preference_tab(action);break;
+        case Action::open_avatar:
+            if(preferences_view) {
+                auto mount = preferences_view->widgets();
+                auto anchor = take(mount.find("profile-image"));
+                good(take(mount.find("avatar-menu")).open_for(anchor, 0, take(anchor.snapshot()).bounds.height));
+            }
+            break;
+        case Action::size_minus: main->set_brush_size(std::max(1.,main->brush_size.get()-1));break;
+        case Action::size_plus:
+            main->set_brush_size(std::min(1024., main->brush_size.get() + 1));
+            break;
+        case Action::open_shapes: popup("shape-menu","shape");break;
+        case Action::zoom_tool: canvas.tool="zoom";break;
+        case Action::presentation:
+            canvas.presentation=!canvas.presentation;
+            main->chrome_visible.set(!canvas.presentation);
+            good(host->window_action(ii::gui::WindowAction::toggle_fullscreen));
+            break;
+        case Action::remove_member:
+            if (session.state != CanvasSession::State::hosting || selected_member.empty() ||
+                !session.remove(selected_member))
+                status("Select a connected member while hosting this canvas");
+            break;
+        case Action::eyedropper:
+            canvas.tool = "eyedropper";
+            good(take(view->widgets().find("color-popup")).close_popup());
+            status("Click the canvas to sample a color");
+            break;
+        case Action::open_color:
+        {
+            auto mount = view->widgets();
+            auto anchor = take(mount.find("brush-color"));
+            good(open_scoped_popup_for(take(mount.find("root")), take(mount.find("color-popup")),
+                                      anchor, 0, take(anchor.snapshot()).bounds.height));
+            break;
+        }
+        case Action::close_color:
+            good(take(view->widgets().find("color-popup")).close_popup());
+            break;
+        case Action::new_document:
+            open_setup();
+            break;
+        case Action::add_canvas:
+            open_setup(true);
+            break;
+        case Action::cancel_canvas:
+            if (setup_host)
+                good(setup_host->request_close());
+            break;
+        case Action::create_canvas:
+        {
+            if (!setup)
+                break;
+            const auto definition = setup->specification();
+            if (!definition) { setup->creation_error(definition.error()); break; }
+            if (setup_add_canvas) {
+                if (setup_target_document != artwork.recovery()) {
+                    setup->creation_error("The active document changed. Reopen Add canvas for the current document.");
+                    break;
+                }
+                if (!artwork.add_canvas(*definition)) { setup->creation_error(artwork.error()); break; }
+            } else if (test) {
+                if (!artwork.create(*definition)) { setup->creation_error(artwork.error()); break; }
+            } else {
+                const auto files = society_files();
+                if (!files) { setup->creation_error(files.error()); break; }
+                if (!artwork.create_in_society(*definition, *files)) { setup->creation_error(artwork.error()); break; }
+            }
+            placeholder = false;
+            startup_pending = false;
+            canvas.fit();
+            good(setup_host->request_close());
+            break;
+        }
+        case Action::choose_profile:
+        {
+            ii::gui::FileDialogOptions options;
+            options.title = "Choose profile photo";
+            options.filters = {{"Images", {"png", "jpg", "jpeg", "bmp", "webp", "tif", "tiff"}}};
+            auto weak = weak_from_this();
+            auto picker = preferences_host ? preferences_host : host;
+            good(picker->choose_file(std::move(options),
+                                     [weak](auto chosen)
+                                     {
+                                         if (auto p = weak.lock())
+                                         {
+                                             if (!chosen)
+                                             {
+                                                 p->status(chosen.error().message);
+                                                 return;
+                                             }
+                                             if (chosen->canceled || chosen->paths.empty())
+                                                 return;
+                                             p->set_avatar(native_path(chosen->paths.front()));
+                                         }
+                                     }));
+            break;
+        }
+        case Action::clear_profile:
+        {
+            avatar.reset();
+            std::error_code ec;
+            if (std::filesystem::exists(directory / "profile.png", ec))
+                (void) iiFileProvider::native::File::remove(directory / "profile.png");
+            publish_avatar();
+            break;
+        }
+        case Action::diamond:
+            canvas.tool = "diamond";
+            break;
+        case Action::star:
+            canvas.tool = "star";
+            break;
+        case Action::rectanglebubble:
+            canvas.tool = "rectanglebubble";
+            break;
+        case Action::ellipsebubble:
+            canvas.tool = "ellipsebubble";
+            break;
+        case Action::open:
+            choose(false);
+            break;
+        case Action::save:
+            if (artwork.source().empty())
+                choose(false, true);
+            else {
+                const auto files = society_files();
+                if (!files) status(files.error());
+                else if (!files->destination(artwork.source())) choose(false, true);
+                else result(artwork.has_society_temporary()
+                                ? artwork.save_in_society(artwork.source())
+                                : artwork.save(artwork.source()), "Canvas saved");
+            }
+            break;
+        case Action::save_as:
+            choose(false, true);
+            break;
+        case Action::export_document:
+            choose(true);
+            break;
+        case Action::undo:
+            if (canvas.quick_mask_active()) { if (!canvas.quick_mask_undo()) status("No quick mask undo available"); }
+            else result(artwork.undo());
+            break;
+        case Action::redo:
+            if (canvas.quick_mask_active()) { if (!canvas.quick_mask_redo()) status("No quick mask redo available"); }
+            else result(artwork.redo());
+            break;
+        case Action::apply_crop:
+            canvas.apply_crop();
+            break;
+        case Action::cancel_crop:
+            canvas.cancel_crop();
+            break;
+        case Action::clear_selection:
+            result(artwork.clear_selection());
+            break;
+        case Action::invert_selection:
+            result(artwork.invert_selection());
+            break;
+        case Action::add_layer:
+            result(artwork.add_layer());
+            break;
+        case Action::open_new_layer_menu:
+        {
+            auto mount = view->widgets();
+            auto menu = take(mount.find("new-layer-menu"));
+            auto anchor = take(mount.find("add-layer"));
+            good(open_new_layer_popup(take(mount.find("root")), menu, anchor));
+            break;
+        }
+        case Action::duplicate_layer:
+            result(artwork.duplicate_layer());
+            break;
+        case Action::delete_layer:
+            result(artwork.remove_layer());
+            break;
+        case Action::brush:
+            main->option_tab.set(0);
+            canvas.tool = "brush";
+            break;
+        case Action::eraser:
+            canvas.tool = "eraser";
+            break;
+        case Action::line:
+            canvas.tool = "line";
+            break;
+        case Action::rectangle:
+            canvas.tool = "rectangle";
+            break;
+        case Action::ellipse:
+            canvas.tool = "ellipse";
+            break;
+        case Action::triangle:
+            canvas.tool = "triangle";
+            break;
+        case Action::fill:
+            canvas.tool = "fill";
+            break;
+        case Action::text:
+            canvas.tool = "text";
+            popup("text-popup","text");
+            break;
+        case Action::select:
+            canvas.tool = "select";
+            break;
+        case Action::pan:
+            canvas.tool = "pan";
+            break;
+        case Action::zoom_in:
+            canvas.zoom(1.25);
+            break;
+        case Action::zoom_out:
+            canvas.zoom(.8);
+            break;
+        case Action::fit:
+            canvas.fit();
+            break;
+        case Action::image:
+        {
+            ii::gui::FileDialogOptions options;
+            options.title = "Place image";
+            options.filters = {
+                {"Images", {"png", "jpg", "jpeg", "bmp", "gif", "tga", "webp", "tif", "tiff"}}};
+            auto weak = weak_from_this();
+            good(host->choose_file(
+                std::move(options),
+                [weak](auto result)
+                {
+                    if (auto p = weak.lock();
+                        p && result && !result->canceled && !result->paths.empty())
+                        p->result(p->artwork.import_image(native_path(result->paths[0])));
+                }));
+            break;
+        }
+        case Action::copy:
+        {
+            auto rendered = renderFrame(artwork.document(), 0);
+            if (!rendered.ok())
+            {
+                status(rendered.message);
+                break;
+            }
+            auto png = encodeBitmap(rendered.pixels);
+            if (!png.ok())
+            {
+                status(png.result.message);
+                break;
+            }
+            good(ii::gui::write_clipboard(
+                {.image_mime = "image/png", .image = std::move(png.bytes)}));
+            status("Canvas copied");
+            break;
+        }
+        case Action::paste:
+        {
+            auto content = take(ii::gui::read_clipboard());
+            if (!content.image.empty())
+            {
+                auto decoded = decodeBitmap(content.image);
+                if (decoded.ok()) {
+                    const auto origin = artwork.active_canvas_origin();
+                    result(artwork.import_pixels(std::move(decoded.asset.pixels), "Pasted image", origin.x,
+                                                 origin.y));
+                }
+                else
+                    status(decoded.result.message);
+            }
+            for (const auto& path : content.files)
+                result(artwork.import_image(native_path(path)));
+            break;
+        }
+        case Action::check_update:
+            if (!license.licensed && license.local_edits_allowed()) update_status("Wait for license verification before checking for updates.");
+            else if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            else if (!updater.checkForUpdates()) update_status("An update request is already in progress.");
+            break;
+        case Action::install_update:
+            if (!license.licensed && license.local_edits_allowed()) update_status("Wait for license verification before installing updates.");
+            else if (!license.licensed) { license.open_society(); update_status("Sign in to verify your license."); }
+            else if (!updater.updateNow()) update_status("Check for an update first.");
+            break;
+        case Action::host_session:
+            if (session.host(secondary ? secondary->display_name.get() : "Host"))
+            {
+                session.set_invitations(true);
+                if (session.initialize(artwork.snapshot()))
+                    status("Canvas sharing is active on port " + std::to_string(session.port()));
+                else
+                    status(session.error.empty() ? "The canvas could not be shared." : session.error);
+            }
+            else
+                status(session.error);
+            break;
+        case Action::join_session:
+        {
+            const auto input = secondary ? secondary->session_address.get() : "";
+            auto last = input.rfind(':');
+            if (last == input.npos)
+            {
+                status("Enter session-id@host:port");
+                break;
+            }
+            auto at = input.find('@');
+            if (at == input.npos)
+            {
+                status("Enter session-id@host:port");
+                break;
+            }
+            int port = 0;
+            auto part = std::string_view(input).substr(last + 1);
+            auto parsed = std::from_chars(part.data(), part.data() + part.size(), port);
+            if (parsed.ec != std::errc{} || parsed.ptr != part.data() + part.size() || at >= last ||
+                port < 1 || port > 65535)
+            {
+                status("Invitation port is invalid");
+                break;
+            }
+            if (!session.join(input.substr(0, at), input.substr(at + 1, last - at - 1), port,
+                              secondary->display_name.get()))
+                status(session.error);
+            else if(preferences_view)good(take(preferences_view->widgets().find("join-popup")).close_popup());
+            break;
+        }
+        case Action::leave_session:
+            session.stop();
+            status("Canvas sharing stopped");
+            break;
+        case Action::invite:
+            if (session.state == CanvasSession::State::hosting)
+            {
+                std::string lan = "127.0.0.1";
+                for (const auto& item : ii::network::interfaces())
+                    if (!item.loopback && item.family == ii::network::AddressFamily::ipv4 &&
+                        ii::network::local_address(item.address))
+                    {
+                        lan = item.address;
+                        break;
+                    }
+                auto address = session.session + "@" + lan + ":" + std::to_string(session.port());
+                good(ii::gui::write_clipboard({.text = address}));
+                status("Invitation copied");
+            }
+            else
+                status("Host a canvas before copying an invitation");
+            break;
+        case Action::accept_invite:
+            if (!session.pending.empty())
+            {
+                auto invite = object(session.pending.front());
+                session.respond(true, text(field(invite, "id")));
+            }
+            break;
+        case Action::reject_invite:
+            if (!session.pending.empty())
+            {
+                auto invite = object(session.pending.front());
+                session.respond(false, text(field(invite, "id")));
+            }
+            break;
+        default:
+            break;
+        }
+        if (main)
+        {
+            main->title.set(artwork.source().empty() ? (artwork.creation() ? artwork.creation()->name : "Untitled")
+                                                     : path_text(artwork.source().filename()));
+            main->tool.set(canvas.tool);
+            paint_tools();
+            main->zoom.set(
+                ii::core::format_decimal(std::round(canvas.viewport().scale * 1000) / 10) + "%");
+        }
+    }
+    void popup(std::string_view id,std::string_view anchor_id)
+    {
+        auto mount=view->widgets();auto anchor=take(mount.find(anchor_id));
+        good(open_scoped_popup_for(take(mount.find("root")), take(mount.find(id)),
+                                   anchor, 0, take(anchor.snapshot()).bounds.height));
+    }
+    void paint_tools()
+    {
+        if(!main)return;
+        auto mount=view->widgets();
+        if(auto curve=mount.find("pressure-curve"))editor::pressure_curve(*curve,main->pressure_min.get(),main->pressure_mid.get(),main->pressure_max.get());
+    }
+    void preference_tab(Action action)
+    {
+        if(!secondary||!preferences_view)return;
+        auto view = preferences_view;
+        auto* backend = secondary;
+        backend->general_visible.set(action==Action::general_tab);
+        if (preferences_view != view || secondary != backend) return;
+        backend->profile_visible.set(action==Action::profile_tab);
+        if (preferences_view != view || secondary != backend) return;
+        backend->members_visible.set(action==Action::members_tab);
+        if (preferences_view != view || secondary != backend) return;
+    }
+    void capture(ii::gui::Host& window,std::string name)
+    {
+        auto image=take(window.capture_canvas());
+        auto png=ii::image::encode_png({image.width,image.height,ii::image::PixelFormat::rgba8,0,image.rgba});
+        check(bool(png),"Cannot encode UI reference capture");
+        iiFileProvider::native::File::create(directory/name,{reinterpret_cast<const char*>(png->data()),png->size()});
+    }
+    void reference_capture()
+    {
+        check(test && !reference_image.empty(),
+              "Reference capture requires isolated self-test storage");
+        good(host->set_content_size({1999, 1080}));
+        const auto bytes=iiFileProvider::native::File::read(reference_image,64*1024*1024);
+        auto decoded=take(ii::image::decode({reinterpret_cast<const std::uint8_t*>(bytes.data()),bytes.size()}));
+        auto image=take(ii::image::to_srgb(decoded));
+        auto pixels=makeRasterLayer(image.width,image.height,0);
+        for(std::size_t i=0;i<pixels.pixels.size();++i) {
+            const auto* c=image.rgba.data()+i*4;
+            pixels.pixels[i]=(std::uint32_t(c[3])<<24)|(std::uint32_t(c[0])<<16)|(std::uint32_t(c[1])<<8)|c[2];
+        }
+        check(artwork.create(image.width,image.height),artwork.error());
+        check(artwork.import_pixels(std::move(pixels), "Base painting", 0, 0), artwork.error());
+        auto document = artwork.document();
+        const auto image_id = staticLayerSource(document.layers.back())->assetId;
+        document.assets.emplace_back(RasterAsset{"reference-empty", makeRasterLayer(1, 1, 0)});
+        document.layers.clear();
+        const std::array<const char*, 10> names{
+            "Painting",      "Highlights", "Color strokes", "Linework", "Shadows",
+            "Base painting", "Sky wash",   "Color balance", "Camera",   "Audio"};
+        for (std::size_t index = names.size(); index-- > 0;)
+        {
+            LayerProperties properties{"reference-" + std::to_string(index), names[index]};
+            if (index == 1)
+            {
+                properties.opacity = .72;
+                properties.blendMode = RasterBlendMode::Screen;
+            }
+            if (index == 4)
+            {
+                properties.opacity = .68;
+                properties.blendMode = RasterBlendMode::Multiply;
+            }
+            document.layers.emplace_back(StaticBitmapLayer{
+                std::move(properties), StaticSource{index == 5 ? image_id : "reference-empty"}});
+        }
+        document.timeline = {{24, 1}, 48};
+        check(artwork.replace(std::move(document)), artwork.error());
+        check(artwork.select("reference-2"), artwork.error());
+        timeline_model->set_rate(24);
+        timeline_model->set_duration(2);
+        timeline_model->scrub(1);
+        canvas.fit();
+        refresh();
+        auto mount=view->widgets();
+        const auto bounds = [&](std::string_view id)
+        { return take(take(mount.find(id)).snapshot()).bounds; };
+        const auto canvas_bounds = bounds("canvas"), toolbar_bounds = bounds("toolbar");
+        check(canvas_bounds.x == 82 && canvas_bounds.y == 46 && canvas_bounds.width == 1565 &&
+                  canvas_bounds.height == 692,
+              "Canvas did not reclaim the removed asset sidebar width");
+        check(!mount.find("sidebar") && !mount.find("asset-results") &&
+                  toolbar_bounds.height == 28 && bounds("tool-rail").x == 0 &&
+                  bounds("tool-rail").width == 54 && bounds("inspector").width == 352 &&
+                  bounds("timeline").x == 54 && bounds("timeline").width == 1593 &&
+                  bounds("timeline").height == 296,
+              "Toolbar-only workspace geometry changed");
+        capture(*host, "editor-initial.png");
+        iiFileProvider::native::File::create(directory/"layout.json", "{\"canvasX\":"+std::to_string(canvas_bounds.x)+",\"canvasY\":"+std::to_string(canvas_bounds.y)+",\"canvasWidth\":"+std::to_string(canvas_bounds.width)+",\"canvasHeight\":"+std::to_string(canvas_bounds.height)+",\"toolbarHeight\":"+std::to_string(toolbar_bounds.height)+",\"paperX\":"+std::to_string(canvas.viewport().x)+",\"paperY\":"+std::to_string(canvas.viewport().y)+",\"scale\":"+std::to_string(canvas.viewport().scale)+"}\n");
+        const auto revision=artwork.revision();
+        const auto saved = artwork.snapshot();
+        using K = ii::gui::WidgetInputKind;
+        const auto size = bounds("brush-size");
+        const double x = size.x + 9 + (size.width - 18) * .7, y = size.y + size.height / 2;
+        good(mount.dispatch_input({.kind = K::pointer_down, .x = x, .y = y, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_move, .x = x, .y = y, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_up, .x = x, .y = y}));
+        check(main->parameters->value(ToolParameter::size) == 128,
+              "Native slider drag did not adjust logarithmic brush size");
+        main->reset_parameters();
+        auto scroll = take(mount.find("tool-scroll"));
+        const auto scroll_bounds = bounds("tool-scroll");
+        good(mount.dispatch_input({.kind = K::scroll,
+                                   .x = scroll_bounds.x + 100,
+                                   .y = scroll_bounds.y + 100,
+                                   .scroll_y = 850}));
+        check(take(scroll.snapshot()).scroll_offset > 0,
+              "Tool panel did not accept native wheel input");
+        capture(*host, "tool-dynamics.png");
+        good(scroll.set_scroll_offset(5000));
+        capture(*host, "tool-taper.png");
+        const auto taper = bounds("parameter-taper");
+        check(taper.y + taper.height <= scroll_bounds.y + scroll_bounds.height + .01,
+              "The final Tool parameter is inaccessible");
+        good(scroll.set_scroll_offset(0));
+        for (int tab = 1; tab < 4; ++tab)
+        {
+            good(take(mount.find("option-" + std::to_string(tab))).activate());
+            capture(*host, "options-" + std::to_string(tab) + ".png");
+        }
+        good(take(mount.find("option-0")).activate());
+        const auto ruler = bounds("timeline-ruler");
+        const double tick_x = ruler.x + 416 + (ruler.width - 416) * .625;
+        good(mount.dispatch_input(
+            {.kind = K::pointer_down, .x = tick_x, .y = ruler.y + 30, .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_up, .x = tick_x, .y = ruler.y + 30}));
+        check(timeline_model->frame() == 30 &&
+                  take(take(mount.find("timeline-time")).snapshot()).text == "00:01.250",
+              "Timeline did not snap time to frame ticks");
+        check(artwork.revision() == revision && artwork.snapshot() == saved,
+              "Tool, panel or timeline navigation changed saved document data");
+        good(mount.dispatch_input(
+            {.kind = K::pointer_down, .x = tick_x, .y = ruler.y + 30, .alt = true, .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_move, .x = tick_x, .y = ruler.y + 6, .alt = true, .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_up, .x = tick_x, .y = ruler.y + 6, .alt = true}));
+        check(artwork.document().timeline.frameRate.numerator == 30 &&
+                  artwork.revision() == revision + 1,
+              "Timeline tick rate adjustment did not commit one document edit");
+        check(artwork.undo(), artwork.error());
+        timeline_model->set_rate(24);
+        timeline_model->scrub(1);
+        refresh();
+        auto layer_surface = take(mount.find("layers"));
+        good(layer_surface.focus());
+        good(mount.dispatch_input({.kind = K::key_down, .key = ii::gui::WidgetKey::enter}));
+        check(take(take(mount.find("rename-layer")).snapshot()).opened,
+              "Timeline layer rename did not open");
+        good(take(mount.find("layer-name")).focus());
+        good(mount.dispatch_input({.kind = K::key_down, .key = ii::gui::WidgetKey::select_all}));
+        good(mount.dispatch_input({.kind = K::text, .text = "Verified layer"}));
+        good(take(mount.find("commit-layer-name")).activate());
+        const auto renamed =
+            std::ranges::find_if(artwork.document().layers, [](const auto& layer)
+                                 { return layerProperties(layer).id == "reference-2"; });
+        check(renamed != artwork.document().layers.end() &&
+                  layerProperties(*renamed).name == "Verified layer",
+              "Timeline rename did not commit to the document");
+        check(artwork.undo(), artwork.error());
+        const auto layer_bounds = bounds("layers");
+        good(mount.dispatch_input({.kind = K::pointer_down,
+                                   .x = layer_bounds.x + 100,
+                                   .y = layer_bounds.y + 2 * 22 + 11,
+                                   .buttons = 1}));
+        good(mount.dispatch_input({.kind = K::pointer_move,
+                                   .x = layer_bounds.x + 100,
+                                   .y = layer_bounds.y + 4 * 22 + 11,
+                                   .buttons = 1}));
+        good(mount.dispatch_input(
+            {.kind = K::pointer_up, .x = layer_bounds.x + 100, .y = layer_bounds.y + 4 * 22 + 11}));
+        check(layerProperties(artwork.document().layers[5]).id == "reference-2",
+              "Timeline layer drag did not preserve the displayed compositing order");
+        check(artwork.undo(), artwork.error());
+        capture(*host, "editor.png");
+        const auto before_play = timeline_model->frame();
+        const auto play_revision = artwork.revision();
+        good(host->window_action(ii::gui::WindowAction::raise));
+        good(take(mount.find("timeline-play")).activate());
+        verify_reference_playback(before_play, play_revision,
+                                  ii::runtime::Clock::now() + std::chrono::seconds(15));
+    }
+    void verify_reference_playback(int before_play, std::uint64_t revision,
+                                   ii::runtime::Clock::time_point limit)
+    {
+        check(artwork.revision() == revision, "Playback changed the saved document revision");
+        if (timeline_model->frame() != before_play)
+        {
+            timeline_model->playing(false);
+            std::cout << "CONGREGATION_FIGMA_UI_OK size=1999x1080 parameters=22 drag=true "
+                         "scroll=true time=true rate=true playback=true "
+                         "navigation_revision=false qt=false captures="
+                      << path_text(directory) << '\n';
+            good(app.quit());
+            return;
+        }
+        check(ii::runtime::Clock::now() < limit,
+              "Native display frames did not advance timeline playback; callbacks=" +
+                  std::to_string(take(host->stats()).display_callbacks));
+        const auto weak = weak_from_this();
+        const auto completion = host->executor().after(std::chrono::milliseconds(100),
+                                                       [weak, before_play, revision, limit]
+                                                       {
+                                                           if (auto p = weak.lock())
+                                                               p->verify_reference_playback(
+                                                                   before_play, revision, limit);
+                                                       });
+        check(bool(completion), "Cannot schedule native playback verification");
+    }
+    void capture_evidence(ii::gui::Host& source, std::string_view name)
+    {
+        const auto image = take(source.capture_canvas());
+        const auto graphics = take(source.graphics_info());
+        const auto window = take(source.snapshot());
+        const auto png = take(ii::image::encode_png(
+            {image.width, image.height, ii::image::PixelFormat::rgba8, 0, image.rgba}));
+        const auto output = test ? directory : directory / "device-diagnostics";
+        iiFileProvider::native::File::createDirectories(output);
+        iiFileProvider::native::File::write(output / (std::string(name) + ".png"),
+            {reinterpret_cast<const char*>(png.data()), png.size()});
+        iiFileProvider::native::File::write(output / (std::string(name) + ".json"), json(Value(Object{
+            {"mode", Value(test ? "isolated-test" : "normal")}, {"visible", Value(window.visible)},
+            {"logical_width", Value(window.size.width)}, {"logical_height", Value(window.size.height)},
+            {"pixel_width", Value(image.width)}, {"pixel_height", Value(image.height)},
+            {"renderer", Value(graphics.api == ii::gui::GraphicsApi::vulkan ? "Vulkan" : "Metal")},
+            {"adapter", Value(graphics.adapter)}, {"hardware", Value(graphics.hardware)},
+            {"presentations", Value(graphics.presentations)}, {"licensed", Value(license.licensed)}})));
+    }
+    void self_test()
+    {
+        check(test && main, "Isolated self-test state missing");
+        const auto license_revision = artwork.revision();
+        main->licensed.set(false);
+        main->workspace_visible.set(false);
+        main->needs_license.set(true);
+        view->refresh_document(artwork.document(), artwork.selected());
+        capture_evidence(*host, "unlicensed");
+        main->licensed.set(true);
+        main->workspace_visible.set(true);
+        main->needs_license.set(false);
+        view->refresh_document(artwork.document(), artwork.selected());
+        check(artwork.revision() == license_revision, "License screen changed the document");
+#if defined(__APPLE__) && TARGET_OS_IOS
+        check(iisacc::updates::native::platform_key() == "ios-arm64", "Wrong iPad update platform");
+#endif
+        const auto mount = view->widgets();
+        check(take(host->snapshot()).visible, "Native window is not visible");
+        check(&engine.events() == &app.event_loop(), "Engine created a second Core event loop");
+#if defined(__APPLE__)
+        constexpr auto primary_api = ii::gui::GraphicsApi::metal;
+#elif defined(_WIN32)
+        constexpr auto primary_api = ii::gui::GraphicsApi::direct3d11;
+#else
+        constexpr auto primary_api = ii::gui::GraphicsApi::vulkan;
+#endif
+        check(take(host->graphics_info()).api == (renderer == ii::gui::Renderer::vulkan
+                                                      ? ii::gui::GraphicsApi::vulkan
+                                                      : primary_api),
+              "Requested renderer was not used");
+        const auto original = artwork.snapshot();
+        result(artwork.open(directory/"missing-ui-test.iisc"));
+        check(take(take(mount.find("status-notice")).snapshot()).opened&&artwork.snapshot()==original,"Rejected file open must report an error without altering the canvas");
+        act(Action::close_notice);
+        auto weak = weak_from_this();
+        after_setup = [weak, original]
+        {
+            if (auto p = weak.lock())
+            {
+                check(p->setup && p->setup_host, "Canvas child did not open for cancellation");
+                auto child = p->setup_host;
+                p->act(Action::new_document);
+                check(p->setup_host == child, "Repeated New created a duplicate child window");
+                p->setup->custom_size();
+                p->setup->set_background("Black");
+                p->act(Action::cancel_canvas);
+                check(take(child->snapshot()).closed && p->artwork.snapshot() == original,
+                      "Cancel changed the existing document");
+                p->after_setup = [weak, original] {
+                    if (auto next = weak.lock()) next->self_test_editor(original);
+                };
+                p->act(Action::new_document);
+            }
+        };
+        auto timeout = host->executor().after(
+            std::chrono::seconds(240),
+            [] { throw std::runtime_error("Native self-test did not finish"); });
+        check(bool(timeout), "Self-test timeout admission failed");
+        deadline = timeout.token;
+        act(Action::new_document);
+    }
+    void self_test_editor(const std::string& original)
+    {
+        const auto mount = view->widgets();
+        check(setup && setup_host, "Native canvas setup did not open");
+        capture_evidence(*setup_host, "new-canvas");
+        setup->set_new_width("0");
+        check(!take(take(setup_view->widgets().find("create-canvas")).snapshot()).enabled,"Invalid canvas size did not disable Create");
+        act(Action::create_canvas);
+        check(artwork.snapshot() == original && !take(setup_host->snapshot()).closed,
+              "Rejected canvas setup changed the document");
+        setup->set_new_width("128");
+        setup->set_new_height("96");
+        check(take(take(setup_view->widgets().find("create-canvas")).snapshot()).enabled,"Valid canvas size did not enable Create");
+        act(Action::create_canvas);
+        check(artwork.document().extent == CanvasExtent{128, 96} &&
+                  take(setup_host->snapshot()).closed,
+              "Native canvas setup failed");
+        check(artwork.creation() && artwork.creation()->background == "White" &&
+                  artwork.document().layers.size() == 2, "New canvas did not apply its default background");
+        const auto initial_layers = artwork.document().layers.size();
+        good(take(mount.find("brush-color")).activate());
+        check(take(take(mount.find("color-popup")).snapshot()).opened,
+              "Native color picker did not open");
+        take(host->capture_canvas());
+        good(take(mount.find("color-popup")).close_popup());
+        good(take(mount.find("brush")).activate());
+        good(take(mount.find("brush-popup")).close_popup());
+        main->set_brush_size(12);
+        good(color->set_color({.1, .2, 1, 1}));
+        const auto revision = artwork.revision();
+        auto bounds = take(take(mount.find("canvas")).snapshot()).bounds;
+        auto point = [&](double x, double y, ii::gui::WidgetInputKind kind)
+        {
+            auto v = canvas.viewport();
+            return ii::gui::WidgetInput{.kind = kind,
+                                        .x = bounds.x + v.x + x * v.scale,
+                                        .y = bounds.y + v.y + y * v.scale,
+                                        .device = ii::gui::PointerDevice::pen,
+                                        .pressure = .5,
+                                        .device_id = 42,
+                                        .buttons = 1};
+        };
+        const auto loop_before = app.event_loop().stats();
+        const auto status_before = main->status.stats();
+        good(mount.dispatch_input(point(12, 12, ii::gui::WidgetInputKind::pointer_down)));
+        for (int sample = 1; sample < 32; ++sample)
+        {
+            const double progress = double(sample) / 32;
+            auto move = point(12 + 36 * progress, 12 + 18 * progress, ii::gui::WidgetInputKind::pointer_move);
+            move.pressure = .2 + .6 * progress;
+            move.timestamp = progress;
+            good(mount.dispatch_input(move));
+        }
+        good(mount.dispatch_input(point(48, 30, ii::gui::WidgetInputKind::pointer_up)));
+        const auto loop_after = app.event_loop().stats();
+        const auto status_after = main->status.stats();
+        std::cout << "NATIVE_INPUT_TRACE synthetic_events=33 loop_executed_delta="
+                  << loop_after.executed - loop_before.executed
+                  << " loop_submitted_delta=" << loop_after.submitted - loop_before.submitted
+                  << " status_revision_delta=" << status_after.revision - status_before.revision
+                  << " status_pending=" << status_after.pending
+                  << " status_dispatching=" << status_after.dispatching << std::endl;
+        check(artwork.revision() == revision + 1,
+              "Native pen stroke did not produce one durable edit");
+        auto pixels = renderFrame(artwork.document(), 0).pixels.pixels;
+        check(std::ranges::any_of(pixels, [](auto p) { return p != 0xffffffffU; }),
+              "Native canvas did not paint over its white background");
+        const auto stroke_pixels=renderFrame(artwork.document(),0).pixels;
+        check(stroke_pixels.pixels[12*stroke_pixels.width+12] != 0xffffffffU,"Surface coordinates were not mapped to the canvas stroke origin");
+        check(stroke_pixels.pixels[21*stroke_pixels.width+30] != 0xffffffffU,"Repeated pen input did not paint along the stroke");
+        auto canceled = artwork.snapshot();
+        auto canceled_revision = artwork.revision();
+        good(mount.dispatch_input(point(60, 35, ii::gui::WidgetInputKind::pointer_down)));
+        good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::focus_lost}));
+        check(artwork.snapshot() == canceled && artwork.revision() == canceled_revision,
+              "Native focus cancellation persisted preview pixels");
+        popup("text-popup","text");
+        good(take(mount.find("text-value")).focus());
+        act(Action::undo);
+        check(artwork.snapshot() == canceled, "Text editing menu action undid the canvas");
+        good(take(mount.find("text-popup")).close_popup());
+        good(take(mount.find("brush")).focus());
+        auto saved = artwork.snapshot();
+        const auto before_pan = artwork.revision();
+        good(take(mount.find("pan")).activate());
+        auto down = point(20, 20, ii::gui::WidgetInputKind::pointer_down);
+        good(mount.dispatch_input(down));
+        down.kind = ii::gui::WidgetInputKind::pointer_move;
+        down.x += 30;
+        down.y += 12;
+        good(mount.dispatch_input(down));
+        down.kind = ii::gui::WidgetInputKind::pointer_up;
+        good(mount.dispatch_input(down));
+        act(Action::zoom_in);
+        check(artwork.revision() == before_pan && artwork.snapshot() == saved,
+              "Navigation changed saved artwork");
+        const auto before_gesture = canvas.viewport().scale;
+        good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::key_down,
+                                   .key = ii::gui::WidgetKey::space,
+                                   .control = true}));
+        auto gesture = point(20, 20, ii::gui::WidgetInputKind::pointer_down);
+        gesture.control = true;
+        good(mount.dispatch_input(gesture));
+        gesture.kind = ii::gui::WidgetInputKind::pointer_move;
+        gesture.x += 20;
+        good(mount.dispatch_input(gesture));
+        gesture.kind = ii::gui::WidgetInputKind::pointer_up;
+        good(mount.dispatch_input(gesture));
+        good(mount.dispatch_input(
+            {.kind = ii::gui::WidgetInputKind::key_up, .key = ii::gui::WidgetKey::space}));
+        check(canvas.viewport().scale != before_gesture && artwork.snapshot() == saved,
+              "Temporary zoom changed saved artwork or did not zoom");
+        good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::key_down,
+                                   .key = ii::gui::WidgetKey::character,
+                                   .text = "z",
+                                   .meta = true}));
+        check(renderFrame(artwork.document(), 0).pixels.pixels != pixels,
+              "Native Undo action failed");
+        good(mount.dispatch_input({.kind = ii::gui::WidgetInputKind::key_down,
+                                   .key = ii::gui::WidgetKey::character,
+                                   .shift = true,
+                                   .text = "z",
+                                   .meta = true}));
+        check(renderFrame(artwork.document(), 0).pixels.pixels == pixels,
+              "Native Redo action failed");
+        act(Action::add_layer);
+        check(artwork.document().layers.size() == initial_layers + 1, "Layer action failed");
+        result(artwork.rename(artwork.selected(), "검증 레이어"));
+        check(!layer_source->rows()->empty() && layer_source->rows()->front().label == "검증 레이어",
+              "Reactive layer list did not update");
+        auto placed = encodeBitmap(makeRasterLayer(2, 2, 0xff22cc66));
+        check(placed.ok(), placed.result.message);
+        auto dropped = std::make_shared<ii::gui::ClipboardContent>();
+        dropped->image_mime = "image/png";
+        dropped->image = std::move(placed.bytes);
+        auto drop = point(90, 70, ii::gui::WidgetInputKind::drop);
+        drop.content = std::move(dropped);
+        good(mount.dispatch_input(drop));
+        check(layerProperties(artwork.document().layers.back()).name == "Dropped image",
+              "Native image drop was not placed");
+        main->text_value.set("한글\nNative");
+        act(Action::text);
+        good(take(mount.find("text-popup")).close_popup());
+        good(mount.dispatch_input(point(8, 65, ii::gui::WidgetInputKind::pointer_down)));
+        check(layerProperties(artwork.document().layers.back()).name.starts_with("Text: 한글"),
+              "Native multiline text was not placed");
+        const auto picked_revision = artwork.revision();
+        canvas.tool = "eyedropper";
+        good(mount.dispatch_input(point(90, 70, ii::gui::WidgetInputKind::pointer_down)));
+        check(artwork.revision() == picked_revision && canvas.tool == "brush",
+              "Color sampling modified the saved document");
+        check(artwork.shape("ellipse", {20, 20}, {70, 60}, 0xffee4400, 2, false), artwork.error());
+        check(artwork.save(directory / "native.iisc"), artwork.error());
+        check(artwork.export_image(directory / "native.png", "png"), artwork.error());
+        check(artwork.export_image(directory / "native.psd", "psd"), artwork.error());
+        auto expected = renderFrame(artwork.document(), 0).pixels.pixels;
+        check(artwork.open(directory / "native.iisc"), artwork.error());
+        check(renderFrame(artwork.document(), 0).pixels.pixels == expected,
+              "Save/reopen changed final pixels");
+        refresh();
+        auto weak = weak_from_this();
+        after_preferences = [weak]
+        {
+            if (auto p = weak.lock())
+                p->self_test_finish();
+        };
+        act(Action::preferences);
+    }
+    void self_test_finish()
+    {
+        check(bool(preferences_host) && secondary, "Secondary native window did not open");
+        const auto preferences_revision = artwork.revision();
+        secondary->set_name("Native Artist 한글");
+        secondary->set_flow(.7);
+        secondary->set_stabilizer(.2);
+        set_avatar(directory / "native.png");
+        check(avatar && avatar->rgba()[3] == 0 &&
+                  preferences.profile_name == "Native Artist 한글" && canvas.settings.flow == .7,
+              "Native profile or brush preferences failed");
+        check(artwork.revision() == preferences_revision, "Preferences changed saved artwork");
+        ++self_test_preference_round;
+        if (self_test_preference_round < 6)
+        {
+            const auto weak = weak_from_this();
+            after_preferences = [weak] { if (auto p = weak.lock()) p->self_test_finish(); };
+            good(preferences_host->request_close());
+            act(Action::preferences);
+            return;
+        }
+        std::cout << "NATIVE_VIEWMODEL_TRACE preference_openings=" << self_test_preference_round << std::endl;
+        good(preferences_host->request_close());
+        auto capture = take(host->capture_canvas());
+        const auto graphics = take(host->graphics_info());
+        const auto used_api = graphics.api;
+        auto png = ii::image::encode_png(
+            {capture.width, capture.height, ii::image::PixelFormat::rgba8, 0, capture.rgba});
+        check(bool(png), "Cannot encode native evidence image");
+        iiFileProvider::native::File::create(
+            directory / (used_api == ii::gui::GraphicsApi::vulkan       ? "vulkan.png"
+                         : used_api == ii::gui::GraphicsApi::direct3d11 ? "direct3d11.png"
+                                                                        : "metal.png"),
+            {reinterpret_cast<const char*>(png->data()), png->size()});
+        iiFileProvider::native::File::write(directory / "success.json", json(Value(Object{
+            {"status", Value("passed")}, {"qt", Value(false)}, {"new_canvas", Value(true)},
+            {"unlicensed_shell", Value(true)},
+            {"cancel_preserves_document", Value(true)}, {"pen_route", Value(true)},
+            {"physical_pencil_tested", Value(false)}, {"save_reopen", Value(true)},
+            {"renderer", Value(used_api == ii::gui::GraphicsApi::vulkan ? "Vulkan" : "Metal")},
+            {"adapter", Value(graphics.adapter)}, {"hardware", Value(graphics.hardware)},
+            {"pixel_width", Value(capture.width)}, {"pixel_height", Value(capture.height)},
+            {"presentations", Value(graphics.presentations)}})));
+        std::cout << "CONGREGATION_NATIVE_OK qt=false lvui=html-inline lvrs=false core_loop=shared "
+                     "pen=true cancel=true undo=true layers=true navigation_readonly=true "
+                     "save_reopen=true png=true psd=true secondary=true setup=true popup=true "
+                     "profile=true image_drop=true text=true eyedropper=true "
+                     "text_shortcut_guard=true renderer="
+                  << (used_api == ii::gui::GraphicsApi::vulkan       ? "Vulkan"
+                      : used_api == ii::gui::GraphicsApi::direct3d11 ? "Direct3D11"
+                                                                     : "Metal")
+                  << " tiles=" << canvas.viewport().visible_tiles
+                  << " captures=" << path_text(directory) << std::endl;
+        good(app.quit());
+    }
+};
+} // namespace congregation::native
+
+ii::core::Result<void> ii::runtime::configure_application(Application& app)
+{
+    using namespace congregation::native;
+    bool test = false, device_evidence = false;
+    std::filesystem::path directory, initial_file, reference_image;
+    ii::gui::Renderer renderer = ii::gui::Renderer::automatic;
+    for (std::size_t i = 1; i < app.arguments().size(); ++i)
+    {
+        const auto& arg = app.arguments()[i];
+        if (arg == "--self-test" && i + 1 < app.arguments().size())
+        {
+            test = true;
+            directory = native_path(app.arguments()[++i]);
+        }
+        else if (arg == "--device-self-test")
+        {
+            test = true;
+            directory = congregation::application_data() / "device-tests";
+            iiFileProvider::native::File::createDirectories(directory);
+        }
+        else if (arg == "--device-evidence") device_evidence = true;
+        else if(arg == "--ui-reference" && i+1<app.arguments().size()) reference_image=native_path(app.arguments()[++i]);
+        else if (arg == "--renderer" && i + 1 < app.arguments().size())
+        {
+            const auto& value = app.arguments()[++i];
+            if (value == "vulkan")
+                renderer = ii::gui::Renderer::vulkan;
+            else if (value == "native")
+                renderer = ii::gui::Renderer::native;
+            else if (value == "auto")
+                renderer = ii::gui::Renderer::automatic;
+            else
+                return core::fail(core::ErrorCode::invalid_argument,
+                                  "Renderer must be auto, native or vulkan");
+        }
+        else if (!arg.starts_with("-") && initial_file.empty())
+            initial_file = native_path(arg);
+        else
+            return core::fail(core::ErrorCode::invalid_argument,
+                              "Usage: Congregation [document] [--renderer native|vulkan] "
+                              "[--self-test existing-directory | --device-self-test] "
+                              "[--ui-reference image]");
+    }
+    if(!reference_image.empty()&&!test) return core::fail(core::ErrorCode::invalid_argument,"UI reference capture requires --self-test");
+    if (test)
+    {
+        if (directory.empty() || !std::filesystem::is_directory(directory))
+            return core::fail(core::ErrorCode::invalid_argument,
+                              "Self-test requires an existing isolated directory");
+        auto child = directory / ("congregation-" + congregation::uuid());
+        iiFileProvider::native::File::createDirectories(child);
+        directory = std::move(child);
+    }
+    else
+        directory = congregation::application_data();
+    auto state = std::make_shared<State>(app, test, directory);
+    state->device_evidence = device_evidence;
+    state->renderer = renderer;
+    state->reference_image=std::move(reference_image);
+    state->initial_file = std::move(initial_file);
+    auto weak = std::weak_ptr<State>(state);
+    auto options = MainView::options();
+    options.renderer = renderer;
+    options.event_loop = &app.event_loop();
+    options.frame_loop = &app.frame_loop();
+    state->host = take(
+        gui::attach_application(app, options,
+                                {.opened =
+                                     [weak]
+                                 {
+                                     if (auto p = weak.lock())
+                                         p->start();
+                                 },
+                                 .resized = [weak](ii::gui::Size size) { if(auto p=weak.lock();p&&p->view) if(auto root=p->view->widgets().find("root"))good(root->set_extent(size)); },
+                                 .close_requested =
+                                     []
+                                 {
+                                     return true;
+                                 },
+                                 .closed =
+                                     [weak]
+                                 {
+                                     if (auto p = weak.lock())
+                                     {
+                                         p->closed = true;
+                                         p->agent_worker.request_stop();
+                                         p->artwork.close_temporary();
+                                         p->artwork.cancel();
+                                         p->session.stop();
+                                         p->discovery.stop();
+                                         p->updater.cancelUpdate();
+                                         p->image_http.cancel();
+                                     }
+                                 },
+                                 .files_opened =
+                                     [weak](std::vector<std::string> paths)
+                                 {
+                                     if (auto p = weak.lock(); p && !p->test && !paths.empty())
+                                     {
+                                         const bool opened = p->artwork.open(native_path(paths.front()));
+                                         p->result(opened);
+                                         if (opened) { p->placeholder = false; p->startup_pending = false; }
+                                         p->canvas.fit();
+                                         p->update_document_info();
+                                     }
+                                 }}));
+    auto cleanup =
+        app.attach({"native-state", [](Application&) -> core::Result<void> { return {}; },
+                    [state]() -> core::Result<void>
+                    {
+                        state->canvas_tool_bindings.reset();
+                        state->main = nullptr;
+                        state->secondary = nullptr;
+                        state->engine.stop();
+                        if (state->test && !state->closed)
+                            return core::fail(core::ErrorCode::failed, "Native host did not close");
+                        return {};
+                    }});
+    if (!cleanup)
+        return cleanup;
+    return app.attach(gui::view_attachment(
+        "main-lvui", state->host, state->view,
+        std::function<void(MainView::Scope&)>{[weak](MainView::Scope& scope)
+                                              {
+                                                  if (auto p = weak.lock())
+                                                      p->bind(scope.backend_0, false);
+                                              }}));
+}

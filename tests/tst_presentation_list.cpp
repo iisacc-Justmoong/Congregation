@@ -1,4 +1,4 @@
-#include <Native/PresentationList.h>
+#include <Shared/PresentationList.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -66,6 +66,30 @@ int main()
         worker.join();
         require(foreign_rejected && model->revision.get() == 2,
                 "foreign-thread mutation changed the presentation model");
+        auto changed_row = updated[0];
+        changed_row.label = "Renamed B";
+        const auto old_rows = model->rows();
+        const auto old_projection = model->snapshot().value();
+        require(model->replace_row(changed_row).value() && model->revision.get() == 3,
+                "single-row update did not publish exactly one revision");
+        require(model->rows()->at(0).label == "Renamed B" &&
+                model->snapshot().value()->entries[0].label == "Renamed B" &&
+                old_rows->at(0).label == "Layer B" && old_projection->entries[0].label == "Layer B",
+                "single-row update did not preserve immutable snapshots");
+        require(!model->replace_row(changed_row).value() && model->revision.get() == 3,
+                "unchanged row published a spurious revision");
+        changed_row.key = "missing";
+        require(!model->replace_row(changed_row) && model->revision.get() == 3,
+                "unknown row replaced an existing entry");
+        const std::vector<std::string> order{"member", "layer-new", "layer-b"};
+        const std::vector<PresentationRow> additions{{.key="layer-new", .label="New layer", .editable=true}};
+        const auto kept = model->snapshot().value();
+        require(model->apply_rows(order, additions).value() && model->revision.get() == 4 &&
+                model->snapshot().value()->entries[0].label == "Artist" &&
+                model->snapshot().value()->entries[2].label == "Renamed B" &&
+                kept->entries[0].key == "layer-b", "scoped row edits did not preserve retained rows");
+        require(!model->apply_rows(order, additions).value() && model->revision.get() == 4,
+                "identical scoped edit emitted a new revision");
         std::cout << "PRESENTATION_LIST_OK\n";
     }
     catch (const std::exception& error)

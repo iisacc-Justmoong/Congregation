@@ -1,11 +1,13 @@
-#include <Native/ToolSettings.h>
-#include <iiSharedCanvasNative.h>
-#include <Native/TimelineModel.h>
+#include <Tools/ToolSettings.h>
+#include <iiSharedCanvas>
+#include <Timeline/TimelineModel.h>
 #include <Brush/BrushDynamics.h>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <vector>
+#include <algorithm>
 using namespace congregation::native;
 void require(bool b, const char* m)
 {
@@ -18,8 +20,83 @@ int main()
     try
     {
         ToolSettings settings;
+        {
+            using P = ToolParameter;
+            ToolSettings observed;
+            std::vector<P> events;
+            std::vector<ii::core::ObservableSubscription> leases;
+            for (const auto& spec : ToolSettings::specs())
+                leases.push_back(observed.parameter_revision(spec.id).observe(
+                    [&, id=spec.id](const auto&, auto) { events.push_back(id); }));
+            require(observed.set(P::flow, 42) && events == std::vector<P>{P::flow},
+                    "A single parameter change notified unrelated parameters");
+            events.clear();
+            require(!observed.set(P::flow, 42) && events.empty(), "A no-op notified parameter observers");
+            observed.set(P::maximum_opacity, 20);
+            events.clear();
+            require(observed.set(P::minimum_opacity, 60) && events.size()==2 &&
+                    std::ranges::find(events,P::minimum_opacity)!=events.end() &&
+                    std::ranges::find(events,P::maximum_opacity)!=events.end(),
+                    "Coupled opacity limits were not both published");
+            observed.set(P::absolute_spacing, 8);
+            events.clear();
+            require(observed.set(P::spacing, 15) && events.size()==2 &&
+                    std::ranges::find(events,P::spacing)!=events.end() &&
+                    std::ranges::find(events,P::absolute_spacing)!=events.end(),
+                    "Relative spacing did not publish its absolute-spacing side effect");
+            events.clear();
+            require(observed.set(P::wetness, 30) && events.size()==2 &&
+                    std::ranges::find(events,P::wetness)!=events.end() &&
+                    std::ranges::find(events,P::mixing_active)!=events.end(),
+                    "Wetness did not publish its mixing dependency");
+            events.clear();
+            auto before=observed.values.get();
+            require(observed.select_brush("pencil"), "Profile switch failed");
+            const auto after=observed.values.get();
+            for (const auto& spec : ToolSettings::specs())
+                require((std::ranges::find(events,spec.id)!=events.end()) ==
+                        (before[std::size_t(spec.id)]!=after[std::size_t(spec.id)]),
+                        "Profile switch published the wrong parameter changes");
+            ToolSettings nested;
+            unsigned flow_events=0, hardness_events=0;
+            auto flow_lease=nested.parameter_revision(P::flow).observe([&](const auto&,auto) {
+                ++flow_events; nested.set(P::hardness, 42);
+            });
+            auto hardness_lease=nested.parameter_revision(P::hardness).observe([&](const auto&,auto) { ++hardness_events; });
+            require(nested.set(P::flow, 30) && flow_events==1 && hardness_events==1 &&
+                    nested.value(P::hardness)==42, "Reentrant parameter changes were lost");
+        }
         require(ToolSettings::specs().size() >= 34,
                 "The Tool panel must expose pose and scattering settings");
+        ToolSettings variants;
+        require(variants.value(ToolParameter::wetness)==0 &&
+                    !variants.brush("brush").engineState->material.simulation.enabled,
+                "The default brush must display its actual dry mixing state");
+        require(variants.select_brush("pencil") && variants.value(ToolParameter::size)==12 &&
+                variants.value(ToolParameter::hardness)==100, "Pencil defaults must be independent");
+        variants.set(ToolParameter::size, 27);
+        variants.set_texture("Pencil paper",2,2,{0,64,128,255});
+        require(variants.select_brush("airbrush") && variants.value(ToolParameter::size)==80,
+                "Airbrush must start with its own defaults");
+        require(variants.texture_name.get()=="Select texture", "Texture leaked into another brush");
+        variants.set(ToolParameter::flow, 42);
+        require(variants.select_brush("pencil") && variants.value(ToolParameter::size)==27,
+                "Switching brush variants discarded settings");
+        require(variants.texture_name.get()=="Pencil paper" && variants.brush("pencil").engineState->material.texture.alpha.size()==4,
+                "Switching brush variants discarded the selected texture");
+        require(variants.select_brush("dry-brush") && variants.texture_name.get()=="Paper" &&
+                variants.brush("dry-brush").engineState->material.texture.enabled,
+                "Dry brush must start with its paper texture");
+        require(variants.select_brush("pencil") && variants.texture_name.get()=="Pencil paper",
+                "Dry brush paper replaced the Pencil texture");
+        require(variants.select_brush("bristle-brush") && variants.value(ToolParameter::wetness)==20 &&
+                    variants.brush("bristle-brush").engineState->material.simulation.enabled,
+                "The default bristle wetness must be active in the paint engine");
+        ToolSettings restoredVariants;
+        require(restoredVariants.restore(variants.serialize()) && restoredVariants.select_brush("airbrush") &&
+                restoredVariants.value(ToolParameter::flow)==42 && restoredVariants.select_brush("pencil") &&
+                restoredVariants.value(ToolParameter::size)==27,
+                "Saved brush variants did not round trip independently");
         require(settings.value(ToolParameter::size) == 64 &&
                     settings.label(ToolParameter::hardness) == "85%",
                 "Figma parameter defaults changed");
@@ -28,6 +105,10 @@ int main()
         require(settings.set_normalized(ToolParameter::size, .7) &&
                     settings.value(ToolParameter::size) == 128,
                 "Dragging size must update the physical value");
+        settings.set(ToolParameter::absolute_spacing, 8);
+        require(settings.set(ToolParameter::spacing, settings.value(ToolParameter::spacing)+1) &&
+                settings.value(ToolParameter::absolute_spacing)==0,
+                "Choosing relative spacing must stop an old absolute value from shadowing it");
         settings.step(ToolParameter::size, -1);
         require(settings.value(ToolParameter::size) == 127,
                 "Step buttons must adjust one physical unit");
@@ -172,10 +253,15 @@ int main()
             const auto end = prePose.find('\n', begin);
             prePose.erase(begin, end - begin + 1);
         }
+        const auto oldWetness = prePose.find("\nwetness=0\n");
+        require(oldWetness != std::string::npos, "legacy wetness field missing");
+        prePose.replace(oldWetness, std::string_view("\nwetness=0\n").size(), "\nwetness=20\n");
         require(advancedRestore.restore(prePose) &&
                     advancedRestore.value(P::pose_override_pressure) == 0 &&
                     advancedRestore.value(P::scatter_count) == 1 &&
-                    advancedRestore.value(P::noise_enabled) == 0,
+                    advancedRestore.value(P::noise_enabled) == 0 &&
+                    advancedRestore.value(P::wetness) == 0 &&
+                    !advancedRestore.brush("brush").engineState->material.simulation.enabled,
                 "Older preferences must load with safe advanced defaults");
         settings.set(P::pose_override_pressure, 0);
         require(std::abs(brush.hardness - .85) < 1e-10 && std::abs(brush.flow - .9) < 1e-10,
@@ -231,6 +317,9 @@ int main()
                     bristle.engineState->material.bristle.count == 8 &&
                     !bristle.engineState->rasterizer.brushAlpha.empty(),
                 "Bristle tool must generate a count-dependent brush tip");
+        require(settings.brush("pencil").engineState->material.bristle.enabled &&
+                settings.brush("pencil").engineState->material.bristle.count == 8,
+                "The shared bristle count must affect other brushes too");
         auto smudge = settings.brush("smudge");
         require(smudge.engineState && smudge.engineState->material.simulation.enabled &&
                     smudge.engineState->material.simulation.model == BrushSimulationModel::Smudge &&
@@ -243,8 +332,45 @@ int main()
         auto spray = settings.brush("airbrush");
         require(spray.engineState && spray.engineState->rasterizer.airbrushEnabled,
                 "Airbrush must use time-based placement");
+        settings.set(P::airbrush_radius, 150);
+        settings.set(P::airbrush_rate, 75);
+        settings.set(P::airbrush_stationary, 0);
+        settings.set(P::build_up_time, 0);
+        spray = settings.brush("airbrush");
+        require(std::abs(spray.size-settings.value(P::size)*1.5)<1e-8 &&
+                spray.engineState->rasterizer.airbrushRate==75 && !spray.engineState->rasterizer.airbrushEnabled,
+                "Airbrush radius, rate and stationary controls must reach the engine");
+        settings.set(P::tip_shape, 1); settings.set(P::blend_mode, 1); settings.set(P::symmetry_mode, 1);
+        const auto pencil = settings.brush("pencil");
+        require(pencil.engineState->rasterizer.shape.kind==BrushTipShape::Square &&
+                pencil.engineState->rasterizer.blendMode==RasterBlendMode::Multiply &&
+                pencil.engineState->rasterizer.symmetry.mode==BrushSymmetryMode::Vertical,
+                "Tip, blend and symmetry choices must reach the brush state");
+        settings.set(P::bristle_length, 80); settings.set(P::bristle_thickness, 45);
+        settings.set(P::bristle_stiffness, 25); settings.set(P::bristle_spread, 70);
+        bristle = settings.brush("bristle-brush");
+        require(std::abs(bristle.engineState->material.bristle.length-8)<1e-8 &&
+                std::abs(bristle.engineState->material.bristle.thickness-.45)<1e-8 &&
+                std::abs(bristle.engineState->material.bristle.stiffness-.25)<1e-8 &&
+                std::abs(bristle.engineState->material.bristle.spread-.7)<1e-8,
+                "Bristle controls must reach the paint engine");
+        settings.set(P::dry_grain_size, 5); settings.set(P::dry_grain_amount, 70); settings.set(P::dry_dryness, 40);
+        const auto dry = settings.brush("dry-brush");
+        require(dry.engineState->material.paperGrain.scale==5 &&
+                std::abs(dry.engineState->material.paperGrain.strength-.76)<1e-8,
+                "Dry media controls must reach the material");
         require(!settings.brush("brush").engineState->material.simulation.enabled,
                 "Ordinary brush inherited another tool's simulation");
+        settings.set(P::wetness, 60);
+        require(settings.brush("brush").engineState->material.simulation.enabled &&
+                std::abs(settings.brush("brush").engineState->material.simulation.wetness-.6)<1e-8,
+                "Mixing controls on an ordinary brush must affect its paint material");
+        settings.set(P::wetness, 0);
+        require(!settings.brush("brush").engineState->material.simulation.enabled,
+                "Zero wetness must restore the ordinary dry path");
+        settings.reset();
+        require(!settings.brush("brush").engineState->material.simulation.enabled,
+                "Reset must restore the ordinary dry brush material");
         TimelineModel timeline;
         require(timeline.time_text() == "00:01.000", "Timeline must display elapsed time");
         timeline.scrub(.251);

@@ -1,4 +1,4 @@
-#include "../App/Native/StrokeProfile.h"
+#include "../App/Tools/StrokeProfile.h"
 
 #include <iostream>
 #include <limits>

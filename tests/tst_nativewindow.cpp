@@ -1,5 +1,5 @@
-#include <Native/MainWindow.h>
-#include <iiSDKCore/Runtime/Application.h>
+#include <Application/MainWindow.h>
+#include <iiSDKCore>
 #include <iostream>
 #include <stdexcept>
 #include <array>

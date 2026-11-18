@@ -18,7 +18,7 @@ The current Main window uses a 54 px vertical icon toolbar at the left window ed
 
 The document SDK retains vector paths and exports them as PDF smart objects in PSD files. Unsupported foreign-document features fail explicitly. Migrated legacy text is rendered into an individual native bitmap layer. Undo history is bounded to 32 commands and 64 MiB of serialized snapshots.
 
-UI colors and control styles use LVUI `Color` and `Metric` tokens, including the shared Figma-derived values migrated from LVRS. `App/Native/views/Layout.lvui` contains product layout dimensions for all three compiled views and the generated native C++ header; it defines no color palette. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.
+UI colors and control styles use LVUI `Color` and `Metric` tokens, including the shared Figma-derived values migrated from LVRS. `App/Shared/Layout.lvui` contains product layout dimensions shared by the compiled views and the generated native C++ header; it defines no color palette. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.
 
 The editor's native view model exposes LVUI-compatible, revisioned list sources and a shared observable color alongside its existing commands. The current screens use those sources directly. See [the view-model contract](docs/LVUI_VIEWMODELS.md).
 
@@ -63,7 +63,7 @@ Navigation and selection do not change document revisions. Each finished stroke 
 
 ## Source organization
 
-`App/Engine` owns product services and policies. `App/Native` owns native editor integration, and `App/Native/views` contains declarative LVUI views. `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.
+`App/` groups application objects and their declarative LVUI views by domain, including `Canvas`, `Document`, `Tools`, `Timeline`, `Account`, and `Agent`. Shared contracts live in `App/Shared`; see [the domain map](docs/APP_DOMAINS.md). `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.
 
 The current source declares version 1.0.2 and bundle build 3. A successful local build does not establish Windows/Linux runtime compatibility, physical-tablet validation, execution on an older macOS machine, or production account/update-server behavior.
 

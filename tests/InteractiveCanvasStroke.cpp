@@ -1,9 +1,9 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <Native/ToolSettings.h>
-#include <Engine/LicensePresentation.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <Tools/ToolSettings.h>
+#include <Account/LicensePresentation.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <algorithm>
 #include <chrono>
 #include <cmath>

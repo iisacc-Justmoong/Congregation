@@ -131,13 +131,13 @@ class UIStyleTokenTests(unittest.TestCase):
         self.assertFalse(contains_html_syntax('Label(text: "<span>") // <div>\nPushButton(onClick: { style = 1 })'))
 
     def test_description_labels_use_the_default_lvui_style(self):
-        for name in ('Main.lvui', 'Preferences.lvui'):
-            source = (ROOT / 'App/Native/views' / name).read_text(encoding='utf-8')
+        for name in ('Workspace/Main.lvui', 'Preferences/Preferences.lvui'):
+            source = (ROOT / 'App' / name).read_text(encoding='utf-8')
             self.assertNotRegex(source, r'\bfontSize\s*:\s*Metric\.textDescription\b')
             self.assertNotRegex(source, r'\bcolor\s*:\s*Color\.text\.description\b')
 
     def test_brush_popup_uses_lvui_mini_sliders_and_scroll_view(self):
-        source = (ROOT / 'App/Native/views/Main.lvui').read_text(encoding='utf-8')
+        source = (ROOT / 'App/Workspace/Main.lvui').read_text(encoding='utf-8')
         popup = component(source, 'Popover', 'brush-popup')
         self.assertIsNotNone(popup)
         opening, body = popup
@@ -151,29 +151,29 @@ class UIStyleTokenTests(unittest.TestCase):
             self.assertNotRegex(slider, r'\b(?:height|thumbDiameter|trackHeight|rangeInset)\s*:')
 
     def test_native_slider_sizes_come_from_lvui(self):
-        for name, expected in [('TimelineView.cpp', 2), ('WorkspaceView.cpp', 1)]:
-            source = (ROOT / 'App/Native' / name).read_text(encoding='utf-8')
+        for name, expected in [('Timeline/TimelineView.cpp', 2), ('Workspace/WorkspaceView.cpp', 1)]:
+            source = (ROOT / 'App' / name).read_text(encoding='utf-8')
             self.assertEqual(source.count('.size = lvui::SliderSize::mini'), expected)
             self.assertNotRegex(source, r'\.(?:thumb_diameter|track_height|range_inset)\s*=')
 
     def test_native_icon_buttons_do_not_embed_a_product_palette(self):
         cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
-        widgets = (ROOT / 'App/Native/OwnedWidgetStyle.cpp').read_text(encoding='utf-8')
-        bindings = (ROOT / 'App/Native/LVUIHostBindings.h').read_text(encoding='utf-8')
+        widgets = (ROOT / 'App/Shared/OwnedWidgetStyle.cpp').read_text(encoding='utf-8')
+        bindings = (ROOT / 'App/Shared/LVUIHostBindings.h').read_text(encoding='utf-8')
         self.assertNotIn('EditorAssets.generated.h', cmake)
-        self.assertNotIn('App/Native/EditorIcons.cpp', cmake)
+        self.assertNotIn('EditorIcons.cpp', cmake)
         self.assertIn('lvui_host::Button::create', widgets)
         self.assertRegex(bindings, r'using Button\s*=\s*lvui::native::ButtonBinding<ii::gui::BasicButton,\s*ii::gui::BasicNativeButton')
         self.assertIn('options.icon_name=std::move(source)', widgets)
         self.assertIn('options.icon_source=lvui::design_icon_catalog()', widgets)
 
     def test_application_has_no_independent_color_palette(self):
-        profile = (ROOT / 'App/Native/views/Layout.lvui').read_text(encoding='utf-8')
+        profile = (ROOT / 'App/Shared/Layout.lvui').read_text(encoding='utf-8')
         self.assertNotRegex(profile, r'(?m)^\s*let\s+\w+\s*:\s*Color\b')
-        for path in (ROOT / 'App/Native/views').glob('*.lvui'):
+        for path in (ROOT / 'App').rglob('*.lvui'):
             if path.name != 'Layout.lvui':
                 self.assertNotRegex(path.read_text(encoding='utf-8'), r'Color\.(?:popup|secondaryText|memberSelection|panelEdgeResolved)\b')
-        palette = (ROOT / 'App/Native/EditorPalette.cpp').read_text(encoding='utf-8')
+        palette = (ROOT / 'App/Shared/EditorPalette.cpp').read_text(encoding='utf-8')
         self.assertIn('Color::canvas', palette)
         self.assertIn('Color::materialSurfaceDenseEdge', palette)
 
@@ -203,9 +203,9 @@ class UIStyleTokenTests(unittest.TestCase):
         self.assertEqual(lvui_violations('Window(width: Metric.windowWidth) { Slider(from: 0, to: 1, value: 0.5) VStack(spacing: Metric.space8) {} }'), [])
 
     def test_active_native_views_use_shared_types(self):
-        root = ROOT / 'App/Native'
-        paths = set(root.glob('*View.cpp'))
-        paths.update(root / name for name in ('MainWindow.cpp', 'WidgetStyle.cpp', 'EditorLayout.cpp', 'EditorPalette.cpp', 'ToolPanel.cpp', 'CanvasSetupWindow.cpp', 'Application.cpp', 'WidgetStyle.h', 'EditorPalette.h', 'EditorLayout.h'))
+        root = ROOT / 'App'
+        paths = set(root.rglob('*View.cpp'))
+        paths.update(root / name for name in ('Application/MainWindow.cpp', 'Shared/WidgetStyle.cpp', 'Shared/EditorLayout.cpp', 'Shared/EditorPalette.cpp', 'Tools/ToolPanel.cpp', 'Canvas/CanvasSetupWindow.cpp', 'Application/Application.cpp', 'Shared/WidgetStyle.h', 'Shared/EditorPalette.h', 'Shared/EditorLayout.h'))
         violations = []
         for path in sorted(paths):
             source = path.read_text(encoding="utf-8")
@@ -219,17 +219,17 @@ class UIStyleTokenTests(unittest.TestCase):
         self.assertEqual(violations, [])
 
     def test_all_lvui_views_use_shared_profile(self):
-        for path in (ROOT / 'App/Native/views').glob('*.lvui'):
+        for path in (ROOT / 'App').rglob('*.lvui'):
             if path.name != 'Layout.lvui':
                 with self.subTest(path=path.name):
                     self.assertEqual(lvui_violations(path.read_text(encoding="utf-8")), [])
         cmake = (ROOT / 'CMakeLists.txt').read_text(encoding="utf-8")
         calls = re.findall(r'lvui_generate\([^)]*\)', cmake, flags=re.DOTALL)
-        views = {name for call in calls for name in re.findall(r'SOURCE App/Native/views/(Main|Preferences|CanvasSetup)\.lvui', call)}
+        views = {name for call in calls for name in re.findall(r'SOURCE App/(?:Workspace|Preferences|Canvas)/(Main|Preferences|CanvasSetup)\.lvui', call)}
         self.assertEqual(views, {'Main', 'Preferences', 'CanvasSetup'})
         self.assertTrue(all('STYLE_FILE "${_style_profile}"' in c for c in calls))
         self.assertIn('lvui_generate_styles(', cmake)
-        style = (ROOT / 'App/Native/Style.h').read_text(encoding="utf-8")
+        style = (ROOT / 'App/Shared/Style.h').read_text(encoding="utf-8")
         self.assertIn('CongregationStyle.generated.h', style)
         self.assertNotIn('<LVUI/', style)
 

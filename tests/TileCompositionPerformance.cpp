@@ -1,4 +1,4 @@
-#include <iiSharedCanvasNative.h>
+#include <iiSharedCanvas>
 
 #include <algorithm>
 #include <array>

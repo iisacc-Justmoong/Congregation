@@ -1,6 +1,6 @@
 # Congregation 작업 지침
 
-현재 실행 소스는 `App/`이다. 과거의 `src/App` Qt 소스는 현재 작업 트리에서
+현재 실행 소스는 도메인별 `App/`이며 [소스 구조](docs/APP_DOMAINS.md)를 따른다. 과거의 `src/App` Qt 소스는 현재 작업 트리에서
 삭제 상태이며 Git 기록에 남아 있다. C++23, iiSDKCore, LVUI와 iiGUI Native를
 사용한다. 현재 타깃에 Qt·QML·LVRS 의존성을 추가하지 않는다.
 

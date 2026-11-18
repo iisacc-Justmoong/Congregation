@@ -1,6 +1,6 @@
 # iPadOS 빌드와 연결 기기 실행
 
-Congregation의 iPad 소스는 `App/Engine`, `App/Native`와 LVUI AOT 화면을 공유한다. Qt·QML·LVRS·브라우저·WebView를 사용하지 않는 구성을 목표로 하며 iiGUI의 UIKit 장면과 자체 Metal 표면이 창·입력·표시를 담당한다. iPadOS 18.0 이상, arm64 기기를 대상으로 한다. 독립 LVUI 이전 이후의 iPad 빌드와 기기 실행은 아직 검증하지 않았으며 아래 기기 결과는 당시 빌드의 기록이다.
+Congregation의 iPad 소스는 도메인별 `App/`과 LVUI AOT 화면을 공유한다. Qt·QML·LVRS·브라우저·WebView를 사용하지 않는 구성을 목표로 하며 iiGUI의 UIKit 장면과 자체 Metal 표면이 창·입력·표시를 담당한다. iPadOS 18.0 이상, arm64 기기를 대상으로 한다. 독립 LVUI 이전 이후의 iPad 빌드와 기기 실행은 아직 검증하지 않았으며 아래 기기 결과는 당시 빌드의 기록이다.
 
 보존된 에셋 라이브러리 소스의 로컬 장치 표시는 iPad에서 `Society · This iPad`를 사용하지만 현재 Main 화면에는 사이드바를 구성하지 않는다. 앱 컨테이너의 저장·임시 파일은 iiFileProvider가 운영체제 컨테이너를 기준으로 고정하며 보호된 시스템 상위를 읽기용으로 순회하지 않는다. 이 경계와 링크 거부는 SDK의 임시 파일 검사 및 실제 기기의 저장·재열기에서 확인한다.
 

@@ -1,11 +1,9 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasDefinition.h>
-#include <Native/CanvasView.h>
-#include <Native/ToolSettings.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderDatabase.h>
-#include <iiSDKCore/Runtime/EventLoop.h>
-#include <iiSDKCore/Runtime/FrameLoop.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasDefinition.h>
+#include <Canvas/CanvasView.h>
+#include <Tools/ToolSettings.h>
+#include <iiFileProvider>
+#include <iiSDKCore>
 namespace ii::gui { struct TextInputRevision; }
 #include <iiGUI/WidgetState.h>
 
@@ -132,7 +130,7 @@ int main() try {
     // visible after the in-memory document has been rolled back.
     check(artwork.create(definition),"rollback canvas creation failed");
     canvas.taper={};
-    canvas.refresh();status.clear();
+    canvas.initialize_document();status.clear();
     input(K::pointer_down,0);
     for(int i=6;i<=1200;i+=6) {
         input(K::pointer_move,i);

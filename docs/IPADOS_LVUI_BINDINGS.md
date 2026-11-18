@@ -1,7 +1,7 @@
 # iPadOS LVUI host bindings
 
 Congregation composes current LVUI control policies with iiGUI native hosts in
-`App/Native/LVUIHostBindings.h`. The same bindings are used by the native
+`App/Shared/LVUIHostBindings.h`. The same bindings are used by the native
 application on supported platforms; no platform-specific copy of the LVUI
 control implementation is required. The LVUI compiler, installed headers and
 libraries must come from the same SDK generation. The iPad SDK is staged under

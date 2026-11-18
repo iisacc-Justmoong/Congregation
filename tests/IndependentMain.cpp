@@ -1,11 +1,12 @@
 #include "IndependentMainView.generated.h"
 #include <iiGUI/WidgetState.h>
-#include <iiSDKCore/Runtime/FrameLoop.h>
+#include <iiSDKCore>
 
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -73,6 +74,25 @@ void custom_titlebar() {
     require(invoked==congregation::ui::Action::export_document,"Titlebar export is not wired");
     good(widget(tree,"/titlebar-settings").activate());
     require(invoked==congregation::ui::Action::preferences,"Titlebar settings is not wired");
+    std::string submitted;
+    scope->backend_0.agent_present=[&] {
+        auto origin=widget(tree,"/titlebar-agent");
+        good(widget(tree,"/agent-popup").open_for(origin,0,take(origin.snapshot()).bounds.height));
+    };
+    scope->backend_0.agent_dismiss=[&] { good(widget(tree,"/agent-popup").close_popup()); };
+    scope->backend_0.agent_submit=[&](std::string prompt) { submitted=std::move(prompt); };
+    good(tree->input({.kind=WidgetInputKind::pointer_down,.x=agent.x+16,.y=agent.y+10,.buttons=1}));
+    good(tree->input({.kind=WidgetInputKind::pointer_up,.x=agent.x+16,.y=agent.y+10}));
+    good(tree->input({.kind=WidgetInputKind::text,.text="Hello agent"}));
+    good(tree->input({.kind=WidgetInputKind::key_down,.key=WidgetKey::enter}));
+    require(submitted=="Hello agent" && take(widget(tree,"/agent-popup").snapshot()).opened,
+            "Agent Enter must submit and open the response popover");
+    scope->backend_0.receive_agent_update({congregation::WorkspaceAgentUpdate::Phase::completed,"Ready","Fixture response"},submitted);
+    require(take(widget(tree,"/agent-status").snapshot()).text=="Ready" &&
+            take(widget(tree,"/agent-response").text_content({0,16})).text=="Fixture response",
+            "The agent response and status must update the LVUI popover");
+    good(widget(tree,"/agent-close").activate());
+    require(!take(widget(tree,"/agent-popup").snapshot()).opened,"The agent popover did not close");
     scope->backend_0.native_titlebar_controls.set(false);
     scope->backend_0.client_titlebar_controls.set(true);
     (void)take(tree->drawing_snapshot({1999,1080}));
@@ -229,6 +249,21 @@ int main() {
             take(widget(tree,"/text-value").snapshot()).bounds.width==296,
             "Text popover did not preserve its content width and padding");
     good(text_popup.close_popup());
+    auto layer_menu = widget(tree, "/new-layer-menu");
+    std::optional<congregation::native::NewLayerType> requested_layer;
+    scope->backend_0.new_layer_requested = [&](auto type) { requested_layer = type; };
+    good(layer_menu.open_for(origin, 0, take(origin.snapshot()).bounds.height));
+    require(take(layer_menu.snapshot()).opened, "New layer context menu did not open");
+    for (const auto& option : congregation::native::new_layer_options()) {
+        requested_layer.reset();
+        if (!take(layer_menu.snapshot()).opened)
+            good(layer_menu.open_for(origin, 0, take(origin.snapshot()).bounds.height));
+        auto item = widget(tree, "/new-layer-" + std::string(option.id));
+        auto activated = item.activate();
+        if (!activated) throw std::runtime_error("Layer menu item " + std::string(option.id) + ": " + activated.error().message);
+        require(requested_layer == option.type, "New layer menu dispatched the wrong layer type");
+    }
+    if (take(layer_menu.snapshot()).opened) good(layer_menu.close_popup());
     good(model->set_color({.2,.4,.6,.5}));
     require(scope->backend_0.current_color.get()==ii::gui::WidgetColor{.2,.4,.6,.5},
             "Main backend did not observe its shared color");

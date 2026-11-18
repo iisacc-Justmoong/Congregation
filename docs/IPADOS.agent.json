@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/IPADOS.md",
-    "sha256": "d6ab01e07660dd5f73b59c93c6eaeb178af47e1aceca8d403a8e8485938ade30",
-    "bytes": 11298,
+    "sha256": "9c3ca83fc5ef44a5e9e45b1046fa0dab411d5640236af5c1e09346e959937e0b",
+    "bytes": 11291,
     "line_count": 83,
     "encoding": "utf-8",
     "language": "ko"
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 3,
-      "raw": "Congregation의 iPad 소스는 `App/Engine`, `App/Native`와 LVUI AOT 화면을 공유한다. Qt·QML·LVRS·브라우저·WebView를 사용하지 않는 구성을 목표로 하며 iiGUI의 UIKit 장면과 자체 Metal 표면이 창·입력·표시를 담당한다. iPadOS 18.0 이상, arm64 기기를 대상으로 한다. 독립 LVUI 이전 이후의 iPad 빌드와 기기 실행은 아직 검증하지 않았으며 아래 기기 결과는 당시 빌드의 기록이다.\n"
+      "raw": "Congregation의 iPad 소스는 도메인별 `App/`과 LVUI AOT 화면을 공유한다. Qt·QML·LVRS·브라우저·WebView를 사용하지 않는 구성을 목표로 하며 iiGUI의 UIKit 장면과 자체 Metal 표면이 창·입력·표시를 담당한다. iPadOS 18.0 이상, arm64 기기를 대상으로 한다. 독립 LVUI 이전 이후의 iPad 빌드와 기기 실행은 아직 검증하지 않았으며 아래 기기 결과는 당시 빌드의 기록이다.\n"
     },
     {
       "id": "b000004",
@@ -575,7 +575,7 @@
     "tables": []
   },
   "provenance": {
-    "generator": "workspace-docs",
+    "generator": "codex",
     "version": "1.0.0",
     "profile": "lossless-blocks-v1",
     "derived": true

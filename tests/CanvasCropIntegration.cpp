@@ -1,7 +1,7 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>

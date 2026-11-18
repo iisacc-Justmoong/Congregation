@@ -25,7 +25,7 @@ class CanvasReferenceTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_dreamscapes_layout_is_expressed_as_metric_values(self):
-        theme = (ROOT / "App/Native/views/Layout.lvui").read_text(encoding="utf-8")
+        theme = (ROOT / "App/Shared/Layout.lvui").read_text(encoding="utf-8")
         values = dict(re.findall(r"let (\w+): Metric = ([\d.]+)", theme))
         for name, expected in {"canvasChooserWidth": 1280, "canvasChooserHeight": 880,
                                "canvasChooserCompactThreshold": 1000, "canvasChooserCategories": 200,
@@ -35,12 +35,12 @@ class CanvasReferenceTests(unittest.TestCase):
                                "canvasChooserCardPreview": 62, "canvasChooserDetailPreview": 124}.items():
             with self.subTest(name=name):
                 self.assertEqual(float(values[name]), expected)
-        content = (ROOT / "App/Native/CanvasSetupWindow.cpp").read_text(encoding="utf-8")
+        content = (ROOT / "App/Canvas/CanvasSetupWindow.cpp").read_text(encoding="utf-8")
         self.assertNotRegex(content, r"#include [<\"]Q|QQml|QVariant|QQuick")
-        lvui = (ROOT / "App/Native/views/CanvasSetup.lvui").read_text(encoding="utf-8")
+        lvui = (ROOT / "App/Canvas/CanvasSetup.lvui").read_text(encoding="utf-8")
         self.assertRegex(lvui, r'\bWindow\s*\(\s*title\s*:\s*"New canvas"')
         self.assertNotRegex(lvui, r'\bModal\s*\(')
-        app = (ROOT / "App/Native/Application.cpp").read_text(encoding="utf-8")
+        app = (ROOT / "App/Application/Application.cpp").read_text(encoding="utf-8")
         start = app.find("void open_setup()")
         end = app.find("\n    void start()", start)
         self.assertGreaterEqual(start, 0, "New canvas opening handler is missing")

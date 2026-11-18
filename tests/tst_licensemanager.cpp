@@ -2,7 +2,7 @@
 #include "licensemanager.h"
 #include "licensecredentialstore.h"
 
-#include <iiLicenseManager/NativeLicenseClient.h>
+#include <iiLicenseManager>
 #include "../src/App/host/qtenginehost.h"
 
 #include <QDir>

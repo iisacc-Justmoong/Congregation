@@ -1,4 +1,4 @@
-#include <Native/CanvasSetupModel.h>
+#include <Canvas/CanvasSetupModel.h>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -55,6 +55,11 @@ int main()
                        c.specification(std::numeric_limits<double>::quiet_NaN(), 1, "px")})
             check(!s, "Invalid canvas escaped validation");
         CanvasSetupModel model;
+        check(model.creation_title() == "New document" && model.creation_action() == "Create file",
+              "new document chooser purpose is not visible");
+        model.add_to_document = true;
+        check(model.creation_title() == "Add canvas" && model.creation_action() == "Add canvas",
+              "add canvas chooser purpose is not visible");
         check(model.selected && model.selected->id == "01-01-01" && model.background == "White",
               "Initial selection differs from Dreamscapes");
         check(model.view_state.get().selected_id == "01-01-01" &&

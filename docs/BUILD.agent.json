@@ -10,7 +10,7 @@
   },
   "source": {
     "path": "docs/BUILD.md",
-    "sha256": "7a6b1b7eb49c5fbf02e72fdd79ea4325b2c2b9bb7471339feaf43ed98622e1c9",
+    "sha256": "73e9c10664e05d137dec5caccaee90b92561ca6deb08416a7595c87f3ce5172e",
     "bytes": 15724,
     "line_count": 136,
     "encoding": "utf-8",
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 3,
-      "raw": "현재 진입점은 `build.sh`와 `build-windows.ps1`이다. CMake는 `App/Engine`, `App/Native`와 LVUI에서 생성한 C++23을 빌드한다. Qt5·Qt6 탐색과 Qt 코드 생성은 끈다. 실행 중에는 LVUI 컴파일러, 브라우저, WebView, QML 엔진이 필요하지 않다.\n"
+      "raw": "현재 진입점은 `build.sh`와 `build-windows.ps1`이다. CMake는 도메인별 `App/` 소스와 LVUI에서 생성한 C++23을 빌드한다. Qt5·Qt6 탐색과 Qt 코드 생성은 끈다. 실행 중에는 LVUI 컴파일러, 브라우저, WebView, QML 엔진이 필요하지 않다.\n"
     },
     {
       "id": "b000004",
@@ -913,7 +913,7 @@
     "tables": []
   },
   "provenance": {
-    "generator": "workspace-docs",
+    "generator": "codex",
     "version": "1.0.0",
     "profile": "lossless-blocks-v1",
     "derived": true

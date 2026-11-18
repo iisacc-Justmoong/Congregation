@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/NATIVE_RUNTIME.md",
-    "sha256": "f0379561740852d6380b302ed0d14fc2efd8dfb59c9a4fca742f47c4fb13d3f6",
-    "bytes": 12374,
-    "line_count": 104,
+    "sha256": "b1f1830e163a91521507d1f8f7962f94a1d307950eb11343747a6529a8be20d7",
+    "bytes": 14022,
+    "line_count": 114,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -145,7 +145,7 @@
       "kind": "paragraph",
       "start_line": 51,
       "end_line": 51,
-      "raw": "실행 소스는 `App/Engine`과 `App/Native`이다. 앱 진입점·이벤트 루프·작업 수명은 iiSDKCore가 소유하고 iiGUI Host가 운영체제 창에 연결한다. `App/Native/views/*.lvui`는 `Window`, `HStack`, `VStack`과 컨트롤을 중첩해 직접 선언하고 빌드 시 C++23으로 생성한다. 상태와 이벤트는 import한 C++ 뷰모델에 연결한다. HTML 태그와 CSS형 인라인 스타일을 사용하지 않으며 LVRS, 브라우저·WebView·Qt·QML 엔진을 링크하지 않는다.\n"
+      "raw": "실행 소스와 LVUI 뷰는 기능별 `App/` 도메인에 있다. 앱 진입점·이벤트 루프·작업 수명은 iiSDKCore가 소유하고 iiGUI Host가 운영체제 창에 연결한다. `.lvui` 뷰는 `Window`, `HStack`, `VStack`과 컨트롤을 중첩해 직접 선언하고 빌드 시 C++23으로 생성한다. 상태와 이벤트는 import한 C++ 뷰모델에 연결한다. HTML 태그와 CSS형 인라인 스타일을 사용하지 않으며 LVRS, 브라우저·WebView·Qt·QML 엔진을 링크하지 않는다.\n"
     },
     {
       "id": "b000018",
@@ -173,7 +173,7 @@
       "kind": "paragraph",
       "start_line": 58,
       "end_line": 58,
-      "raw": "`Artwork`는 제품의 도구·실행 취소 정책이다. 문서, 픽셀, 벡터, 변환, 타일 합성과 파일 편집은 iiSharedCanvas Native에 위임한다. 파일과 SQLite는 iiFileProvider가 소유한다. 펜 입력은 한 스트로크당 한 문서 커밋이며 취소하면 미리보기 픽셀을 되돌린다. 확대·이동·선택·프로필·브러시 설정은 저장 문서의 리비전을 바꾸지 않는다. 실행 취소는 최대 32개 명령, 직렬화 스냅샷 합계 64 MiB로 제한한다.\n"
+      "raw": "`Artwork`는 제품의 도구·실행 취소 정책이다. 문서, 픽셀, 벡터, 변환, 타일 합성과 파일 편집은 iiSharedCanvas Native에 위임한다. 파일과 SQLite는 iiFileProvider가 소유한다. 펜 입력은 한 스트로크당 한 문서 커밋이며 취소하면 미리보기 픽셀을 되돌린다. 확대·이동·선택·프로필·브러시 설정은 저장 문서의 리비전을 바꾸지 않는다. 실행 취소는 최대 32개 명령, 타일·부분 변경과 남아 있는 직렬화 스냅샷을 합쳐 64 MiB로 제한한다.\n"
     },
     {
       "id": "b000022",
@@ -372,6 +372,78 @@
       "start_line": 99,
       "end_line": 104,
       "raw": "검증이 승인되면 작업 공간을 유지한다. 미보유 또는 확인 불가 결과가 먼저 도착해도\n작업 공간의 첫 화면 제출을 기다린 뒤 기존 계정·라이선스 안내 화면을 표시한다.\n화면 제출 통지를 받을 수 없을 때는 최대 3초 후 전환한다. 결과가 포인터 드래그 중\n도착하면 드래그가 끝날 때까지 전환을 미뤄 진행 중인 획과 이력을 보존한다. 계정\n안내에서 다시 확인할 수 있으며 기존 작업 문서는 유지된다. 승인된 결정은 현재\n실행 동안 유지한다.\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 105,
+      "end_line": 105,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "heading",
+      "start_line": 106,
+      "end_line": 106,
+      "raw": "## 변경 단위 이력 전환 명세\n",
+      "level": 2,
+      "title": "변경 단위 이력 전환 명세"
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 107,
+      "end_line": 107,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "paragraph",
+      "start_line": 108,
+      "end_line": 108,
+      "raw": "편집 이력은 변경된 픽셀 타일, 개별 값과 구조 및 필요한 메타데이터만 보관한다. 이력 목적의 전체 문서 직렬화와 복사는 제거 대상이며, 외부 파일 열기·내보내기와 명시적인 협업 문서 전송은 별도 기능이다.\n"
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 109,
+      "end_line": 109,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "paragraph",
+      "start_line": 110,
+      "end_line": 110,
+      "raw": "변경과 Undo·Redo는 하나의 순서로 동작한다. 저장 실패·충돌·예산 초과·취소 시 문서, 선택 마스크, 양쪽 스택과 저장 리비전은 바뀌지 않아야 한다. 형식 버전과 작성 정보는 각 이력의 이전·이후 상태에 맞춰 복원한다. 이 절은 전환 목표이며 모든 경로가 이미 전환되었다는 뜻은 아니다.\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 111,
+      "end_line": 111,
+      "raw": "\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "paragraph",
+      "start_line": 112,
+      "end_line": 112,
+      "raw": "현재 레이어 이름·가시성·불투명도·변환·혼합 모드는 해당 값과 작성 정보·버전만 이력에 보관하며, 선택 마스크 및 다른 이력과 한 순서로 되돌린다. 현재 모델과 바로 이전 모델, 타일형 작업 파일에서 적용한다. 오디오 트랙, 더 오래된 모델, 레이어 구조·일부 프레임 편집·채우기 등은 아직 전체 스냅샷 또는 문서 복사 경로가 남아 있다. 선택 변경 이력도 마스크의 전체 이전·이후 값에 대한 참조를 보관한다. 파일 게시 시 나머지 문서 메타데이터를 순회하는 비용도 남아 있다.\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 113,
+      "end_line": 113,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "paragraph",
+      "start_line": 114,
+      "end_line": 114,
+      "raw": "외부 변경으로 작업 파일 연결이 무효가 되면 일반 편집과 Undo·Redo는 화면의 문서와 이력을 유지한 채 실패를 알린다. 외부 변경과 로컬 이력의 자동 병합이나 연결 복구는 제공하지 않는다.\n"
     }
   ],
   "outline": [
@@ -406,6 +478,14 @@
       "title": "시작 시 라이선스 확인",
       "anchor": "시작-시-라이선스-확인",
       "start_line": 91
+    },
+    {
+      "block_id": "b000051",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "변경 단위 이력 전환 명세",
+      "anchor": "변경-단위-이력-전환-명세",
+      "start_line": 106
     }
   ],
   "indexes": {
@@ -462,7 +542,7 @@
       {
         "block_id": "b000017",
         "line": 51,
-        "text": "실행 소스는 `App/Engine`과 `App/Native`이다. 앱 진입점·이벤트 루프·작업 수명은 iiSDKCore가 소유하고 iiGUI Host가 운영체제 창에 연결한다. `App/Native/views/*.lvui`는 `Window`, `HStack`, `VStack`과 컨트롤을 중첩해 직접 선언하고 빌드 시 C++23으로 생성한다. 상태와 이벤트는 import한 C++ 뷰모델에 연결한다. HTML 태그와 CSS형 인라인 스타일을 사용하지 않으며 LVRS, 브라우저·WebView·Qt·QML 엔진을 링크하지 않는다.",
+        "text": "실행 소스와 LVUI 뷰는 기능별 `App/` 도메인에 있다. 앱 진입점·이벤트 루프·작업 수명은 iiSDKCore가 소유하고 iiGUI Host가 운영체제 창에 연결한다. `.lvui` 뷰는 `Window`, `HStack`, `VStack`과 컨트롤을 중첩해 직접 선언하고 빌드 시 C++23으로 생성한다. 상태와 이벤트는 import한 C++ 뷰모델에 연결한다. HTML 태그와 CSS형 인라인 스타일을 사용하지 않으며 LVRS, 브라우저·WebView·Qt·QML 엔진을 링크하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
@@ -529,7 +609,7 @@
     "tables": []
   },
   "provenance": {
-    "generator": "workspace-docs",
+    "generator": "codex",
     "version": "1.0.0",
     "profile": "lossless-blocks-v1",
     "derived": true

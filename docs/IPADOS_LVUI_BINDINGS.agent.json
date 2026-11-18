@@ -4,7 +4,7 @@
   "document_id": "urn:iisacc:congregation:ipados-lvui-bindings",
   "source": {
     "path": "docs/IPADOS_LVUI_BINDINGS.md",
-    "sha256": "168bca71591965ff98edf133c38477048e805ee654b3ad7660413e7ac62de6a0",
+    "sha256": "c732134761d2d056afc1a62bbecce07385abb0cc1cbcfda11c1cb01aa383a172",
     "bytes": 1358,
     "line_count": 23,
     "encoding": "utf-8",
@@ -15,7 +15,7 @@
     "role": "guide",
     "authority": "markdown_source"
   },
-  "bindings": "App/Native/LVUIHostBindings.h",
+  "bindings": "App/Shared/LVUIHostBindings.h",
   "regression": "tests/test_lvui_ipados_bindings.py",
   "sdk_prefix": "SDK/build/congregation-ipados/prefix",
   "validation_limit": "A source boundary check does not verify device rendering or input.",

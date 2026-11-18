@@ -1,5 +1,5 @@
-#include <Engine/CanvasSession.h>
-#include <Engine/RecentCanvas.h>
+#include <Collaboration/CanvasSession.h>
+#include <Document/RecentCanvas.h>
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -42,7 +42,7 @@ void run(const std::string& mode) {
             callbackRan = true;
             if (mode == "publish") {
                 nestedReject = true;
-                nestedPublished = owner->publish(newest);
+                nestedPublished = owner->publish_delta(newest);
                 return socket.write(std::move(bytes));
             }
             if (mode == "throw_runtime") throw std::runtime_error("writer failed");
@@ -67,19 +67,25 @@ void run(const std::string& mode) {
     guest.snapshot_received = [&](std::string value, std::uint64_t, std::string) {
         received = std::move(value);
     };
-    check(host.host("Host") && host.publish(initial), "host setup failed");
+    std::vector<std::string> changes;
+    guest.delta_received = [&](std::string_view bytes, auto, auto) {
+        changes.emplace_back(bytes);
+        received = bytes;
+        return true;
+    };
+    check(host.host("Host") && host.initialize(initial), "host setup failed");
     check(guest.join(host.session, "127.0.0.1", host.port(), "Guest"), "guest setup failed");
     check(wait(loop, [&] { return guest.revision == 1 && received == initial && hostSocket &&
                                  hostSocket->pending_bytes() == 0; }), "initial update did not drain");
     armed = true;
     bool accepted = false, threw = false;
-    try { accepted = host.publish(first); }
+    try { accepted = host.publish_delta(first); }
     catch (const std::runtime_error&) { threw = true; }
     check(callbackRan, "the writer callback was not invoked");
     if (mode == "throw_runtime") {
-        check(threw && host.state == CanvasSession::State::hosting,
-              "the writer exception was not propagated");
-        check(host.publish(newest), "the next publication could not proceed after an exception");
+        check(!threw && accepted && host.state == CanvasSession::State::hosting,
+              "the writer exception lost a queued edit");
+        check(host.publish_delta(newest), "the next publication could not proceed after an exception");
         check(wait(loop, [&] { return guest.revision == 3 && received == newest; }),
               "the latest update was not sent after a writer exception");
         host.stop();
@@ -100,6 +106,8 @@ void run(const std::string& mode) {
         check(!threw && !accepted && host.state == CanvasSession::State::idle,
               "publication survived a reentrant stop");
     }
+    if (mode == "publish" || mode == "throw_runtime")
+        check(changes == std::vector<std::string>{first, newest}, "pending writes lost their order");
     guest.stop();
     std::cout << "WRITER_REENTRY_OK " << mode << '\n';
 }

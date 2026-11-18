@@ -4,7 +4,11 @@
 
 Main은 Figma `r4E0PNUdZuo6dEiMEitF2I`의 `83:6974`, Tool의 전체 항목은 `130:1832`를 기준으로 한다. 기준 클라이언트는 1999×1080이다. 2026-10-26의 변경 지시에 따라 왼쪽 에셋 사이드바를 제거하고 세로 도구 막대만 남긴다. 네이티브 앱 반영에 이어 Figma `83:6973`의 기존 뷰도 같은 구성으로 동기화했다. 캡션·윈도우 운영체제 테두리는 애플리케이션 콘텐츠에 포함하지 않는다.
 
-`App/Native/views/Main.lvui`의 ApplicationWindow를 빌드 때 C++23으로 컴파일한다. `MainWindow`는 생성된 옵션·스코프·백엔드를 유지하면서 같은 iiGUI 위젯 세대에 `WorkspaceView`를 구성한다. 앱의 최종 진입점·이벤트 루프·프레임 루프는 iiSDKCore가 소유한다. Qt·QML·브라우저·WebView 실행기를 연결하지 않는다.
+도구 막대는 Figma의 borderless `IconButton`을 사용한다. 현재 도구와 Quick Mask·
+눈금자 상태는 뷰모델에 연결된 `checked`로 눌림 색상을 유지한다. 포인터 선택에는
+포커스 테두리를 표시하지 않으며 논리적 포커스와 키보드 포커스 표시는 유지한다.
+
+`App/Workspace/Main.lvui`의 ApplicationWindow를 빌드 때 C++23으로 컴파일한다. `MainWindow`는 생성된 옵션·스코프·백엔드를 유지하면서 같은 iiGUI 위젯 세대에 `WorkspaceView`를 구성한다. 앱의 최종 진입점·이벤트 루프·프레임 루프는 iiSDKCore가 소유한다. Qt·QML·브라우저·WebView 실행기를 연결하지 않는다.
 
 `Preferences.lvui`는 멤버 목록을 `PresentationList`와 모델 리비전 및 항목 활성화
 콜백에 연결한다. 선택은 공유 목록을 수정하지 않으며, 탭의 선택 표시는 앱 상태를

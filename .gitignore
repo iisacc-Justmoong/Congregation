@@ -89,7 +89,6 @@ CMakeLists.txt.user*
 /build-xcode
 
 bundling.sh
-/resources/*
 !/resources/canvas-presets.json
 !/resources/canvas-presets-source.json
 !/resources/Appicon.icns

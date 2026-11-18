@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "README.md",
-    "sha256": "2d523b20a7ff3406d4bde93f036a20b6eccf2af4ae3090174919f13b43013fdd",
-    "bytes": 8337,
+    "sha256": "8f177a1b65c81982da2e82b4cf8b93298bacd1f0192539d6f62c0e08f89f6f47",
+    "bytes": 8418,
     "line_count": 77,
     "encoding": "utf-8",
     "language": "en"
@@ -166,7 +166,7 @@
       "kind": "paragraph",
       "start_line": 21,
       "end_line": 21,
-      "raw": "UI colors and control styles use LVUI `Color` and `Metric` tokens, including the shared Figma-derived values migrated from LVRS. `App/Native/views/Layout.lvui` contains product layout dimensions for all three compiled views and the generated native C++ header; it defines no color palette. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.\n"
+      "raw": "UI colors and control styles use LVUI `Color` and `Metric` tokens, including the shared Figma-derived values migrated from LVRS. `App/Shared/Layout.lvui` contains product layout dimensions shared by the compiled views and the generated native C++ header; it defines no color palette. See [the styling contract](docs/UI_STYLE_TOKENS.md) for token selection, regeneration, data boundaries, and regression checks.\n"
     },
     {
       "id": "b000016",
@@ -460,7 +460,7 @@
       "kind": "paragraph",
       "start_line": 66,
       "end_line": 66,
-      "raw": "`App/Engine` owns product services and policies. `App/Native` owns native editor integration, and `App/Native/views` contains declarative LVUI views. `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.\n"
+      "raw": "`App/` groups application objects and their declarative LVUI views by domain, including `Canvas`, `Document`, `Tools`, `Timeline`, `Account`, and `Agent`. Shared contracts live in `App/Shared`; see [the domain map](docs/APP_DOMAINS.md). `tests/` contains executable contracts. `src/App` is preserved migration reference material and is excluded from every active build and runtime resource set.\n"
     },
     {
       "id": "b000056",
@@ -723,6 +723,13 @@
         "line": 56
       },
       {
+        "block_id": "b000055",
+        "label": "the domain map",
+        "target": "docs/APP_DOMAINS.md",
+        "kind": "relative",
+        "line": 66
+      },
+      {
         "block_id": "b000062",
         "label": "AGENT.md",
         "target": "AGENT.md",
@@ -747,7 +754,7 @@
     "tables": []
   },
   "provenance": {
-    "generator": "workspace-docs",
+    "generator": "codex",
     "version": "1.0.0",
     "profile": "lossless-blocks-v1",
     "derived": true

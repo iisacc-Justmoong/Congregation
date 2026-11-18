@@ -31,10 +31,8 @@
 #include <QVariantMap>
 #include <QtTest>
 
-#include <iiSharedCanvas.h>
-#include <iiFileProvider.h>
-#include <iiFileProviderPresentation.h>
-#include <iiFileProviderCompatibility.h>
+#include <iiSharedCanvas>
+#include <iiFileProvider>
 
 #include <cstdint>
 #include <chrono>

@@ -24,7 +24,7 @@ manifest = json.loads((stage / "manifest.json").read_text(encoding="utf-8"))
 assert manifest["kind"] == "congregation-lvrs-style-bridge"
 
 # A different native kit must never be silently paired with the legacy ABI.
-spec = importlib.util.spec_from_file_location("prepare_legacy_style", root / "App/Native/prepare_legacy_style.py")
+spec = importlib.util.spec_from_file_location("prepare_legacy_style", root / "App/Shared/prepare_legacy_style.py")
 bridge = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bridge)
 legacy_theme = subprocess.check_output(["git", "-C", str(lvrs), "show", bridge.LEGACY_LVRS_COMMIT + ":src/LVRS/Theme.h"])

@@ -1,8 +1,8 @@
-#include <Native/Artwork.h>
-#include <Native/StrokeProfile.h>
-#include <Native/ToolSettings.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Tools/StrokeProfile.h>
+#include <Tools/ToolSettings.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 
 #include <algorithm>
 #include <cmath>

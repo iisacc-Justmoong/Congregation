@@ -1,5 +1,5 @@
-#include <Engine/CanvasSession.h>
-#include <Engine/RecentCanvas.h>
+#include <Collaboration/CanvasSession.h>
+#include <Document/RecentCanvas.h>
 #include <chrono>
 #include <cstdint>
 #include <iostream>
@@ -37,22 +37,24 @@ void run(const std::string& mode) {
         }
         std::cout << "BACKPRESSURE_OK invalid_limits\n"; return;
     }
-    const auto initial=snapshot('a'), one=snapshot('b'), two=snapshot('c'), latest=snapshot('d');
-    check(initial.size()==one.size() && one.size()==two.size() && two.size()==latest.size(),"fixture sizes differ");
+    const auto initial=snapshot('a'), latest=snapshot('d');
+    const std::string one = "first change", two = "second change", three = "third change";
     const auto budget=initial.size()+60+1024;
     ii::runtime::EventLoop loop;
     CanvasSession host(loop,uuid(),budget);
-    check(host.host("Host") && host.publish(initial),"host setup failed");
+    check(host.host("Host"),"host setup failed");
     if(mode=="oversized") {
         const auto prior=host.revision;
         const auto tooLarge=snapshot('x',budget*2);
-        if(host.publish(tooLarge)) {
+        if(host.initialize(tooLarge)) {
             std::cerr << "BACKPRESSURE_OVERSIZE_ACCEPTED budget=" << budget << " snapshot=" << tooLarge.size() << '\n';
             throw std::runtime_error("undeliverable snapshot was accepted");
         }
         check(host.revision==prior && !host.error.empty(),"rejected snapshot changed revision or lost error");
         host.stop(); std::cout << "BACKPRESSURE_OK oversized\n"; return;
     }
+    check(host.initialize(initial), "initial canvas rejected");
+    host.snapshot_provider = [&] { return latest; };
     CanvasSession client(loop,uuid()), client2(loop,uuid());
     std::vector<std::uint64_t> seen, seen2; std::string last, last2;
     client.snapshot_received=[&](std::string bytes,std::uint64_t revision,std::string) {
@@ -61,19 +63,22 @@ void run(const std::string& mode) {
     client2.snapshot_received=[&](std::string bytes,std::uint64_t revision,std::string) {
         seen2.push_back(revision); last2=std::move(bytes);
     };
+    std::vector<std::string> deltas, deltas2;
+    client.delta_received = [&](std::string_view bytes, auto, auto) { deltas.emplace_back(bytes); return true; };
+    client2.delta_received = [&](std::string_view bytes, auto, auto) { deltas2.emplace_back(bytes); return true; };
     check(client.join(host.session,"127.0.0.1",host.port(),"Guest"),"client join failed");
     if(mode=="multiple") check(client2.join(host.session,"127.0.0.1",host.port(),"Second"),"second join failed");
     check(wait(loop,[&] { return seen.size()==1 && (mode!="multiple" || seen2.size()==1); }),"initial snapshot missing");
     check(last==initial && (mode!="multiple" || last2==initial),"initial snapshot incorrect");
-    check(host.publish(one) && host.publish(two) && host.publish(latest),"host publish rejected");
+    check(host.publish_delta(one) && host.publish_delta(two) && host.publish_delta(three),"host publish rejected");
     check(host.revision==4,"host revision incorrect");
     if(mode=="reconnect") {
         client.stop();
         check(wait(loop,[&] { return host.profiles.empty(); }),"disconnected peer remained");
         check(client.join(host.session,"127.0.0.1",host.port(),"Guest"),"rejoin failed");
         check(wait(loop,[&] { return client.revision==4 && last==latest; }),"latest snapshot missing on rejoin");
-    } else if(!wait(loop,[&] { return client.revision==4 && last==latest &&
-                                    (mode!="multiple" || (client2.revision==4 && last2==latest)); })) {
+    } else if(!wait(loop,[&] { return client.revision==4 && deltas == std::vector<std::string>{one, two, three} &&
+                                    (mode!="multiple" || (client2.revision==4 && deltas2 == deltas)); })) {
         std::cerr << "BACKPRESSURE_LATEST_LOST host=" << host.revision << " client=" << client.revision
                   << " second=" << client2.revision << '\n';
         throw std::runtime_error("latest snapshot was not delivered after backpressure");

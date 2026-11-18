@@ -1,4 +1,4 @@
-#include <Native/AppMenu.h>
+#include <Application/AppMenu.h>
 #include <array>
 #include <stdexcept>
 #include <string_view>
@@ -14,6 +14,13 @@ int main()
     for (std::size_t i = 0; i < expected.size(); ++i)
         if (menu[i].title != expected[i] || menu[i].children.empty())
             throw std::runtime_error("incorrect menu order or empty menu");
+    if (menu[0].children.size() < 2 || menu[0].children[0].title != "New document…" ||
+        menu[0].children[1].title != "Add canvas…")
+        throw std::runtime_error("File menu must distinguish a new document and an additional canvas");
+    menu[0].children[0].triggered();
+    if (invoked != Action::new_document) throw std::runtime_error("New document command is disconnected");
+    menu[0].children[1].triggered();
+    if (invoked != Action::add_canvas) throw std::runtime_error("Add canvas command is disconnected");
     const auto& undo = menu[1].children[0];
     const auto& redo = menu[1].children[1];
     if (!undo.shortcut || undo.shortcut->key != "z" || !undo.shortcut->meta || undo.shortcut->shift ||

@@ -1,7 +1,7 @@
-#include <Native/MainWindow.h>
-#include <Native/EditorLayout.h>
-#include <Native/EditorPalette.h>
-#include <Native/ScopedWidgetMount.h>
+#include <Application/MainWindow.h>
+#include <Shared/EditorLayout.h>
+#include <Shared/EditorPalette.h>
+#include <Shared/ScopedWidgetMount.h>
 namespace ii::gui { struct TextInputRevision; }
 #include <iiGUI/WidgetState.h>
 
@@ -77,10 +77,60 @@ void validate_window_background(const std::shared_ptr<ii::gui::detail::WidgetSta
     });
     require(flat != frame.overlays.end(), "Window background was not a flat opaque application color");
 }
+void validate_tool_button_focus(const std::shared_ptr<ii::gui::detail::WidgetState>& tree, std::string& selected) {
+    good(widget(tree, "/brush").activate());
+    require(selected == "brush" && take(widget(tree, "/brush").snapshot()).checked &&
+            !take(widget(tree, "/eraser").snapshot()).checked,
+            "Tool selection was not bound to the LVUI button selected state");
+    const auto eraser_bounds = take(widget(tree, "/eraser").snapshot()).bounds;
+    const auto drawing_has = [&](auto&& predicate) {
+        const auto frame = take(tree->drawing_snapshot({1999, 1080}));
+        return std::ranges::any_of(frame.panels, predicate) || std::ranges::any_of(frame.overlays,
+            [&](const auto& layer) { return std::ranges::any_of(layer.panels, predicate); });
+    };
+    const auto focus_ring = [&](const ii::gui::Rect& bounds) {
+        return drawing_has([&](const auto& panel) {
+            return panel.stroke_width > 0 && panel.top.alpha > 0 &&
+                   std::abs(panel.bounds.x - (bounds.x - 3)) < .1 &&
+                   std::abs(panel.bounds.y - (bounds.y - 3)) < .1 &&
+                   std::abs(panel.bounds.width - (bounds.width + 6)) < .1 &&
+                   std::abs(panel.bounds.height - (bounds.height + 6)) < .1;
+        });
+    };
+    good(tree->input({.kind=ii::gui::WidgetInputKind::pointer_down,
+                      .x=eraser_bounds.x+eraser_bounds.width/2,
+                      .y=eraser_bounds.y+eraser_bounds.height/2}));
+    good(tree->input({.kind=ii::gui::WidgetInputKind::pointer_up,
+                      .x=eraser_bounds.x+eraser_bounds.width/2,
+                      .y=eraser_bounds.y+eraser_bounds.height/2}));
+    const auto selected_background = drawing_has([&](const auto& panel) {
+        return panel.bounds == eraser_bounds && panel.top.alpha > 0;
+    });
+    require(selected == "eraser" && take(widget(tree, "/eraser").snapshot()).checked &&
+            !take(widget(tree, "/brush").snapshot()).checked && selected_background && !focus_ring(eraser_bounds),
+            "Pointer-selected tool did not use the pressed appearance without a focus ring");
+    good(tree->input({.kind=ii::gui::WidgetInputKind::key_down, .key=ii::gui::WidgetKey::space}));
+    require(focus_ring(eraser_bounds), "Keyboard-focused tool lost its focus indicator");
+    good(tree->input({.kind=ii::gui::WidgetInputKind::key_up, .key=ii::gui::WidgetKey::space}));
+    require(take(widget(tree, "/eraser").snapshot()).checked,
+            "Activating the selected tool toggled off its selected state");
+    const auto symmetry = widget(tree, "/tool-symmetry");
+    const auto symmetry_bounds = take(symmetry.snapshot()).bounds;
+    good(tree->input({.kind=ii::gui::WidgetInputKind::pointer_down,
+                      .x=symmetry_bounds.x+symmetry_bounds.width/2,
+                      .y=symmetry_bounds.y+symmetry_bounds.height/2}));
+    good(tree->input({.kind=ii::gui::WidgetInputKind::pointer_up,
+                      .x=symmetry_bounds.x+symmetry_bounds.width/2,
+                      .y=symmetry_bounds.y+symmetry_bounds.height/2}));
+    require(take(symmetry.snapshot()).focused && !focus_ring(symmetry_bounds) &&
+            take(widget(tree, "/eraser").snapshot()).checked,
+            "A toolbar command showed pointer focus or changed the selected tool");
+}
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) throw std::runtime_error("Expected the Figma resource directory");
+    if (argc != 2 && !(argc == 3 && std::string_view(argv[2]) == "--tool-button-focus"))
+        throw std::runtime_error("Expected the Figma resource directory and optional focus test selector");
     auto tree = std::make_shared<ii::gui::detail::WidgetState>([](ii::runtime::Task task) { task(); });
     auto host = take(tree->content_host({}, "host", {1999, 1080}));
     congregation::native::MainWindow window;
@@ -103,6 +153,13 @@ int main(int argc, char** argv) {
         });
     }));
     require(model != nullptr, "Main window did not configure its shared backend");
+    if (argc == 3) {
+        model->licensed.set(true);
+        model->needs_license.set(false);
+        validate_scene(tree, {1999, 1080}, "tool-button-focus");
+        validate_tool_button_focus(tree, selected);
+        return 0;
+    }
     const auto workspace_host = take(widget(tree, "/workspace-host").snapshot());
     const auto workspace_node = take(widget(tree, "/workspace").snapshot());
     require(workspace_node.parent_id == workspace_host.id + "/@native-content",
@@ -122,9 +179,13 @@ int main(int argc, char** argv) {
     };
     int snapshot_lookups = 0;
     const auto snapshots = [&] { ++snapshot_lookups; return tree->snapshots(); };
-    for (const char* id : {"canvas", "canvas-paint-layers", "shape", "brush-color", "layers", "tool-scroll"})
+    for (const char* id : {"canvas", "canvas-paint-layers", "shape", "brush-color", "layers", "tool-scroll"}) {
+        const auto previous_lookups = snapshot_lookups;
         require(bool(congregation::native::find_scoped_widget(lookup, snapshots,
                     "workspace-host/@native-content", id)), "Application lookup lost a workspace widget");
+        if (snapshot_lookups != previous_lookups)
+            throw std::runtime_error(std::string("Ordinary input lookup scanned the complete widget tree: ") + id);
+    }
     require(snapshot_lookups == 0, "Ordinary input lookup scanned the complete widget tree");
     const auto missing = [](std::string_view) -> ii::core::Result<ii::gui::Widget> {
         return ii::core::fail(ii::core::ErrorCode::not_found, "Missing test widget");
@@ -217,6 +278,7 @@ int main(int argc, char** argv) {
     good(widget(tree, "/brush").activate());
     require(selected == "brush" && !tool_background("/eraser") && tool_background("/brush"),
             "Declarative tool rail did not restore the previous tool state");
+    validate_tool_button_focus(tree, selected);
     model->quick_mask_mode.set(true);
     require(tool_background("/tool-quick-mask"), "Quick mask did not show its independent active state");
     model->quick_mask_mode.set(false);

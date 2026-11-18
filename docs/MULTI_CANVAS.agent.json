@@ -1,0 +1,113 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:congregation:multi-canvas",
+  "project": {
+    "id": "urn:iisacc:project:Product%2FCongregation",
+    "name": "Congregation",
+    "root": "Product/Congregation",
+    "kind": "application"
+  },
+  "source": {
+    "path": "docs/MULTI_CANVAS.md",
+    "sha256": "58bf1da3a8c96bc16aa022c4fde4c419d82589ed652cfbfc305082f464044613",
+    "bytes": 2543,
+    "line_count": 40,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Creating documents and adding canvases",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Creating documents and adding canvases\n",
+      "level": 1,
+      "title": "Creating documents and adding canvases"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 9,
+      "raw": "The File menu distinguishes **New document…**, which creates a separate Society\nFiles document using the existing new-canvas chooser, from **Add canvas…**,\nwhich adds a finite artboard to the currently open document using that chooser.\nThe document panel exposes the same two actions, including on tablets. The\nchooser identifies its purpose in both its heading and confirmation button; it\nmust not apply an addition to a different file if the active document changes\nwhile it is open.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 11,
+      "end_line": 24,
+      "raw": "An additional canvas has the requested pixel dimensions, background and an\neditable paint layer. The original canvas and its layers keep their positions\nand pixels. The document remains finite; canvases are placed side by side with\na visible gap and the finite workspace grows only within its existing dimension\nand pixel limits. Clicking a canvas with a paint tool selects an editable layer\nbelonging to it. Empty space between canvases does not receive brush strokes.\nExisting nonnegative artboards outside the previous finite extent are included\nwhen finding the next placement. Documents with negative-position artboards\nare rejected without modification because the current viewport cannot yet\nrepresent that workspace safely.\nNew paint layers inherit the active canvas; inserted fill, gradient, shape,\ntext and image layers retain their canvas ownership and are clipped to it.\nDefault image insertion uses the active canvas origin, while a drop uses the\ncanvas under the drop position.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 26,
+      "end_line": 34,
+      "raw": "The native iiSharedCanvas artboard model and `.iisc` persistence retain the\ncanvases and their layer ownership. Adding a canvas is a single undoable change;\nundo and redo preserve layer selection, selection masks and pixels. Structural\nhistory stores the artboard operation rather than snapshots of existing raster\nassets. Rejected dimensions, unavailable history or failed durable commits leave\nthe original document and undo/redo stacks intact. A new document continues to\nuse Society's existing temporary-file and saved-file lifetime rules. Bitmap\nexports flatten the whole workspace; the SDK rejects PSD export of documents\nwith artboards rather than silently losing their grouping.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 36,
+      "end_line": 40,
+      "raw": "The Figma Main page contains the LVUI File-menu example for the two actions:\nnodes `470:20587` (File menu), `471:20604` (document panel) and `472:20608`\n(chooser actions). Automated tests exercise creation, canvas-local painting and\ntool ownership, failure rollback, undo/redo and saving and reopening without\nlaunching the GUI.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Creating documents and adding canvases",
+      "anchor": "creating-documents-and-adding-canvases",
+      "start_line": 1
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "codex",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

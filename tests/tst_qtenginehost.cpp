@@ -1,6 +1,6 @@
 #include "qtenginehost.h"
-#include <Engine/ApplicationEngine.h>
-#include <iiSDKCore/Runtime/Runtime.h>
+#include <Application/ApplicationEngine.h>
+#include <iiSDKCore>
 #include <QSignalSpy>
 #include <QtTest>
 #include <stdexcept>

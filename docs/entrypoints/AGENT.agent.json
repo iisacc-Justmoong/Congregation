@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "AGENT.md",
-    "sha256": "2c357de60c18deacab4ceadd6b19688d1bcc77d4967956782c6813ed1b0be7d8",
-    "bytes": 3404,
+    "sha256": "faa4d36a55f5bfce75f45cd216864e167660250b558b97c1988e9f6788f1c0ac",
+    "bytes": 3467,
     "line_count": 41,
     "encoding": "utf-8",
     "language": "ko"
@@ -43,7 +43,7 @@
       "kind": "paragraph",
       "start_line": 3,
       "end_line": 5,
-      "raw": "현재 실행 소스는 `App/`이다. 과거의 `src/App` Qt 소스는 현재 작업 트리에서\n삭제 상태이며 Git 기록에 남아 있다. C++23, iiSDKCore, LVUI와 iiGUI Native를\n사용한다. 현재 타깃에 Qt·QML·LVRS 의존성을 추가하지 않는다.\n"
+      "raw": "현재 실행 소스는 도메인별 `App/`이며 [소스 구조](docs/APP_DOMAINS.md)를 따른다. 과거의 `src/App` Qt 소스는 현재 작업 트리에서\n삭제 상태이며 Git 기록에 남아 있다. C++23, iiSDKCore, LVUI와 iiGUI Native를\n사용한다. 현재 타깃에 Qt·QML·LVRS 의존성을 추가하지 않는다.\n"
     },
     {
       "id": "b000004",
@@ -265,6 +265,13 @@
     ],
     "links": [
       {
+        "block_id": "b000003",
+        "label": "소스 구조",
+        "target": "docs/APP_DOMAINS.md",
+        "kind": "relative",
+        "line": 3
+      },
+      {
         "block_id": "b000007",
         "label": "뷰모델 계약",
         "target": "docs/LVUI_VIEWMODELS.md",
@@ -289,7 +296,7 @@
     "tables": []
   },
   "provenance": {
-    "generator": "workspace-docs",
+    "generator": "codex",
     "version": "1.0.0",
     "profile": "lossless-blocks-v1",
     "derived": true

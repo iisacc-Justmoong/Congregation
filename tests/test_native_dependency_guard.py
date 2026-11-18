@@ -15,8 +15,8 @@ RESOURCE_ROOT = ROOT / "resources"
 def configure(extra, source="", after="", legacy_alias=False):
     with tempfile.TemporaryDirectory(prefix="native-link-guard-", dir=RESOURCE_ROOT) as temporary:
         root = Path(temporary)
-        (root / "App/Engine").mkdir(parents=True)
-        (root / "App/Native").mkdir(parents=True)
+        (root / "App/Document").mkdir(parents=True)
+        (root / "App/Workspace").mkdir(parents=True)
         if legacy_alias:
             (root / "libLVRSCore.a").touch()
             try:
@@ -24,7 +24,7 @@ def configure(extra, source="", after="", legacy_alias=False):
             except (OSError, NotImplementedError):
                 raise unittest.SkipTest("This platform cannot create a test symlink")
         if source:
-            (root / "App/Engine/probe.cpp").write_text(source, encoding="utf-8")
+            (root / "App/Document/probe.cpp").write_text(source, encoding="utf-8")
         project = f'''cmake_minimum_required(VERSION 3.31)
 project(NativeDependencyGuardProbe NONE)
 add_library(CongregationArtwork INTERFACE)

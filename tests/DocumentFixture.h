@@ -1,6 +1,6 @@
 #pragma once
-#include <Native/Artwork.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <iiSharedCanvas>
 #include <filesystem>
 #include <utility>
 // Retired infinite documents are decoded only as SDK fixtures. Product open rejects them.

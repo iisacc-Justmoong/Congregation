@@ -28,39 +28,39 @@ include_directories(BEFORE ${iigui_include})
 get_target_property(lvui_include LVUI::Native INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(BEFORE ${lvui_include})
 find_package(LibXml2 REQUIRED)
-add_subdirectory("${APP_ROOT}/App/Engine" engine)
-lvui_generate_styles(NAME CongregationStyle SOURCE "${APP_ROOT}/App/Native/views/Layout.lvui"
+add_subdirectory("${APP_ROOT}/App" app_domain)
+lvui_generate_styles(NAME CongregationStyle SOURCE "${APP_ROOT}/App/Shared/Layout.lvui"
     NAMESPACE congregation.native.style OUTPUT_VARIABLE style_header)
 add_custom_target(style_header DEPENDS "${style_header}")
-add_library(artwork STATIC "${APP_ROOT}/App/Native/QuickMask.cpp" "${APP_ROOT}/App/Native/Artwork.cpp" "${APP_ROOT}/App/Native/SocietyFiles.cpp"
-    "${APP_ROOT}/App/Native/ArtworkPerspective.cpp" "${APP_ROOT}/App/Native/Shapes.cpp"
-    "${APP_ROOT}/App/Native/LegacyCanvas.cpp")
+add_library(artwork STATIC "${APP_ROOT}/App/Canvas/QuickMask.cpp" "${APP_ROOT}/App/Canvas/Artwork.cpp" "${APP_ROOT}/App/Storage/SocietyFiles.cpp"
+    "${APP_ROOT}/App/Canvas/ArtworkPerspective.cpp" "${APP_ROOT}/App/Canvas/Shapes.cpp"
+    "${APP_ROOT}/App/Document/LegacyCanvas.cpp")
 target_compile_features(artwork PUBLIC cxx_std_23)
 target_include_directories(artwork PUBLIC "${APP_ROOT}/App")
 target_compile_definitions(artwork PUBLIC CONGREGATION_NATIVE_WIDGET_ABI="${iiGUI_NATIVE_ABI_ID}")
 target_link_libraries(artwork PUBLIC Congregation::Engine iiSharedCanvas::Native iiSocietyContainer::MobileStorage
     PRIVATE iiGUI::iiGUI iiBrushTools::iiBrushTools iiGraphicAdjust::iiGraphicAdjust)
-add_library(tool_settings STATIC "${APP_ROOT}/App/Native/ToolSettings.cpp"
-    "${APP_ROOT}/App/Native/ToolSettingsBrush.cpp" "${APP_ROOT}/App/Native/GradientSettings.cpp"
-    "${APP_ROOT}/App/Native/TimelineModel.cpp")
+add_library(tool_settings STATIC "${APP_ROOT}/App/Tools/ToolSettings.cpp"
+    "${APP_ROOT}/App/Tools/ToolSettingsBrush.cpp" "${APP_ROOT}/App/Tools/GradientSettings.cpp"
+    "${APP_ROOT}/App/Timeline/TimelineModel.cpp")
 target_compile_features(tool_settings PUBLIC cxx_std_23)
 target_include_directories(tool_settings PUBLIC "${APP_ROOT}/App")
 target_link_libraries(tool_settings PUBLIC Congregation::Engine iiSharedCanvas::Native iiBrushTools::iiBrushTools)
-add_library(canvas_view STATIC "${APP_ROOT}/App/Native/CanvasView.cpp" "${APP_ROOT}/App/Native/EditorLayout.cpp")
+add_library(canvas_view STATIC "${APP_ROOT}/App/Canvas/CanvasView.cpp" "${APP_ROOT}/App/Shared/EditorLayout.cpp")
 add_dependencies(canvas_view style_header)
 target_compile_features(canvas_view PUBLIC cxx_std_23)
 target_include_directories(canvas_view PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(canvas_view PUBLIC artwork tool_settings iiGUI::iiGUI)
-lvui_generate(NAME MainView SOURCE "${APP_ROOT}/App/Native/views/Main.lvui" OUTPUT_VARIABLE main_view
-    STYLE_FILE "${APP_ROOT}/App/Native/views/Layout.lvui" INCLUDES Native/EditorBackend.h Native/NativeViewBackend.h)
-lvui_generate(NAME PreferencesView SOURCE "${APP_ROOT}/App/Native/views/Preferences.lvui" OUTPUT_VARIABLE preferences_view
-    STYLE_FILE "${APP_ROOT}/App/Native/views/Layout.lvui" INCLUDES Native/EditorBackend.h)
-lvui_generate(NAME CanvasSetupView SOURCE "${APP_ROOT}/App/Native/views/CanvasSetup.lvui" OUTPUT_VARIABLE setup_view
-    STYLE_FILE "${APP_ROOT}/App/Native/views/Layout.lvui" INCLUDES Native/CanvasSetupModel.h Native/NativeViewBackend.h)
-lvui_generate(NAME ToolPanelView SOURCE "${APP_ROOT}/App/Native/views/ToolPanel.lvui" OUTPUT_VARIABLE tool_panel_view
-    STYLE_FILE "${APP_ROOT}/App/Native/views/Layout.lvui" INCLUDES Native/ToolPanelBackend.h)
+lvui_generate(NAME MainView SOURCE "${APP_ROOT}/App/Workspace/Main.lvui" OUTPUT_VARIABLE main_view
+    STYLE_FILE "${APP_ROOT}/App/Shared/Layout.lvui" INCLUDES Workspace/EditorBackend.h Shared/NativeViewBackend.h)
+lvui_generate(NAME PreferencesView SOURCE "${APP_ROOT}/App/Preferences/Preferences.lvui" OUTPUT_VARIABLE preferences_view
+    STYLE_FILE "${APP_ROOT}/App/Shared/Layout.lvui" INCLUDES Workspace/EditorBackend.h)
+lvui_generate(NAME CanvasSetupView SOURCE "${APP_ROOT}/App/Canvas/CanvasSetup.lvui" OUTPUT_VARIABLE setup_view
+    STYLE_FILE "${APP_ROOT}/App/Shared/Layout.lvui" INCLUDES Canvas/CanvasSetupModel.h Shared/NativeViewBackend.h)
+lvui_generate(NAME ToolPanelView SOURCE "${APP_ROOT}/App/Tools/ToolPanel.lvui" OUTPUT_VARIABLE tool_panel_view
+    STYLE_FILE "${APP_ROOT}/App/Shared/Layout.lvui" INCLUDES Tools/ToolPanelBackend.h)
 add_custom_target(tool_panel_generated DEPENDS "${tool_panel_view}")
-add_library(application-source-check OBJECT EXCLUDE_FROM_ALL "${APP_ROOT}/App/Native/Application.cpp"
+add_library(application-source-check OBJECT EXCLUDE_FROM_ALL "${APP_ROOT}/App/Application/Application.cpp"
     "${main_view}" "${preferences_view}" "${setup_view}")
 add_dependencies(application-source-check style_header)
 target_compile_features(application-source-check PRIVATE cxx_std_23)
@@ -87,10 +87,10 @@ if(CONGREGATION_IIGUI_TEST_HEADERS)
     set(_presentation_test Congregation.LongStrokePresentation)
     get_filename_component(_lvui_test_prefix "${LVUI_DIR}/../../.." ABSOLUTE)
     add_executable(tool-panel-headless "${APP_ROOT}/tests/ToolPanelHeadless.cpp"
-        "${APP_ROOT}/App/Native/ToolPanel.cpp" "${APP_ROOT}/App/Native/ToolPanelBackend.cpp" "${APP_ROOT}/App/Native/OwnedWidgetStyle.cpp"
-        "${APP_ROOT}/App/Native/EditorLayout.cpp" "${APP_ROOT}/App/Native/EditorPalette.cpp"
-        "${APP_ROOT}/App/Native/EditorBackend.cpp" "${APP_ROOT}/App/Native/EditorColor.cpp"
-        "${APP_ROOT}/App/Native/PresentationList.cpp"
+        "${APP_ROOT}/App/Tools/ToolPanel.cpp" "${APP_ROOT}/App/Tools/ToolPanelBackend.cpp" "${APP_ROOT}/App/Shared/OwnedWidgetStyle.cpp"
+        "${APP_ROOT}/App/Shared/EditorLayout.cpp" "${APP_ROOT}/App/Shared/EditorPalette.cpp"
+        "${APP_ROOT}/App/Workspace/EditorBackend.cpp" "${APP_ROOT}/App/Color/EditorColor.cpp"
+        "${APP_ROOT}/App/Shared/PresentationList.cpp"
         "${_lvui_test_prefix}/share/LVUI/examples/Integrations/App/ColorSelectionSurface.cpp")
     add_dependencies(tool-panel-headless style_header tool_panel_generated)
     target_compile_features(tool-panel-headless PRIVATE cxx_std_23)
@@ -127,7 +127,7 @@ target_compile_features(startup-canvas-size PRIVATE cxx_std_23)
 target_include_directories(startup-canvas-size PRIVATE "${APP_ROOT}/App")
 target_link_libraries(startup-canvas-size PRIVATE iiGUI::iiGUI)
 add_test(NAME Congregation.StartupCanvasSize COMMAND startup-canvas-size)
-add_executable(editor-layout "${APP_ROOT}/tests/tst_editorlayout.cpp" "${APP_ROOT}/App/Native/EditorPalette.cpp")
+add_executable(editor-layout "${APP_ROOT}/tests/tst_editorlayout.cpp" "${APP_ROOT}/App/Shared/EditorPalette.cpp")
 target_compile_features(editor-layout PRIVATE cxx_std_23)
 target_include_directories(editor-layout PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(editor-layout PRIVATE canvas_view)

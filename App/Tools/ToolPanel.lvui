@@ -1,0 +1,317 @@
+import class ToolRow congregation.ui.ToolParameterRow
+import class GradientView congregation.ui.GradientPanelModel
+import class PressureCurve congregation.ui.PressureCurveModel
+import class BrushActions congregation.ui.BrushPanelActions
+import panel congregation.ui.ToolPanelBackend
+
+const Compact(row: ToolRow): View = VStack(spacing: Metric.space4, alignment: .stretch) {
+    HStack(height: Metric.textDescription, spacing: Metric.space0) {
+        Label(text: row.name, fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+        Spacer() {},
+        Label(text: row.value_label, fontSize: Metric.textCaption) {},
+    },
+    Slider(id: "slider", from: 0, to: 1, value: row.normalized, enabled: row.enabled,
+           accessibilityName: row.name, width: Metric.inspectorWidth - 4 * Metric.space4,
+           size: .mini, onMoved: row.move) {},
+}
+
+const BrushSize(row: ToolRow): View = VStack(id: "parameter-size", spacing: Metric.space4, alignment: .stretch) {
+    HStack(height: Metric.textDescription, spacing: Metric.space0) {
+        Label(text: row.name, fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+        Spacer() {}, Label(text: row.value_label, fontSize: Metric.textCaption) {},
+    },
+    Slider(id: "brush-size", from: 0, to: 1, value: row.normalized, enabled: row.enabled,
+           accessibilityName: row.name, width: Metric.inspectorWidth - 4 * Metric.space4,
+           size: .mini, onMoved: row.move) {},
+}
+
+const Detailed(row: ToolRow): View = VStack(spacing: Metric.space2, alignment: .stretch,
+                                            topPadding: Metric.space6, bottomPadding: Metric.space6) {
+    HStack(height: Metric.size22, alignment: .center) {
+        Icon(name: row.icon) {},
+        Label(text: row.name, flex: 1) {},
+        Label(text: row.value_label, fontSize: Metric.textHeader, fontWeight: Metric.weightSemiBold) {},
+        IconButton(iconName: "generalhide", accessibilityName: "Decrease", onClick: row.decrease) {},
+        IconButton(iconName: "generaladd", accessibilityName: "Increase", onClick: row.increase) {},
+    },
+    Slider(id: "slider", from: 0, to: 1, value: row.normalized, enabled: row.enabled,
+           accessibilityName: row.name, width: Metric.inspectorWidth - 4 * Metric.space4, onMoved: row.move) {},
+    HStack(height: Metric.textCaptionLineHeight) {
+        Label(text: row.minimum_label, fontSize: Metric.textCaption) {},
+        Spacer() {},
+        Label(text: row.maximum_label, fontSize: Metric.textCaption) {},
+    },
+    MenuDivider(thickness: Metric.stroke1, crossPadding: Metric.space0, dividerColor: Color.canvas) {},
+}
+
+const Check(row: ToolRow): View = CheckBox(id: "check", text: row.name, checked: row.checked,
+                                            enabled: row.enabled, onToggled: row.toggle) {}
+const Choice(row: ToolRow): View = HStack(height: Metric.size20) {
+    Label(text: row.choice_label) {}, Spacer() {},
+    ListItemSelector(id: "choice", options: row.options, currentIndex: row.choice_index,
+                     enabled: row.enabled, accessibilityName: row.name,
+                     width: 2 * Metric.size60 + Metric.space16, onCurrentIndexChanged: row.choose) {},
+}
+
+const PressureOpacity(row: ToolRow): View = HStack(id: "tool-pressure-opacity-row", height: Metric.size22) {
+    Label(text: "Pressure Opacity") {}, Spacer() {},
+    ToggleSwitch(id: "tool-pressure-opacity", checked: row.checked, onToggled: row.toggle) {},
+}
+const PressureChoice(row: ToolRow): View = HStack(id: "tool-opacity-control-row", height: Metric.size20) {
+    Label(text: "Control") {}, Spacer() {},
+    ListItemSelector(id: "tool-opacity-control", options: ["Off", "Pen Pressure"],
+                     currentIndex: row.choice_index, width: 2 * Metric.size60 + Metric.space16,
+                     onCurrentIndexChanged: row.choose_boolean) {},
+}
+const PressureShortcut(row: ToolRow): View = IconButton(id: "pressure-enabled", iconName: "brush-pressure", onClick: row.flip) {}
+const AbsoluteSpacing(row: ToolRow, display: String): View = VStack(id: "tool-absolute-spacing-block", spacing: Metric.space4) {
+    HStack(id: "tool-absolute-spacing-row") {
+        Label(text: "Spacing") {}, Spacer() {}, Label(text: display, fontSize: Metric.textCaption) {},
+    },
+    Slider(id: "tool-absolute-spacing", from: 0, to: 64, value: row.raw_value,
+           width: Metric.inspectorWidth - 4 * Metric.space4, size: .mini, onMoved: row.set_value) {},
+}
+const PressureGraph(model: PressureCurve): View = EventListener(id: "pressure-curve-input", width: Metric.inspectorWidth - 4 * Metric.space4,
+    height: Metric.size92, onInput: model.input, onResized: model.resized) {}
+const TextureSelector(model: BrushActions, name: String): View = HStack(id: "texture-selector", height: Metric.size22) {
+    Label(text: "Texture") {}, Spacer() {},
+    ComboBox(id: "choose-texture", text: name, arrow: .down,
+             width: 2 * Metric.size60 + Metric.space16, onClick: model.choose_texture) {},
+    IconButton(id: "add-texture", iconName: "generaladd", onClick: model.choose_texture) {},
+}
+const BackgroundColorAction(model: BrushActions): View = HStack(id: "background-color-row", height: Metric.size30) {
+    Label(text: "Background color") {}, Spacer() {},
+    PushButton(id: "set-background-color", text: "Use current color", onClick: model.set_background) {},
+}
+const ResetTool(model: BrushActions, shown: Bool): View = IconButton(id: "reset-tool", iconName: "generalundo", visible: shown, onClick: model.reset) {}
+const SaveTool(model: BrushActions): View = IconButton(id: "save-tool", iconName: "generalsave", accessibilityName: "Save tool settings", onClick: model.save) {}
+const GradientControls(model: GradientView): View = VStack(id: "gradient-parameters", spacing: Metric.space6, padding: Metric.space4) {
+    Label(text: "Selected gradient stop", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+    HStack() {
+        Label(text: model.selection_label) {}, Spacer() {},
+        IconButton(id: "gradient-previous-stop", iconName: "generalhide", onClick: model.previous) {},
+        IconButton(id: "gradient-next-stop", iconName: "generaladd", onClick: model.next) {},
+        IconButton(id: "gradient-add-stop", iconName: "generaladd", onClick: model.add) {},
+        IconButton(id: "gradient-remove-stop", iconName: "generalhide", onClick: model.remove) {},
+    },
+    HStack() { Label(text: "Position") {}, Spacer() {}, Label(text: model.position_label) {}, },
+    Slider(id: "gradient-stop-position", from: 0, to: 1, value: model.position,
+           enabled: model.position_enabled, onMoved: model.set_position) {},
+    HStack() { Label(text: model.color_label) {}, Spacer() {},
+        PushButton(id: "gradient-use-current-color", text: "Use picker color", onClick: model.use_current_color) {}, },
+    HStack() { Label(text: "Stop opacity") {}, Spacer() {}, Label(text: model.alpha_label) {}, },
+    Slider(id: "gradient-stop-alpha", from: 0, to: 1, value: model.alpha, onMoved: model.set_alpha) {},
+}
+
+Window {
+    VStack(id: "tool-panel", spacing: Metric.space4, padding: Metric.space4, alignment: .stretch, flex: 1) {
+        VStack(id: "tool-heading", visible: panel.selected_tool != "brush", spacing: Metric.space4,
+               padding: Metric.space4, alignment: .stretch,
+               leftPadding: Metric.space8 + Metric.space2, rightPadding: Metric.space8 + Metric.space2) {
+            HStack(id: "tool-heading-row", height: Metric.size22, spacing: Metric.space8) {
+                ZStack(width: Metric.size22, height: Metric.size22, alignment: .center) {
+                    Icon(name: panel.icon(panel.selected_tool)) {},
+                },
+                Label(text: panel.heading(panel.selected_tool), fontSize: Metric.textBody, fontWeight: Metric.weightMedium) {},
+            },
+        },
+        ScrollView(id: "tool-scroll", width: Metric.inspectorWidth - 2 * Metric.space4,
+                   height: Metric.toolScrollHeight, enabled: !panel.expanded, showIndicator: !panel.expanded, flex: 1) {
+            VStack(id: "tool-content", spacing: Metric.space0, alignment: .stretch) {
+                for (item in panel.design_rows, key: item.id, id: "figma-panel-rows", spacing: Metric.space4) {
+                    VStack(spacing: Metric.space4, alignment: .stretch, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2,
+                           topPadding: item.kind == "section" ? Metric.space12 : Metric.space0) {
+                        if (item.kind == "section") {
+                            Label(text: item.label, fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {}
+                        }
+                        if (item.kind == "checkbox") {
+                            CheckBox(id: "figma-check", text: item.label, checked: item.checked,
+                                     enabled: item.editable, accessibilityName: item.label, onToggled: item.toggle) {}
+                        }
+                        if (item.kind == "choice" && item.parameter_choice) {
+                            HStack(height: Metric.size22, alignment: .center) {
+                                Label(text: item.label, fontSize: Metric.textDescription, flex: 1) {},
+                                ListItemSelector(id: "figma-parameter-choice", options: item.options,
+                                                 currentIndex: item.choice_index, enabled: item.editable,
+                                                 accessibilityName: item.label,
+                                                 width: 2 * Metric.size60 + Metric.space16,
+                                                 onCurrentIndexChanged: item.choose) {}
+                            }
+                        }
+                        if (item.kind == "choice" && !item.parameter_choice) {
+                            HStack(height: Metric.size22, alignment: .center) {
+                                Label(text: item.label, fontSize: Metric.textDescription, flex: 1) {},
+                                ComboBox(id: "figma-choice", text: item.value_label, arrow: .down,
+                                         width: 2 * Metric.size60 + Metric.space16,
+                                         enabled: item.editable, accessibilityName: item.label, onClick: item.activate) {}
+                            }
+                        }
+                        if (item.kind == "value" || item.kind == "slider") {
+                            VStack(spacing: Metric.space4, alignment: .stretch) {
+                              HStack(height: Metric.size22, alignment: .center) {
+                                Label(text: item.label, fontSize: Metric.textDescription, flex: 1) {},
+                                InputField(id: "figma-value", text: item.value_label, readOnly: !item.editable,
+                                           width: Metric.size60 + Metric.space16, size: .compact, surface: .rounded,
+                                           accessibilityName: item.label, onEdited: item.edit) {}
+                              },
+                              if (item.kind == "slider") {
+                                Slider(id: "figma-slider", from: 0, to: 1, value: item.position,
+                                       width: Metric.inspectorWidth - 4 * Metric.space4, size: .mini,
+                                       enabled: item.editable, accessibilityName: item.label, onMoved: item.move) {}
+                              }
+                            }
+                        }
+                    }
+                },
+                VStack(id: "tool-parameters", visible: panel.is_brush(panel.selected_tool),
+                       spacing: Metric.space16, padding: Metric.space4, alignment: .stretch) {
+                    VStack(id: "brush-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Brush", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        BrushSize(row: panel.row("size")) {},
+                        Compact(row: panel.row("flow")) {},
+                        Compact(row: panel.row("opacity")) {},
+                        PressureOpacity(row: panel.pressure_row) {},
+                        Compact(row: panel.row("hardness")) {},
+                        AbsoluteSpacing(row: panel.absolute_spacing_row, display: panel.spacing_label) {},
+                        Compact(row: panel.row("spacing")) {},
+                        VStack(id: "parameter-stabilization") { Compact(row: panel.row("stabilization")) {}, },
+                        Label(text: "Pressure Curve", fontSize: Metric.textDescription) {},
+                        ZStack(id: "tool-pressure-curve", width: Metric.inspectorWidth - 4 * Metric.space4,
+                               height: Metric.size92, alignment: .stretch) {
+                            PressureGraph(model: panel.pressure_curve) {},
+                        },
+                        HStack() { Label(text: "Pressure Minimum", fontSize: Metric.textCaption) {}, Spacer() {}, Label(text: panel.pressure_min_label, fontSize: Metric.textCaption) {}, },
+                        HStack() { Label(text: "Pressure Center", fontSize: Metric.textCaption) {}, Spacer() {}, Label(text: panel.pressure_mid_label, fontSize: Metric.textCaption) {}, },
+                        HStack() { Label(text: "Pressure Maximum", fontSize: Metric.textCaption) {}, Spacer() {}, Label(text: panel.pressure_max_label, fontSize: Metric.textCaption) {}, },
+                    },
+                    VStack(id: "shape-dynamics-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Shape Dynamics", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Compact(row: panel.row("shape-size-jitter")) {}, Choice(row: panel.row("shape-size-control")) {},
+                        Compact(row: panel.row("shape-minimum-diameter")) {}, Compact(row: panel.row("shape-tilt-scale")) {},
+                        Compact(row: panel.row("shape-angle-jitter")) {}, Choice(row: panel.row("shape-angle-control")) {},
+                        Compact(row: panel.row("shape-roundness-jitter")) {}, Choice(row: panel.row("shape-roundness-control")) {},
+                        Compact(row: panel.row("shape-minimum-roundness")) {}, Check(row: panel.row("shape-flip-x")) {},
+                        Check(row: panel.row("shape-flip-y")) {}, Check(row: panel.row("shape-project")) {},
+                    },
+                    VStack(id: "scattering-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Scattering", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Compact(row: panel.row("scatter")) {}, Check(row: panel.row("scatter-both-axes")) {},
+                        Choice(row: panel.row("scatter-control")) {}, Compact(row: panel.row("scatter-count")) {},
+                        Compact(row: panel.row("scatter-count-jitter")) {}, Choice(row: panel.row("scatter-count-control")) {},
+                    },
+                    VStack(id: "texture-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Texture", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        TextureSelector(model: panel.brush_actions, name: panel.texture_name) {},
+                        Check(row: panel.row("texture-invert")) {}, Compact(row: panel.row("texture-scale")) {},
+                        Compact(row: panel.row("texture-brightness")) {}, Compact(row: panel.row("texture-contrast")) {},
+                        Check(row: panel.row("texture-each-tip")) {}, Choice(row: panel.row("texture-mode")) {},
+                        Compact(row: panel.row("texture-depth")) {}, Compact(row: panel.row("texture-minimum-depth")) {},
+                        Compact(row: panel.row("texture-depth-jitter")) {}, Choice(row: panel.row("texture-depth-control")) {},
+                    },
+                    VStack(id: "color-dynamics-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Color Dynamics", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        BackgroundColorAction(model: panel.brush_actions) {},
+                        Check(row: panel.row("color-per-tip")) {}, Compact(row: panel.row("color-mix-jitter")) {},
+                        Choice(row: panel.row("color-mix-control")) {}, Compact(row: panel.row("color-hue-jitter")) {},
+                        Compact(row: panel.row("color-saturation-jitter")) {}, Compact(row: panel.row("color-brightness-jitter")) {},
+                        Compact(row: panel.row("color-purity")) {},
+                    },
+                    VStack(id: "transfer-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Transfer", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Compact(row: panel.row("transfer-opacity-jitter")) {},
+                        PressureChoice(row: panel.pressure_row) {},
+                        Detailed(row: panel.row("minimum-opacity")) {}, Detailed(row: panel.row("maximum-opacity")) {},
+                        Compact(row: panel.row("transfer-flow-jitter")) {}, Choice(row: panel.row("transfer-flow-control")) {},
+                        Compact(row: panel.row("transfer-flow-minimum")) {}, Compact(row: panel.row("transfer-wetness-jitter")) {},
+                        Choice(row: panel.row("transfer-wetness-control")) {}, Compact(row: panel.row("transfer-wetness-minimum")) {},
+                        Compact(row: panel.row("transfer-mix-jitter")) {}, Choice(row: panel.row("transfer-mix-control")) {},
+                        Compact(row: panel.row("transfer-mix-minimum")) {},
+                    },
+                    VStack(id: "brush-pose-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Brush Pose", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Compact(row: panel.row("pose-tilt-x")) {}, Check(row: panel.row("pose-override-tilt-x")) {},
+                        Compact(row: panel.row("pose-tilt-y")) {}, Check(row: panel.row("pose-override-tilt-y")) {},
+                        Compact(row: panel.row("pose-rotation")) {}, Check(row: panel.row("pose-override-rotation")) {},
+                        Compact(row: panel.row("pose-pressure")) {}, Check(row: panel.row("pose-override-pressure")) {},
+                    },
+                    VStack(id: "noise-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Noise", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Check(row: panel.row("noise-enabled")) {}, Compact(row: panel.row("noise-amount")) {},
+                        Compact(row: panel.row("noise-grain-size")) {}, Check(row: panel.row("noise-monochrome")) {},
+                    },
+                    VStack(id: "wet-edges-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Wet Edges", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Check(row: panel.row("wet-edges-enabled")) {}, Compact(row: panel.row("wet-edges-strength")) {},
+                        Compact(row: panel.row("wet-edges-width")) {}, Compact(row: panel.row("wet-edges-diffusion")) {},
+                    },
+                    VStack(id: "build-up-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Build-up", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Check(row: panel.row("build-up-enabled")) {}, Compact(row: panel.row("build-up-rate")) {},
+                        Compact(row: panel.row("build-up-limit")) {}, Check(row: panel.row("build-up-time")) {},
+                    },
+                    VStack(id: "smoothing-section", spacing: Metric.space4, leftPadding: Metric.space8 + Metric.space2,
+                           rightPadding: Metric.space8 + Metric.space2, alignment: .stretch) {
+                        Label(text: "Smoothing", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Check(row: panel.row("smoothing-enabled")) {}, Choice(row: panel.row("smoothing-method")) {},
+                        Label(text: panel.selected_tool == "brush" ? "Strength: Brush / Smoothing Strength" : "Strength: Stroke / Smoothing", fontSize: Metric.textCaption) {},
+                        Detailed(row: panel.row("post")) {}, Check(row: panel.row("smoothing-catch-up")) {},
+                    },
+                    VStack(id: "tip-spacing-section", spacing: Metric.space4, alignment: .stretch) {
+                        Label(text: "Tip & spacing", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Detailed(row: panel.row("roundness")) {}, Detailed(row: panel.row("angle")) {}, Detailed(row: panel.row("count")) {},
+                    },
+                    VStack(id: "dynamics-section", spacing: Metric.space4, alignment: .stretch) {
+                        Label(text: "Dynamics", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Detailed(row: panel.row("pressure")) {},
+                        VStack(id: "parameter-tilt") { Detailed(row: panel.row("tilt")) {}, },
+                    },
+                    VStack(id: "paint-mixing-section", spacing: Metric.space4, alignment: .stretch) {
+                        Label(text: "Paint & mixing", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Detailed(row: panel.row("wetness")) {}, Detailed(row: panel.row("mix")) {},
+                        Detailed(row: panel.row("load")) {}, Detailed(row: panel.row("dilution")) {},
+                    },
+                    VStack(id: "taper-limits-section", spacing: Metric.space4, alignment: .stretch) {
+                        Label(text: "Taper & limits", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
+                        Detailed(row: panel.row("start")) {}, Detailed(row: panel.row("end")) {},
+                        Detailed(row: panel.row("minimum-size")) {},
+                        VStack(id: "parameter-taper") { Detailed(row: panel.row("taper")) {}, },
+                    },
+                },
+                HStack(id: "crop-actions", visible: panel.selected_tool == "crop" || panel.selected_tool == "perspective-crop",
+                       spacing: Metric.space6, padding: Metric.space4) {
+                    PushButton(id: "crop-apply", text: "Apply", onClick: panel.apply_crop) {},
+                    PushButton(id: "crop-cancel", text: "Cancel", onClick: panel.cancel_crop) {},
+                },
+                VStack(visible: panel.selected_tool == "paint-bucket", padding: Metric.space4) {
+                    CheckBox(id: "fill-target-current", text: "Edit current layer", checked: panel.fill_target_current) {},
+                },
+                VStack(visible: panel.selected_tool == "gradient") {
+                    GradientControls(model: panel.gradient_panel) {},
+                },
+            },
+        },
+        HStack(id: "tool-actions", height: Metric.size30 + 2 * Metric.space4,
+               spacing: Metric.space6, padding: Metric.space4) {
+            IconSegmentedControl(id: "brush-dynamics", visible: panel.is_brush(panel.selected_tool)) {
+                PressureShortcut(row: panel.pressure_row) {},
+                IconButton(id: "tilt-detail", iconName: "panel-tilt-angle", onClick: panel.reveal_tilt) {},
+                IconButton(id: "smoothing-detail", iconName: "brush-smoothing", onClick: panel.reveal_smoothing) {},
+                IconButton(id: "clone-source", iconName: "clone-source", onClick: panel.select_clone) {},
+            },
+            Spacer() {},
+            ResetTool(model: panel.brush_actions, shown: panel.is_brush(panel.selected_tool)) {},
+            SaveTool(model: panel.brush_actions) {},
+        },
+    },
+}

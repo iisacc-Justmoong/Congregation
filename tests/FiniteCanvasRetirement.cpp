@@ -1,8 +1,8 @@
-#include <Native/Artwork.h>
-#include <Engine/EditCommand.h>
-#include <Engine/RecentCanvas.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Document/EditCommand.h>
+#include <Document/RecentCanvas.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <algorithm>
 #include <filesystem>
 #include <iostream>

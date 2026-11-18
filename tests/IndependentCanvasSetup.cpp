@@ -1,6 +1,6 @@
-#include <Native/CanvasSetupWindow.h>
-#include <Native/OwnedWidgetStyle.h>
-#include <Native/ScopedWidgetMount.h>
+#include <Canvas/CanvasSetupWindow.h>
+#include <Shared/OwnedWidgetStyle.h>
+#include <Shared/ScopedWidgetMount.h>
 // The private WidgetState header can be newer than the staged public iiGUI API.
 namespace ii::gui { struct TextInputRevision; }
 #include <iiGUI/WidgetState.h>
@@ -108,6 +108,9 @@ void generated_setup_view(){
     tree->commit_publication();
     (void)take(tree->drawing_snapshot({1280,880}));
     require(model!=nullptr,"LVUI setup did not configure its backend");
+    require(take(widget(tree,"/canvasTitle").snapshot()).text=="New document" &&
+            take(widget(tree,"/create-canvas").snapshot()).text=="Create file",
+            "New document chooser does not identify its action");
     const auto native_host=take(widget(tree,"/canvas-setup-host").snapshot());
     auto root=widget(tree,"/setup-root");
     require(take(root.snapshot()).parent_id==native_host.id+"/@native-content",
@@ -131,12 +134,15 @@ void generated_setup_view(){
     require(!root.snapshot(),"Retired LVUI chooser retained a live widget");
     model=nullptr;
     good(host.set_content([&](auto& builder){
-        return window.build_view(builder,{},[&](auto& scope){model=&scope.backend_0;});
+        return window.build_view(builder,{},[&](auto& scope){model=&scope.backend_0;model->add_to_document=true;});
     }));
     tree->commit_publication();
     (void)take(tree->drawing_snapshot({640,480}));
     require(model && take(widget(tree,"/setup-root").snapshot()).bounds.width==640,
             "A new LVUI chooser generation did not mount after retirement");
+    require(take(widget(tree,"/canvasTitle").snapshot()).text=="Add canvas" &&
+            take(widget(tree,"/create-canvas").snapshot()).text=="Add canvas",
+            "Add canvas chooser does not identify its action");
     good(host.clear_content());
     tree->close();
 }

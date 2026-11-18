@@ -1,7 +1,7 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -18,10 +18,11 @@ StrokePoint point(double x,double y,double t){StrokePoint p;p.position={x,y};p.t
 int main() try {
  iiFileProvider::native::TemporaryDirectory dir(std::filesystem::temp_directory_path());check(dir.isValid(),"temp unavailable");
  Artwork fill(dir.path());check(fill.replace(fixture())&&fill.select("paint")&&fill.set_selection(SelectionGeometry::Rectangle,{0,0},{8,8}),"fill setup failed");
+ std::vector<DocumentChange> notices;fill.document_changed=[&](const auto& value){notices.push_back(value);};
  const auto prior=pixelsAt(fill,"paint",0);const auto rev=fill.revision();CanvasView v(fill);v.tool="fill";v.color=0xff00ff00U;v.fill_current_layer=true;v.fill_target_current=true;std::string status;v.status=[&](std::string s){status=std::move(s);};click(v,1,2,2);
- check(status.empty(),status.c_str());const auto changed=pixelsAt(fill,"paint",1);check(changed[2*16+2]==0xff00ff00U && changed[2*16+9]==prior[2*16+9],"frame fill or selection failed");
+ check(status.empty(),status.c_str());check(notices.size()==1&&notices.back().kind==DocumentChangeKind::pixels&&notices.back().layer=="paint"&&notices.back().frame==1&&!notices.back().asset.empty(),"frame fill change scope missing");const auto changed=pixelsAt(fill,"paint",1);check(changed[2*16+2]==0xff00ff00U && changed[2*16+9]==prior[2*16+9],"frame fill or selection failed");
  check(pixelsAt(fill,"paint",0)==prior&&pixelsAt(fill,"paint",2)==prior&&pixelsAt(fill,"base",1)==prior,"fill changed other frames or a shared layer");check(fill.revision()==rev+1,"fill is not a single document edit");
- check(fill.undo()&&pixelsAt(fill,"paint",1)==prior&&fill.redo()&&pixelsAt(fill,"paint",1)==changed,"frame fill history failed");
+ check(fill.undo()&&pixelsAt(fill,"paint",1)==prior&&notices.back().kind==DocumentChangeKind::pixels&&notices.back().frame==1&&fill.redo()&&pixelsAt(fill,"paint",1)==changed&&notices.back().kind==DocumentChangeKind::pixels&&notices.back().frame==1,"frame fill history failed");
  auto path=dir.path()/"frame-fill.iisc";check(fill.save(path),"frame fill save failed");Artwork reopened(dir.path());check(reopened.open(path)&&pixelsAt(reopened,"paint",0)==prior&&pixelsAt(reopened,"paint",1)==changed&&pixelsAt(reopened,"paint",2)==prior,"frame fill reopen failed");
  Artwork brushArt(dir.path());check(brushArt.replace(fixture())&&brushArt.select("paint")&&brushArt.set_selection(SelectionGeometry::Rectangle,{0,0},{8,8}),"frame brush setup failed");
  BitmapBrush brush;brush.size=4;brush.argb=0xffff0000U;brush.pressureToOpacityEnabled=false;const auto brushBefore=pixelsAt(brushArt,"paint",0);auto a=point(3,4,0),b=point(6,4,.1);

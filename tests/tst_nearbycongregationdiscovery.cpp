@@ -283,11 +283,11 @@ void tst_NearbyCongregationDiscovery::applicationStartsDiscoveryAfterShowingTheW
     QFile implementationFile(implementationPath);
     QVERIFY(implementationFile.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString implementationSource = QString::fromUtf8(implementationFile.readAll());
-    QVERIFY(implementationSource.contains(QStringLiteral("Engine/NearbyDiscovery.h")));
+    QVERIFY(implementationSource.contains(QStringLiteral("Collaboration/NearbyDiscovery.h")));
     QVERIFY(implementationSource.contains(QStringLiteral("QtEngineHost")));
     QVERIFY(!implementationSource.contains(QStringLiteral("QUdpSocket")));
     QVERIFY(!implementationSource.contains(QStringLiteral("QThread")));
-    QFile backend(QFINDTESTDATA("../src/Engine/NearbyDiscovery.cpp"));
+    QFile backend(QFINDTESTDATA("../src/Collaboration/NearbyDiscovery.cpp"));
     QVERIFY(backend.open(QIODevice::ReadOnly));
     const auto nativeSource=backend.readAll();
     QVERIFY(nativeSource.contains("loop_.every"));

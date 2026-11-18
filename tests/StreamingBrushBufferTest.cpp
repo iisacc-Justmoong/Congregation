@@ -1,4 +1,4 @@
-#include "../App/Native/StreamingBrush.h"
+#include "../App/Tools/StreamingBrush.h"
 
 #include <algorithm>
 #include <cstdlib>

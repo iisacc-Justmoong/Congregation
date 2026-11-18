@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/README.md",
-    "sha256": "37190a5af2f69e68b3955b93f17ca2ecacd69d4a78e0e70121527bcbbb6f4a32",
-    "bytes": 5013,
-    "line_count": 59,
+    "sha256": "a819b29ac491c7a7e8b2bd6a3b862ae5c0084d8e6fa1d29eae9a639e66aa6439",
+    "bytes": 5150,
+    "line_count": 62,
     "encoding": "utf-8",
     "language": "en"
   },
@@ -290,6 +290,20 @@
       "start_line": 59,
       "end_line": 59,
       "raw": "<!-- workspace-docs:document-map:end -->\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 60,
+      "end_line": 60,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 61,
+      "end_line": 62,
+      "raw": "For canvas creation and multi-canvas editing, see [the human guide](MULTI_CANVAS.md)\nand its [agent document](MULTI_CANVAS.agent.json).\n"
     }
   ],
   "outline": [
@@ -999,6 +1013,20 @@
         "target": "mirrors/resources/icons/README.agent.json",
         "kind": "relative",
         "line": 58
+      },
+      {
+        "block_id": "b000011",
+        "label": "the human guide",
+        "target": "MULTI_CANVAS.md",
+        "kind": "relative",
+        "line": 61
+      },
+      {
+        "block_id": "b000011",
+        "label": "agent document",
+        "target": "MULTI_CANVAS.agent.json",
+        "kind": "relative",
+        "line": 62
       }
     ],
     "tables": [

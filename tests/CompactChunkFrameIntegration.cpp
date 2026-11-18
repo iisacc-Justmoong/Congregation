@@ -1,11 +1,12 @@
 #include "DocumentFixture.h"
-#include <Native/Artwork.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <span>
+#include <vector>
 using namespace congregation::native;
 using namespace iiSharedCanvas;
 void check(bool ok,const char* message){if(!ok)throw std::runtime_error(message);}
@@ -25,6 +26,7 @@ int main()try{
  iiFileProvider::native::TemporaryDirectory dir(std::filesystem::temp_directory_path());check(dir.isValid(),"temporary directory unavailable");
  constexpr std::size_t budget=256*1024;Artwork art(dir.path(),budget);
  check(art.replace(fixture())&&art.select("paint")&&art.snapshot().size()>budget/2,"large shared fixture failed");
+ std::vector<DocumentChange> notices;art.document_changed=[&](const auto& value){notices.push_back(value);};
  const auto old=pixel(art,"paint",1,100,100),outside=pixel(art,"paint",1,110,100);
  check(art.set_selection(SelectionGeometry::Rectangle,{98,98},{104,104}),"frame selection failed");
  BitmapBrush brush;brush.size=4;brush.argb=0xff0000ffU;brush.pressureToOpacityEnabled=false;
@@ -34,7 +36,7 @@ int main()try{
  auto preview=art.selection_preview();check(preview && !preview->tiles.empty(),"compact frame preview missing");
  FrameBitmapOverlay overlay{preview->asset_id,preview->tiles};auto outsidePreview=renderFrameRegion(art.document(),1,{{110,100},{1,1}},{1,1},RasterSampling::Nearest,std::span(&overlay,1));
  check(outsidePreview.ok()&&outsidePreview.pixels.pixels[0]==outside,"compact frame preview escaped selection");
- check(art.end_input(b),"compact frame brush failed");const auto painted=pixel(art,"paint",1,100,100);
+ check(art.end_input(b),"compact frame brush failed");check(!notices.empty()&&notices.back().kind==DocumentChangeKind::pixels&&notices.back().layer=="paint"&&notices.back().frame==1&&!notices.back().asset.empty(),"compact frame change scope missing");const auto painted=pixel(art,"paint",1,100,100);
  check(painted!=old&&pixel(art,"paint",1,110,100)==outside&&pixel(art,"paint",0,100,100)==old&&pixel(art,"paint",2,100,100)==old&&pixel(art,"base",1,100,100)==old&&art.history_bytes()<=budget,"compact frame brush changed shared data or exceeded budget");
  const auto stableHistory=art.history_bytes();for(int i=0;i<3;++i)check(art.undo()&&art.redo()&&art.history_bytes()==stableHistory,"frame history accounting drifted");
  check(art.set_selection(SelectionGeometry::Rectangle,{120,120},{124,124})&&art.undo()&&art.tiled_selection_handle()->coverage(100,100)==255,"frame and selection undo order failed");

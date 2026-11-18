@@ -1,6 +1,6 @@
 # Congregation 네이티브 빌드와 검증
 
-현재 진입점은 `build.sh`와 `build-windows.ps1`이다. CMake는 `App/Engine`, `App/Native`와 LVUI에서 생성한 C++23을 빌드한다. Qt5·Qt6 탐색과 Qt 코드 생성은 끈다. 실행 중에는 LVUI 컴파일러, 브라우저, WebView, QML 엔진이 필요하지 않다.
+현재 진입점은 `build.sh`와 `build-windows.ps1`이다. CMake는 도메인별 `App/` 소스와 LVUI에서 생성한 C++23을 빌드한다. Qt5·Qt6 탐색과 Qt 코드 생성은 끈다. 실행 중에는 LVUI 컴파일러, 브라우저, WebView, QML 엔진이 필요하지 않다.
 
 iPadOS의 SDK 교차 빌드·Xcode 개발 서명·연결 기기 설치와 실행은 [IPADOS.md](IPADOS.md)를 따른다. 활성 `.app`는 macOS와 iPadOS 모두 같은 `build/Congregation.app`을 사용한다.
 

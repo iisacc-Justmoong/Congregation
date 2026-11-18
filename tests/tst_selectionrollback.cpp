@@ -1,6 +1,5 @@
-#include <Native/Artwork.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderDatabase.h>
+#include <Canvas/Artwork.h>
+#include <iiFileProvider>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>

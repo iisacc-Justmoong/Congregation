@@ -1,6 +1,6 @@
-#include <Native/Artwork.h>
-#include <iiFileProviderNative.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 
 #include <algorithm>
 #include <chrono>

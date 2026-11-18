@@ -1,10 +1,10 @@
-#include <Native/CanvasSetupWindow.h>
+#include <Canvas/CanvasSetupWindow.h>
 #include <array>
 #include <cmath>
 #include <filesystem>
-#include <iiFileProviderNative.h>
-#include <iiImageCodec/ImageCodec.h>
-#include <iiSDKCore/Runtime/Application.h>
+#include <iiFileProvider>
+#include <iiVisualCodec>
+#include <iiSDKCore>
 #include <iostream>
 #include <stdexcept>
 using namespace congregation::native;

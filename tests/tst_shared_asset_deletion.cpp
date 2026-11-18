@@ -1,5 +1,5 @@
-#include <Native/Artwork.h>
-#include <Engine/Data.h>
+#include <Canvas/Artwork.h>
+#include <Shared/Data.h>
 #include <filesystem>
 #include <algorithm>
 #include <iostream>

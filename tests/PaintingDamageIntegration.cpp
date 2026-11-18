@@ -1,12 +1,11 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <Native/CanvasTilePolicy.h>
-#include <iiFileProviderNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <Canvas/CanvasTilePolicy.h>
+#include <iiFileProvider>
 #include <iiGUI/WidgetState.h>
-#include <iiGUI/Presentation.h>
-#include <iiSDKCore/Runtime/EventLoop.h>
-#include <iiSDKCore/Runtime/FrameLoop.h>
-#include <iiSharedCanvasNative.h>
+#include <iiGUI>
+#include <iiSDKCore>
+#include <iiSharedCanvas>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -468,6 +467,34 @@ int main() try {
         check(fallback.viewport().uploads == fallback_before + 1,
               "missing frame source did not synchronously render the changed tile");
         check_tile(fallback_tree, fallback, fallback_artwork, 0, 0);
+    }
+
+    // A remote edit must replace only the affected retained canvas tile.
+    {
+        Artwork remote_source(directory.path()), remote_target(directory.path());
+        check(remote_source.create(1024, 768) && remote_target.replace(remote_source.document()) &&
+              remote_target.timing(24, 2), "remote canvas creation failed");
+        auto remote_tree = std::make_shared<ii::gui::detail::WidgetState>(
+            [](ii::runtime::Task task) { task(); });
+        auto surface = take(remote_tree->absolute_stack({}, "remote", {1280, 960}));
+        (void)take(remote_tree->drawing_snapshot({1280, 960}));
+        CanvasView remote(remote_target); remote.attach(surface);
+        remote.set_frame(1); // Retain a second view of the same static asset.
+        remote.set_frame(0);
+        const auto untouched = tile(remote_tree, remote, 1, 1);
+        const auto uploads = remote.viewport().uploads;
+        DocumentChange change;
+        remote_source.document_changed = [&](const auto& value) { change = value; };
+        remote_target.document_changed = [&](const auto& value) { remote.refresh_change(value); };
+        BitmapBrush brush; brush.size = 8; brush.argb = 0xff1234ddU;
+        check(remote_source.begin({100, 100}, 1, brush) && remote_source.end({115, 110}, 1), "remote stroke failed");
+        auto patch = remote_source.collaboration_pixels(change);
+        check(patch && remote_target.receive_pixels(*patch), "remote patch failed");
+        check(remote.viewport().uploads == uploads + 1 && tile(remote_tree, remote, 1, 1) == untouched,
+              "remote edit invalidated an unaffected tile");
+        check_tile(remote_tree, remote, remote_target, 0, 0);
+        remote.set_frame(1);
+        check_tile(remote_tree, remote, remote_target, 0, 0);
     }
 
     // Destroying a view with a queued frame must retire its callback safely.

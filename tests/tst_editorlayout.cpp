@@ -1,5 +1,5 @@
-#include <Native/EditorLayout.h>
-#include <Native/EditorPalette.h>
+#include <Shared/EditorLayout.h>
+#include <Shared/EditorPalette.h>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>

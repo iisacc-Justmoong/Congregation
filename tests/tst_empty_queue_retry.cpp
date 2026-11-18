@@ -1,5 +1,5 @@
-#include <Engine/CanvasSession.h>
-#include <Engine/RecentCanvas.h>
+#include <Collaboration/CanvasSession.h>
+#include <Document/RecentCanvas.h>
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -49,8 +49,14 @@ void run(const std::string& mode) {
     CanvasSession client(loop, uuid());
     std::string last;
     client.snapshot_received = [&](std::string value, std::uint64_t, std::string) { last = std::move(value); };
+    std::vector<std::string> changes;
+    client.delta_received = [&](std::string_view bytes, auto, auto) {
+        changes.emplace_back(bytes);
+        last = bytes;
+        return true;
+    };
     const auto initial = snapshot('a'), first = snapshot('b'), newest = snapshot('c');
-    check(host->host("Host") && host->publish(initial), "host setup failed");
+    check(host->host("Host") && host->initialize(initial), "host setup failed");
     check(client.join(host->session, "127.0.0.1", host->port(), "Guest"), "join failed");
     check(wait(loop, [&] { return client.revision == 1 && last == initial && host_socket && host_socket->pending_bytes() == 0; }),
           "initial snapshot did not drain");
@@ -84,14 +90,14 @@ void run(const std::string& mode) {
     rejects = mode == "revision_stop" || mode == "revision_rehost" ? 0 :
               mode == "repeated" ? 3 : mode == "coalesce" ? 2 : 1;
     bool first_published = false, threw = false;
-    try { first_published = host->publish(first); } catch (const std::bad_alloc&) { threw = true; }
+    try { first_published = host->publish_delta(first); } catch (const std::bad_alloc&) { threw = true; }
     if (threw) {
         std::cerr << "EMPTY_QUEUE_RETRY_THREW mode=" << mode << '\n';
         throw std::runtime_error("snapshot allocation failure escaped");
     }
     const bool reentrant = mode == "reentrant_stop" || mode == "revision_stop" || mode == "revision_rehost";
     check(first_published != reentrant, "publication result did not reflect reentrant session change");
-    if (mode == "coalesce") check(host->publish(newest), "second publish failed");
+    if (mode == "coalesce") check(host->publish_delta(newest), "second publish failed");
     if (mode != "revision_stop" && mode != "revision_rehost")
         check(rejected_with_empty_queue, "injection did not reject with an empty queue");
     if (mode == "reentrant_stop") {
@@ -109,9 +115,8 @@ void run(const std::string& mode) {
         check(host->error == "A canvas update could not be scheduled for retry." && error_notices > 0,
               "retry scheduling failure was not reported");
         for (const auto& token : occupied) token.cancel();
-        check(host->publish(newest), "publish after freeing task slots failed");
-        check(wait(loop, [&] { return client.revision == 3 && last == newest; }),
-              "publishing did not recover after freeing task slots");
+        check(wait(loop, [&] { return client.state == CanvasSession::State::idle; }) && client.revision == 1,
+              "the participant stayed connected after a required edit could not be queued");
         host->stop();
     } else if (mode == "stop") {
         host.reset();
@@ -127,6 +132,7 @@ void run(const std::string& mode) {
                       << " client=" << client.revision << " rejected=" << rejected << '\n';
             throw std::runtime_error("rejected empty-queue snapshot was not retried");
         }
+        if (mode == "coalesce") check(changes == std::vector<std::string>{first, newest}, "retry dropped an event");
         check(rejected == (mode == "repeated" ? 3 : mode == "coalesce" ? 2 : 1),
               "unexpected reject count");
         host->stop();

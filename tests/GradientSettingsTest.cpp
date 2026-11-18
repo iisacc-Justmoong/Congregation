@@ -1,4 +1,4 @@
-#include <Native/GradientSettings.h>
+#include <Tools/GradientSettings.h>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -11,6 +11,47 @@ int main() try {
  auto original=gradientRaster({1,1},reference);check(original.ok(),"gradient reference raster failed");
  check(preserve.add(),"add gradient midpoint failed");reference.stops=preserve.stops();auto updated=gradientRaster({1,1},reference);
  check(updated.ok()&&updated.pixels.pixels[0]==original.pixels.pixels[0],"adding a stop changed the gradient midpoint");
+ GradientSettings granular;
+ using F=GradientSettings::Field;
+ const auto kind_before=granular.field_revision(F::kind).revision();
+ const auto spread_before=granular.field_revision(F::spread).revision();
+ const auto blend_before=granular.field_revision(F::blend).revision();
+ const auto content_before=granular.field_revision(F::content).revision();
+ granular.set_radial(true);
+ check(granular.field_revision(F::kind).revision()==kind_before+1 &&
+       granular.field_revision(F::spread).revision()==spread_before &&
+       granular.field_revision(F::blend).revision()==blend_before &&
+       granular.field_revision(F::content).revision()==content_before,
+       "Gradient kind notified unrelated settings");
+ granular.set_repeat(true);
+ check(granular.field_revision(F::spread).revision()==spread_before+1 &&
+       granular.field_revision(F::kind).revision()==kind_before+1,
+       "Gradient repeat did not publish only its own setting");
+ granular.add();
+ check(granular.field_revision(F::content).revision()==content_before+1 &&
+       granular.field_revision(F::blend).revision()==blend_before,
+       "Gradient stop edit notified unrelated settings");
+ const auto selected_before=granular.field_revision(F::selection).revision();
+ const auto pos_before=granular.field_revision(F::position).revision();
+ const auto color_before=granular.field_revision(F::color).revision();
+ const auto alpha_before=granular.field_revision(F::alpha).revision();
+ check(granular.set_position(.3),"gradient position fixture");
+ check(granular.field_revision(F::position).revision()==pos_before+1 &&
+       granular.field_revision(F::selection).revision()==selected_before &&
+       granular.field_revision(F::color).revision()==color_before &&
+       granular.field_revision(F::alpha).revision()==alpha_before,
+       "Gradient position notified unrelated stop fields");
+ check(granular.set_alpha(.25),"gradient alpha fixture");
+ check(granular.field_revision(F::alpha).revision()==alpha_before+1 &&
+       granular.field_revision(F::position).revision()==pos_before+1 &&
+       granular.field_revision(F::color).revision()==color_before,
+       "Gradient opacity notified unrelated stop fields");
+ const auto unchanged=granular.revision.revision();
+ check(granular.restore_persistent_state(granular.persistent_state()) &&
+       granular.revision.revision()==unchanged,"Unchanged gradient restore published an update");
+ auto invalid=granular.persistent_state();invalid.selected=invalid.stops.size();
+ check(!granular.restore_persistent_state(invalid) && granular.revision.revision()==unchanged,
+       "Invalid gradient restore published an update");
  GradientSettings g;check(g.stops().size()==2 && g.selected()==0,"default gradient stops");
  g.set_default_start(0xff123456U);check(g.stops()[0].argb==0xff123456U,"default foreground color");
  check(g.add() && g.stops().size()==3 && g.selected()==1 && g.stops()[1].position==.5,"add midpoint stop");

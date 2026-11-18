@@ -1,13 +1,12 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasDefinition.h>
-#include <Native/CanvasView.h>
-#include <Native/MainWindow.h>
-#include <Native/ToolSettings.h>
-#include <iiFileProviderNative.h>
-#include <iiSDKCore/Core/Text/Number.h>
-#include <iiSDKCore/Runtime/EventLoop.h>
-#include <iiSDKCore/Runtime/FrameLoop.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasDefinition.h>
+#include <Canvas/CanvasView.h>
+#include <Application/CanvasToolBindings.h>
+#include <Application/MainWindow.h>
+#include <Tools/ToolSettings.h>
+#include <iiFileProvider>
+#include <iiSDKCore>
+#include <iiSharedCanvas>
 namespace ii::gui { struct TextInputRevision; }
 #include <iiGUI/WidgetState.h>
 
@@ -130,6 +129,22 @@ int main(int argc, char** argv) try {
                                0, take(color_anchor.snapshot()).bounds.height));
     check(take(color_popup.snapshot()).opened, "workspace color popup did not open");
     good(color_popup.close_popup());
+    auto new_layer_button = widget(tree, "/add-layer");
+    auto new_layer_menu = widget(tree, "/new-layer-menu");
+    int menu_requests = 0;
+    model->perform = [&](congregation::ui::Action action) {
+        if (action == congregation::ui::Action::open_new_layer_menu) {
+            ++menu_requests;
+            good(open_new_layer_popup(editor_root, new_layer_menu, new_layer_button));
+        }
+    };
+    good(new_layer_button.activate());
+    const auto layer_anchor_bounds = take(new_layer_button.snapshot()).bounds;
+    const auto layer_popup_bounds = take(new_layer_menu.snapshot()).bounds;
+    check(menu_requests == 1 && take(new_layer_menu.snapshot()).opened &&
+          layer_popup_bounds.height > 0 && layer_popup_bounds.y + layer_popup_bounds.height <= layer_anchor_bounds.y + .01,
+          "New layer menu did not open above its cross-generation timeline anchor");
+    good(new_layer_menu.close_popup());
     // The size +/- controls were replaced by the declarative Tool panel.
     // Exercise the current tool buttons without assuming that separately
     // mounted panel is part of this MainWindow-only fixture.
@@ -150,6 +165,11 @@ int main(int argc, char** argv) try {
     auto surface = widget(tree, "/canvas");
     auto paint_host = widget(tree, "/canvas-paint-layers");
     CanvasView canvas(artwork);
+    good(model->set_current_color({.36, .18, 1, 1}));
+    CanvasToolBindings tool_bindings(*model, canvas);
+    model->set_brush_size(24);
+    check(canvas.brush_size == 24, "Mounted tool setting did not update the canvas");
+    model->set_brush_size(64);
     ToolSettings settings;
     settings.set(ToolParameter::size, model->brush_size.get());
     settings.set(ToolParameter::opacity, model->opacity.get() * 100);
@@ -207,6 +227,29 @@ int main(int argc, char** argv) try {
         good(tree->input(event));
     };
     using K = ii::gui::WidgetInputKind;
+    std::vector<congregation::native::DocumentChange> changes;
+    artwork.document_changed = [&](const auto& change) {
+        changes.push_back(change);
+        window.apply_document_change(artwork.document(), artwork.selected(), change);
+    };
+    window.refresh_document(artwork.document(), artwork.selected());
+    const auto preview_has_pixels = [&] {
+        const auto frame = take(tree->drawing_snapshot({2100, 1180}));
+        const auto row = take(widget(tree, "/layers").snapshot()).bounds;
+        bool has_pixels = false;
+        const auto inspect = [&](const auto& images) {
+            for (const auto& item : images) {
+                if (!item.image || item.image->width() != 18 || item.image->height() != 18 ||
+                    std::abs(item.bounds.x - row.x - 32) > .01 || std::abs(item.bounds.y - row.y - 2) > .01) continue;
+                const auto rgba = item.image->rgba();
+                for (std::size_t index = 3; index < rgba.size(); index += 4) has_pixels |= rgba[index] != 0;
+            }
+        };
+        inspect(frame.images);
+        for (const auto& overlay : frame.overlays) inspect(overlay.images);
+        return has_pixels;
+    };
+    check(!preview_has_pixels(), "empty paint layer must have an empty thumbnail");
     send(K::pointer_down, 80, 100, 100);
     check(artwork.stroke_active(), "pointer down did not start a stroke");
     const auto now = ii::runtime::Clock::now();
@@ -231,9 +274,18 @@ int main(int argc, char** argv) try {
           alpha_at(artwork, 220, 100) > 40 && alpha_at(artwork, 300, 100) > 40 &&
           alpha_at(artwork, 340, 100) > 40,
           "committed stroke lost pixels along the drag");
-    check(artwork.undo() && alpha_at(artwork, 140, 100) == 0 &&
-          artwork.redo() && alpha_at(artwork, 140, 100) > 40,
-          "stroke undo/redo failed");
+    check(preview_has_pixels(), "committed brush stroke did not update the layer thumbnail");
+    check(!changes.empty() && changes.back().kind == congregation::native::DocumentChangeKind::pixels &&
+          changes.back().layer == artwork.selected() && !changes.back().asset.empty(),
+          "Stroke must publish the affected layer and asset");
+    check(artwork.undo() && alpha_at(artwork, 140, 100) == 0 && !preview_has_pixels(),
+          "stroke undo did not clear the layer thumbnail");
+    check(changes.back().kind == congregation::native::DocumentChangeKind::pixels,
+          "Stroke undo lost its pixel change scope");
+    check(artwork.redo() && alpha_at(artwork, 140, 100) > 40 && preview_has_pixels(),
+          "stroke redo did not restore the layer thumbnail");
+    check(changes.back().kind == congregation::native::DocumentChangeKind::pixels,
+          "Stroke redo lost its pixel change scope");
     using D = ii::gui::PointerDevice;
     send(K::pointer_down, 80, 200, 101, D::pen, .5);
     send(K::pointer_move, 180, 200, 101.04, D::pen, .7);
@@ -259,7 +311,7 @@ int main(int argc, char** argv) try {
           alpha_at(artwork, 100, 25) > 40,
           "pointer capture lost a drag or release outside the canvas");
     check(artwork.create(512, 256), "cannot create touch canvas");
-    canvas.refresh();
+    canvas.initialize_document();
     const auto touch_baseline = displayed_canvas(tree);
     send(K::pointer_down, 80, 128, 103, D::touch, 1);
     send(K::pointer_move, 180, 128, 103.04, D::touch, 1);
@@ -284,7 +336,7 @@ int main(int argc, char** argv) try {
     canvas.settings = {};
     canvas.brush_size = 6;
     canvas.taper = {};
-    canvas.refresh();
+    canvas.initialize_document();
     send(K::pointer_down, 40, 80, 200, D::mouse, 1);
     for (int i = 1; i <= 256; ++i) {
         send(K::pointer_move, 40 + 400. * i / 256., 80 + 5 * std::sin(i * .04),
@@ -305,7 +357,7 @@ int main(int argc, char** argv) try {
     canvas.settings = product_brush;
     canvas.brush_size = product_brush_size;
     canvas.taper = product_taper;
-    canvas.refresh();
+    canvas.initialize_document();
     send(K::pointer_down, 40, 128, 250);
     for (int i = 1; i <= 96; ++i) {
         send(K::pointer_move, 40 + 400. * i / 96., 128 + 6 * std::sin(i * .08),
@@ -324,7 +376,7 @@ int main(int argc, char** argv) try {
     canvas.settings = {};
     canvas.brush_size = 6;
     canvas.taper = {};
-    canvas.refresh();
+    canvas.initialize_document();
     const auto burst_start = received.size();
     nested_burst = [&] {
         for (int i = 0; i < 300; ++i)

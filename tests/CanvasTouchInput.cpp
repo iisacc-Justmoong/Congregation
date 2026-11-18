@@ -1,7 +1,7 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <Native/ToolSettings.h>
-#include <iiFileProviderNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <Tools/ToolSettings.h>
+#include <iiFileProvider>
 #include "../../../SDK/iiGUI/src/Widgets/WidgetState.h"
 #include "TouchInputBridge.h"
 #include <chrono>

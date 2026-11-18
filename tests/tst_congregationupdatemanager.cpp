@@ -3,7 +3,7 @@
 #include "congregationupdatecredentialprovider.h"
 #include "congregationupdatemanager.h"
 
-#include <iiUpdateManager/NativeUpdateManager.h>
+#include <iiUpdateManager>
 
 #include <QDir>
 #include <QFile>

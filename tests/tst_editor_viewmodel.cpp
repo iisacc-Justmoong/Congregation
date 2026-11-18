@@ -1,5 +1,5 @@
-#include <Native/EditorBackend.h>
-#include <Native/ChildWindowGeneration.h>
+#include <Workspace/EditorBackend.h>
+#include <Application/ChildWindowGeneration.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -26,10 +26,21 @@ void titlebar_viewmodel()
             !backend.titlebar_input({.kind=WidgetInputKind::pointer_down,.device=PointerDevice::mouse,.buttons=2}).value() &&
             !backend.titlebar_input({.kind=WidgetInputKind::pointer_down,.device=PointerDevice::touch,.buttons=1}).value() && drags==1,
             "Titlebar drag must not consume movement, secondary presses or touch");
-    backend.set_agent_prompt("hello");
-    backend.submit_agent();
-    require(backend.agent_prompt.get()=="hello" && backend.status.get().find("not available")!=std::string::npos,
-            "The Agent field must retain input and identify unavailable submission");
+    unsigned sent=0, opened=0;
+    backend.agent_present=[&]{++opened;};
+    backend.agent_submit=[&](std::string text){ require(text=="hello", "Prompt changed during submission"); ++sent; };
+    backend.set_agent_prompt("hello"); backend.submit_agent(); backend.submit_agent();
+    require(sent==1 && opened==1 && backend.agent_busy.get() && backend.agent_prompt.get()=="hello",
+            "Agent submission must be non-duplicating and retain the draft until accepted");
+    using Phase=congregation::WorkspaceAgentUpdate::Phase;
+    backend.receive_agent_update({Phase::accepted,"Preparing",{}},"hello");
+    require(backend.agent_prompt.get().empty(),"The accepted draft must be cleared");
+    backend.set_agent_prompt("next draft");
+    backend.receive_agent_update({Phase::completed,"Ready","An answer"},"hello");
+    require(!backend.agent_busy.get() && backend.agent_response.get()=="An answer" && backend.agent_prompt.get()=="next draft",
+            "Answer updates must not overwrite a later draft");
+    backend.set_agent_prompt("  "); backend.submit_agent();
+    require(sent==1 && !backend.agent_busy.get(),"An empty agent message must not be submitted");
     Action action=Action::quit;
     backend.perform=[&](Action value){action=value;};
     backend.titlebar_close();

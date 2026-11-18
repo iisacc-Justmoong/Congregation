@@ -1,5 +1,6 @@
-#include <Engine/ApplicationEngine.h>
-#include <Engine/Palette.h>
+#include <Application/ApplicationEngine.h>
+#include <Color/Palette.h>
+#include <Document/CanvasDocument.h>
 
 #include <cmath>
 #include <iostream>

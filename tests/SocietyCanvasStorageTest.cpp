@@ -1,7 +1,7 @@
-#include <Native/Artwork.h>
-#include <Native/SocietyFiles.h>
-#include <Native/StartupCanvas.h>
-#include <iiFileProviderNative.h>
+#include <Canvas/Artwork.h>
+#include <Storage/SocietyFiles.h>
+#include <Canvas/StartupCanvas.h>
+#include <iiFileProvider>
 #include <filesystem>
 #include <cstdio>
 #include <cstdlib>

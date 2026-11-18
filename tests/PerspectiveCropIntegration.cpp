@@ -1,9 +1,8 @@
-#include <Native/Artwork.h>
-#include <Native/CanvasView.h>
-#include <iiFileProviderNative.h>
-#include <iiGraphicAdjust/Image.h>
-#include <iiGraphicAdjust/MeshFilters.h>
-#include <iiSharedCanvasNative.h>
+#include <Canvas/Artwork.h>
+#include <Canvas/CanvasView.h>
+#include <iiFileProvider>
+#include <iiGraphicAdjust>
+#include <iiSharedCanvas>
 #include <array>
 #include <filesystem>
 #include <iostream>

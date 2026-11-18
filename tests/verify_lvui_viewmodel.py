@@ -39,9 +39,9 @@ def main():
     temporary = Path(tempfile.mkdtemp(prefix="lvui-viewmodel-check-", dir=build))
     environment["TMPDIR"] = str(temporary)
     try:
-        for name, header in (("EditorViewModel", "Native/EditorBackend.h"),
-                             ("CanvasSetupViewModel", "Native/CanvasSetupModel.h"),
-                             ("TimelineViewModel", "Native/TimelineModel.h")):
+        for name, header in (("EditorViewModel", "Workspace/EditorBackend.h"),
+                             ("CanvasSetupViewModel", "Canvas/CanvasSetupModel.h"),
+                             ("TimelineViewModel", "Timeline/TimelineModel.h")):
             result = subprocess.run([str(compiler), "--name", name, "--include", header,
                                      str(root / "tests/fixtures" / (name + ".lvui"))],
                                     check=True, stdout=subprocess.PIPE, text=True, env=environment)
@@ -58,9 +58,9 @@ def main():
         includes = [temporary, root / "App", args.lvui / "src", args.lvui / "build/lvui-generated-icons",
                     args.iigui_source, args.iigui_prefix / "include", args.core_prefix / "include",
                     args.color_prefix / "include", args.iijson_source]
-        sources = [root / "tests/tst_lvui_editor_generated.cpp", root / "App/Native/EditorBackend.cpp",
-                   root / "App/Native/PresentationList.cpp", root / "App/Native/ToolSettings.cpp",
-                   root / "App/Native/TimelineModel.cpp", root / "App/Native/CanvasSetupModel.cpp",
+        sources = [root / "tests/tst_lvui_editor_generated.cpp", root / "App/Workspace/EditorBackend.cpp",
+                   root / "App/Shared/PresentationList.cpp", root / "App/Tools/ToolSettings.cpp",
+                   root / "App/Timeline/TimelineModel.cpp", root / "App/Canvas/CanvasSetupModel.cpp",
                    args.iijson_source / "iiJson/Json.cpp", args.iijson_source / "iiJson/Value.cpp"]
         command = ["xcrun", "clang++", "-std=c++23", "-DIIGUI_STATIC_DEFINE"]
         for include in includes:

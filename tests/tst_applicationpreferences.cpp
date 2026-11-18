@@ -7,7 +7,7 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
-#include <iiFileProvider.h>
+#include <iiFileProvider>
 
 class tst_ApplicationPreferences : public QObject
 {

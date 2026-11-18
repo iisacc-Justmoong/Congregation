@@ -1,5 +1,5 @@
 #include "IndependentPreferencesView.generated.h"
-#include <iiGUI/Image.h>
+#include <iiGUI>
 #include <iiGUI/WidgetState.h>
 
 #include <algorithm>

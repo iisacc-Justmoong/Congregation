@@ -85,7 +85,7 @@ function(congregation_verify_native_engine)
         endforeach()
     endwhile()
     file(WRITE "${CMAKE_BINARY_DIR}/native-engine-targets.txt" "${_native_seen}\n")
-    file(GLOB_RECURSE _sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/App/Engine/*.cpp" "${CMAKE_SOURCE_DIR}/App/Engine/*.h" "${CMAKE_SOURCE_DIR}/App/Native/*.cpp" "${CMAKE_SOURCE_DIR}/App/Native/*.h")
+    file(GLOB_RECURSE _sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/App/*.cpp" "${CMAKE_SOURCE_DIR}/App/*.h" "${CMAKE_SOURCE_DIR}/App/*.mm")
     foreach(_source IN LISTS _sources)
         file(READ "${_source}" _text)
         if(_text MATCHES "#[ \t]*include[ \t]*[<\"](Qt|Q[A-Z]|LVRS/)" OR

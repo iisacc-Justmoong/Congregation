@@ -1,8 +1,7 @@
-#include <Native/Artwork.h>
+#include <Canvas/Artwork.h>
 #include <Serialization/IiscCodec.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderDatabase.h>
-#include <iiSharedCanvasNative.h>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>

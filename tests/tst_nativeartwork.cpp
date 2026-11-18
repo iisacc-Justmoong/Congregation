@@ -1,6 +1,6 @@
-#include <Native/Artwork.h>
-#include <Engine/RecentCanvas.h>
-#include <iiFileProviderNative.h>
+#include <Canvas/Artwork.h>
+#include <Document/RecentCanvas.h>
+#include <iiFileProvider>
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>

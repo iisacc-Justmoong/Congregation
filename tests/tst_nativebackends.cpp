@@ -1,20 +1,18 @@
-#include <Engine/CanvasSession.h>
-#include <Engine/RecentCanvas.h>
-#include <Engine/EditCommand.h>
-#include <Engine/NearbyDiscovery.h>
-#include <Engine/LicenseService.h>
-#include <Engine/AsyncLicenseService.h>
-#include <Engine/WebLicenseService.h>
-#include <Engine/SocietyUpdateFeed.h>
-#include <iiAccountManager/LocalChannel.h>
+#include <Collaboration/CanvasSession.h>
+#include <Document/RecentCanvas.h>
+#include <Document/EditCommand.h>
+#include <Collaboration/NearbyDiscovery.h>
+#include <Account/LicenseService.h>
+#include <Account/AsyncLicenseService.h>
+#include <Account/WebLicenseService.h>
+#include <Update/SocietyUpdateFeed.h>
+#include <iiAccountManager>
 #include "LicenseTokenFixture.h"
-#include <Engine/Preferences.h>
-#include <Engine/DocumentMetadata.h>
-#include <iiUpdateManager/NativeUpdateManager.h>
-#include <iiFileProviderNative.h>
-#include <iiFileProviderCompatibility.h>
-#include <iiFileProviderPresentation.h>
-#include <iiSharedCanvasNative.h>
+#include <Preferences/Preferences.h>
+#include <Document/DocumentMetadata.h>
+#include <iiUpdateManager>
+#include <iiFileProvider>
+#include <iiSharedCanvas>
 #include <chrono>
 #include <iostream>
 #include <mutex>
@@ -353,30 +351,25 @@ void session()
     RecentCanvas canvas;
     canvas.document = "iisc";
     auto snapshot = encode_canvas(canvas);
-    require(snapshot && host.publish(*snapshot), "Host snapshot rejected");
+    require(snapshot && host.initialize(*snapshot), "Host snapshot rejected");
     std::size_t updates = 0, edits = 0;
     client.snapshot_received = [&](auto bytes, auto revision, auto)
     {
         require(bytes == *snapshot && revision == 1, "Native snapshot identity lost");
         ++updates;
     };
-    host.edit_received = [&](auto command, auto peer)
+    host.delta_requested = [&](std::string_view change, std::string_view peer)
     {
-        require(text(field(command, "type")) == "fill" && peer == client.peer_id,
-                "Host command identity lost");
+        require(change == "fill" && peer == client.peer_id, "Host edit identity lost");
         ++edits;
+        return true;
     };
+    client.delta_received = [](std::string_view change, auto, auto) { return change == "fill"; };
     require(client.join(host.session, "127.0.0.1", host.port(), "Guest"), "Native join rejected");
-    until(loop,
-          [&] { return updates == 1 && host.profiles.size() == 1 && client.profiles.size() == 1; });
-    Object command{{"type", Value("fill")},
-                   {"layerKey", Value("raster-canvas")},
-                   {"x", Value(1.0)},
-                   {"y", Value(2.0)},
-                   {"color", Value("#123")}};
-    require(client.submit(command), "Client edit rejected");
-    until(loop, [&] { return edits == 1; });
-    require(host.revision == 1 && !client.publish(*snapshot), "Client obtained snapshot authority");
+    until(loop, [&] { return updates == 1 && host.profiles.size() == 1 && client.profiles.size() == 1; });
+    require(client.submit_delta("fill", 1), "Client edit rejected");
+    until(loop, [&] { return edits == 1 && client.revision == 2; });
+    require(host.revision == 2 && !client.initialize(*snapshot), "Client obtained snapshot authority");
     require(host.remove(client.peer_id), "Host removal rejected");
     until(loop,
           [&] { return client.state == CanvasSession::State::idle && host.profiles.empty(); });
@@ -390,15 +383,33 @@ void native_session()
     ii::runtime::EventLoop loop;CanvasSession host(loop,uuid()),client(loop,uuid());
     iiSharedCanvas::Document document;document.extent={8,8};document.assets.emplace_back(iiSharedCanvas::RasterAsset{"paint",makeRasterLayer(8,8,0)});document.layers.emplace_back(iiSharedCanvas::StaticBitmapLayer{{"paint-layer","Paint"},iiSharedCanvas::StaticSource{"paint"}});
     auto encoded=iiSharedCanvas::encodeIisc(document);require(encoded.ok(),"Cannot encode the native session fixture");const std::string snapshot(reinterpret_cast<const char*>(encoded.bytes.data()),encoded.bytes.size());
-    require(host.host("Host")&&host.publish(snapshot),"Native host snapshot rejected");int received=0,edits=0;
-    client.snapshot_received=[&](auto bytes,auto revision,auto){require(bytes==snapshot&&revision==std::uint64_t(received+1),"Native session changed canonical bytes or revision");++received;};
-    host.edit_received=[&](auto command,auto peer){require(text(field(command,"type"))=="nativeDocument"&&peer==client.peer_id,"Native edit identity lost");++edits;require(host.publish(snapshot),"Host could not publish the durable edit");};
-    require(client.join(host.session,"127.0.0.1",host.port(),"Guest"),"Native session join rejected");until(loop,[&]{return received==1;});
-    Object command{{"type",Value("nativeDocument")},{"document",Value(base64(snapshot))},{"baseRevision",Value(std::uint64_t(1))}};
-    require(client.submit(command),"Canonical edit admission failed");until(loop,[&]{return edits==1&&received==2;});
-    require(client.submit(command),"Stale edit could not reach host validation");until(loop,[&]{return client.state==CanvasSession::State::idle;});
-    require(edits==1&&host.revision==2&&client.error.find("changed")!=std::string::npos,"Stale canonical edit overwrote a newer document");
-    command["document"]=Value(base64("invalid"));require(!normalize_command(command),"Malformed canonical document accepted");host.stop();loop.poll();
+    require(host.host("Host") && host.initialize(snapshot), "Native host snapshot rejected");
+    int received = 0, edits = 0;
+    client.snapshot_received = [&](auto bytes, auto revision, auto) {
+        require(bytes == snapshot && revision == 1, "Native session changed canonical bytes or revision");
+        ++received;
+    };
+    auto next = document;
+    next.timeline.frameCount = 2;
+    const auto delta = iiSharedCanvas::encodeIiscEdit(document, next);
+    require(delta.ok(), "Could not encode native timeline edit");
+    const std::string change(delta.bytes.begin(), delta.bytes.end());
+    host.delta_requested = [&](std::string_view bytes, std::string_view peer) {
+        require(bytes == change && peer == client.peer_id, "Native edit identity lost");
+        ++edits;
+        return true;
+    };
+    client.delta_received = [&](std::string_view bytes, auto, auto) { return bytes == change; };
+    require(client.join(host.session, "127.0.0.1", host.port(), "Guest"), "Native session join rejected");
+    until(loop, [&] { return received == 1; });
+    require(client.submit_delta(change, 1), "Canonical edit admission failed");
+    until(loop, [&] { return edits == 1 && client.revision == 2; });
+    require(client.submit_delta(change, 1), "Stale edit could not reach host validation");
+    until(loop, [&] { return client.state == CanvasSession::State::idle; });
+    require(edits == 1 && received == 1 && host.revision == 2 && client.error.find("changed") != std::string::npos,
+            "Stale edit modified the document or requested a new snapshot");
+    host.stop();
+    loop.poll();
 }
 void protocol()
 {

@@ -57,3 +57,6 @@ Markdown is the maintained human source. Agent JSON is a structured, source-trac
 | [`resources/figma/README.md`](../resources/figma/README.md) | [JSON](mirrors/resources/figma/README.agent.json) |
 | [`resources/icons/README.md`](../resources/icons/README.md) | [JSON](mirrors/resources/icons/README.agent.json) |
 <!-- workspace-docs:document-map:end -->
+
+For canvas creation and multi-canvas editing, see [the human guide](MULTI_CANVAS.md)
+and its [agent document](MULTI_CANVAS.agent.json).
