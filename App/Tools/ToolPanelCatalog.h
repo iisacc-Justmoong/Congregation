@@ -25,5 +25,7 @@ struct Panel final {
 
 [[nodiscard]] std::span<const Panel> panels() noexcept;
 [[nodiscard]] const Panel* find(std::string_view tool) noexcept;
+// These brushes share the LVUI parameter section and the inspector's Opacity control.
+[[nodiscard]] bool uses_brush_parameters(std::string_view tool) noexcept;
 
 } // namespace congregation::native::tool_panels

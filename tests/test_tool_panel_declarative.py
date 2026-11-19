@@ -37,8 +37,10 @@ class ToolPanelDeclarativeBoundary(unittest.TestCase):
                    "mixer-sample-all", "mixer-clean-after", "mixer-load-after", "mixing-active",
                    "absolute-spacing", "pressure-opacity-enabled", "pressure-curve-min",
                    "pressure-curve-mid", "pressure-curve-max"}
-        self.assertEqual(expected - variant, set(declared))
-        self.assertTrue(variant.issubset(expected))
+        # Base opacity is shown above the scroll view in the shared inspector.
+        outside_panel = {"opacity"}
+        self.assertEqual(expected - (variant | outside_panel), set(declared))
+        self.assertTrue((variant | outside_panel).issubset(expected))
         self.assertEqual(len(declared), len(set(declared)), "Every parameter must have one control")
 
     def test_applying_brush_does_not_write_back_unrelated_settings(self):

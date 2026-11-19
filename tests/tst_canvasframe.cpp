@@ -56,7 +56,22 @@ int main(int argc,char **argv) {
             check(intended>0 && displaced==0,"view did not pass the displayed frame to painting");
         } else if (mode=="eyedropper") {
             check(alpha(art.document(),4,73,40)>0 && alpha(art.document(),0,73,40)==0,"eyedropper control");
-            std::uint32_t picked=0; view.color_picked=[&](std::uint32_t color){picked=color;};
+            std::uint32_t picked=0;
+            int samples=0;
+            view.color_picked=[&](std::uint32_t color){picked=color; ++samples;};
+            // A temporary sampler owns the entire left-button gesture and
+            // reads the visible frame without starting or committing paint.
+            const auto revision=art.revision();
+            view.color=0xff0000ffU;
+            auto sample=view.input({.kind=K::pointer_down,.x=73,.y=40,.alt=true,.buttons=1});
+            check(sample && *sample && picked==0xffff0000U && view.color==picked &&
+                  view.tool=="brush" && !art.stroke_active(),
+                  "Option-click did not sample the visible frame as the active brush");
+            send(view,K::pointer_move,88,40);
+            send(view,K::pointer_up,88,40);
+            check(samples==1 && art.revision()==revision && !art.stroke_active() && !view.interaction_active(),
+                  "Temporary eyedropper repeated the sample, painted, or retained capture");
+            picked=0;
             view.tool="eyedropper"; send(view,K::pointer_down,73,40);
             std::cout << "picked=" << picked << '\n';
             check(picked==0xffff0000U,"eyedropper did not sample the displayed frame");

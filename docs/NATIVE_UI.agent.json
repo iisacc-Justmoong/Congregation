@@ -10,8 +10,8 @@
   },
   "source": {
     "path": "docs/NATIVE_UI.md",
-    "sha256": "8f738bb061754efbfb5d92ab66e3e585c4a5c57cc7dd8e3dc1863613a1772fc8",
-    "bytes": 8647,
+    "sha256": "b1ffe5e041eebaa01ecf579ebe12e8da318cf431b63d9e3cb2fd7e9363a49eec",
+    "bytes": 8623,
     "line_count": 110,
     "encoding": "utf-8",
     "language": "ko"
@@ -275,7 +275,7 @@
       "kind": "paragraph",
       "start_line": 60,
       "end_line": 65,
-      "raw": "macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지\n않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,\nWindow, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱\n메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을\n표시한다. Undo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,\n`Congregation.app_menu` 검사는 메뉴 순서, 단축키와 명령 연결을 확인한다.\n"
+      "raw": "macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지\n않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Sequence,\nFilter, 3D, Window, Help이다. Sequence 명령은 비활성이며 단축키는 안내용이다. Preferences 명령은\nEdit 메뉴에 있고 종료는 macOS 기본 앱 메뉴에서 처리한다.\nUndo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,\n`Congregation.app_menu` 검사는 메뉴 순서, 단축키와 명령 연결을 확인한다.\n"
     },
     {
       "id": "b000036",

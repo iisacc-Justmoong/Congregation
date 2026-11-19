@@ -102,7 +102,6 @@ void WorkspaceView::build(ii::gui::WidgetBuilder &raw, ii::gui::Widget parent)
     good(raw.retain(bindings_));
     const auto root = b.column(parent, "workspace");
     good(root.set_flex(1));
-    good(ii::gui::bind_visible(*bindings_, root, vm_->workspace_visible));
     const auto body = take(b.controls.hstack(
         root, "work-area",
         {.spacing = Metric::space0, .alignment = ii::gui::StackAlignment::stretch}));
@@ -260,27 +259,49 @@ void WorkspaceView::inspector(ii::gui::WidgetBuilder &raw, ii::gui::Widget paren
     auto opacityRow = b.row(opacityGroup);
     b.label(opacityRow, "Opacity");
     b.space(opacityRow);
-    auto alphaValue =
+    auto opacityValue =
         take(b.controls.input_field(opacityRow, "color-alpha-value",
                                     {.text = "100%",
                                      .read_only = true,
                                      .width = Metric::size106}));
-    auto alpha = take(b.controls.slider(
+    // The shared horizontal control edits the active brush profile when the
+    // brush settings are mounted. The color rail still edits foreground alpha.
+    const auto uses_brush_opacity = [vm = vm_]
+    {
+        return tool_panels::uses_brush_parameters(vm->inspected_tool.get());
+    };
+    auto opacitySlider = take(b.controls.slider(
         opacityGroup, "color-alpha",
         {.value = 1,
          .width = Metric::inspectorWidth - 2 * Metric::space8,
-         .accessibility_name = "Color opacity",
+         .accessibility_name = "Opacity",
          .size = lvui::SliderSize::mini},
-        [vm = vm_](double value)
-        { good(vm->color->set_alpha(value)); }));
-    good(bindings_->bind(alphaValue, vm_->current_color,
-        [model = vm_->color, alphaValue, alpha, alphaRail](Widget, const ii::gui::WidgetColor &color)
+        [vm = vm_, uses_brush_opacity](double value)
         {
-            good(alphaValue.set_text(ii::core::format_decimal(std::round(color.alpha * 100)) +
-                                     "%"));
-            good(alpha.set_value(color.alpha));
+            if (uses_brush_opacity()) vm->set_opacity(value);
+            else good(vm->color->set_alpha(value));
+        }));
+    const auto show_opacity = [opacityValue, opacitySlider](double value) -> ii::core::Result<void>
+    {
+        if (auto result = opacityValue.set_text(ii::core::format_decimal(std::round(value * 100)) + "%"); !result)
+            return result;
+        return opacitySlider.set_value(value);
+    };
+    good(bindings_->bind(opacityValue, vm_->inspected_tool,
+        [vm = vm_, show_opacity](Widget, const std::string& tool)
+        {
+            return show_opacity(tool_panels::uses_brush_parameters(tool) ? vm->opacity.get() : vm->current_color.get().alpha);
+        }));
+    good(bindings_->bind(opacityValue, vm_->opacity,
+        [uses_brush_opacity, show_opacity](Widget, double value) -> ii::core::Result<void>
+        {
+            return uses_brush_opacity() ? show_opacity(value) : ii::core::Result<void>{};
+        }));
+    good(bindings_->bind(opacityValue, vm_->current_color,
+        [model = vm_->color, alphaRail, uses_brush_opacity, show_opacity](Widget, const ii::gui::WidgetColor &color)
+        {
             paint_alpha_rail(alphaRail, model);
-            return ii::core::Result<void>{};
+            return uses_brush_opacity() ? ii::core::Result<void>{} : show_opacity(color.alpha);
         }));
     (void)build_tool_panel(raw, tool, vm_);
     auto generative = b.column(root, "generative-detail", 0, 0, Metric::space12, Metric::space12);

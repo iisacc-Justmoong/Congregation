@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/TOOL_SHORTCUTS.md",
-    "sha256": "1faa00d6cde46951aeb0c40be5e6c74dfee67136d60b185dc53fef2f59b8dfe0",
-    "bytes": 4055,
-    "line_count": 78,
+    "sha256": "275a7e436e77530e94d636ff1dae9b8d7e9efd4d1d5ca0093f0af6cc2ecfc861",
+    "bytes": 7946,
+    "line_count": 129,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -72,8 +72,8 @@
       "id": "b000007",
       "kind": "list",
       "start_line": 10,
-      "end_line": 18,
-      "raw": "- 다른 도구군을 사용 중이라면 문자 키로 아래 표의 첫 번째 도구를 선택한다.\n- 같은 도구군의 단축키를 다시 누를 때마다 표의 다음 도구로 이동한다. 마지막\n  도구 다음에는 첫 번째 도구로 돌아간다. 마우스 등으로 고른 도구도 순환의\n  기준이 된다. 사용할 수 없는 도구는 안내를 표시하며 다음 전환을 막지 않는다.\n- `Shift`나 `Option/Alt`를 누른 문자 키는 도구군을 전환하지 않는다.\n- `Command/Ctrl + 위쪽 화살표`와 `Command/Ctrl + 아래쪽 화살표`는 브러시\n  크기를 각각 1px씩 정밀하게 증감한다. 크기는 설정의 허용 범위에 묶인다.\n- 텍스트를 입력하는 동안에는 이 단축키가 도구나 브러시 설정을 바꾸지 않는다.\n- `Command/Ctrl`과 `Option/Alt`를 함께 누른 입력은 도구 단축키가 가로채지 않는다.\n",
+      "end_line": 19,
+      "raw": "- 다른 도구군을 사용 중이라면 문자 키로 아래 표의 첫 번째 도구를 선택한다.\n- 같은 도구군의 단축키를 다시 누를 때마다 표의 다음 도구로 이동한다. 마지막\n  도구 다음에는 첫 번째 도구로 돌아간다. 마우스 등으로 고른 도구도 순환의\n  기준이 된다. 사용할 수 없는 도구는 안내를 표시하며 다음 전환을 막지 않는다.\n- `Shift`나 `Option/Alt`를 누른 문자 키는 도구군을 전환하지 않는다.\n- `Command/Ctrl + 위쪽 화살표`와 `Command/Ctrl + 아래쪽 화살표`는 브러시\n  크기를 각각 1px씩 정밀하게 증감한다. 크기는 설정의 허용 범위에 묶인다.\n- 텍스트를 입력하는 동안에는 이 단축키가 도구나 브러시 설정을 바꾸지 않는다.\n- 키보드 도구 단축키는 `Command/Ctrl`과 `Option/Alt`를 함께 누른 키 입력을\n  다른 명령에 넘긴다.\n",
       "items": [
         {
           "marker": "-",
@@ -102,53 +102,237 @@
         },
         {
           "marker": "-",
-          "text": "`Command/Ctrl`과 `Option/Alt`를 함께 누른 입력은 도구 단축키가 가로채지 않는다.",
+          "text": "키보드 도구 단축키는 `Command/Ctrl`과 `Option/Alt`를 함께 누른 키 입력을",
           "checked": null
         }
       ]
     },
     {
-      "id": "b000008",
       "kind": "blank",
-      "start_line": 19,
-      "end_line": 19,
+      "id": "b000008",
+      "start_line": 20,
+      "end_line": 20,
       "raw": "\n"
     },
     {
-      "id": "b000009",
       "kind": "heading",
-      "start_line": 20,
-      "end_line": 20,
+      "level": 2,
+      "title": "브러시 불투명도",
+      "id": "b000009",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "## 브러시 불투명도\n"
+    },
+    {
+      "kind": "blank",
+      "id": "b000010",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "kind": "paragraph",
+      "id": "b000011",
+      "start_line": 23,
+      "end_line": 27,
+      "raw": "브러시 도구군(`B`)에서는 키보드 상단 숫자열로 활성 브러시의 `Opacity`를 조작한다.\n`7`을 한 번 누르면 즉시 70%가 된다. 첫 입력 후 300ms 이내에 두 번째 숫자를\n누르면 두 숫자를 백분율로 적용한다. `2`를 두 번 누르면 20%에서 22%로 바뀐다.\n`0` 한 번은 100%, 연속 `00`은 0%, 연속 `05`는 5%이다. 두 자리가 완성되면\n다음 숫자는 새 입력을 시작한다. [Adobe Photoshop 브러시 불투명도](https://helpx.adobe.com/photoshop/desktop/apply-painting-techniques/brushes-presets/paint-with-brush-or-pencil-tool.html)\n"
+    },
+    {
+      "kind": "blank",
+      "id": "b000012",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "kind": "paragraph",
+      "id": "b000013",
+      "start_line": 29,
+      "end_line": 31,
+      "raw": "숫자패드, 보조 키와 함께 누른 숫자, 키를 누른 채 유지할 때의 반복 신호는 이 단축키의\n대상에서 제외한다. 텍스트 입력란은 숫자를 편집에 사용한다. 다른 키를 누르거나 활성\n브러시가 달라지면 다음 숫자는 새 입력으로 처리한다.\n"
+    },
+    {
+      "kind": "blank",
+      "id": "b000014",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "\n"
+    },
+    {
+      "kind": "paragraph",
+      "id": "b000015",
+      "start_line": 33,
+      "end_line": 35,
+      "raw": "키로 변경한 값은 활성 브러시의 기존 `Opacity` 설정·패널 표시·캔버스에 반영된다.\n다른 브러시로 전환하면 그 브러시의 설정이 적용된다. 변경 값을 계속 사용하려면\nTool 패널의 기존 설정 저장 기능을 사용한다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "\n"
+    },
+    {
+      "kind": "heading",
+      "raw": "## 브러시 포인터 단축키\n",
+      "level": 2,
+      "title": "브러시 포인터 단축키",
+      "id": "b000017",
+      "start_line": 37,
+      "end_line": 37
+    },
+    {
+      "kind": "blank",
+      "raw": "\n",
+      "id": "b000018",
+      "start_line": 38,
+      "end_line": 38
+    },
+    {
+      "kind": "paragraph",
+      "raw": "브러시가 활성화된 상태에서 캔버스 위의 마우스로 조작한다.\n",
+      "id": "b000019",
+      "start_line": 39,
+      "end_line": 39
+    },
+    {
+      "kind": "blank",
+      "raw": "\n",
+      "id": "b000020",
+      "start_line": 40,
+      "end_line": 40
+    },
+    {
+      "kind": "list",
+      "raw": "- `Option/Alt + 왼쪽 클릭`은 현재 표시 중인 프레임의 합성 픽셀을 샘플링해\n  전경색으로 적용한다. 색을 집은 뒤 같은 브러시 프로필로 계속 그릴 수 있다.\n  [Adobe Photoshop 페인팅 중 색상 선택](https://helpx.adobe.com/uk/photoshop/desktop/adjust-color/choose-colors/choose-a-color-while-painting.html)\n- `Command + Option + 왼쪽 버튼 드래그`는 활성 브러시의 크기 또는 경도를\n  바꾼다. Windows와 Linux에서는 `Ctrl + Alt`를 쓴다. 오른쪽으로 밀면 크기가\n  커지고 왼쪽으로 밀면 작아진다. 아래로 밀면 경도가 높아지고 위로 밀면 낮아진다.\n  [Adobe Photoshop 브러시 포인터 조정](https://helpx.adobe.com/au/photoshop/desktop/get-started/settings-and-preferences/change-tool-pointers.html)\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`Option/Alt + 왼쪽 클릭`은 현재 표시 중인 프레임의 합성 픽셀을 샘플링해",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Command + Option + 왼쪽 버튼 드래그`는 활성 브러시의 크기 또는 경도를",
+          "checked": null
+        }
+      ],
+      "id": "b000021",
+      "start_line": 41,
+      "end_line": 47
+    },
+    {
+      "kind": "blank",
+      "raw": "\n",
+      "id": "b000022",
+      "start_line": 48,
+      "end_line": 48
+    },
+    {
+      "kind": "paragraph",
+      "raw": "드래그는 시작점에서 4 논리 픽셀 이상 움직였을 때 이동량이 큰 축으로 고정된다.\n이후 이동량을 시작점 기준으로 계산한다. 수평 이동 1 논리 픽셀은 브러시 크기\n1px, 수직 이동 1 논리 픽셀은 경도 1%p에 해당한다. 크기 범위는 1–1024px이고\n경도 범위는 0–100%이다. 조작 중 바뀌는 값은 Tool 패널의 `Size` 또는\n`Hardness`에 반영되며, 도구를 바꾸거나 포인터 조작이 취소되면 드래그가 끝난다.\n",
+      "id": "b000023",
+      "start_line": 49,
+      "end_line": 53
+    },
+    {
+      "kind": "blank",
+      "raw": "\n",
+      "id": "b000024",
+      "start_line": 54,
+      "end_line": 54
+    },
+    {
+      "kind": "paragraph",
+      "raw": "네이티브 자체 검사는 열린 편집기의 캔버스에 네 방향의 수정키 드래그를 전달한다.\n각 드래그에서 대응하는 설정 값과 캔버스 편집 버전을 확인한다.\n",
+      "id": "b000025",
+      "start_line": 55,
+      "end_line": 56
+    },
+    {
+      "kind": "blank",
+      "raw": "\n",
+      "id": "b000026",
+      "start_line": 57,
+      "end_line": 57
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 58,
+      "end_line": 60,
+      "raw": "마우스가 캔버스 위에 있을 때 브러시, 지우개, 복제 도장은 현재 팁의 윤곽을\n커서로 표시한다. 윤곽은 문서 픽셀 단위의 크기에 뷰포트 확대율을 곱해 그린다.\n활성 팁의 모양, 원형률, 각도가 반영된다. 펜 입력의 동역학은 획에 적용된다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 61,
+      "end_line": 61,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 62,
+      "end_line": 65,
+      "raw": "스포이드 도구 또는 브러시의 `Option/Alt + 왼쪽 버튼`으로 색을 채취할 때,\n버튼을 누른 동안 채취 지점의 원형 링 위쪽에 채취한 색, 아래쪽에 직전 전경색을\n표시한다. 열린 중앙으로 원래 픽셀이 보인다. 버튼을 떼거나 캔버스를 벗어나면\n링이 사라진다. 채취한 색은 누르는 순간 적용된다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 66,
+      "end_line": 66,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 67,
+      "end_line": 69,
+      "raw": "두 커서는 캔버스의 표시 레이어에서 갱신한다. 포인터 이동은 문서 버전을 바꾸거나\n캔버스 타일을 다시 합성하지 않는다.\n[Figma 커서 시안](https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=485-20746)\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 70,
+      "end_line": 70,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 71,
+      "end_line": 71,
       "raw": "## 도구군\n",
       "level": 2,
       "title": "도구군"
     },
     {
-      "id": "b000010",
+      "id": "b000034",
       "kind": "blank",
-      "start_line": 21,
-      "end_line": 21,
+      "start_line": 72,
+      "end_line": 72,
       "raw": "\n"
     },
     {
-      "id": "b000011",
+      "id": "b000035",
       "kind": "paragraph",
-      "start_line": 22,
-      "end_line": 24,
+      "start_line": 73,
+      "end_line": 75,
       "raw": "각 행의 순서는 문자 키를 반복해서 누를 때의 순서다. Photoshop과 Clip Studio\nPaint의 주요 문자 할당을 우선하고, 두 제품의 기본값이 충돌하거나 대응 도구가\n없는 경우 Congregation의 나머지 키를 사용한다.\n"
     },
     {
-      "id": "b000012",
+      "id": "b000036",
       "kind": "blank",
-      "start_line": 25,
-      "end_line": 25,
+      "start_line": 76,
+      "end_line": 76,
       "raw": "\n"
     },
     {
-      "id": "b000013",
+      "id": "b000037",
       "kind": "table",
-      "start_line": 26,
-      "end_line": 49,
+      "start_line": 77,
+      "end_line": 100,
       "raw": "| 키 | 도구 순서 |\n| --- | --- |\n| `V` | Move |\n| `M` | Rectangular Marquee → Elliptical Marquee |\n| `L` | Lasso → Polygonal Lasso → Magnetic Lasso |\n| `W` | Magic Wand |\n| `C` | Crop → Perspective Crop |\n| `I` | Eyedropper |\n| `B` | Brush → Pencil → Airbrush → Mixer Brush → Dry Brush → Bristle Brush |\n| `E` | Eraser |\n| `G` | Gradient → Paint Bucket |\n| `K` | Smudge → Blur → Sharpen |\n| `S` | Clone Stamp → Pattern Stamp |\n| `J` | Spot Healing Brush → Healing Brush |\n| `O` | Dodge → Burn → Sponge |\n| `Y` | Liquify → Warp |\n| `P` | Pen → Curvature Pen → Add Anchor Point → Delete Anchor Point |\n| `A` | Direct Selection |\n| `U` | Rectangle → Ellipse → Polygon |\n| `T` | Area Text → Path Text |\n| `H` | Hand |\n| `R` | Rotate View |\n| `Z` | Zoom |\n| `Q` | Quick Mask 켜기/적용 |\n",
       "columns": [
         "키",
@@ -246,33 +430,33 @@
       ]
     },
     {
-      "id": "b000014",
+      "id": "b000038",
       "kind": "blank",
-      "start_line": 50,
-      "end_line": 50,
+      "start_line": 101,
+      "end_line": 101,
       "raw": "\n"
     },
     {
-      "id": "b000015",
+      "id": "b000039",
       "kind": "heading",
-      "start_line": 51,
-      "end_line": 51,
+      "start_line": 102,
+      "end_line": 102,
       "raw": "## 도구 모음의 공통 기능\n",
       "level": 2,
       "title": "도구 모음의 공통 기능"
     },
     {
-      "id": "b000016",
+      "id": "b000040",
       "kind": "blank",
-      "start_line": 52,
-      "end_line": 52,
+      "start_line": 103,
+      "end_line": 103,
       "raw": "\n"
     },
     {
-      "id": "b000017",
+      "id": "b000041",
       "kind": "table",
-      "start_line": 53,
-      "end_line": 56,
+      "start_line": 104,
+      "end_line": 107,
       "raw": "| 키 | 동작 |\n| --- | --- |\n| `Command/Ctrl + R` | Rulers 표시 전환 |\n| `Command/Ctrl + Shift + R` | 수직 Symmetry Painting 켜기/끄기 |\n",
       "columns": [
         "키",
@@ -290,91 +474,91 @@
       ]
     },
     {
-      "id": "b000018",
+      "id": "b000042",
       "kind": "blank",
-      "start_line": 57,
-      "end_line": 57,
+      "start_line": 108,
+      "end_line": 108,
       "raw": "\n"
     },
     {
-      "id": "b000019",
+      "id": "b000043",
       "kind": "paragraph",
-      "start_line": 58,
-      "end_line": 59,
+      "start_line": 109,
+      "end_line": 110,
       "raw": "환경설정은 기존 앱 메뉴의 `Command/Ctrl + ,`를 사용한다. 파일·편집 메뉴의\nNew, Open, Save, Undo/Redo, Copy/Paste 및 선택 명령은 기존 명령 키를 유지한다.\n"
     },
     {
-      "id": "b000020",
+      "id": "b000044",
       "kind": "blank",
-      "start_line": 60,
-      "end_line": 60,
+      "start_line": 111,
+      "end_line": 111,
       "raw": "\n"
     },
     {
-      "id": "b000021",
+      "id": "b000045",
       "kind": "heading",
-      "start_line": 61,
-      "end_line": 61,
+      "start_line": 112,
+      "end_line": 112,
       "raw": "## 현재 구현 범위\n",
       "level": 2,
       "title": "현재 구현 범위"
     },
     {
-      "id": "b000022",
+      "id": "b000046",
       "kind": "blank",
-      "start_line": 62,
-      "end_line": 62,
+      "start_line": 113,
+      "end_line": 113,
       "raw": "\n"
     },
     {
-      "id": "b000023",
+      "id": "b000047",
       "kind": "paragraph",
-      "start_line": 63,
-      "end_line": 67,
+      "start_line": 114,
+      "end_line": 118,
       "raw": "단축키는 편집기의 기존 도구 선택 및 공통 기능으로 연결한다. 현재 편집기가\n지원하지 않는 Pattern Stamp, Spot Healing Brush, Healing Brush, Blur,\nSharpen, Dodge, Burn, Sponge, Liquify, Warp, Pen, Curvature Pen, Add/Delete\nAnchor Point, Path Text, Rotate View는 선택을 가장하지 않고 사용할 수 없다는\n안내를 표시한다. 도구 기능 구현 여부는 단축키 할당과 별개다.\n"
     },
     {
-      "id": "b000024",
+      "id": "b000048",
       "kind": "blank",
-      "start_line": 68,
-      "end_line": 68,
+      "start_line": 119,
+      "end_line": 119,
       "raw": "\n"
     },
     {
-      "id": "b000025",
+      "id": "b000049",
       "kind": "paragraph",
-      "start_line": 69,
-      "end_line": 72,
+      "start_line": 120,
+      "end_line": 123,
       "raw": "실제 플랫폼의 키 전달과 앱 설치 상태는 이 문서만으로 보장하지 않는다. iiGUI의\niPadOS 호스트에는 텍스트 편집 중이 아닐 때 외장 키보드의 문자 키를 전달하는\n소스 수정이 포함되어 있다. 수정된 SDK를 링크한 iPad 앱과 실제 키보드·입력기\n동작은 별도로 빌드하고 기기에서 확인해야 한다.\n"
     },
     {
-      "id": "b000026",
+      "id": "b000050",
       "kind": "blank",
-      "start_line": 73,
-      "end_line": 73,
+      "start_line": 124,
+      "end_line": 124,
       "raw": "\n"
     },
     {
-      "id": "b000027",
+      "id": "b000051",
       "kind": "heading",
-      "start_line": 74,
-      "end_line": 74,
+      "start_line": 125,
+      "end_line": 125,
       "raw": "## 참고\n",
       "level": 2,
       "title": "참고"
     },
     {
-      "id": "b000028",
+      "id": "b000052",
       "kind": "blank",
-      "start_line": 75,
-      "end_line": 75,
+      "start_line": 126,
+      "end_line": 126,
       "raw": "\n"
     },
     {
-      "id": "b000029",
+      "id": "b000053",
       "kind": "list",
-      "start_line": 76,
-      "end_line": 78,
+      "start_line": 127,
+      "end_line": 129,
       "raw": "- [Adobe Photoshop 도구 단축키](https://helpx.adobe.com/content/dam/help/en/photoshop/using/default-keyboard-shortcuts/photoshop-keyboard-shortcuts.pdf)\n- [Clip Studio Paint 도구 단축키](https://help.clip-studio.com/en-us/manual_en/780_shortcuts/Tool_Shortcuts.htm)\n- [Clip Studio Paint 조작 중 보조 키](https://help.clip-studio.com/en-us/manual_en/780_shortcuts/Shortcuts_usable_during_operation.htm)\n",
       "items": [
         {
@@ -416,33 +600,49 @@
       "block_id": "b000009",
       "parent_id": "b000001",
       "level": 2,
-      "title": "도구군",
-      "anchor": "도구군",
-      "start_line": 20
+      "title": "브러시 불투명도",
+      "anchor": "브러시-불투명도",
+      "start_line": 21
     },
     {
-      "block_id": "b000015",
+      "block_id": "b000017",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "브러시 포인터 단축키",
+      "anchor": "브러시-포인터-단축키",
+      "start_line": 37
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "도구군",
+      "anchor": "도구군",
+      "start_line": 71
+    },
+    {
+      "block_id": "b000039",
       "parent_id": "b000001",
       "level": 2,
       "title": "도구 모음의 공통 기능",
       "anchor": "도구-모음의-공통-기능",
-      "start_line": 51
+      "start_line": 102
     },
     {
-      "block_id": "b000021",
+      "block_id": "b000045",
       "parent_id": "b000001",
       "level": 2,
       "title": "현재 구현 범위",
       "anchor": "현재-구현-범위",
-      "start_line": 61
+      "start_line": 112
     },
     {
-      "block_id": "b000027",
+      "block_id": "b000051",
       "parent_id": "b000001",
       "level": 2,
       "title": "참고",
       "anchor": "참고",
-      "start_line": 74
+      "start_line": 125
     }
   ],
   "indexes": {
@@ -455,15 +655,15 @@
         "context": "list"
       },
       {
-        "block_id": "b000025",
-        "line": 69,
+        "block_id": "b000049",
+        "line": 120,
         "text": "실제 플랫폼의 키 전달과 앱 설치 상태는 이 문서만으로 보장하지 않는다. iiGUI의",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000025",
-        "line": 72,
+        "block_id": "b000049",
+        "line": 123,
         "text": "동작은 별도로 빌드하고 기기에서 확인해야 한다.",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -472,30 +672,58 @@
     "commands": [],
     "links": [
       {
-        "block_id": "b000029",
+        "block_id": "b000011",
+        "label": "Adobe Photoshop 브러시 불투명도",
+        "target": "https://helpx.adobe.com/photoshop/desktop/apply-painting-techniques/brushes-presets/paint-with-brush-or-pencil-tool.html",
+        "kind": "external",
+        "line": 27
+      },
+      {
+        "block_id": "b000021",
+        "label": "Adobe Photoshop 페인팅 중 색상 선택",
+        "target": "https://helpx.adobe.com/uk/photoshop/desktop/adjust-color/choose-colors/choose-a-color-while-painting.html",
+        "kind": "external",
+        "line": 43
+      },
+      {
+        "block_id": "b000021",
+        "label": "Adobe Photoshop 브러시 포인터 조정",
+        "target": "https://helpx.adobe.com/au/photoshop/desktop/get-started/settings-and-preferences/change-tool-pointers.html",
+        "kind": "external",
+        "line": 47
+      },
+      {
+        "block_id": "b000031",
+        "line": 69,
+        "label": "Figma 커서 시안",
+        "target": "https://www.figma.com/design/r4E0PNUdZuo6dEiMEitF2I/Congregation?node-id=485-20746",
+        "kind": "external"
+      },
+      {
+        "block_id": "b000053",
         "label": "Adobe Photoshop 도구 단축키",
         "target": "https://helpx.adobe.com/content/dam/help/en/photoshop/using/default-keyboard-shortcuts/photoshop-keyboard-shortcuts.pdf",
         "kind": "external",
-        "line": 76
+        "line": 127
       },
       {
-        "block_id": "b000029",
+        "block_id": "b000053",
         "label": "Clip Studio Paint 도구 단축키",
         "target": "https://help.clip-studio.com/en-us/manual_en/780_shortcuts/Tool_Shortcuts.htm",
         "kind": "external",
-        "line": 77
+        "line": 128
       },
       {
-        "block_id": "b000029",
+        "block_id": "b000053",
         "label": "Clip Studio Paint 조작 중 보조 키",
         "target": "https://help.clip-studio.com/en-us/manual_en/780_shortcuts/Shortcuts_usable_during_operation.htm",
         "kind": "external",
-        "line": 78
+        "line": 129
       }
     ],
     "tables": [
       {
-        "block_id": "b000013",
+        "block_id": "b000037",
         "columns": [
           "키",
           "도구 순서"
@@ -592,7 +820,7 @@
         ]
       },
       {
-        "block_id": "b000017",
+        "block_id": "b000041",
         "columns": [
           "키",
           "동작"

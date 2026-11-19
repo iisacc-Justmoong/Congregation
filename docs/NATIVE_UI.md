@@ -58,10 +58,10 @@ Fit은 문서가 표시 영역보다 작을 때도 비율을 유지하며 확대
 ## macOS 글로벌 메뉴
 
 macOS가 제공하는 기본 앱 메뉴를 그대로 사용하며 앱 이름의 메뉴를 별도로 추가하지
-않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Filter,
-Window, Help이다. 기존 Preferences 명령은 Edit 메뉴에 있고 종료는 macOS 기본 앱
-메뉴에서 처리한다. Filter와 Help에는 아직 연결된 기능이 없어 비활성 안내 항목을
-표시한다. Undo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,
+않는다. 그 뒤의 메뉴 순서는 File, Edit, Select, View, Layer, Image, Sequence,
+Filter, 3D, Window, Help이다. Sequence 명령은 비활성이며 단축키는 안내용이다. Preferences 명령은
+Edit 메뉴에 있고 종료는 macOS 기본 앱 메뉴에서 처리한다.
+Undo와 Redo는 각각 Command-Z와 Shift-Command-Z로 실행하며,
 `Congregation.app_menu` 검사는 메뉴 순서, 단축키와 명령 연결을 확인한다.
 
 ## 우측 패널 세그먼트

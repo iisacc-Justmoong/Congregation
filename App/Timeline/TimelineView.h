@@ -31,8 +31,13 @@ class TimelineView final : public std::enable_shared_from_this<TimelineView>
         bool audio = false;
         std::optional<LayerPreviewKey> preview_key;
         std::shared_ptr<const ii::gui::RasterImage> preview;
+        // Occupied cells are independent of pixel opacity and playhead position.
+        std::optional<iiSharedCanvas::LayerFrameRange> content_frames;
         friend bool operator==(const Row&, const Row&) = default;
     };
+    // Project one document layer onto its retained timeline row.
+    void update_layer(Row&, const iiSharedCanvas::Document&, const iiSharedCanvas::Layer&,
+                      iiSharedCanvas::FrameIndex, bool force_pixels, bool update_keys);
     void paint(bool update_rows = true);
     void paint_row(std::size_t);
     void paint_rows(const std::vector<std::size_t>&);
@@ -53,7 +58,7 @@ class TimelineView final : public std::enable_shared_from_this<TimelineView>
     std::shared_ptr<const ii::gui::RasterImage> marker_;
     double zoom_ = 1, offset_ = 0, down_y_ = 0;
     int down_rate_ = 24;
-    std::optional<std::pair<int, double>> row_timing_;
+    std::optional<std::pair<double, double>> row_timing_;
     bool dragging_ = false, rate_drag_ = false;
     std::optional<ii::runtime::Clock::time_point> last_frame_;
 };

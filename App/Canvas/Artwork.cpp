@@ -1172,11 +1172,18 @@ bool Artwork::apply_empty_layer_insertion(const EmptyLayerInsertion& record, boo
         if (!track || !track->clips.empty()) return fail("Audio track has unexpected content");
         return apply(editor.removeAudioTrack(record.layer_id), "Cannot remove audio track");
     }
+    const auto before = record.frame_count_before;
+    const auto after = record.frame_range ? std::max(before, record.frame_range->lastFrame + 1) : before;
+    const bool extends_timeline = after != before;
+    if (extends_timeline && draft_.timeline.frameCount != (forward ? before : after))
+        return fail("Layer history no longer matches the document timing");
+
     if (forward) {
         if (findAsset(draft_, record.asset_id) || layer(draft_, record.layer_id))
             return fail("The new layer identity is already in use");
+        if (extends_timeline && !apply(editor.setFrameCount(after), "Cannot extend the document timeline"))
+            return false;
         const bool bitmap = record.type == NewLayerType::raster || record.type == NewLayerType::animated_raster;
-        const bool dynamic = record.type == NewLayerType::animated_raster || record.type == NewLayerType::animated_vector;
         if (bitmap) {
             if (record.chunked) {
                 if (!apply(editor.insertChunkedRasterAsset({record.asset_id, {}}), "Cannot create raster tiles")) return false;
@@ -1185,17 +1192,22 @@ bool Artwork::apply_empty_layer_insertion(const EmptyLayerInsertion& record, boo
         } else if (!apply(editor.insertVectorAsset(record.asset_id, record.extent, {}), "Cannot create vector content")) return false;
         LayerProperties properties{record.layer_id, record.name};
         properties.artboardId = record.artboard;
+        properties.frameRange = record.frame_range;
         const auto representation = bitmap ? LayerRepresentation::Bitmap : LayerRepresentation::Vector;
-        return dynamic ? apply(editor.insertDynamicLayer(std::move(properties), representation, {{0, record.asset_id}}), "Cannot create animated layer")
-                       : apply(editor.insertStaticLayer(std::move(properties), representation, record.asset_id), "Cannot create layer");
+        if (record.frame_range)
+            return apply(editor.insertDynamicLayer(std::move(properties), representation,
+                         {{record.frame_range->firstFrame, record.asset_id}}), "Cannot create animated layer");
+        return apply(editor.insertStaticLayer(std::move(properties), representation, record.asset_id), "Cannot create layer");
     }
     const auto* item = layer(draft_, record.layer_id);
     const auto refs = assetReferences(draft_, record.asset_id);
     if (!item || refs.size() != 1 || refs.front().layerIndex >= draft_.layers.size() ||
         layerProperties(draft_.layers[refs.front().layerIndex]).id != record.layer_id)
         return fail("New layer has unexpected asset references");
-    if (!apply(editor.removeLayer(record.layer_id), "Cannot remove the new layer")) return false;
-    return apply(editor.removeAsset(record.asset_id), "Cannot remove the new layer content");
+    if (!apply(editor.removeLayer(record.layer_id), "Cannot remove the new layer") ||
+        !apply(editor.removeAsset(record.asset_id), "Cannot remove the new layer content"))
+        return false;
+    return !extends_timeline || apply(editor.setFrameCount(before), "Cannot restore the document timeline");
 }
 
 bool Artwork::add_layer(NewLayerType type, std::string name)
@@ -1215,6 +1227,11 @@ bool Artwork::add_layer(NewLayerType type, std::string name)
         record->type = type; record->layer_id = uuid(); record->asset_id = uuid();
         record->name = name.empty() ? std::string(option->label) : std::move(name);
         record->extent = draft_.extent;
+        record->frame_count_before = draft_.timeline.frameCount;
+        if (type == NewLayerType::animated_raster || type == NewLayerType::animated_vector) {
+            record->frame_range = iiSharedCanvas::defaultDynamicLayerTimelineRange(draft_.timeline.frameRate);
+            if (!record->frame_range) return fail("Cannot represent a five-second layer at this frame rate");
+        }
         if (type != NewLayerType::audio) {
             if (const auto* board = layer_artboard(draft_, previous)) {
                 record->artboard = board->id; record->extent = board->region.extent;

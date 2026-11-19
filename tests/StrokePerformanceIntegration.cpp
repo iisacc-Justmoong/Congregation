@@ -1,9 +1,12 @@
 #include <Canvas/Artwork.h>
+#include <Tools/StrokeProfile.h>
 #include <iiFileProvider>
 #include <iiSharedCanvas>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -198,6 +201,78 @@ void run_masked_and_tapered(const std::filesystem::path& directory)
               "masked or tapered small stroke allocated a complete raster");
     }
 }
+
+// Replay the same set of overlapping strokes at two opacities. Measure
+// projection, pixel updates and composition separately from durable commit.
+void run_overlapping_strokes(const std::filesystem::path& directory, double opacity, bool white_background)
+{
+    constexpr int count = 8, moves = 48, center = 256;
+    Artwork artwork(directory);
+    CanvasDefinition definition;
+    definition.width = definition.pixel_width = 1024;
+    definition.height = definition.pixel_height = 768;
+    definition.background = white_background ? "White" : "Transparent";
+    check(artwork.create(definition), "overlap canvas setup failed");
+    BitmapBrush brush;
+    brush.size = 96;
+    brush.argb = 0xff6533ff;
+    brush.opacity = opacity;
+    brush.flow = .9;
+    brush.hardness = .85;
+    brush.spacingRatio = .12;
+    brush.pressureToOpacityEnabled = false;
+    const auto initial = pixel(artwork, center, center);
+    std::array<long long, count * moves> projection{}, update{};
+    std::array<long long, count * moves / 2> compose{};
+    std::array<long long, count> commit{};
+    std::array<std::uint32_t, count + 1> center_pixels{initial};
+    for (int stroke = 0; stroke < count; ++stroke) {
+        const auto point = [&](int i) {
+            const auto phase = i * (2 * std::acos(-1.0) / moves);
+            return sample(center + 40 * std::sin(phase), center + 23 * std::sin(2 * phase),
+                          1 + stroke + i / 120., 1);
+        };
+        check(artwork.begin_input(point(0), brush), "overlapping stroke did not start");
+        for (int i = 1; i <= moves; ++i) {
+            StrokeInputSample profile;
+            check(artwork.extend_input(point(i), &profile), "overlapping stroke lost a sample");
+            check(profile.captured, "overlap fixture did not use streaming paint");
+            projection[stroke * moves + i - 1] = profile.projection_us;
+            update[stroke * moves + i - 1] = profile.tile_update_us;
+            if (i % 2 == 0) {
+                const auto time = measure([&] {
+                    const auto tile = renderFrameRegion(artwork.document(), 0,
+                        {{0, 0}, {512, 512}}, {512, 512}, RasterSampling::Smooth);
+                    check(tile.ok(), "overlapping stroke could not be composed");
+                });
+                compose[stroke * moves / 2 + i / 2 - 1] = time.microseconds;
+            }
+        }
+        const auto live = pixel(artwork, center, center);
+        commit[stroke] = measure([&] {
+            check(artwork.end_input(point(moves)), "overlapping stroke did not commit");
+        }).microseconds;
+        const auto painted = center_pixels[stroke + 1] = pixel(artwork, center, center);
+        check(painted == live, "overlapping stroke changed on release");
+        if (opacity < 1)
+            check((painted >> 24) > (center_pixels[stroke] >> 24),
+                  "overlapping translucent strokes did not accumulate");
+    }
+    check(artwork.undo() && pixel(artwork, center, center) == center_pixels[count - 1],
+          "overlap undo lost the previous opacity");
+    check(artwork.redo() && pixel(artwork, center, center) == center_pixels[count],
+          "overlap redo lost the accumulated opacity");
+    const auto timings = [](const char* label, auto values) {
+        std::ranges::sort(values);
+        std::cout << ' ' << label << "_median_us=" << values[values.size() / 2]
+                  << ' ' << label << "_p95_us=" << values[(values.size() * 95 - 1) / 100];
+    };
+    std::cout << "STROKE_OVERLAP background=" << definition.background
+              << " opacity=" << opacity << " strokes=" << count
+              << " brush=" << brush.size << " center_argb=" << center_pixels[count];
+    timings("projection", projection); timings("tile", update);
+    timings("compose_512", compose); timings("commit", commit); std::cout << '\n';
+}
 }
 
 int main(int argc, char** argv)
@@ -224,11 +299,19 @@ try {
         run_masked_and_tapered(directory.path());
         return 0;
     }
+    if (argc > 1 && std::string_view(argv[1]) == "--overlap-only") {
+        for (const bool white : {false, true}) {
+            run_overlapping_strokes(directory.path(), 1, white);
+            run_overlapping_strokes(directory.path(), .15, white);
+        }
+        return 0;
+    }
     const bool extended = argc > 1 && std::string_view(argv[1]) == "--extended";
     for (int side : {512, 2048})
         for (int brush_size : {8, 128}) run(directory.path(), side, brush_size);
     if (extended)
         for (int side : {4096, 8192}) run(directory.path(), side, 32);
+    run_overlapping_strokes(directory.path(), .15, true);
     std::cout << "STROKE_PERFORMANCE_OK\n";
     return 0;
 } catch (const std::exception& error) {

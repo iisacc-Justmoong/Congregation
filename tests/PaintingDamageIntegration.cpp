@@ -16,6 +16,7 @@
 #include <optional>
 #include <span>
 #include <stdexcept>
+#include <string_view>
 
 using namespace congregation::native;
 using namespace iiSharedCanvas;
@@ -26,6 +27,15 @@ template<class T> T take(ii::core::Result<T> value) {
     if (!value) throw std::runtime_error(value.error().message);
     return std::move(*value);
 }
+
+// Route durable document edits through the same two phases as the workspace.
+void observe_damage(Artwork& artwork, CanvasView& view) {
+    artwork.document_prepared = [&view](const auto& change, const auto& before, const auto& after) {
+        view.prepare_change(change, before, after);
+    };
+    artwork.document_changed = [&view](const auto& change) { view.refresh_change(change); };
+}
+
 void send(CanvasView& canvas, ii::gui::WidgetInputKind kind, double x, double y, double time) {
     const auto viewport = canvas.viewport();
     ii::gui::WidgetInput event;
@@ -203,7 +213,7 @@ int main() try {
     check(artwork.create(1024, 768), "selected canvas creation failed");
     check(artwork.set_selection(SelectionGeometry::Rectangle, {0, 0}, {512, 768}),
           "selection creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     send(canvas, K::pointer_down, 100, 200, 10);
     send(canvas, K::pointer_move, 200, 200, 10.01);
     next_frame();
@@ -237,7 +247,7 @@ int main() try {
     check(artwork.replace(std::move(chunked)), "chunked canvas creation failed");
     check(artwork.set_selection(SelectionGeometry::Rectangle, {0, 0}, {1024, 768}),
           "chunked selection creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     send(canvas, K::pointer_down, 100, 200, 15);
     send(canvas, K::pointer_move, 650, 200, 15.01);
     next_frame();
@@ -257,12 +267,12 @@ int main() try {
     check_tile(tree, canvas, artwork, 0, 0);
     check_tile(tree, canvas, artwork, 1, 0);
 
-    // The editor's document-changed callback normally refreshes its canvas
-    // synchronously. A brush commit must still invalidate only stroke tiles.
+    // A local commit publishes the same damage event as a workspace edit.
+    // The final tiles are presented on the next frame.
     check(artwork.create(1024, 768), "taper canvas creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     canvas.taper = {.15, .3, .08, .35};
-    artwork.changed = [&] { canvas.refresh(); };
+    observe_damage(artwork, canvas);
     send(canvas, K::pointer_down, 100, 200, 20);
     send(canvas, K::pointer_move, 650, 200, 20.01);
     next_frame();
@@ -279,11 +289,12 @@ int main() try {
           "tapered incremental stroke failed undo/redo");
     check_tile(tree, canvas, artwork, 0, 0);
     canvas.taper = {};
-    artwork.changed = {};
+    artwork.document_prepared = {};
+    artwork.document_changed = {};
 
     // Cancel restores the two modified tiles and leaves the others cached.
     check(artwork.create(1024, 768), "cancel canvas creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     send(canvas, K::pointer_down, 100, 200, 30);
     send(canvas, K::pointer_move, 650, 200, 30.01);
     next_frame();
@@ -300,7 +311,7 @@ int main() try {
     // A replacement pointer-down cancels an unfinished stroke. Its former
     // tiles and the new stroke's tiles must both be presented in the frame.
     check(artwork.create(1024, 768), "replacement stroke canvas creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     send(canvas, K::pointer_down, 100, 200, 35);
     next_frame();
     const auto before_replacement = canvas.viewport().uploads;
@@ -327,7 +338,7 @@ int main() try {
     check(artwork.transform(transform), "layer rotation and translation failed");
     check(artwork.set_selection(SelectionGeometry::Rectangle, {512, 0}, {1024, 512}),
           "transformed layer selection failed");
-    canvas.refresh();
+    canvas.initialize_document();
     const auto unchanged_left = tile(tree, canvas, 0, 0);
     const auto before_transform_stroke = canvas.viewport().uploads;
     send(canvas, K::pointer_down, 650, 200, 40);
@@ -354,7 +365,7 @@ int main() try {
     blur.operation = RasterEffect{RasterEffectKind::GaussianBlur};
     layerProperties(*filtered_layer).appearance.filters.push_back(blur);
     check(artwork.replace(std::move(filtered)), "filtered document failed");
-    canvas.refresh();
+    canvas.initialize_document();
     const auto before_filter = canvas.viewport().uploads;
     const auto batches_before_filter = canvas.viewport().composition_batches;
     send(canvas, K::pointer_down, 100, 100, 45);
@@ -382,7 +393,7 @@ int main() try {
         filter.enabled = !disabled;
         filter.opacity = disabled ? 1 : 0;
         check(artwork.replace(std::move(inactive)), "inactive filter document failed");
-        canvas.refresh();
+        canvas.initialize_document();
         const auto stable = tile(tree, canvas, 1, 1);
         const auto previous_uploads = canvas.viewport().uploads;
         send(canvas, K::pointer_down, 100, 100, disabled ? 46 : 47);
@@ -399,7 +410,7 @@ int main() try {
     // Zoom can increase the number of visible tiles and resize their retained
     // layer pool without merging tiles back into a single foreground image.
     check(artwork.create(1024, 768), "zoom canvas creation failed");
-    canvas.refresh();
+    canvas.initialize_document();
     const auto zoom_batches_before = canvas.viewport().composition_batches;
     canvas.zoom(2);
     check(canvas.viewport().visible_tiles > 4, "zoom did not expand the visible tile pool");
@@ -472,8 +483,12 @@ int main() try {
     // A remote edit must replace only the affected retained canvas tile.
     {
         Artwork remote_source(directory.path()), remote_target(directory.path());
-        check(remote_source.create(1024, 768) && remote_target.replace(remote_source.document()) &&
-              remote_target.timing(24, 2), "remote canvas creation failed");
+        check(remote_source.create(1024, 768), "remote source creation failed");
+        // A single-frame source stroke edits the static asset in place. The
+        // receiver references those same pixels on two cached timeline frames.
+        auto receiver_fixture = remote_source.document();
+        receiver_fixture.timeline.frameCount = 2;
+        check(remote_target.replace(std::move(receiver_fixture)), "remote receiver creation failed");
         auto remote_tree = std::make_shared<ii::gui::detail::WidgetState>(
             [](ii::runtime::Task task) { task(); });
         auto surface = take(remote_tree->absolute_stack({}, "remote", {1280, 960}));
@@ -485,11 +500,12 @@ int main() try {
         const auto uploads = remote.viewport().uploads;
         DocumentChange change;
         remote_source.document_changed = [&](const auto& value) { change = value; };
-        remote_target.document_changed = [&](const auto& value) { remote.refresh_change(value); };
+        observe_damage(remote_target, remote);
         BitmapBrush brush; brush.size = 8; brush.argb = 0xff1234ddU;
         check(remote_source.begin({100, 100}, 1, brush) && remote_source.end({115, 110}, 1), "remote stroke failed");
-        auto patch = remote_source.collaboration_pixels(change);
-        check(patch && remote_target.receive_pixels(*patch), "remote patch failed");
+        check(change.kind == DocumentChangeKind::pixels && change.edit, "remote stroke did not publish a pixel edit");
+        const std::string_view payload(reinterpret_cast<const char*>(change.edit->data()), change.edit->size());
+        check(remote_target.receive_edit(payload), "remote edit failed");
         check(remote.viewport().uploads == uploads + 1 && tile(remote_tree, remote, 1, 1) == untouched,
               "remote edit invalidated an unaffected tile");
         check_tile(remote_tree, remote, remote_target, 0, 0);

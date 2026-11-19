@@ -1,6 +1,6 @@
 #pragma once
 #include "Style.h"
-#include <LVUI>
+#include <LVUI/IconButtonDefaults.generated.h>
 #include <iiGUI>
 
 namespace congregation::native::editor

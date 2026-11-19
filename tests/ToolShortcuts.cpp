@@ -1,6 +1,7 @@
 #include <Tools/ToolShortcuts.h>
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -29,6 +30,60 @@ void expect(ToolShortcuts& shortcuts, WidgetInput event, std::string_view active
     check(command && command->kind == ToolShortcutCommand::Kind::select_tool &&
               command->tool == tool,
           "Unexpected shortcut result for " + event.text + ": expected " + std::string(tool));
+}
+
+// Drive key presses against a fixed clock so the timing boundary is reproducible.
+void brush_opacity_shortcuts() {
+    using namespace std::chrono_literals;
+    const auto start = std::chrono::steady_clock::time_point{};
+    ToolShortcuts shortcuts;
+    const auto expect_percent = [&](const WidgetInput& event, auto time, int percent,
+                                    std::string_view tool = "brush") {
+        const auto command = shortcuts.resolve(event, tool, time);
+        check(command && command->kind == ToolShortcutCommand::Kind::brush_opacity &&
+                  command->opacity_percent == percent,
+              "Unexpected opacity for " + event.text + ": expected " + std::to_string(percent));
+    };
+
+    expect_percent(letter("7"), start, 70);
+    expect_percent(letter("2"), start + 301ms, 20);
+    auto released = letter("2");
+    released.kind = WidgetInputKind::key_up;
+    check(!shortcuts.resolve(released, "brush", start + 350ms), "Key release changed opacity");
+    expect_percent(letter("2"), start + 410ms, 22);
+    expect_percent(letter("0"), start + 520ms, 100);
+    expect_percent(letter("0"), start + 810ms, 0);
+    expect_percent(letter("0"), start + 1000ms, 100, "pencil");
+    expect_percent(letter("5"), start + 1090ms, 5, "pencil");
+    expect_percent(letter("9"), start + 1500ms, 90, "airbrush");
+    auto repeat = letter("9");
+    repeat.key_repeat = true;
+    check(!shortcuts.resolve(repeat, "airbrush", start + 1560ms), "A held digit was treated as a second press");
+    expect_percent(letter("3"), start + 1800ms, 93, "airbrush");
+
+    auto keypad = letter("7");
+    keypad.numeric_keypad = true;
+    auto editing = letter("7");
+    editing.text_input_active = true;
+    auto control = letter("7");
+    control.control = true;
+    for (const auto& ignored : {keypad, editing, released, control, letter("7", true),
+                                letter("7", false, true), letter("7", false, false, true), letter("22")})
+        check(!shortcuts.resolve(ignored, "brush", start + 1900ms),
+              "Only unmodified number-row key presses may set brush opacity");
+    check(!shortcuts.resolve(letter("7"), "move", start + 1900ms),
+          "A digit changed opacity while Move was selected");
+    check(!shortcuts.resolve(letter("7"), "eraser", start + 1900ms),
+          "A digit changed opacity outside the Brush tool group");
+
+    expect_percent(letter("4"), start + 2000ms, 40);
+    check(!shortcuts.resolve(editing, "brush", start + 2050ms), "An editor key changed opacity");
+    expect_percent(letter("5"), start + 2110ms, 50);
+    expect_percent(letter("6"), start + 2150ms, 60, "pencil");
+    const WidgetInput press{.kind = WidgetInputKind::pointer_down};
+    check(!shortcuts.resolve(press, "pencil", start + 2200ms), "Pointer input was consumed");
+    expect_percent(letter("5"), start + 2260ms, 50, "pencil");
+    expect_percent(letter("6"), start + 2310ms, 56, "pencil");
 }
 }
 
@@ -116,7 +171,8 @@ int main(int argc, char** argv) try {
           "Control+Down did not request the precise negative step");
     up.shift = true;
     check(!shortcuts.resolve(up, "brush"), "Undocumented modified size step was accepted");
-    std::cout << "Tool shortcut mapping, toolbar coverage, modifiers and focus protection passed\n";
+    brush_opacity_shortcuts();
+    std::cout << "Tool mapping, brush opacity, modifiers and focus protection passed\n";
     return 0;
 } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

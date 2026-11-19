@@ -1,4 +1,5 @@
 #include <Workspace/WorkspaceView.h>
+#include <Shared/Style.h>
 #include <LVUI>
 #include <iiGUI>
 #include <iiSDKCore>
@@ -32,6 +33,114 @@ ii::gui::Widget widget(const std::shared_ptr<ii::gui::detail::WidgetState>& tree
     if(found==nodes.end())throw std::runtime_error("Workspace control did not mount: "+std::string(suffix));
     return take(tree->find(found->id));
 }
+
+// A newly created document contributes one authored cell to a wider ruler.
+void check_new_canvas_timeline(const std::shared_ptr<ii::gui::detail::WidgetState>& tree,
+                               congregation::native::WorkspaceView& view,
+                               congregation::native::TimelineModel& model) {
+    using namespace ii::gui;
+    using congregation::native::Metric;
+    const auto previous = model.state.get();
+    iiSharedCanvas::Document document;
+    document.extent = {8, 8};
+    document.assets.emplace_back(iiSharedCanvas::RasterAsset{"blank", makeRasterLayer(8, 8, 0)});
+    document.layers.emplace_back(iiSharedCanvas::StaticBitmapLayer{
+        {"paint", "Paint layer"}, iiSharedCanvas::StaticBitmapContent{"blank"}});
+    model.set_duration(1.0 / previous.rate);
+    model.scrub(0);
+    view.refresh_document(document, "paint");
+
+    const auto frame_pitch = [&](int first = 0, int count = 1) {
+        const auto drawing = take(tree->drawing_snapshot({1999, 1080}));
+        const auto ruler = take(widget(tree, "/timeline-ruler").snapshot()).bounds;
+        const auto row = take(widget(tree, "/retained-row-0").snapshot()).bounds;
+        const auto state = model.state.get();
+        const auto start = ruler.x + Metric::timelineColumnsWidth;
+        const auto near = [](double a, double b) { return std::abs(a - b) < .05; };
+        std::vector<float> marks;
+        std::vector<Rect> cells;
+        const auto inspect = [&](const auto& panels) {
+            for (const auto& panel : panels) {
+                const auto& bounds = panel.bounds;
+                if (bounds.x < start - .05 || bounds.x >= ruler.x + ruler.width) continue;
+                if (near(bounds.width, Metric::stroke1) &&
+                    (near(bounds.y, ruler.y + Metric::size18) || near(bounds.y, ruler.y + Metric::size26)))
+                    marks.push_back(bounds.x);
+                if (near(bounds.y, row.y) && near(bounds.height, Metric::size20)) cells.push_back(bounds);
+            }
+        };
+        inspect(drawing.panels);
+        for (const auto& overlay : drawing.overlays) inspect(overlay.panels);
+        std::ranges::sort(marks);
+        require(marks.size() > 2 && near(marks.front(), start),
+                "A one-frame document must show future frame ticks on its ruler");
+        const auto pitch = marks[1] - marks[0];
+        require(pitch > 0 && near(marks[2] - marks[1], pitch),
+                "Future ruler marks did not follow the frame grid");
+        require(cells.size() == 1 && near(cells.front().x, start + first * pitch) &&
+                near(cells.front().width, count * pitch),
+                "A timeline row must occupy the cells defined by its layer timing");
+        bool future_label = false;
+        const auto inspect_labels = [&](const auto& texts) {
+            for (const auto& text : texts) {
+                if (!near(text.bounds.y, ruler.y) || text.bounds.x < start - .05 ||
+                    !text.text.ends_with("s")) continue;
+                const auto seconds = std::stod(text.text);
+                const auto frame = std::round((text.bounds.x - start) / pitch);
+                require(std::abs(seconds - frame / state.rate) < .0006,
+                        "A ruler time label was not aligned to a frame tick");
+                future_label |= seconds > state.duration;
+            }
+        };
+        inspect_labels(drawing.texts);
+        for (const auto& overlay : drawing.overlays) inspect_labels(overlay.texts);
+        if (state.duration < congregation::native::TimelinePosition{}.duration)
+            require(future_label, "The ruler did not label time beyond the authored frames");
+        return pitch;
+    };
+    const auto ordinary_pitch = frame_pitch();
+    const auto zoom = take(widget(tree, "/timeline-start").snapshot()).bounds;
+    const auto point = [&](double x) {
+        const auto y = zoom.y + zoom.height / 2;
+        good(tree->input({.kind=WidgetInputKind::pointer_down, .x=x, .y=y, .buttons=1}));
+        good(tree->input({.kind=WidgetInputKind::pointer_up, .x=x, .y=y}));
+    };
+    point(zoom.x + zoom.width * .7);
+    require(frame_pitch() > ordinary_pitch && document.timeline.frameCount == 1 &&
+            model.state.get().duration == 1.0 / previous.rate,
+            "Timeline zoom did not expand the frame grid without changing the document duration");
+    point(zoom.x + 1);
+    document.timeline.frameCount = 4;
+    model.set_duration(4.0 / previous.rate);
+    view.refresh_document(document, "paint");
+    frame_pitch();
+    iiSharedCanvas::layerProperties(document.layers.front()).frameRange = iiSharedCanvas::LayerFrameRange{2, 3};
+    view.apply_document_change(document, "paint", {congregation::native::DocumentChangeKind::properties, "paint"});
+    frame_pitch(2);
+
+    document.assets.emplace_back(iiSharedCanvas::VideoAsset{
+        "movie", {24, 1}, {makeRasterLayer(8, 8, 0xff000000)}});
+    document.layers.front() = iiSharedCanvas::VideoLayer{
+        {"video", "Video layer"}, iiSharedCanvas::StaticSource{"movie"},
+        {0, {}, iiSharedCanvas::VideoEndBehavior::Hold}};
+    view.refresh_document(document, "video");
+    frame_pitch(0, 4);
+
+    document.timeline = {{25, 2}, 70};
+    document.layers.front() = iiSharedCanvas::DynamicBitmapLayer{
+        {"animated", "Animated raster"}, iiSharedCanvas::KeyframedSource{{0}}};
+    iiSharedCanvas::layerProperties(document.layers.front()).frameRange = iiSharedCanvas::LayerFrameRange{0, 62};
+    document.frames = {{0, {{"animated", "blank"}}}};
+    model.set_rate(12.5);
+    model.set_duration(70.0 / 12.5);
+    view.refresh_document(document, "animated");
+    require(model.state.get().rate == 12.5, "The timeline must retain a fractional frame rate");
+    frame_pitch(0, 63);
+    model.set_rate(previous.rate);
+    model.set_duration(previous.duration);
+    model.scrub(double(previous.frame) / previous.rate);
+}
+
 void input_loop_trace(){
     using namespace ii::gui;
     struct Model final { ii::core::Observable<int> x{0}, y{0}; int events=0; };
@@ -117,6 +226,7 @@ int main(int argc,char** argv){
     require(has_icons,"Workspace did not draw its native icons");
     require(take(widget(tree,"/timeline").snapshot()).bounds.height==296,
             "Timeline did not preserve the Figma content height");
+    check_new_canvas_timeline(tree, *view, *model->timeline);
     const auto new_layer_button = widget(tree, "/add-layer");
     const auto new_layer_bounds = take(new_layer_button.snapshot()).bounds;
     if (std::abs(new_layer_bounds.width - 40) >= .01 || std::abs(new_layer_bounds.height - 22) >= .01)

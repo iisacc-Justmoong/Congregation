@@ -391,11 +391,12 @@ struct State final : std::enable_shared_from_this<State>
     {
         license_rejection_deferred = !test && license_defer_rejection(
             license.workspace_visible(), canvas.interaction_active(), first_presentation_pending);
-        const bool visible = test || license.workspace_visible() || license_rejection_deferred;
+        // The activation popup controls input while the existing workspace stays rendered.
+        const bool blocked = !test && !license.workspace_visible() && !license_rejection_deferred;
+        if (blocked) canvas.clear_pointer();
         for (auto* backend : {main,secondary}) if (backend) {
             backend->licensed.set(test || license.licensed);
-            backend->workspace_visible.set(visible);
-            backend->needs_license.set(!visible);
+            backend->needs_license.set(blocked);
             backend->can_activate.set(!license.verifying);
             backend->signing_in.set(license.verifying);
             backend->signed_in.set(license.signed_in);
@@ -480,10 +481,9 @@ struct State final : std::enable_shared_from_this<State>
     void update_timing()
     {
         const auto& timing = artwork.document().timeline;
-        const auto rate = std::max(1, int(std::round(double(timing.frameRate.numerator) /
-                                                     std::max(1u, timing.frameRate.denominator))));
+        const auto rate = double(timing.frameRate.numerator) / std::max(1u, timing.frameRate.denominator);
         timeline_model->set_rate(rate);
-        timeline_model->set_duration(double(timing.frameCount) / rate);
+        timeline_model->set_duration(double(timing.frameCount) / timeline_model->state.get().rate);
     }
     void update_layer_rows()
     {
@@ -622,7 +622,6 @@ struct State final : std::enable_shared_from_this<State>
                     iiFileProvider::native::File::read(directory / "asset-library.path", 8192));
         }
         backend.licensed.set(test || license.licensed);
-        backend.workspace_visible.set(test || license.workspace_visible());
         backend.needs_license.set(!test && !license.workspace_visible());
         backend.start_recent.set(preferences.start_recent);
         backend.start_new.set(!preferences.start_recent);
@@ -1109,6 +1108,7 @@ struct State final : std::enable_shared_from_this<State>
                                    backend.pressure_mid.get(),backend.pressure_max.get(),
                                    backend.parameters->value(P::transfer_opacity_jitter)/100.);
         canvas.settings.engineState = std::move(engine);
+        canvas.refresh_pointer();
         if (main && &backend != main)
         {
             main->spacing_pixels.set(backend.spacing_pixels.get());
@@ -1324,6 +1324,12 @@ struct State final : std::enable_shared_from_this<State>
                 p->status(std::move(message));
         };
         canvas.quick_mask_changed = [weak](bool active) { if (auto p=weak.lock(); p && p->main) p->main->quick_mask_mode.set(active); };
+        // Pointer shortcuts and panel controls edit the same active brush settings.
+        canvas.brush_parameter_requested = [weak](ToolParameter parameter, double value)
+        {
+            if (auto p = weak.lock(); p && p->main)
+                p->main->set_parameter(parameter, value);
+        };
         canvas.color_picked = [weak](std::uint32_t value)
         {
             if (auto p = weak.lock())
@@ -1332,7 +1338,7 @@ struct State final : std::enable_shared_from_this<State>
                                           double((value >> 8) & 255) / 255,
                                           double(value & 255) / 255, double(value >> 24) / 255}));
                 if (p->main)
-                    p->main->tool.set("brush");
+                    p->main->tool.set(p->canvas.tool);
                 p->status("Canvas color sampled");
             }
         };
@@ -1675,10 +1681,17 @@ struct State final : std::enable_shared_from_this<State>
         if (!result)
             status(result.error().message);
     }
+    // Dispatch tool shortcuts through the same settings and selection paths
+    // as the panel. Input that only ends a numeric sequence stays unhandled.
     ii::core::Result<bool> shortcut(const ii::gui::WidgetInput& event)
     {
-        if (event.kind != ii::gui::WidgetInputKind::key_down || event.text_input_active)
+        using Input = ii::gui::WidgetInputKind;
+        if (event.kind != Input::key_down)
+        {
+            if (event.kind == Input::pointer_down || event.kind == Input::focus_lost || event.kind == Input::key_cancel)
+                (void)tool_shortcuts.resolve(event, {});
             return false;
+        }
         if (main)
             if (const auto command = tool_shortcuts.resolve(event, main->selected_tool.get()))
             {
@@ -1689,12 +1702,17 @@ struct State final : std::enable_shared_from_this<State>
                     main->select_tool(std::string(command->tool));
                     tool_shortcuts.observe_selection(main->selected_tool.get());
                     break;
-                case Kind::toggle_rulers: main->choose_tool_rulers(); break;
+                case Kind::toggle_rulers: act(Action::toggle_rulers); break;
                 case Kind::toggle_symmetry: main->symmetry_paint(); break;
                 case Kind::brush_size: act(command->step > 0 ? Action::size_plus : Action::size_minus); break;
+                case Kind::brush_opacity:
+                    main->set_parameter(ToolParameter::opacity, command->opacity_percent);
+                    break;
                 }
                 return true;
             }
+        if (event.text_input_active)
+            return false;
         if ((canvas.polygon_active() || canvas.crop_active()) && (event.key == ii::gui::WidgetKey::enter || event.key == ii::gui::WidgetKey::escape))
             return canvas.input(event);
         if (event.key == ii::gui::WidgetKey::delete_forward ||
@@ -1724,7 +1742,7 @@ struct State final : std::enable_shared_from_this<State>
                 act(event.shift ? Action::save_as : Action::save);
             else if (key == "z")
                 act(event.shift ? Action::redo : Action::undo);
-            else if (key == "d")
+            else if (key == "d" && !event.shift)
                 act(Action::clear_selection);
             else if (key == "i" && event.shift)
                 act(Action::invert_selection);
@@ -1752,7 +1770,7 @@ struct State final : std::enable_shared_from_this<State>
     void act(Action action)
     {
         if (action == Action::undo || action == Action::redo || action == Action::copy ||
-            action == Action::paste)
+            action == Action::paste || action == Action::invert_selection)
         {
             for (const auto& current :
                  {view->widgets().native(),
@@ -1783,6 +1801,12 @@ struct State final : std::enable_shared_from_this<State>
             open_preferences();
             return;
         }
+        if (action == Action::toggle_rulers)
+        {
+            // The menu and keyboard share the editor's ruler visibility state.
+            if (main) main->choose_tool_rulers();
+            return;
+        }
         if(action==Action::activate) { license.sign_in(); return; }
         if(action==Action::open_society) { license.open_society(); return; }
         if(action==Action::restore_license) { license.retry(); return; }
@@ -1809,6 +1833,10 @@ struct State final : std::enable_shared_from_this<State>
         if (placeholder && action != Action::new_document && action != Action::create_canvas &&
             action != Action::cancel_canvas && action != Action::open) {
             status(storage_error);
+            return;
+        }
+        if (action == Action::toggle_quick_mask) {
+            if (main) main->choose_tool_quick_mask();
             return;
         }
         if (canvas.quick_mask_active() && action != Action::brush && action != Action::eraser &&
@@ -1910,6 +1938,7 @@ struct State final : std::enable_shared_from_this<State>
         case Action::zoom_tool: canvas.tool="zoom";break;
         case Action::presentation:
             canvas.presentation=!canvas.presentation;
+            canvas.refresh_pointer();
             main->chrome_visible.set(!canvas.presentation);
             good(host->window_action(ii::gui::WindowAction::toggle_fullscreen));
             break;
@@ -2262,7 +2291,7 @@ struct State final : std::enable_shared_from_this<State>
         {
             main->title.set(artwork.source().empty() ? (artwork.creation() ? artwork.creation()->name : "Untitled")
                                                      : path_text(artwork.source().filename()));
-            main->tool.set(canvas.tool);
+            if (main->tool.set(canvas.tool)) canvas.refresh_pointer();
             paint_tools();
             main->zoom.set(
                 ii::core::format_decimal(std::round(canvas.viewport().scale * 1000) / 10) + "%");
@@ -2504,12 +2533,10 @@ struct State final : std::enable_shared_from_this<State>
         check(test && main, "Isolated self-test state missing");
         const auto license_revision = artwork.revision();
         main->licensed.set(false);
-        main->workspace_visible.set(false);
         main->needs_license.set(true);
         view->refresh_document(artwork.document(), artwork.selected());
         capture_evidence(*host, "unlicensed");
         main->licensed.set(true);
-        main->workspace_visible.set(true);
         main->needs_license.set(false);
         view->refresh_document(artwork.document(), artwork.selected());
         check(artwork.revision() == license_revision, "License screen changed the document");
@@ -2603,6 +2630,42 @@ struct State final : std::enable_shared_from_this<State>
                                         .device_id = 42,
                                         .buttons = 1};
         };
+        // Dispatch the modified drags through the mounted native canvas. The
+        // command must reach the active profile without opening a paint gesture.
+        const auto original_hardness = main->parameters->value(ToolParameter::hardness);
+        main->set_parameter(ToolParameter::hardness, 50);
+        const auto adjust_brush = [&](double dx, double dy)
+        {
+            using Kind = ii::gui::WidgetInputKind;
+            auto input = point(64, 48, Kind::pointer_down);
+            input.device = ii::gui::PointerDevice::mouse;
+            input.device_id = 0;
+            input.pressure = 1;
+            input.meta = input.alt = true;
+            good(mount.dispatch_input(input));
+            input.kind = Kind::pointer_move;
+            input.x += dx;
+            input.y += dy;
+            good(mount.dispatch_input(input));
+            input.kind = Kind::pointer_up;
+            input.buttons = 0;
+            good(mount.dispatch_input(input));
+        };
+        adjust_brush(24, 0);
+        check(main->brush_size.get() == 36 && main->hardness.get() == .5,
+              "Right drag did not increase only the brush size");
+        adjust_brush(-24, 0);
+        check(main->brush_size.get() == 12 && main->hardness.get() == .5,
+              "Left drag did not decrease only the brush size");
+        adjust_brush(0, -25);
+        check(main->hardness.get() == .25 && main->brush_size.get() == 12,
+              "Upward drag did not decrease only the brush hardness");
+        adjust_brush(0, 25);
+        check(main->hardness.get() == .5 && main->brush_size.get() == 12 &&
+                  !canvas.interaction_active() && artwork.revision() == revision,
+              "Downward drag did not restore brush hardness without a canvas edit");
+        main->set_parameter(ToolParameter::hardness, original_hardness);
+        std::cout << "NATIVE_BRUSH_POINTER_OK size_px=12,36,12 hardness_pct=50,25,50" << std::endl;
         const auto loop_before = app.event_loop().stats();
         const auto status_before = main->status.stats();
         good(mount.dispatch_input(point(12, 12, ii::gui::WidgetInputKind::pointer_down)));

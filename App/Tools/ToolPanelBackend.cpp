@@ -19,10 +19,6 @@ bool is_selection_tool(const std::string& tool) {
     return tool=="rect-marquee" || tool=="ellipse-marquee" || tool=="lasso" ||
            tool=="polygon-lasso" || tool=="magnetic-lasso" || tool=="magic-wand";
 }
-bool is_paint_brush(const std::string& tool) {
-    return tool=="brush" || tool=="pencil" || tool=="airbrush" || tool=="mixer-brush" ||
-           tool=="dry-brush" || tool=="bristle-brush";
-}
 bool variant_field(std::string_view tool, std::string_view label) {
     const auto has = [&](std::initializer_list<std::string_view> values) {
         return std::ranges::find(values, label) != values.end();
@@ -241,7 +237,7 @@ void ToolPanelBackend::refresh_design() {
         std::size_t pending_section = panel->fields.size();
         for (std::size_t i=0;i<panel->fields.size();++i) {
             const auto& field = panel->fields[i];
-            if (is_paint_brush(std::string(panel->tool))) {
+            if (native::tool_panels::uses_brush_parameters(panel->tool)) {
                 if (field.kind == native::tool_panels::FieldKind::section) { pending_section = i; continue; }
                 if (!variant_field(panel->tool, field.label)) continue;
                 if (pending_section < panel->fields.size()) {
@@ -257,7 +253,7 @@ void ToolPanelBackend::refresh_design() {
 bool ToolPanelBackend::is_shape(const std::string& tool) const { return is_shape_tool(tool); }
 bool ToolPanelBackend::is_selection(const std::string& tool) const { return is_selection_tool(tool); }
 bool ToolPanelBackend::is_brush(const std::string& tool) const {
-    return is_paint_brush(tool);
+    return native::tool_panels::uses_brush_parameters(tool);
 }
 std::string ToolPanelBackend::heading(const std::string& tool) const {
     const auto* panel=native::tool_panels::find(tool);

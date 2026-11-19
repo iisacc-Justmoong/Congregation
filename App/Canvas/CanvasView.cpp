@@ -1,6 +1,8 @@
 #include "CanvasView.h"
+#include "CanvasPointerDrawing.h"
 #include "Shared/Style.h"
 #include "Shared/EditorLayout.h"
+#include "Tools/ToolSettings.h"
 #include <iiGUI>
 #include <iiSDKCore>
 #include <algorithm>
@@ -114,14 +116,22 @@ bool hasNonlocalFilters(const Document& document)
 CanvasView::CanvasView(Artwork& artwork, std::size_t layer_budget)
     : artwork_(artwork),
       paint_layer_budget_(std::clamp<std::size_t>(layer_budget, 1, canvas_tile_layer_budget)),
-      stroke_profile_(stroke_profiling_enabled()) {}
+      stroke_profile_(stroke_profiling_enabled()),
+      pointer_graphics_(std::make_unique<CanvasPointerDrawing>()) {}
 CanvasView::~CanvasView()
 {
     frame_lifetime_.reset();
+    if (native_pointer_hidden_) (void)widget_.set_native_pointer_hidden(false);
     if (attached_) (void)widget_.set_frame_handler({}, false);
 }
 void CanvasView::attach(ii::gui::Widget widget, ii::gui::Widget paint_host)
 {
+    cancel_brush_pointer();
+    if (native_pointer_hidden_) (void)widget_.set_native_pointer_hidden(false);
+    native_pointer_hidden_ = false;
+    mouse_position_.reset();
+    presented_pointer_.reset();
+    pointer_overlay_ = {};
     if (attached_) (void)widget_.set_frame_handler({}, false);
     widget_ = widget;
     paint_host_ = paint_host;
@@ -184,6 +194,49 @@ void CanvasView::resize_paint_layers()
     require(paint_host_.set_frame(frame));
     for (const auto& layer : paint_layers_) require(layer.set_frame(frame));
     if (!paint_overlay_.is_null()) require(paint_overlay_.set_frame(frame));
+    if (!pointer_overlay_.is_null()) require(pointer_overlay_.set_frame(frame));
+}
+
+void CanvasView::present_pointer(std::optional<ii::gui::ImageRun> image, bool hide_system)
+{
+    if (presented_pointer_ != image) {
+        ii::gui::WidgetDrawing drawing;
+        if (image) drawing.images.push_back(*image);
+        if (pointer_overlay_.set_drawing(std::move(drawing))) presented_pointer_ = std::move(image);
+        else hide_system = false;
+    }
+    const bool hidden = hide_system && presented_pointer_.has_value();
+    if (hidden != native_pointer_hidden_ && widget_.set_native_pointer_hidden(hidden))
+        native_pointer_hidden_ = hidden;
+}
+
+void CanvasView::refresh_pointer()
+{
+    if (pointer_overlay_.is_null()) return;
+    const ii::gui::Size size{viewport_.width, viewport_.height};
+    if (presentation || space_ || panning_ || zooming_) return present_pointer({});
+
+    using Mode = BrushPointerGesture::Mode;
+    if (brush_pointer_ && brush_pointer_->mode == Mode::sample_color) {
+        const auto& gesture = *brush_pointer_;
+        if (!gesture.comparison) return present_pointer({});
+        const auto [sampled, previous] = *gesture.comparison;
+        return present_pointer(pointer_graphics_->eyedropper({sampled, previous}, gesture.origin, size),
+                               gesture.device == ii::gui::PointerDevice::mouse);
+    }
+    if (!mouse_position_ || (tool != "brush" && tool != "eraser" && tool != "clone-stamp"))
+        return present_pointer({});
+
+    const auto shape = settings.engineState ? settings.engineState->rasterizer.shape : BrushShape{};
+    present_pointer(pointer_graphics_->brush({brush_size * viewport_.scale, shape.roundness,
+                                              shape.angleRadians, shape.kind}, *mouse_position_, size), true);
+}
+
+void CanvasView::clear_pointer()
+{
+    mouse_position_.reset();
+    if (brush_pointer_) brush_pointer_->comparison.reset();
+    if (!pointer_overlay_.is_null()) present_pointer({});
 }
 
 void CanvasView::present_drawing(ii::gui::WidgetDrawing drawing, std::size_t tile_count)
@@ -200,7 +253,7 @@ void CanvasView::present_drawing(ii::gui::WidgetDrawing drawing, std::size_t til
     const auto needed_layers = tile_count / group_size + (tile_count % group_size != 0);
     if (paint_overlay_.is_null() || needed_layers > paint_layers_.size()) {
         std::vector<ii::gui::Widget> layers;
-        ii::gui::Widget overlay;
+        ii::gui::Widget overlay, pointer;
         const auto count = std::max(needed_layers, paint_layers_.size());
         const ii::gui::Size size{viewport_.width, viewport_.height};
         const ii::gui::Rect frame{0, 0, float(viewport_.width), float(viewport_.height)};
@@ -218,10 +271,17 @@ void CanvasView::present_drawing(ii::gui::WidgetDrawing drawing, std::size_t til
             if (!top) return std::unexpected(top.error());
             if (auto placed = top->set_frame(frame); !placed) return placed;
             overlay = *top;
+            auto cursor = builder.absolute_stack(*root, "canvas-pointer", size);
+            if (!cursor) return std::unexpected(cursor.error());
+            if (auto placed = cursor->set_frame(frame); !placed) return placed;
+            pointer = *cursor;
             return {};
         }));
         paint_layers_ = std::move(layers);
         paint_overlay_ = overlay;
+        pointer_overlay_ = pointer;
+        presented_pointer_.reset();
+        refresh_pointer();
         presented_tiles_.assign(paint_layers_.size(), {});
     }
     ii::gui::WidgetDrawing overlay;
@@ -275,6 +335,7 @@ void CanvasView::zoom(double factor, double x, double y)
 }
 void CanvasView::initialize_document()
 {
+    cancel_brush_pointer();
     cache_.clear();
     prepared_tiles_.clear();
     prepared_impact_.reset();
@@ -527,6 +588,7 @@ void CanvasView::set_frame(int value)
     value = std::clamp(value, 0, std::max(0, int(artwork_.document().timeline.frameCount) - 1));
     if (value == frame_)
         return;
+    cancel_brush_pointer();
     if (crop_) { crop_.reset();crop_saved_.reset();crop_drag_=CropDrag::None; }
     perspective_.reset();perspective_saved_.reset();perspective_drag_=-3;
     if (quick_mask_) { quick_mask_->cancel_stroke(); quick_mask_.reset(); quick_mask_dense_before_.reset(); quick_mask_tiled_before_.reset(); if (quick_mask_changed) quick_mask_changed(false); }
@@ -555,7 +617,11 @@ std::optional<SelectionPreview> CanvasView::clone_preview() const
        artwork_.selection_mask_handle()!=clone_selection_ || artwork_.tiled_selection_handle()!=clone_tiled_selection_)return std::nullopt;
     return artwork_.clone_preview(*clone_reference_,*clone_mask_->pixels(),clone_offset_,static_cast<FrameIndex>(frame_),clone_mask_->dirty_bounds());
 }
-void CanvasView::render() { render_stroke(std::nullopt); }
+void CanvasView::render()
+{
+    render_stroke(std::nullopt);
+    refresh_pointer();
+}
 void CanvasView::presentation_queued(std::chrono::steady_clock::time_point timestamp) noexcept
 {
     if (stroke_profile_.active()) stroke_profile_.presentation_queued(profile_timestamp(timestamp));
@@ -960,6 +1026,7 @@ bool CanvasView::apply_crop()
 }
 void CanvasView::cancel()
 {
+    cancel_brush_pointer();
     stroke_profile_.cancel();
     active_mixer_stroke_ = false;
     const bool paint = artwork_.stroke_active() && !quick_mask_ && !clone_mask_;
@@ -1168,12 +1235,120 @@ bool CanvasView::airbrush_tick(double elapsed)
     if (quick_mask_) render();
     return true;
 }
+// Both eyedropper paths read the displayed composite in document coordinates,
+// including the current frame's layer transforms and visibility.
+void CanvasView::sample_canvas_color(Point point)
+{
+    constexpr double lower = std::numeric_limits<int>::min();
+    constexpr double upper = std::numeric_limits<int>::max();
+    if (point.x >= lower && point.x < upper && point.y >= lower && point.y < upper)
+    {
+        const auto pixel = renderFrameRegion(
+            artwork_.document(), frame_,
+            {{int(std::floor(point.x)), int(std::floor(point.y))}, {1, 1}}, {1, 1});
+        if (pixel.ok() && !pixel.pixels.pixels.empty())
+        {
+            if (brush_pointer_)
+                brush_pointer_->comparison = BrushPointerGesture::Comparison{pixel.pixels.pixels.front(), color};
+            color = pixel.pixels.pixels.front();
+            if (tool == "eyedropper")
+                tool = "brush";
+            if (color_picked)
+                color_picked(color);
+            return;
+        }
+    }
+    if (status)
+        status("Choose a point inside the canvas");
+}
+
+// A modified press owns its move and release events even if the modifier
+// keys are released first. Brush edits go back to the active profile's model.
+bool CanvasView::brush_pointer_shortcut(const ii::gui::WidgetInput& event)
+{
+    using K = ii::gui::WidgetInputKind;
+    using Mode = BrushPointerGesture::Mode;
+    if (event.kind == K::pointer_down)
+    {
+        if (brush_pointer_)
+            return true;
+        if (tool != "brush" || drag_ || artwork_.stroke_active() || space_ ||
+            event.device != ii::gui::PointerDevice::mouse || event.buttons != 1 ||
+            !event.alt || event.shift)
+            return false;
+
+        const bool adjust = event.meta || event.control;
+        brush_pointer_ = BrushPointerGesture{adjust ? Mode::choose_axis : Mode::sample_color,
+                                             {event.x, event.y}, brush_size, settings.hardness * 100,
+                                             event.device, event.device_id};
+        if (!adjust)
+            sample_canvas_color(world(event.x, event.y));
+        return true;
+    }
+    if (!brush_pointer_ || (event.kind != K::pointer_move && event.kind != K::pointer_up))
+        return false;
+    if (event.device != brush_pointer_->device || event.device_id != brush_pointer_->device_id)
+        return true;
+    if (brush_pointer_->mode == Mode::sample_color) {
+        if (event.kind == K::pointer_up) cancel_brush_pointer();
+        return true;
+    }
+
+    auto gesture = *brush_pointer_;
+    const double dx = event.x - gesture.origin.x;
+    const double dy = event.y - gesture.origin.y;
+    const bool finite = std::isfinite(dx) && std::isfinite(dy);
+    if (finite && gesture.mode == Mode::choose_axis &&
+        std::max(std::abs(dx), std::abs(dy)) >= Metric::space4)
+    {
+        gesture.mode = std::abs(dx) >= std::abs(dy) ? Mode::size : Mode::hardness;
+        brush_pointer_->mode = gesture.mode;
+    }
+    if (event.kind == K::pointer_up)
+        cancel_brush_pointer();
+    if (finite && brush_parameter_requested)
+    {
+        if (gesture.mode == Mode::size)
+            brush_parameter_requested(ToolParameter::size, gesture.size + std::round(dx));
+        else if (gesture.mode == Mode::hardness)
+            brush_parameter_requested(ToolParameter::hardness, gesture.hardness_percent + std::round(dy));
+    }
+    return true;
+}
+
 ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
+{
+    using K = ii::gui::WidgetInputKind;
+    using Key = ii::gui::WidgetKey;
+    const bool moved = event.kind == K::pointer_move || event.kind == K::pointer_down || event.kind == K::pointer_up;
+    const bool left = event.kind == K::pointer_leave || event.kind == K::pointer_cancel || event.kind == K::focus_lost;
+    if (moved || left) {
+        const bool inside = event.x >= 0 && event.y >= 0 && event.x < viewport_.width && event.y < viewport_.height;
+        if (!left && inside && event.device == ii::gui::PointerDevice::mouse)
+            mouse_position_ = ii::gui::WidgetPoint{event.x, event.y};
+        else
+            mouse_position_.reset();
+        if ((left || !inside) && brush_pointer_) brush_pointer_->comparison.reset();
+    }
+    auto result = handle_input(event);
+    if (moved || left || ((event.kind == K::key_down || event.kind == K::key_up) &&
+                         (event.key == Key::space || event.key == Key::escape)))
+        refresh_pointer();
+    return result;
+}
+
+ii::core::Result<bool> CanvasView::handle_input(const ii::gui::WidgetInput& event)
 {
     using K = ii::gui::WidgetInputKind;
     using Key = ii::gui::WidgetKey;
     if (event.kind == K::focus_lost || event.kind == K::pointer_cancel)
     {
+        if (brush_pointer_)
+        {
+            cancel_brush_pointer();
+            space_ = false;
+            return false;
+        }
         // A native focus change can mean clicking a tool control or beginning
         // an iPad navigation gesture. Cancel only the in-flight mask stroke;
         // keep the session so the toolbar can apply it after focus moves.
@@ -1192,7 +1367,10 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
     }
     if (event.kind == K::key_down && event.key == Key::escape)
     {
-        cancel();
+        if (brush_pointer_)
+            cancel_brush_pointer();
+        else
+            cancel();
         return true;
     }
     if (event.kind == K::key_down && !event.text_input_active && ((crop_ && tool == "crop") || (perspective_ && tool == "perspective-crop")) && event.key == Key::enter) {
@@ -1261,6 +1439,11 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         return true;
     }
     if (presentation && (event.kind == K::pointer_down || event.kind == K::pointer_move || event.kind == K::pointer_up))
+    {
+        cancel_brush_pointer();
+        return true;
+    }
+    if ((brush_pointer_ || (event.kind == K::pointer_down && event.alt)) && brush_pointer_shortcut(event))
         return true;
     if (tool == "magnetic-lasso" && !space_ && !(event.buttons & 4))
     {
@@ -1440,19 +1623,11 @@ ii::core::Result<bool> CanvasView::input(const ii::gui::WidgetInput& event)
         }
         if (tool == "eyedropper")
         {
-            auto pixel = renderFrameRegion(
-                artwork_.document(), frame_,
-                {{int(std::floor(down_.x)), int(std::floor(down_.y))}, {1, 1}}, {1, 1});
             drag_ = false;
-            if (pixel.ok() && !pixel.pixels.pixels.empty())
-            {
-                color = pixel.pixels.pixels[0];
-                tool = "brush";
-                if (color_picked)
-                    color_picked(color);
-            }
-            else if (status)
-                status("Choose a point inside the canvas");
+            brush_pointer_ = BrushPointerGesture{BrushPointerGesture::Mode::sample_color,
+                                                 {event.x, event.y}, brush_size, settings.hardness * 100,
+                                                 event.device, event.device_id};
+            sample_canvas_color(down_);
             return true;
         }
         if (tool == "rect-marquee" || tool == "ellipse-marquee") return true;

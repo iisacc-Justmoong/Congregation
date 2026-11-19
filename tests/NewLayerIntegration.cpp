@@ -74,6 +74,7 @@ int main(int argc, char** argv) try {
                             NewLayerType::animated_raster, NewLayerType::animated_vector}) {
         const auto before = artwork.snapshot();
         const auto previous = artwork.selected();
+        const auto previous_frames = artwork.document().timeline.frameCount;
         if (!artwork.add_layer(kind)) throw std::runtime_error("layer creation failed: " + artwork.error());
         const auto* layer = findLayer(artwork.document(), artwork.selected());
         check(layer != nullptr, "new layer was not selected");
@@ -82,6 +83,18 @@ int main(int argc, char** argv) try {
         check(layerRepresentation(*layer) == (is_bitmap ? LayerRepresentation::Bitmap : LayerRepresentation::Vector) &&
               layerTiming(*layer) == (animated ? LayerTiming::Dynamic : LayerTiming::Static), "wrong native layer kind");
         check(resolveAssetAt(artwork.document(), *layer, 0) != nullptr, "layer has no frame-zero content");
+        if (animated) {
+            const auto* keys = keyframedLayerSource(*layer);
+            check(layerProperties(*layer).frameRange == LayerFrameRange{0, 119} &&
+                  artwork.document().timeline.frameCount == 120 && keys &&
+                  keys->frameIndices == std::vector<FrameIndex>{0} &&
+                  resolveAssetAt(artwork.document(), *layer, 119) == resolveAssetAt(artwork.document(), *layer, 0),
+                  "an animated layer must have five seconds of frames and one shared initial asset");
+        } else {
+            check(artwork.document().timeline.frameCount == previous_frames &&
+                  staticLayerTimelineRange(artwork.document(), *layer) == LayerFrameRange{0, 0},
+                  "a static layer must occupy one frame without extending the timeline");
+        }
         const auto after = artwork.snapshot();
         check(artwork.history_bytes() <= budget && artwork.undo() && artwork.selected() == previous &&
               artwork.snapshot() == before && artwork.redo() && artwork.snapshot() == after,
@@ -97,7 +110,23 @@ int main(int argc, char** argv) try {
     check(artwork.save(output), "save failed");
     Artwork reopened(temporary.path());
     check(reopened.open(output) && reopened.document().layers.size() == artwork.document().layers.size() &&
-          findAudioTrack(reopened.document(), audio_id), "native layers did not reopen");
+          findAudioTrack(reopened.document(), audio_id) && reopened.snapshot() == artwork.snapshot(),
+          "native layers and their timing did not reopen");
+
+    Artwork fractional(temporary.path());
+    check(fractional.create(8, 8), "cannot create the fractional timeline fixture");
+    auto fractional_document = fractional.document();
+    fractional_document.timeline = {{25, 2}, 80};
+    check(fractional.replace(std::move(fractional_document)) &&
+          fractional.add_layer(NewLayerType::animated_vector), "cannot create a fractional-rate dynamic layer");
+    const auto* fractional_layer = findLayer(fractional.document(), fractional.selected());
+    check(fractional_layer && layerProperties(*fractional_layer).frameRange == LayerFrameRange{0, 62} &&
+          fractional.document().timeline.frameCount == 80 &&
+          fractional.document().timeline.frameRate.numerator == 25 &&
+          fractional.document().timeline.frameRate.denominator == 2 &&
+          resolveAssetAt(fractional.document(), *fractional_layer, 62) &&
+          !resolveAssetAt(fractional.document(), *fractional_layer, 63),
+          "a five-second layer must round up at a fractional rate and preserve a longer document");
 
     Artwork source(temporary.path());
     check(source.create(2, 2) && source.replace(source_document(source.document())), "cannot create source fixture");
@@ -155,8 +184,22 @@ int main(int argc, char** argv) try {
     const auto before_bad_import = target.snapshot();
     check(!target.add_layer_from_file(NewLayerType::pose, output) && target.snapshot() == before_bad_import,
           "a source document without the requested type must not alter the target");
+    // History charges the imported layer and assets independently of existing pixels.
     const auto large_before = artwork.snapshot();
-    check(!artwork.add_layer_from_file(NewLayerType::video, source_path) && artwork.snapshot() == large_before,
+    const auto large_selection = artwork.selected();
+    check(artwork.add_layer_from_file(NewLayerType::video, source_path) && artwork.history_bytes() <= budget,
+          "a small import into a large document must use incremental history");
+    check(artwork.undo() && artwork.snapshot() == large_before && artwork.selected() == large_selection,
+          "undoing the small import must restore the large document and selection");
+
+    Artwork over_budget(temporary.path(), 1);
+    check(over_budget.create(2, 2), "cannot create the budget-limited import target");
+    const auto limited_before = over_budget.snapshot();
+    const auto limited_selection = over_budget.selected();
+    check(!over_budget.add_layer_from_file(NewLayerType::video, source_path) &&
+          over_budget.error() == "Edit exceeds the undo budget" &&
+          over_budget.snapshot() == limited_before && over_budget.selected() == limited_selection &&
+          over_budget.history_bytes() == 0,
           "over-budget imports must leave the document intact");
 
     auto animated_document = source.document();

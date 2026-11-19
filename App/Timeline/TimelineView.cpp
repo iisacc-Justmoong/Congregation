@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <iiFileProvider>
 #include <iiSharedCanvas>
 #include <iiSDKCore>
@@ -29,6 +30,28 @@ constexpr double timeline_padding = Metric::space4;
 constexpr double timeline_height = transport_height + ruler_height + Metric::timelineBodyHeight +
                                    2 * timeline_padding;
 constexpr double body_text_inset = (row_height - Metric::textBodyLineHeight) / 2.0;
+
+// Shared geometry for the ruler, row cells and playhead hit testing. Short
+// documents use the overview scale and continue into empty future frames.
+struct TimelineGrid final
+{
+    TimelineGrid(const TimelinePosition& state, double width, double zoom)
+        : time_width(std::max(1., width - columns)), rate(state.rate),
+          visible_frames(std::max(2., std::max(state.duration, TimelinePosition{}.duration) * rate / zoom)),
+          frame_width(time_width / visible_frames) {}
+
+    [[nodiscard]] double x(double frame) const { return columns + frame * frame_width; }
+    [[nodiscard]] double time_at(double x) const { return (x - columns) / (frame_width * rate); }
+
+    // Group consecutive divisions in dense views and keep each mark on its grid.
+    [[nodiscard]] std::int64_t stride(double divisions) const {
+        const auto limit = std::clamp(time_width / Metric::stroke1, 1., 1000.);
+        return std::max<std::int64_t>(1, std::int64_t(std::ceil(divisions / limit)));
+    }
+
+    double time_width, rate, visible_frames, frame_width;
+};
+
 void text(ii::gui::WidgetDrawing &d, Rect rect, std::string value,
           double size = Metric::textCaption, unsigned weight = Metric::weightRegular)
 {
@@ -294,6 +317,35 @@ void TimelineView::commit_rename()
     owned_widgets::good(rename_.close_popup());
     vm_->rename_layer(rename_key_, rename_text_);
 }
+void TimelineView::update_layer(Row &row, const iiSharedCanvas::Document &doc, const iiSharedCanvas::Layer &layer,
+                                iiSharedCanvas::FrameIndex frame, bool force_pixels, bool update_keys)
+{
+    const auto &p = iiSharedCanvas::layerProperties(layer);
+    row.id = p.id; row.name = p.name; row.opacity = p.opacity; row.visible = p.visible;
+    row.mode = p.blendMode == RasterBlendMode::Multiply ? "Multiply" :
+               p.blendMode == RasterBlendMode::Screen ? "Screen" : "Normal";
+    const auto key = layer_preview_key(doc, layer, frame);
+    row.content_frames = iiSharedCanvas::keyframedLayerSource(layer)
+        ? p.frameRange
+        : iiSharedCanvas::staticLayerTimelineRange(doc, layer);
+    // A timed video clip occupies its active interval on the document timeline.
+    if (std::holds_alternative<iiSharedCanvas::VideoLayer>(layer)) {
+        const auto first = p.frameRange ? p.frameRange->firstFrame : 0;
+        if (iiSharedCanvas::resolveAssetAt(doc, layer, first))
+            row.content_frames = p.frameRange.value_or(
+                iiSharedCanvas::LayerFrameRange{0, doc.timeline.frameCount - 1});
+    }
+    if (key != row.preview_key || force_pixels) {
+        row.preview_key = key;
+        row.preview = key ? render_layer_preview(doc, layer, frame) : nullptr;
+    }
+    if (update_keys) {
+        row.keys.clear();
+        for (const auto &f : doc.frames)
+            if (std::ranges::any_of(f.keyframes, [&](const auto &k) { return k.layerId == row.id; }))
+                row.keys.push_back(int(f.index));
+    }
+}
 void TimelineView::refresh_document(const iiSharedCanvas::Document &doc,
                                     const std::string &selected)
 {
@@ -303,18 +355,8 @@ void TimelineView::refresh_document(const iiSharedCanvas::Document &doc,
         std::clamp(vm_->timeline->frame(), 0, std::max(0, int(doc.timeline.frameCount) - 1)));
     for (auto it = doc.layers.rbegin(); it != doc.layers.rend(); ++it)
     {
-        const auto &p = iiSharedCanvas::layerProperties(*it);
-        Row r{p.id, p.name, "", "Normal", p.opacity, p.visible, {}};
-        if (p.blendMode == RasterBlendMode::Multiply)
-            r.mode = "Multiply";
-        else if (p.blendMode == RasterBlendMode::Screen)
-            r.mode = "Screen";
-        r.preview_key = layer_preview_key(doc, *it, frame);
-        if (r.preview_key) r.preview = render_layer_preview(doc, *it, frame);
-        for (const auto &f : doc.frames)
-            if (std::ranges::any_of(f.keyframes, [&](const auto &k) { return k.layerId == p.id; }))
-                r.keys.push_back(int(f.index));
-        rows_.push_back(std::move(r));
+        auto &row = rows_.emplace_back();
+        update_layer(row, doc, *it, frame, false, true);
     }
     for (auto it = doc.audioTracks.rbegin(); it != doc.audioTracks.rend(); ++it)
         rows_.push_back({it->id, it->name, "audio-track", "Audio", 1, !it->muted, {}, true});
@@ -339,25 +381,6 @@ void TimelineView::apply_document_change(const iiSharedCanvas::Document &doc,
     }
     const auto frame = static_cast<iiSharedCanvas::FrameIndex>(
         std::clamp(vm_->timeline->frame(), 0, std::max(0, int(doc.timeline.frameCount) - 1)));
-    const auto keys_for = [&](Row &row) {
-        row.keys.clear();
-        for (const auto &f : doc.frames)
-            if (std::ranges::any_of(f.keyframes, [&](const auto &k) { return k.layerId == row.id; }))
-                row.keys.push_back(int(f.index));
-    };
-    const auto update_layer = [&](Row &row, const iiSharedCanvas::Layer &layer, bool force_pixels,
-                                  bool update_keys) {
-        const auto &p = iiSharedCanvas::layerProperties(layer);
-        row.id = p.id; row.name = p.name; row.opacity = p.opacity; row.visible = p.visible;
-        row.mode = p.blendMode == RasterBlendMode::Multiply ? "Multiply" :
-                   p.blendMode == RasterBlendMode::Screen ? "Screen" : "Normal";
-        const auto key = layer_preview_key(doc, layer, frame);
-        if (key != row.preview_key || force_pixels) {
-            row.preview_key = key;
-            row.preview = key ? render_layer_preview(doc, layer, frame) : nullptr;
-        }
-        if (update_keys) keys_for(row);
-    };
     std::vector<std::size_t> dirty;
     const auto old_selected = selected_;
     selected_ = selected;
@@ -383,7 +406,7 @@ void TimelineView::apply_document_change(const iiSharedCanvas::Document &doc,
             const bool modified = added || !scope || contains(scope->layers, id) ||
                 (change.timing && std::holds_alternative<iiSharedCanvas::VideoLayer>(*it));
             const bool pixels = pixels_changed(row);
-            if (modified || pixels) update_layer(row, *it, pixels, modified);
+            if (modified || pixels) update_layer(row, doc, *it, frame, pixels, modified);
             rows_.push_back(std::move(row));
         }
         for (auto it = doc.audioTracks.rbegin(); it != doc.audioTracks.rend(); ++it) {
@@ -437,7 +460,7 @@ void TimelineView::apply_document_change(const iiSharedCanvas::Document &doc,
                 const auto current = layer_preview_key(doc, *item, frame);
                 const bool force = scope ? pixels_changed(row) : change.kind == DocumentChangeKind::pixels &&
                     ((asset.empty() && targeted) || (current && current->asset == asset));
-                update_layer(row, *item, force, scope ? contains(scope->layers, row.id) :
+                update_layer(row, doc, *item, frame, force, scope ? contains(scope->layers, row.id) :
                              change.kind == DocumentChangeKind::frames ||
                              (change.kind == DocumentChangeKind::pixels && targeted));
                 if (previous != row) dirty.push_back(index);
@@ -493,8 +516,8 @@ void TimelineView::paint(bool update_rows)
         return;
     const auto state = vm_->timeline->state.get();
     row_timing_ = std::pair{state.rate, state.duration};
-    const double visible_duration = state.duration / zoom_;
-    const double width = rs->bounds.width, time_width = std::max(1., width - columns);
+    const double width = rs->bounds.width;
+    const TimelineGrid grid(state, width, zoom_);
     const auto blue = Color::blue;
     ii::gui::WidgetDrawing header;
     image(header, {0, Metric::size22, lvui::design_icon_default_extent,
@@ -507,25 +530,22 @@ void TimelineView::paint(bool update_rows)
                    lvui::design_icon_default_extent}, "lock");
     text(header, {Metric::size264, Metric::space16, Metric::size90, Metric::size22}, "Mode");
     text(header, {Metric::size360, Metric::space16, Metric::size56, Metric::size22}, "Opacity");
-    for (int i = 0; i <= 8; ++i)
+    const auto step = grid.stride(grid.visible_frames);
+    const int label_interval = int(std::ceil((Metric::size44 + Metric::space8) / (grid.frame_width * step)));
+    for (std::int64_t frame = 0; frame <= grid.visible_frames; frame += step)
     {
-        const auto x = columns + time_width * i / 8;
-        std::string label =
-            ii::core::format_decimal(std::round(visible_duration * i / 8 * 100) / 100) + "s";
-        text(header,
-             {float(std::min(x, width - Metric::size36)), 0, Metric::size44, Metric::size18},
-             label);
-    }
-    const int ticks = std::clamp(int(std::round(visible_duration * state.rate)), 1, 1000);
-    for (int i = 0; i <= ticks; ++i)
-    {
-        const auto x = columns + time_width * i / ticks;
+        const auto x = grid.x(frame);
+        const bool major = (frame / step) % label_interval == 0;
         line(header,
-             {float(x), float(i % state.rate == 0 ? Metric::size18 : Metric::size26),
-              Metric::stroke1, float(i % state.rate == 0 ? Metric::size26 : Metric::space10)},
+             {float(x), float(major ? Metric::size18 : Metric::size26),
+              Metric::stroke1, float(major ? Metric::size26 : Metric::space10)},
              Color::textCaption);
+        if (major && x + Metric::size44 <= width) {
+            const auto seconds = std::round(1000. * frame / grid.rate) / 1000.;
+            text(header, {float(x), 0, Metric::size44, Metric::size18}, ii::core::format_decimal(seconds) + "s");
+        }
     }
-    const auto play_x = columns + time_width * vm_->timeline->seconds() / visible_duration;
+    const auto play_x = grid.x(state.frame);
     header.images.push_back(
         {{float(play_x - Metric::size22 / 2.0), Metric::size18, Metric::size22, Metric::size26},
          marker_});
@@ -571,9 +591,8 @@ void TimelineView::paint_row(std::size_t i)
     const auto position = double(i) * row_height - offset_;
     if (position + row_height <= 0 || position >= bs->bounds.height) return;
     const auto state = vm_->timeline->state.get();
-    const double visible_duration = state.duration / zoom_;
-    const double time_width = std::max(1., double(rs->bounds.width) - columns);
-    const int ticks = std::clamp(int(std::round(visible_duration * state.rate)), 1, 1000);
+    const TimelineGrid grid(state, rs->bounds.width, zoom_);
+    const auto document_frames = std::round(state.duration * grid.rate);
     const double y = 0;
     good(row_slots_[slot].set_frame({0, float(position), bs->bounds.width, float(row_height)}));
     good(row_slots_[slot].set_visible(true));
@@ -609,20 +628,32 @@ void TimelineView::paint_row(std::size_t i)
         text(body, {Metric::size366, float(y + body_text_inset), Metric::size48, Metric::textBodyLineHeight},
              ii::core::format_decimal(std::round(r.opacity * 100)) + "%", Metric::textBody,
              Metric::weightMedium);
-    const int row_ticks = r.audio ? std::clamp(int(std::ceil(visible_duration * 4)), 1, 1000) : ticks;
-    for (int f = 0; f < row_ticks; ++f) {
-        const auto x = columns + time_width * f / row_ticks, w = time_width / row_ticks;
+    if (r.content_frames) {
+        const double first = r.content_frames->firstFrame;
+        const auto one_past_last = double(r.content_frames->lastFrame) + 1;
+        const auto end = std::min({one_past_last, document_frames, grid.visible_frames});
+        if (first < end)
+            line(body, {float(grid.x(first)), float(y), float(grid.x(end) - grid.x(first)), Metric::size20},
+                 Color::surfaceControl);
+    }
+    constexpr double audio_divisions_per_second = 4;
+    const auto division = r.audio ? grid.rate / audio_divisions_per_second : 1.;
+    const auto visible_divisions = grid.visible_frames / division;
+    const auto step = grid.stride(visible_divisions);
+    for (std::int64_t i = 0; i < visible_divisions; i += step) {
+        const auto x = grid.x(i * division);
+        const auto w = grid.x(std::min(grid.visible_frames, (i + step) * division)) - x;
         line(body, {float(x + Metric::stroke1), float(y + Metric::size20),
                     float(std::max(0., w - Metric::space2)), Metric::stroke1});
-        if (f % 4 == 0)
+        if ((i / step) % 4 == 0 && (r.audio || i < document_frames))
             text(body, {float(x + Metric::size3), float(y + Metric::space6), Metric::size30,
                         Metric::space12},
-                 r.audio ? ii::core::format_decimal(visible_duration * f / row_ticks) + "s"
-                         : std::to_string(f / 4 + 1));
+                 r.audio ? ii::core::format_decimal(i / audio_divisions_per_second) + "s"
+                         : std::to_string(i + 1));
     }
     for (int key : r.keys) {
-        const auto cell_width = time_width / ticks;
-        const auto x = columns + cell_width * (key + .5);
+        if (key >= grid.visible_frames) continue;
+        const auto x = grid.x(key + .5);
         constexpr auto icon_extent = lvui::design_icon_default_extent;
         image(body, {float(x - icon_extent / 2), float(y + (row_height - icon_extent) / 2),
                      icon_extent, icon_extent}, "keyframe");
@@ -669,7 +700,7 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
             dragging_ = true;
             rate_drag_ = ruler && e.alt;
             down_y_ = e.y;
-            down_rate_ = vm_->timeline->state.get().rate;
+            down_rate_ = int(std::lround(vm_->timeline->state.get().rate));
         }
         else if (!ruler)
         {
@@ -725,9 +756,11 @@ ii::core::Result<bool> TimelineView::input(const ii::gui::WidgetInput &e, bool r
             if (e.kind == K::pointer_up)
                 if (auto callback = vm_->frame_rate_changed) callback(rate);
         }
-        else
-            vm_->timeline->scrub((x - columns) / std::max(1., double(bounds.width) - columns) *
-                                 vm_->timeline->state.get().duration / zoom_);
+        else {
+            const auto ruler_bounds = ruler ? bounds : take(ruler_.snapshot()).bounds;
+            const TimelineGrid grid(vm_->timeline->state.get(), ruler_bounds.width, zoom_);
+            vm_->timeline->scrub(grid.time_at(e.x - ruler_bounds.x));
+        }
         if (e.kind == K::pointer_up)
             dragging_ = false;
         return true;

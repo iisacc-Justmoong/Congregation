@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/LVUI_VIEWMODELS.md",
-    "sha256": "5ac132fdbd51d10165f712528e048c9a9c6c49ce2a75acf3ed7cda791867a57e",
-    "bytes": 16022,
-    "line_count": 196,
+    "sha256": "9b84c4499f847aad6c92f88b4f8b9eb1eb11e59a56684ee1ac78a9e2e5f7b628",
+    "bytes": 16940,
+    "line_count": 209,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -228,36 +228,36 @@
       "id": "b000029",
       "kind": "paragraph",
       "start_line": 102,
-      "end_line": 106,
-      "raw": "메인 화면의 작업 영역과 새 캔버스 선택기는 각각 LVUI 선언 안의 `NativeView`에\nC++ 표면 원천을 연결한다. 원천이 구성한 위젯은 부모 LVUI 화면에 포함되지만 별도의\n콘텐츠 세대에 속한다. 메인은 같은 `EditorBackend`, 새 캔버스 창은 같은\n`CanvasSetupModel`을 사용한다. 세대의 소유권·실패·검증 범위는\n[화면 연결 계약](LVUI_VIEW_MIGRATION.md)을 따른다.\n"
+      "end_line": 105,
+      "raw": "브러시 도구군의 기본 불투명도는 색상 피커 아래의 공용 `Opacity` 슬라이더에서\n조절한다. 슬라이더와 숫자열 단축키는 활성 브러시 프로필의 동일한 값을 사용한다.\n색상 피커의 세로 투명도 레일은 전경색의 알파에 연결된다. 브러시 도구군 이외의\n색상 피커에서는 가로 슬라이더도 전경색의 알파에 연결된다.\n"
     },
     {
       "id": "b000030",
       "kind": "blank",
-      "start_line": 107,
-      "end_line": 107,
+      "start_line": 106,
+      "end_line": 106,
       "raw": "\n"
     },
     {
       "id": "b000031",
       "kind": "paragraph",
-      "start_line": 108,
-      "end_line": 114,
-      "raw": "iiGUI의 컨텍스트 메뉴와 앵커는 같은 세대에 있어야 한다. 작업 영역의 도구와\n레이어는 자식 세대이고 메뉴는 부모 세대이므로, 제품 어댑터는 작업 영역에서\n컨텍스트 입력을 받아 창 좌표를 메뉴 세대의 좌표로 변환한다. 기존 레이어 입력\n처리기를 교체하지 않으며, 다른 입력은 그대로 전달한다. 색상·텍스트 및 상태\n팝업도 세대가 다를 때 앵커 위치를 열기 시점에 변환한다. 서로 다른 세대 사이의\n팝업은 열린 뒤 앵커가 움직여도 자동으로 따라가지 않는다. 같은 세대의 팝업은\niiGUI의 기존 앵커 추적을 사용한다.\n"
+      "start_line": 107,
+      "end_line": 111,
+      "raw": "메인 화면의 작업 영역과 새 캔버스 선택기는 각각 LVUI 선언 안의 `NativeView`에\nC++ 표면 원천을 연결한다. 원천이 구성한 위젯은 부모 LVUI 화면에 포함되지만 별도의\n콘텐츠 세대에 속한다. 메인은 같은 `EditorBackend`, 새 캔버스 창은 같은\n`CanvasSetupModel`을 사용한다. 세대의 소유권·실패·검증 범위는\n[화면 연결 계약](LVUI_VIEW_MIGRATION.md)을 따른다.\n"
     },
     {
       "id": "b000032",
       "kind": "blank",
-      "start_line": 115,
-      "end_line": 115,
+      "start_line": 112,
+      "end_line": 112,
       "raw": "\n"
     },
     {
       "id": "b000033",
       "kind": "paragraph",
-      "start_line": 116,
+      "start_line": 113,
       "end_line": 119,
-      "raw": "작업 영역의 아이콘 버튼은 LVUI 공통 설정을 사용한다. 두 열의 도구 레일 너비와\n행 높이 및 타임라인 레이어 행 높이는 이 공통 버튼의 치수와 LVUI 간격에서\n계산하며, 제품이 버튼 크기나 안쪽 여백을 다시 지정하지 않는다. 도구 선택은 이전과 같이 `EditorBackend`가\n소유하고 제품별 시각 설정과는 분리한다.\n"
+      "raw": "iiGUI의 컨텍스트 메뉴와 앵커는 같은 세대에 있어야 한다. 작업 영역의 도구와\n레이어는 자식 세대이고 메뉴는 부모 세대이므로, 제품 어댑터는 작업 영역에서\n컨텍스트 입력을 받아 창 좌표를 메뉴 세대의 좌표로 변환한다. 기존 레이어 입력\n처리기를 교체하지 않으며, 다른 입력은 그대로 전달한다. 색상·텍스트 및 상태\n팝업도 세대가 다를 때 앵커 위치를 열기 시점에 변환한다. 서로 다른 세대 사이의\n팝업은 열린 뒤 앵커가 움직여도 자동으로 따라가지 않는다. 같은 세대의 팝업은\niiGUI의 기존 앵커 추적을 사용한다.\n"
     },
     {
       "id": "b000034",
@@ -270,110 +270,154 @@
       "id": "b000035",
       "kind": "paragraph",
       "start_line": 121,
-      "end_line": 131,
-      "raw": "제품에서 iiGUI 형식의 입력 옵션을 LVUI 소유 필드에 전달할 때 `maximum_length`의\n0은 문자 수 제한 없음, 양수는 Unicode 스칼라 개수로 해석한다. 단일 스칼라\n이모지는 하나로 계산하며 선택 교체·조합 확정·실행 취소에도 같은 제한을 적용한다.\n이 제한은 독립 LVUI의 입력 상태가 처리하고 제품 어댑터는 단위만 전달한다.\n같은 어댑터는 입력의 크기를 LVUI `InputFieldSize::compact`로 선택한다. 제품은\n입력별 `InputStyle`을 전달하지 않으며, 임의 스타일 입력은 명시적으로 거절한다.\n이 프리셋은 원본 Figma의 공통 크기와 여백을 적용한다. 이 어댑터는 LVUI의 둥근\n입력 재질과 지우기 동작도 선택한다. 지우기는 한 번의 편집이며 입력 포커스를\n유지한다. 기존 선언형 화면의 입력은 별도의 표면 선택을 하지 않으므로 이 어댑터의\n설정이 자동 적용되지는 않는다. LVUI 자체는 원통형과 인라인형도 제공하지만,\n실제 화면의 픽셀 검증과 입력 방식별 포커스 구분은 아직 남아 있다.\n"
+      "end_line": 124,
+      "raw": "작업 영역의 아이콘 버튼은 LVUI 공통 설정을 사용한다. 두 열의 도구 레일 너비와\n행 높이 및 타임라인 레이어 행 높이는 이 공통 버튼의 치수와 LVUI 간격에서\n계산하며, 제품이 버튼 크기나 안쪽 여백을 다시 지정하지 않는다. 도구 선택은 이전과 같이 `EditorBackend`가\n소유하고 제품별 시각 설정과는 분리한다.\n"
     },
     {
       "id": "b000036",
       "kind": "blank",
-      "start_line": 132,
-      "end_line": 132,
+      "start_line": 125,
+      "end_line": 125,
       "raw": "\n"
     },
     {
       "id": "b000037",
-      "kind": "heading",
-      "start_line": 133,
-      "end_line": 133,
-      "raw": "## 검사\n",
-      "level": 2,
-      "title": "검사"
+      "kind": "paragraph",
+      "start_line": 126,
+      "end_line": 136,
+      "raw": "제품에서 iiGUI 형식의 입력 옵션을 LVUI 소유 필드에 전달할 때 `maximum_length`의\n0은 문자 수 제한 없음, 양수는 Unicode 스칼라 개수로 해석한다. 단일 스칼라\n이모지는 하나로 계산하며 선택 교체·조합 확정·실행 취소에도 같은 제한을 적용한다.\n이 제한은 독립 LVUI의 입력 상태가 처리하고 제품 어댑터는 단위만 전달한다.\n같은 어댑터는 입력의 크기를 LVUI `InputFieldSize::compact`로 선택한다. 제품은\n입력별 `InputStyle`을 전달하지 않으며, 임의 스타일 입력은 명시적으로 거절한다.\n이 프리셋은 원본 Figma의 공통 크기와 여백을 적용한다. 이 어댑터는 LVUI의 둥근\n입력 재질과 지우기 동작도 선택한다. 지우기는 한 번의 편집이며 입력 포커스를\n유지한다. 기존 선언형 화면의 입력은 별도의 표면 선택을 하지 않으므로 이 어댑터의\n설정이 자동 적용되지는 않는다. LVUI 자체는 원통형과 인라인형도 제공하지만,\n실제 화면의 픽셀 검증과 입력 방식별 포커스 구분은 아직 남아 있다.\n"
     },
     {
       "id": "b000038",
       "kind": "blank",
-      "start_line": 134,
-      "end_line": 134,
+      "start_line": 137,
+      "end_line": 137,
       "raw": "\n"
     },
     {
-      "kind": "paragraph",
-      "raw": "`Congregation.canvas_tool_bindings`는 연결 전에 설정된 도구 값의 초기 반영, 개별 옵션과\n도구 전환, 색상·그라디언트 변경, 뷰모델 교체와 구독 해제, 펜 표본·획·자르기 이력과 Undo/Redo를\n창을 열지 않는 테스트에서 검사한다. `native_canvas_stroke_integration`은 LVUI\n입력 경계와 캔버스 연결을 함께 검사한다.\n",
       "id": "b000039",
-      "start_line": 135,
-      "end_line": 138
+      "kind": "heading",
+      "start_line": 138,
+      "end_line": 138,
+      "raw": "## 라이선스 진입 모달\n",
+      "level": 2,
+      "title": "라이선스 진입 모달"
     },
     {
-      "kind": "blank",
-      "raw": "\n",
       "id": "b000040",
+      "kind": "blank",
       "start_line": 139,
-      "end_line": 139
+      "end_line": 139,
+      "raw": "\n"
     },
     {
       "id": "b000041",
       "kind": "paragraph",
       "start_line": 140,
-      "end_line": 145,
-      "raw": "`lvui_native_boundary`는 세 활성 화면의 HTML형 태그·`<script>`와 필수\nNativeView 연결을 검사한다. 문자열과 주석의 예제 텍스트나 지역 스크립트의\n`style` 변수 대입은 태그로 간주하지 않는다. 2026-11-09 문법 전환에서 이전 입력과 전환한\n입력을 동일한 이전 AOT 생성기에 넣은 C++ 출력이 세 화면 모두 바이트 단위로\n일치했으며, 현행 생성기의 출력도 같았다. 이는 생성물의 동등성에 대한 검사이고\n실제 창·장치 표시나 제품 전체 기능을 새로 실행한 검증은 아니다.\n"
+      "end_line": 144,
+      "raw": "`EditorBackend.needs_license`의 변경에 따라 메인 LVUI의 시트를 열고 닫는다.\n기존 작업 화면과 타임라인은 마운트된 상태로 남으며, LVUI\n`Color.material.overlay.scrim`이 창 전체에 검정 48%로 합성된다. 시트가 열린 동안\n작업 화면의 입력을 차단한다. 바깥 클릭과 Escape로 시트를 닫을 수 없다.\n라이선스 판정과 진행 중인 캔버스 조작에 대한 기존 거부 유예를 적용한다.\n"
     },
     {
-      "id": "b000042",
       "kind": "blank",
-      "start_line": 146,
-      "end_line": 146,
-      "raw": "\n"
+      "raw": "\n",
+      "id": "b000042",
+      "start_line": 145,
+      "end_line": 145
     },
     {
       "id": "b000043",
-      "kind": "paragraph",
-      "start_line": 147,
-      "end_line": 177,
-      "raw": "`Congregation.presentation_list`는 유효하지 않은 행과 중복 키, 불변 스냅샷,\n변경 없는 게시, 스레드와 창별 선택을 검사한다. `Congregation.editor_viewmodel`은\n두 뷰모델의 원본 공유, 레이어·회원 선택, 색상 변경·원본 교체와 퇴역을 검사한다.\n반복 창 세대 교체 후 늦은 정리, 실행 중 콜백 교체, 관찰 알림 중 목록·색상 원본\n교체 및 뷰모델 퇴역에 대한 회귀 사례도 포함한다.\n`tests/fixtures/EditorViewModel.lvui`, `CanvasSetupViewModel.lvui`와\n`TimelineViewModel.lvui`는 실제 뷰모델을 가져오는 독립 LVUI 생성 코드의 목록·색상·\n슬라이더·캔버스 설정·타임라인 계약이다.\n`Congregation.independent_main`, `independent_workspace`, `independent_setup`과\n`independent_preferences`는 실제 화면 구성과 입력 경계를 창 없이 검사한다.\n`independent_setup`은 입력 길이의 Unicode 스칼라 계산과 0의 무제한 의미, 공통\n크기와 사용자 지정 입력 스타일 거부, 둥근 재질, 지우기와 그 실행 취소도 확인한다.\n`independent_main_window`는 선언형 도구 레일과 아이콘 버튼의 공통 기하,\n선택·강조 상태와 도구 명령을 확인한다. `independent_workspace`는 남은 C++\n작업 영역과 타임라인의 위젯 트리를 확인한다.\n`lvui_native_boundary`는 제품 소스에서 입력 스타일과 아이콘 버튼 기하의 직접\n지정 및 제거한 전용 크기 선언의 재유입을 거절한다.\n`independent_workspace`의 `INPUT_LOOP_TRACE`는 Core EventLoop에 주입한 포인터 작업의\n제출·실행 수와 LVUI 입력·효과 수를 출력한다. 이는 iiGUI 위젯 입력을 모의한 경로이며\n실제 운영체제 이벤트나 물리 펜 장치의 계측 결과는 아니다.\n`independent_main_window`는 활성화·작업 화면, 최소 창 크기와 팝업의 전체 그리기\n목록이 iiGUI의 레이어 및 자원 제한을 만족하는지도 확인한다. 작업 화면은 개별\n위젯의 순서 보존을 위해 64개보다 많은 레이어를 사용할 수 있다.\n메뉴의 Undo·Redo·복사·붙여넣기는 위젯의 구체 종류가 아니라 포커스된 텍스트 입력\n기능을 확인한다. LVUI가 스택에 제공하는 텍스트 편집 중에도 캔버스 명령이 실행되지\n않으며 네이티브 창 자체 검사가 이 경계를 확인한다.\n네이티브 창 `--self-test`의 `NATIVE_INPUT_TRACE`는 한 Core 작업에서 주입한 33개 펜\n입력과 상태 리비전·대기값을 출력하고, 스트로크 중간 픽셀을 검사한다.\n`NATIVE_VIEWMODEL_TRACE`는 설정 창을 닫자마자 다시 여는 6개 활성화를 기록한다.\n이 역시 실제 창과 렌더러를 사용하지만 이벤트는 합성이며 물리 장치 증거는 아니다.\n빌드 및 창 없는 검사와 실제 앱·기기 실행 결과는 구분한다.\n"
+      "kind": "heading",
+      "start_line": 146,
+      "end_line": 146,
+      "raw": "## 검사\n",
+      "level": 2,
+      "title": "검사"
     },
     {
       "id": "b000044",
       "kind": "blank",
-      "start_line": 178,
-      "end_line": 178,
+      "start_line": 147,
+      "end_line": 147,
       "raw": "\n"
     },
     {
-      "id": "b000045",
       "kind": "paragraph",
-      "start_line": 179,
-      "end_line": 181,
-      "raw": "서로 호환되는 독립 SDK 스테이징을 지정해 macOS에서 생성·컴파일·창 없는 위젯\n검사를 재현할 수 있다. 다음은 이 작업 공간의 경로 예시이며 앱의 이전 SDK 키트에\n새 헤더를 섞어 링크하지 않는다.\n"
+      "raw": "`Congregation.canvas_tool_bindings`는 연결 전에 설정된 도구 값의 초기 반영, 개별 옵션과\n도구 전환, 색상·그라디언트 변경, 뷰모델 교체와 구독 해제, 펜 표본·획·자르기 이력과 Undo/Redo를\n창을 열지 않는 테스트에서 검사한다. `native_canvas_stroke_integration`은 LVUI\n입력 경계와 캔버스 연결을 함께 검사한다.\n",
+      "id": "b000045",
+      "start_line": 148,
+      "end_line": 151
     },
     {
       "id": "b000046",
       "kind": "blank",
-      "start_line": 182,
-      "end_line": 182,
+      "start_line": 152,
+      "end_line": 152,
       "raw": "\n"
     },
     {
       "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 153,
+      "end_line": 158,
+      "raw": "`lvui_native_boundary`는 세 활성 화면의 HTML형 태그·`<script>`와 필수\nNativeView 연결을 검사한다. 문자열과 주석의 예제 텍스트나 지역 스크립트의\n`style` 변수 대입은 태그로 간주하지 않는다. 2026-11-09 문법 전환에서 이전 입력과 전환한\n입력을 동일한 이전 AOT 생성기에 넣은 C++ 출력이 세 화면 모두 바이트 단위로\n일치했으며, 현행 생성기의 출력도 같았다. 이는 생성물의 동등성에 대한 검사이고\n실제 창·장치 표시나 제품 전체 기능을 새로 실행한 검증은 아니다.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 159,
+      "end_line": 159,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 160,
+      "end_line": 190,
+      "raw": "`Congregation.presentation_list`는 유효하지 않은 행과 중복 키, 불변 스냅샷,\n변경 없는 게시, 스레드와 창별 선택을 검사한다. `Congregation.editor_viewmodel`은\n두 뷰모델의 원본 공유, 레이어·회원 선택, 색상 변경·원본 교체와 퇴역을 검사한다.\n반복 창 세대 교체 후 늦은 정리, 실행 중 콜백 교체, 관찰 알림 중 목록·색상 원본\n교체 및 뷰모델 퇴역에 대한 회귀 사례도 포함한다.\n`tests/fixtures/EditorViewModel.lvui`, `CanvasSetupViewModel.lvui`와\n`TimelineViewModel.lvui`는 실제 뷰모델을 가져오는 독립 LVUI 생성 코드의 목록·색상·\n슬라이더·캔버스 설정·타임라인 계약이다.\n`Congregation.independent_main`, `independent_workspace`, `independent_setup`과\n`independent_preferences`는 실제 화면 구성과 입력 경계를 창 없이 검사한다.\n`independent_setup`은 입력 길이의 Unicode 스칼라 계산과 0의 무제한 의미, 공통\n크기와 사용자 지정 입력 스타일 거부, 둥근 재질, 지우기와 그 실행 취소도 확인한다.\n`independent_main_window`는 선언형 도구 레일과 아이콘 버튼의 공통 기하,\n선택·강조 상태와 도구 명령을 확인한다. `independent_workspace`는 남은 C++\n작업 영역과 타임라인의 위젯 트리를 확인한다.\n`lvui_native_boundary`는 제품 소스에서 입력 스타일과 아이콘 버튼 기하의 직접\n지정 및 제거한 전용 크기 선언의 재유입을 거절한다.\n`independent_workspace`의 `INPUT_LOOP_TRACE`는 Core EventLoop에 주입한 포인터 작업의\n제출·실행 수와 LVUI 입력·효과 수를 출력한다. 이는 iiGUI 위젯 입력을 모의한 경로이며\n실제 운영체제 이벤트나 물리 펜 장치의 계측 결과는 아니다.\n`independent_main_window`는 활성화·작업 화면, 최소 창 크기와 팝업의 전체 그리기\n목록이 iiGUI의 레이어 및 자원 제한을 만족하는지도 확인한다. 작업 화면은 개별\n위젯의 순서 보존을 위해 64개보다 많은 레이어를 사용할 수 있다.\n메뉴의 Undo·Redo·복사·붙여넣기는 위젯의 구체 종류가 아니라 포커스된 텍스트 입력\n기능을 확인한다. LVUI가 스택에 제공하는 텍스트 편집 중에도 캔버스 명령이 실행되지\n않으며 네이티브 창 자체 검사가 이 경계를 확인한다.\n네이티브 창 `--self-test`의 `NATIVE_INPUT_TRACE`는 한 Core 작업에서 주입한 33개 펜\n입력과 상태 리비전·대기값을 출력하고, 스트로크 중간 픽셀을 검사한다.\n`NATIVE_VIEWMODEL_TRACE`는 설정 창을 닫자마자 다시 여는 6개 활성화를 기록한다.\n이 역시 실제 창과 렌더러를 사용하지만 이벤트는 합성이며 물리 장치 증거는 아니다.\n빌드 및 창 없는 검사와 실제 앱·기기 실행 결과는 구분한다.\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 191,
+      "end_line": 191,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "paragraph",
+      "start_line": 192,
+      "end_line": 194,
+      "raw": "서로 호환되는 독립 SDK 스테이징을 지정해 macOS에서 생성·컴파일·창 없는 위젯\n검사를 재현할 수 있다. 다음은 이 작업 공간의 경로 예시이며 앱의 이전 SDK 키트에\n새 헤더를 섞어 링크하지 않는다.\n"
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 195,
+      "end_line": 195,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
       "kind": "fenced_code",
-      "start_line": 183,
-      "end_line": 192,
+      "start_line": 196,
+      "end_line": 205,
       "raw": "```sh\npython3 -B tests/verify_lvui_viewmodel.py \\\n  --lvui ../../SDK/LVUI \\\n  --iigui-source ../../SDK/iiGUI/src \\\n  --iigui-prefix ../../SDK/iiGUI/build/lvui-sheet-host-stage-20261029 \\\n  --core-prefix ../../SDK/iiSDKCore/build/lvui-observation/prefix \\\n  --color-prefix ../../SDK/iiColorManager/build/lvui-colors/prefix \\\n  --iijson-source ../../SDK/iiJson/src \\\n  --vulkan ../../SDK/build/congregation-native/prefix/lib/libvulkan.dylib\n```\n",
       "language": "sh",
       "code": "python3 -B tests/verify_lvui_viewmodel.py \\\n  --lvui ../../SDK/LVUI \\\n  --iigui-source ../../SDK/iiGUI/src \\\n  --iigui-prefix ../../SDK/iiGUI/build/lvui-sheet-host-stage-20261029 \\\n  --core-prefix ../../SDK/iiSDKCore/build/lvui-observation/prefix \\\n  --color-prefix ../../SDK/iiColorManager/build/lvui-colors/prefix \\\n  --iijson-source ../../SDK/iiJson/src \\\n  --vulkan ../../SDK/build/congregation-native/prefix/lib/libvulkan.dylib\n",
       "closed": true
     },
     {
-      "id": "b000048",
+      "id": "b000054",
       "kind": "blank",
-      "start_line": 193,
-      "end_line": 193,
+      "start_line": 206,
+      "end_line": 206,
       "raw": "\n"
     },
     {
-      "id": "b000049",
+      "id": "b000055",
       "kind": "paragraph",
-      "start_line": 194,
-      "end_line": 196,
+      "start_line": 207,
+      "end_line": 209,
       "raw": "이 과거 호스트 검사 도구는 현재 macOS만 지원한다. 임시 생성물은 제품의 `build/`에\n생성하고 검사 후 제거한다. 다른 운영체제에서의 빌드·입력·렌더링 및 물리 장치 실행을\n이 검사로 대신하지 않는다.\n"
     }
   ],
@@ -403,12 +447,20 @@
       "start_line": 69
     },
     {
-      "block_id": "b000037",
+      "block_id": "b000039",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "라이선스 진입 모달",
+      "anchor": "라이선스-진입-모달",
+      "start_line": 138
+    },
+    {
+      "block_id": "b000043",
       "parent_id": "b000001",
       "level": 2,
       "title": "검사",
       "anchor": "검사",
-      "start_line": 133
+      "start_line": 146
     }
   ],
   "indexes": {
@@ -512,36 +564,36 @@
         "context": "paragraph"
       },
       {
-        "block_id": "b000033",
-        "line": 118,
+        "block_id": "b000035",
+        "line": 123,
         "text": "계산하며, 제품이 버튼 크기나 안쪽 여백을 다시 지정하지 않는다. 도구 선택은 이전과 같이 `EditorBackend`가",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000041",
-        "line": 140,
+        "block_id": "b000047",
+        "line": 153,
         "text": "`lvui_native_boundary`는 세 활성 화면의 HTML형 태그·`<script>`와 필수",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000041",
-        "line": 142,
+        "block_id": "b000047",
+        "line": 155,
         "text": "`style` 변수 대입은 태그로 간주하지 않는다. 2026-11-09 문법 전환에서 이전 입력과 전환한",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000045",
-        "line": 181,
+        "block_id": "b000051",
+        "line": 194,
         "text": "새 헤더를 섞어 링크하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
       },
       {
-        "block_id": "b000049",
-        "line": 196,
+        "block_id": "b000055",
+        "line": 209,
         "text": "이 검사로 대신하지 않는다.",
         "basis": "lexical_match",
         "context": "paragraph"
@@ -549,18 +601,18 @@
     ],
     "commands": [
       {
-        "block_id": "b000047",
+        "block_id": "b000053",
         "language": "sh",
         "code": "python3 -B tests/verify_lvui_viewmodel.py \\\n  --lvui ../../SDK/LVUI \\\n  --iigui-source ../../SDK/iiGUI/src \\\n  --iigui-prefix ../../SDK/iiGUI/build/lvui-sheet-host-stage-20261029 \\\n  --core-prefix ../../SDK/iiSDKCore/build/lvui-observation/prefix \\\n  --color-prefix ../../SDK/iiColorManager/build/lvui-colors/prefix \\\n  --iijson-source ../../SDK/iiJson/src \\\n  --vulkan ../../SDK/build/congregation-native/prefix/lib/libvulkan.dylib\n"
       }
     ],
     "links": [
       {
-        "block_id": "b000029",
+        "block_id": "b000031",
         "label": "화면 연결 계약",
         "target": "LVUI_VIEW_MIGRATION.md",
         "kind": "relative",
-        "line": 106
+        "line": 111
       }
     ],
     "tables": []

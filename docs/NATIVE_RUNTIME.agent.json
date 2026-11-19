@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/NATIVE_RUNTIME.md",
-    "sha256": "b1f1830e163a91521507d1f8f7962f94a1d307950eb11343747a6529a8be20d7",
-    "bytes": 14022,
-    "line_count": 114,
+    "sha256": "6aaada43a3042aa047661296b654ac59e298cf83150c1acf1aa83d13f39729d4",
+    "bytes": 21631,
+    "line_count": 183,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -444,6 +444,458 @@
       "start_line": 114,
       "end_line": 114,
       "raw": "외부 변경으로 작업 파일 연결이 무효가 되면 일반 편집과 Undo·Redo는 화면의 문서와 이력을 유지한 채 실패를 알린다. 외부 변경과 로컬 이력의 자동 병합이나 연결 복구는 제공하지 않는다.\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 115,
+      "end_line": 115,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "heading",
+      "start_line": 116,
+      "end_line": 116,
+      "raw": "## 글로벌 Image 메뉴\n",
+      "level": 2,
+      "title": "글로벌 Image 메뉴"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 117,
+      "end_line": 117,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "paragraph",
+      "start_line": 118,
+      "end_line": 118,
+      "raw": "`App/Application/AppMenu.h`의 `Image` 항목과 구분선은 iiGUI의 네이티브 메뉴 호스트에 전달된다. Mode, Adjustments, Image Rotation, Variables, Analysis는 `No commands available` 비활성 행을 가진 하위 메뉴이다. `Place image…`와 `Draw line`은 마지막 그룹에서 실행할 수 있다.\n"
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 119,
+      "end_line": 119,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "paragraph",
+      "start_line": 120,
+      "end_line": 120,
+      "raw": "새 이미지 편집 명령은 콜백이 없는 비활성 항목이다. Auto Tone, Auto Contrast, Auto Color, Image Size, Canvas Size의 단축키 정보는 메뉴 안내용이다. `Congregation.app_menu`는 항목 순서, 구분선, 하위 메뉴, 비활성 상태, 단축키 정보와 기존 명령의 연결을 검사한다.\n"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 121,
+      "end_line": 121,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "heading",
+      "start_line": 122,
+      "end_line": 122,
+      "raw": "## 글로벌 File 메뉴\n",
+      "level": 2,
+      "title": "글로벌 File 메뉴"
+    },
+    {
+      "id": "b000068",
+      "kind": "blank",
+      "start_line": 123,
+      "end_line": 123,
+      "raw": "\n"
+    },
+    {
+      "id": "b000069",
+      "kind": "paragraph",
+      "start_line": 124,
+      "end_line": 124,
+      "raw": "`File` 메뉴는 새 문서와 열기, 닫기와 저장, 내보내기, 이미지 삽입, 자동화와 가져오기, 파일 정보, 인쇄 순으로 묶는다. `New document…`, `Add canvas…`, `Open…`, `Save`, `Save As…`는 기존 문서 명령을 호출한다. `Export` 하위 메뉴의 `Export…`는 기존 내보내기를 열고 `Place Embedded…`는 기존 이미지 삽입을 사용해 문서에 픽셀 레이어를 추가한다.\n"
+    },
+    {
+      "id": "b000070",
+      "kind": "blank",
+      "start_line": 125,
+      "end_line": 125,
+      "raw": "\n"
+    },
+    {
+      "id": "b000071",
+      "kind": "paragraph",
+      "start_line": 126,
+      "end_line": 126,
+      "raw": "참고 메뉴에서 Adobe Bridge·Stock, Smart Object 열기와 패키징, Adobe Generator, 클라우드 편집 초대·검토 공유·버전 기록 항목을 제외한다. 구현을 기다리는 명령은 콜백이 없는 비활성 항목이며 단축키는 안내용이다. `Open Recent`, `Automate`, `Scripts`, `Import`는 비활성 안내 행을 가진 하위 메뉴이다. macOS에서는 시스템 앱 메뉴에 종료 명령을 두고 다른 데스크톱에서는 `File` 마지막 그룹에 둔다.\n"
+    },
+    {
+      "id": "b000072",
+      "kind": "blank",
+      "start_line": 127,
+      "end_line": 127,
+      "raw": "\n"
+    },
+    {
+      "id": "b000073",
+      "kind": "paragraph",
+      "start_line": 128,
+      "end_line": 128,
+      "raw": "`Congregation.app_menu`는 `File`의 그룹 순서, 하위 메뉴, 단축키 정보와 각 활성 명령의 액션 연결을 검사한다. `Image`에는 같은 검사 방식을 적용한다.\n"
+    },
+    {
+      "id": "b000074",
+      "kind": "blank",
+      "start_line": 129,
+      "end_line": 129,
+      "raw": "\n"
+    },
+    {
+      "id": "b000075",
+      "kind": "heading",
+      "start_line": 130,
+      "end_line": 130,
+      "raw": "## 글로벌 Edit 메뉴\n",
+      "level": 2,
+      "title": "글로벌 Edit 메뉴"
+    },
+    {
+      "id": "b000076",
+      "kind": "blank",
+      "start_line": 131,
+      "end_line": 131,
+      "raw": "\n"
+    },
+    {
+      "id": "b000077",
+      "kind": "paragraph",
+      "start_line": 132,
+      "end_line": 132,
+      "raw": "`Edit`는 실행 취소, Fade, 클립보드, 검색과 텍스트, 채우기와 획, 변형과 레이어 합성, 프리셋 정의, Purge, 일반 프리셋, 색상 관리, 단축키와 환경설정 순으로 묶는다. 참고 메뉴에서는 Adobe PDF Presets와 Photoshop용 Remote Connections만 제외한다. 일반 `Presets`, `Content-Aware Fill…`, `Sky Replacement…`를 포함한 나머지 편집 항목은 메뉴에 표시한다.\n"
+    },
+    {
+      "id": "b000078",
+      "kind": "blank",
+      "start_line": 133,
+      "end_line": 133,
+      "raw": "\n"
+    },
+    {
+      "id": "b000079",
+      "kind": "paragraph",
+      "start_line": 134,
+      "end_line": 134,
+      "raw": "`Undo`, `Redo`, `Copy`, `Copy Merged`, `Paste`는 기존 앱 명령을 호출한다. 두 복사 항목은 문서의 합성 이미지를 복사하며 복사와 붙여넣기의 키 입력은 기존 포커스 처리 경로를 사용한다. `Preferences` 하위 메뉴의 `Preferences…`는 기존 설정 창을 연다. 구현을 기다리는 명령은 비활성이고 단축키는 표시용이다. `Paste Special`, `Transform`, `Purge`, `Presets`는 비활성 안내 행을 가진 하위 메뉴이다.\n"
+    },
+    {
+      "id": "b000080",
+      "kind": "blank",
+      "start_line": 135,
+      "end_line": 135,
+      "raw": "\n"
+    },
+    {
+      "id": "b000081",
+      "kind": "paragraph",
+      "start_line": 136,
+      "end_line": 136,
+      "raw": "`Congregation.app_menu`는 `Edit`의 그룹과 하위 메뉴, 비활성 명령의 단축키, 기존 액션의 연결을 검사한다.\n"
+    },
+    {
+      "id": "b000082",
+      "kind": "blank",
+      "start_line": 137,
+      "end_line": 137,
+      "raw": "\n"
+    },
+    {
+      "id": "b000083",
+      "kind": "heading",
+      "start_line": 138,
+      "end_line": 138,
+      "raw": "## 글로벌 Layer 메뉴\n",
+      "level": 2,
+      "title": "글로벌 Layer 메뉴"
+    },
+    {
+      "id": "b000084",
+      "kind": "blank",
+      "start_line": 139,
+      "end_line": 139,
+      "raw": "\n"
+    },
+    {
+      "id": "b000085",
+      "kind": "paragraph",
+      "start_line": 140,
+      "end_line": 140,
+      "raw": "`Layer`는 첨부 참고의 14개 그룹을 순서대로 배치한다. Photoshop의 `Smart Objects` 하위 메뉴와 Smart Object에 적용되는 `Smart Filters` 하위 메뉴를 제외한다. 레이어 내보내기, 채우기·조정 레이어, 마스크, 영상·래스터화, 그룹, 정렬, 병합과 매트 항목을 제공한다.\n"
+    },
+    {
+      "id": "b000086",
+      "kind": "blank",
+      "start_line": 141,
+      "end_line": 141,
+      "raw": "\n"
+    },
+    {
+      "id": "b000087",
+      "kind": "paragraph",
+      "start_line": 142,
+      "end_line": 142,
+      "raw": "`New > New Layer`, `Duplicate Layer`, `Delete > Delete Layer`는 기존 페인트 레이어 생성, 복제, 삭제 명령을 호출한다. 참고의 숨기기 자리에는 현재 선택 레이어를 표시하거나 숨기는 `Toggle Layer Visibility`를 둔다. `Command/Ctrl + ,`는 환경설정 단축키이며 표시 전환은 메뉴에서 실행한다.\n"
+    },
+    {
+      "id": "b000088",
+      "kind": "blank",
+      "start_line": 143,
+      "end_line": 143,
+      "raw": "\n"
+    },
+    {
+      "id": "b000089",
+      "kind": "paragraph",
+      "start_line": 144,
+      "end_line": 144,
+      "raw": "구현을 기다리는 명령은 비활성 항목이고 단축키는 안내용이다. 준비 중인 하위 메뉴에는 비활성 안내 행을 둔다. `Congregation.app_menu`는 전체 순서와 구분선, 하위 메뉴, 단축키 정보, 활성 레이어 명령의 연결을 검사한다.\n"
+    },
+    {
+      "id": "b000090",
+      "kind": "blank",
+      "start_line": 145,
+      "end_line": 145,
+      "raw": "\n"
+    },
+    {
+      "id": "b000091",
+      "kind": "paragraph",
+      "start_line": 146,
+      "end_line": 146,
+      "raw": "`Congregation.new_layer_integration`은 큰 문서의 기존 픽셀을 이력 비용에 더하지 않고 작은 레이어를 가져와 되돌릴 수 있는지 확인한다. 가져오기 자체가 이력 예산을 넘으면 문서, 선택과 이력을 보존하는지도 검사한다.\n"
+    },
+    {
+      "id": "b000092",
+      "kind": "blank",
+      "start_line": 147,
+      "end_line": 147,
+      "raw": "\n"
+    },
+    {
+      "id": "b000093",
+      "kind": "heading",
+      "start_line": 148,
+      "end_line": 148,
+      "raw": "## 글로벌 Select 메뉴\n",
+      "level": 2,
+      "title": "글로벌 Select 메뉴"
+    },
+    {
+      "id": "b000094",
+      "kind": "blank",
+      "start_line": 149,
+      "end_line": 149,
+      "raw": "\n"
+    },
+    {
+      "id": "b000095",
+      "kind": "paragraph",
+      "start_line": 150,
+      "end_line": 150,
+      "raw": "`Select`는 기본 선택, 레이어 선택, 영역 탐색, 선택 마스크와 수정, 확장과 유사 영역, 변형, Quick Mask, 선택 저장·불러오기, 3D 돌출 순으로 묶는다. 준비 중인 명령은 비활성 항목이며 `Modify` 하위 메뉴에는 비활성 안내 행을 둔다.\n"
+    },
+    {
+      "id": "b000096",
+      "kind": "blank",
+      "start_line": 151,
+      "end_line": 151,
+      "raw": "\n"
+    },
+    {
+      "id": "b000097",
+      "kind": "paragraph",
+      "start_line": 152,
+      "end_line": 152,
+      "raw": "`Deselect`와 `Inverse`는 기존 선택 마스크 편집 명령을 호출한다. `Deselect`의 키 조합은 `Command/Ctrl + D`이고 비활성 `Reselect`의 `Command/Ctrl + Shift + D`와 구분한다. `Inverse`는 `Command/Ctrl + Shift + I`로 실행하며 텍스트 입력에 포커스가 있으면 캔버스 선택을 보존한다.\n"
+    },
+    {
+      "id": "b000098",
+      "kind": "blank",
+      "start_line": 153,
+      "end_line": 153,
+      "raw": "\n"
+    },
+    {
+      "id": "b000099",
+      "kind": "paragraph",
+      "start_line": 154,
+      "end_line": 154,
+      "raw": "`Edit in Quick Mask Mode`는 도구 모음과 같은 진입·적용 경로를 사용한다. `Q`는 기존 도구 입력 처리로 전달된다. `Congregation.app_menu`는 메뉴 순서와 액션을 확인하고 `Congregation.quick_mask_integration`은 마스크 편집, 적용, 취소와 Undo/Redo를 검사한다.\n"
+    },
+    {
+      "id": "b000100",
+      "kind": "blank",
+      "start_line": 155,
+      "end_line": 155,
+      "raw": "\n"
+    },
+    {
+      "id": "b000101",
+      "kind": "heading",
+      "start_line": 156,
+      "end_line": 156,
+      "raw": "## 글로벌 Filter 메뉴\n",
+      "level": 2,
+      "title": "글로벌 Filter 메뉴"
+    },
+    {
+      "id": "b000102",
+      "kind": "blank",
+      "start_line": 157,
+      "end_line": 157,
+      "raw": "\n"
+    },
+    {
+      "id": "b000103",
+      "kind": "paragraph",
+      "start_line": 158,
+      "end_line": 158,
+      "raw": "`Filter`는 `Gaussian Blur`, `Generative filter`, 개별 필터 명령, 필터 분류 하위 메뉴 순으로 묶는다. 참고의 `Neural Filters…` 자리는 `Generative filter`로 표기한다. Adobe 전용 `Convert for Smart Filters`와 `Camera Raw Filter…`는 제외한다.\n"
+    },
+    {
+      "id": "b000104",
+      "kind": "blank",
+      "start_line": 159,
+      "end_line": 159,
+      "raw": "\n"
+    },
+    {
+      "id": "b000105",
+      "kind": "paragraph",
+      "start_line": 160,
+      "end_line": 160,
+      "raw": "필터 실행 명령은 콜백이 없는 비활성 항목이며 하위 메뉴에는 비활성 안내 행을 둔다. 단축키는 안내용이다. 참고의 `Command/Ctrl + Shift + R`은 앱의 수직 대칭 그리기 단축키로 사용하므로 `Lens Correction…`은 키 표기 없이 배치한다. `Congregation.app_menu`는 명칭, 순서와 구분선, 하위 메뉴, 비활성 상태와 단축키 정보를 검사한다.\n"
+    },
+    {
+      "id": "b000106",
+      "kind": "blank",
+      "start_line": 161,
+      "end_line": 161,
+      "raw": "\n"
+    },
+    {
+      "id": "b000107",
+      "kind": "heading",
+      "start_line": 162,
+      "end_line": 162,
+      "raw": "## 글로벌 View 메뉴\n",
+      "level": 2,
+      "title": "글로벌 View 메뉴",
+      "anchor": "글로벌-view-메뉴"
+    },
+    {
+      "id": "b000108",
+      "kind": "blank",
+      "start_line": 163,
+      "end_line": 163,
+      "raw": "\n"
+    },
+    {
+      "id": "b000109",
+      "kind": "paragraph",
+      "start_line": 164,
+      "end_line": 166,
+      "raw": "`View`는 교정 색상과 픽셀 종횡비, 배율과 화면 맞춤, 화면 모드, 표시 요소, 눈금자, 스냅, 안내선, 분할 영역 순으로 묶는다.\n`Zoom In`, `Zoom Out`, `Fit on Screen`은 기존 캔버스 배율 명령을 호출한다. `Screen Mode > Presentation`은 프레젠테이션 모드를 전환한다.\n`Rulers`는 기존 `Command/Ctrl + R`과 같은 눈금자 전환을 사용한다.\n"
+    },
+    {
+      "id": "b000110",
+      "kind": "blank",
+      "start_line": 167,
+      "end_line": 167,
+      "raw": "\n"
+    },
+    {
+      "id": "b000111",
+      "kind": "paragraph",
+      "start_line": 168,
+      "end_line": 170,
+      "raw": "`Fit on Screen`의 키 조합은 `Command/Ctrl + 0`이다. 준비 중인 명령은 비활성 항목이고 단축키는 안내용이다.\n`Extras`의 안내는 macOS 앱의 표준 `Command + H`와 구분하도록 `Control + H`를 사용한다.\n준비 중인 하위 메뉴는 비활성 안내 행을 표시한다.\n"
+    },
+    {
+      "id": "b000112",
+      "kind": "blank",
+      "start_line": 171,
+      "end_line": 171,
+      "raw": "\n"
+    },
+    {
+      "id": "b000113",
+      "kind": "paragraph",
+      "start_line": 172,
+      "end_line": 172,
+      "raw": "`Congregation.app_menu`는 `View`의 순서, 구분선, 하위 메뉴, 활성 상태, 단축키와 기존 명령의 연결을 검사한다.\n"
+    },
+    {
+      "id": "b000114",
+      "kind": "blank",
+      "start_line": 173,
+      "end_line": 173,
+      "raw": "\n"
+    },
+    {
+      "id": "b000115",
+      "kind": "heading",
+      "start_line": 174,
+      "end_line": 174,
+      "raw": "## 글로벌 3D 메뉴\n",
+      "level": 2,
+      "title": "글로벌 3D 메뉴",
+      "anchor": "글로벌-3d-메뉴"
+    },
+    {
+      "id": "b000116",
+      "kind": "blank",
+      "start_line": 175,
+      "end_line": 175,
+      "raw": "\n"
+    },
+    {
+      "id": "b000117",
+      "kind": "paragraph",
+      "start_line": 176,
+      "end_line": 177,
+      "raw": "`Filter`와 `Window` 사이에 최상위 `3D` 메뉴를 둔다. 30개 항목을 3D 레이어와 파노라마,\n콘텐츠 내려받기, 돌출과 메시 생성, 장면의 개체 배치, UV와 텍스처 페인팅, 형상 편집, 렌더링, 3D 인쇄 순으로 묶는다.\n"
+    },
+    {
+      "id": "b000118",
+      "kind": "blank",
+      "start_line": 178,
+      "end_line": 178,
+      "raw": "\n"
+    },
+    {
+      "id": "b000119",
+      "kind": "paragraph",
+      "start_line": 179,
+      "end_line": 181,
+      "raw": "3D 작업 명령은 비활성 상태로 표시한다. `Spherical Panorama`, `New Mesh from Layer`, `Paint System`,\n`Paint on Target Texture`, `Create Painting Overlay` 하위 메뉴에는 비활성 안내 행을 둔다.\n`Render 3D Layer`의 단축키 표기는 `Command/Ctrl + Option/Alt + Shift + R`이다.\n"
+    },
+    {
+      "id": "b000120",
+      "kind": "blank",
+      "start_line": 182,
+      "end_line": 182,
+      "raw": "\n"
+    },
+    {
+      "id": "b000121",
+      "kind": "paragraph",
+      "start_line": 183,
+      "end_line": 183,
+      "raw": "`Congregation.app_menu`는 최상위 위치, 항목 순서와 구분선, 하위 메뉴, 비활성 상태와 단축키 표기를 검사한다.\n"
     }
   ],
   "outline": [
@@ -486,6 +938,70 @@
       "title": "변경 단위 이력 전환 명세",
       "anchor": "변경-단위-이력-전환-명세",
       "start_line": 106
+    },
+    {
+      "block_id": "b000061",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 Image 메뉴",
+      "anchor": "글로벌-image-메뉴",
+      "start_line": 116
+    },
+    {
+      "block_id": "b000067",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 File 메뉴",
+      "anchor": "글로벌-file-메뉴",
+      "start_line": 122
+    },
+    {
+      "block_id": "b000075",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 Edit 메뉴",
+      "anchor": "글로벌-edit-메뉴",
+      "start_line": 130
+    },
+    {
+      "block_id": "b000083",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 Layer 메뉴",
+      "anchor": "글로벌-layer-메뉴",
+      "start_line": 138
+    },
+    {
+      "block_id": "b000093",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 Select 메뉴",
+      "anchor": "글로벌-select-메뉴",
+      "start_line": 148
+    },
+    {
+      "block_id": "b000101",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 Filter 메뉴",
+      "anchor": "글로벌-filter-메뉴",
+      "start_line": 156
+    },
+    {
+      "block_id": "b000107",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 View 메뉴",
+      "anchor": "글로벌-view-메뉴",
+      "start_line": 162
+    },
+    {
+      "block_id": "b000115",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "글로벌 3D 메뉴",
+      "anchor": "글로벌-3d-메뉴",
+      "start_line": 174
     }
   ],
   "indexes": {

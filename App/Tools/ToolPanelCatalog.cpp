@@ -1142,5 +1142,9 @@ const Panel* find(std::string_view tool) noexcept {
     const auto found = std::ranges::find(catalog, tool, &Panel::tool);
     return found == std::end(catalog) ? nullptr : found;
 }
+bool uses_brush_parameters(std::string_view tool) noexcept {
+    return tool=="brush" || tool=="pencil" || tool=="airbrush" || tool=="mixer-brush" ||
+           tool=="dry-brush" || tool=="bristle-brush";
+}
 } // namespace congregation::native::tool_panels
 

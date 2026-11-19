@@ -53,6 +53,7 @@ enum class Action
     redo,
     clear_selection,
     invert_selection,
+    toggle_quick_mask,
     apply_crop,
     cancel_crop,
     preferences,
@@ -97,7 +98,8 @@ enum class Action
     open_asset_library,
     window_close,
     window_minimize,
-    window_toggle_maximize
+    window_toggle_maximize,
+    toggle_rulers
 };
 class EditorBackend
 {
@@ -183,7 +185,7 @@ class EditorBackend
         account_button{"Open Society"}, account_guide{"Society verifies your iisacc account and license."},
         size_label{"2 px"}, flow_label{"100%"}, opacity_label{"100%"},
         hardness_label{"100%"}, spacing_label{"0.0 px"}, spacing_ratio_label{"15%"}, stabilizer_label{"0%"}, pressure_min_label{"0%"}, pressure_mid_label{"50%"}, pressure_max_label{"100%"};
-    ii::core::Observable<bool> licensed{false}, workspace_visible{true}, needs_license{false}, can_activate{true}, signed_in{false}, signing_in{false},
+    ii::core::Observable<bool> licensed{false}, needs_license{false}, can_activate{true}, signed_in{false}, signing_in{false},
         start_recent{false}, discover{true}, pressure_enabled{true}, agent_busy{false},
         layer_controls{false}, chrome_visible{true}, custom_titlebar_visible{false}, native_titlebar_controls{false}, client_titlebar_controls{false}, general_visible{true}, profile_visible{false}, members_visible{false},
         start_new{true}, can_invite{false}, wand_contiguous{true}, wand_current_layer{false}, clone_aligned{true}, clone_current_layer{true},

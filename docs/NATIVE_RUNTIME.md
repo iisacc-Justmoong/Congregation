@@ -112,3 +112,72 @@ iPad에서 UIKit이 소유하는 기기 정보 조회는 주 스레드에서 수
 현재 레이어 이름·가시성·불투명도·변환·혼합 모드는 해당 값과 작성 정보·버전만 이력에 보관하며, 선택 마스크 및 다른 이력과 한 순서로 되돌린다. 현재 모델과 바로 이전 모델, 타일형 작업 파일에서 적용한다. 오디오 트랙, 더 오래된 모델, 레이어 구조·일부 프레임 편집·채우기 등은 아직 전체 스냅샷 또는 문서 복사 경로가 남아 있다. 선택 변경 이력도 마스크의 전체 이전·이후 값에 대한 참조를 보관한다. 파일 게시 시 나머지 문서 메타데이터를 순회하는 비용도 남아 있다.
 
 외부 변경으로 작업 파일 연결이 무효가 되면 일반 편집과 Undo·Redo는 화면의 문서와 이력을 유지한 채 실패를 알린다. 외부 변경과 로컬 이력의 자동 병합이나 연결 복구는 제공하지 않는다.
+
+## 글로벌 Image 메뉴
+
+`App/Application/AppMenu.h`의 `Image` 항목과 구분선은 iiGUI의 네이티브 메뉴 호스트에 전달된다. Mode, Adjustments, Image Rotation, Variables, Analysis는 `No commands available` 비활성 행을 가진 하위 메뉴이다. `Place image…`와 `Draw line`은 마지막 그룹에서 실행할 수 있다.
+
+새 이미지 편집 명령은 콜백이 없는 비활성 항목이다. Auto Tone, Auto Contrast, Auto Color, Image Size, Canvas Size의 단축키 정보는 메뉴 안내용이다. `Congregation.app_menu`는 항목 순서, 구분선, 하위 메뉴, 비활성 상태, 단축키 정보와 기존 명령의 연결을 검사한다.
+
+## 글로벌 File 메뉴
+
+`File` 메뉴는 새 문서와 열기, 닫기와 저장, 내보내기, 이미지 삽입, 자동화와 가져오기, 파일 정보, 인쇄 순으로 묶는다. `New document…`, `Add canvas…`, `Open…`, `Save`, `Save As…`는 기존 문서 명령을 호출한다. `Export` 하위 메뉴의 `Export…`는 기존 내보내기를 열고 `Place Embedded…`는 기존 이미지 삽입을 사용해 문서에 픽셀 레이어를 추가한다.
+
+참고 메뉴에서 Adobe Bridge·Stock, Smart Object 열기와 패키징, Adobe Generator, 클라우드 편집 초대·검토 공유·버전 기록 항목을 제외한다. 구현을 기다리는 명령은 콜백이 없는 비활성 항목이며 단축키는 안내용이다. `Open Recent`, `Automate`, `Scripts`, `Import`는 비활성 안내 행을 가진 하위 메뉴이다. macOS에서는 시스템 앱 메뉴에 종료 명령을 두고 다른 데스크톱에서는 `File` 마지막 그룹에 둔다.
+
+`Congregation.app_menu`는 `File`의 그룹 순서, 하위 메뉴, 단축키 정보와 각 활성 명령의 액션 연결을 검사한다. `Image`에는 같은 검사 방식을 적용한다.
+
+## 글로벌 Edit 메뉴
+
+`Edit`는 실행 취소, Fade, 클립보드, 검색과 텍스트, 채우기와 획, 변형과 레이어 합성, 프리셋 정의, Purge, 일반 프리셋, 색상 관리, 단축키와 환경설정 순으로 묶는다. 참고 메뉴에서는 Adobe PDF Presets와 Photoshop용 Remote Connections만 제외한다. 일반 `Presets`, `Content-Aware Fill…`, `Sky Replacement…`를 포함한 나머지 편집 항목은 메뉴에 표시한다.
+
+`Undo`, `Redo`, `Copy`, `Copy Merged`, `Paste`는 기존 앱 명령을 호출한다. 두 복사 항목은 문서의 합성 이미지를 복사하며 복사와 붙여넣기의 키 입력은 기존 포커스 처리 경로를 사용한다. `Preferences` 하위 메뉴의 `Preferences…`는 기존 설정 창을 연다. 구현을 기다리는 명령은 비활성이고 단축키는 표시용이다. `Paste Special`, `Transform`, `Purge`, `Presets`는 비활성 안내 행을 가진 하위 메뉴이다.
+
+`Congregation.app_menu`는 `Edit`의 그룹과 하위 메뉴, 비활성 명령의 단축키, 기존 액션의 연결을 검사한다.
+
+## 글로벌 Layer 메뉴
+
+`Layer`는 첨부 참고의 14개 그룹을 순서대로 배치한다. Photoshop의 `Smart Objects` 하위 메뉴와 Smart Object에 적용되는 `Smart Filters` 하위 메뉴를 제외한다. 레이어 내보내기, 채우기·조정 레이어, 마스크, 영상·래스터화, 그룹, 정렬, 병합과 매트 항목을 제공한다.
+
+`New > New Layer`, `Duplicate Layer`, `Delete > Delete Layer`는 기존 페인트 레이어 생성, 복제, 삭제 명령을 호출한다. 참고의 숨기기 자리에는 현재 선택 레이어를 표시하거나 숨기는 `Toggle Layer Visibility`를 둔다. `Command/Ctrl + ,`는 환경설정 단축키이며 표시 전환은 메뉴에서 실행한다.
+
+구현을 기다리는 명령은 비활성 항목이고 단축키는 안내용이다. 준비 중인 하위 메뉴에는 비활성 안내 행을 둔다. `Congregation.app_menu`는 전체 순서와 구분선, 하위 메뉴, 단축키 정보, 활성 레이어 명령의 연결을 검사한다.
+
+`Congregation.new_layer_integration`은 큰 문서의 기존 픽셀을 이력 비용에 더하지 않고 작은 레이어를 가져와 되돌릴 수 있는지 확인한다. 가져오기 자체가 이력 예산을 넘으면 문서, 선택과 이력을 보존하는지도 검사한다.
+
+## 글로벌 Select 메뉴
+
+`Select`는 기본 선택, 레이어 선택, 영역 탐색, 선택 마스크와 수정, 확장과 유사 영역, 변형, Quick Mask, 선택 저장·불러오기, 3D 돌출 순으로 묶는다. 준비 중인 명령은 비활성 항목이며 `Modify` 하위 메뉴에는 비활성 안내 행을 둔다.
+
+`Deselect`와 `Inverse`는 기존 선택 마스크 편집 명령을 호출한다. `Deselect`의 키 조합은 `Command/Ctrl + D`이고 비활성 `Reselect`의 `Command/Ctrl + Shift + D`와 구분한다. `Inverse`는 `Command/Ctrl + Shift + I`로 실행하며 텍스트 입력에 포커스가 있으면 캔버스 선택을 보존한다.
+
+`Edit in Quick Mask Mode`는 도구 모음과 같은 진입·적용 경로를 사용한다. `Q`는 기존 도구 입력 처리로 전달된다. `Congregation.app_menu`는 메뉴 순서와 액션을 확인하고 `Congregation.quick_mask_integration`은 마스크 편집, 적용, 취소와 Undo/Redo를 검사한다.
+
+## 글로벌 Filter 메뉴
+
+`Filter`는 `Gaussian Blur`, `Generative filter`, 개별 필터 명령, 필터 분류 하위 메뉴 순으로 묶는다. 참고의 `Neural Filters…` 자리는 `Generative filter`로 표기한다. Adobe 전용 `Convert for Smart Filters`와 `Camera Raw Filter…`는 제외한다.
+
+필터 실행 명령은 콜백이 없는 비활성 항목이며 하위 메뉴에는 비활성 안내 행을 둔다. 단축키는 안내용이다. 참고의 `Command/Ctrl + Shift + R`은 앱의 수직 대칭 그리기 단축키로 사용하므로 `Lens Correction…`은 키 표기 없이 배치한다. `Congregation.app_menu`는 명칭, 순서와 구분선, 하위 메뉴, 비활성 상태와 단축키 정보를 검사한다.
+
+## 글로벌 View 메뉴
+
+`View`는 교정 색상과 픽셀 종횡비, 배율과 화면 맞춤, 화면 모드, 표시 요소, 눈금자, 스냅, 안내선, 분할 영역 순으로 묶는다.
+`Zoom In`, `Zoom Out`, `Fit on Screen`은 기존 캔버스 배율 명령을 호출한다. `Screen Mode > Presentation`은 프레젠테이션 모드를 전환한다.
+`Rulers`는 기존 `Command/Ctrl + R`과 같은 눈금자 전환을 사용한다.
+
+`Fit on Screen`의 키 조합은 `Command/Ctrl + 0`이다. 준비 중인 명령은 비활성 항목이고 단축키는 안내용이다.
+`Extras`의 안내는 macOS 앱의 표준 `Command + H`와 구분하도록 `Control + H`를 사용한다.
+준비 중인 하위 메뉴는 비활성 안내 행을 표시한다.
+
+`Congregation.app_menu`는 `View`의 순서, 구분선, 하위 메뉴, 활성 상태, 단축키와 기존 명령의 연결을 검사한다.
+
+## 글로벌 3D 메뉴
+
+`Filter`와 `Window` 사이에 최상위 `3D` 메뉴를 둔다. 30개 항목을 3D 레이어와 파노라마,
+콘텐츠 내려받기, 돌출과 메시 생성, 장면의 개체 배치, UV와 텍스처 페인팅, 형상 편집, 렌더링, 3D 인쇄 순으로 묶는다.
+
+3D 작업 명령은 비활성 상태로 표시한다. `Spherical Panorama`, `New Mesh from Layer`, `Paint System`,
+`Paint on Target Texture`, `Create Painting Overlay` 하위 메뉴에는 비활성 안내 행을 둔다.
+`Render 3D Layer`의 단축키 표기는 `Command/Ctrl + Option/Alt + Shift + R`이다.
+
+`Congregation.app_menu`는 최상위 위치, 항목 순서와 구분선, 하위 메뉴, 비활성 상태와 단축키 표기를 검사한다.

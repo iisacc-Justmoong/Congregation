@@ -175,7 +175,7 @@
       "document_id": "urn:iisacc:document:8c51ce570e691cc773ce47199eaa8b7e88d638a21df086873054e694046bc71c",
       "source": "docs/LVUI_VIEWMODELS.md",
       "agent_json": "docs/LVUI_VIEWMODELS.agent.json",
-      "source_sha256": "5ac132fdbd51d10165f712528e048c9a9c6c49ce2a75acf3ed7cda791867a57e",
+      "source_sha256": "9b84c4499f847aad6c92f88b4f8b9eb1eb11e59a56684ee1ac78a9e2e5f7b628",
       "role": "guide"
     },
     {
@@ -203,14 +203,14 @@
       "document_id": "urn:iisacc:document:ce7bf1337644cb048a20a5a6891d31b5cc90764d58e622f1db6377f82ed69ad3",
       "source": "docs/NATIVE_RUNTIME.md",
       "agent_json": "docs/NATIVE_RUNTIME.agent.json",
-      "source_sha256": "b1f1830e163a91521507d1f8f7962f94a1d307950eb11343747a6529a8be20d7",
+      "source_sha256": "6aaada43a3042aa047661296b654ac59e298cf83150c1acf1aa83d13f39729d4",
       "role": "guide"
     },
     {
       "document_id": "urn:iisacc:document:f8ba7ff132019a628f22dbb98aeb5c0f54db4c545753507a9c63dcc4d9efd7a3",
       "source": "docs/NATIVE_UI.md",
       "agent_json": "docs/NATIVE_UI.agent.json",
-      "source_sha256": "8f738bb061754efbfb5d92ab66e3e585c4a5c57cc7dd8e3dc1863613a1772fc8",
+      "source_sha256": "b1ffe5e041eebaa01ecf579ebe12e8da318cf431b63d9e3cb2fd7e9363a49eec",
       "role": "guide"
     },
     {
@@ -231,7 +231,7 @@
       "document_id": "urn:iisacc:document:2d1a1a6fb7e602965a130d26c43ac2e500091c5b397640c3270d1b356f7eaa3f",
       "source": "docs/PAINTING_INCREMENTAL_RENDERING.md",
       "agent_json": "docs/PAINTING_INCREMENTAL_RENDERING.agent.json",
-      "source_sha256": "fd7a750e4c266e2e7502edd18c1092818366ddd9f5178596d6a3a3a348c38127",
+      "source_sha256": "816ab7db1020df50d3a3c8e3a033cb4bf1746761255afd01683ae2a7ed397b79",
       "role": "guide"
     },
     {
@@ -315,7 +315,7 @@
       "document_id": "urn:iisacc:document:6b873b845cac5c8ed818fb98c5c9ff454540011714264783e9af96db56b19d04",
       "source": "docs/TOOL_SHORTCUTS.md",
       "agent_json": "docs/TOOL_SHORTCUTS.agent.json",
-      "source_sha256": "1faa00d6cde46951aeb0c40be5e6c74dfee67136d60b185dc53fef2f59b8dfe0",
+      "source_sha256": "275a7e436e77530e94d636ff1dae9b8d7e9efd4d1d5ca0093f0af6cc2ecfc861",
       "role": "guide"
     },
     {
@@ -434,7 +434,7 @@
       "document_id": "urn:iisacc:congregation:timeline-layer-previews",
       "source": "docs/TIMELINE_LAYER_PREVIEWS.md",
       "agent_json": "docs/TIMELINE_LAYER_PREVIEWS.agent.json",
-      "source_sha256": "5d3127cca73644fdb0c76ec083bb36a9f94ab04c7e1f1bc79b57fd3c7f9cc84a",
+      "source_sha256": "b51e3e61132922456f7338d997f98c0c41f620646b4ae9962d9d5257420c9e44",
       "role": "guide"
     }
   ],

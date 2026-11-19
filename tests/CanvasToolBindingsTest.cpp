@@ -24,6 +24,66 @@ std::vector<std::uint32_t> pixels(const Artwork& artwork) {
     check(result.ok(), "Cannot render test document");
     return std::move(result.pixels.pixels);
 }
+
+// Drive the canvas command port with the same parameter setter as a panel
+// edit, while observing the original document revision and brush profile.
+void check_brush_drag(CanvasView& canvas, EditorBackend& editor, Artwork& artwork) {
+    using K = ii::gui::WidgetInputKind;
+    const auto revision = artwork.revision();
+    editor.set_brush_size(40);
+    editor.set_parameter(ToolParameter::hardness, 50);
+    canvas.brush_parameter_requested = [&editor](ToolParameter id, double value) {
+        editor.set_parameter(id, value);
+    };
+    const auto send = [&](K kind, double x, double y, bool chord = true) {
+        auto result = canvas.input({.kind = kind, .x = x, .y = y, .alt = chord, .meta = chord,
+                                    .buttons = kind == K::pointer_up ? 0U : 1U});
+        check(result && *result, "The brush adjustment did not own the pointer gesture");
+    };
+    send(K::pointer_down, 30, 46);
+    check(canvas.interaction_active() && !artwork.stroke_active(), "Brush adjustment began a stroke");
+    send(K::pointer_move, 32, 47);
+    check(editor.brush_size.get()==40 && editor.hardness.get()==.5, "Pointer jitter changed a brush setting");
+    send(K::pointer_move, 48, 49);
+    send(K::pointer_move, 54, 76, false);
+    send(K::pointer_up, 54, 76, false);
+    check(canvas.brush_size==64 && editor.brush_size.get()==64 && canvas.settings.hardness==.5,
+          "A horizontal drag failed to update Size or lost its axis");
+
+    send(K::pointer_down, 30, 46);
+    send(K::pointer_move, 32, 26);
+    send(K::pointer_up, 32, 21, false);
+    check(editor.hardness.get()==.25 && canvas.settings.hardness==.25 && canvas.brush_size==64,
+          "An upward drag failed to soften the brush at release");
+    send(K::pointer_down, 30, 46);
+    send(K::pointer_up, 30, 246, false);
+    check(editor.hardness.get()==1, "A downward drag did not respect the hardness limit");
+
+    send(K::pointer_down, 30, 46);
+    send(K::pointer_up, -100, 46, false);
+    check(editor.brush_size.get()==1, "A leftward drag did not respect the size limit");
+
+    send(K::pointer_down, 30, 46);
+    send(K::pointer_move, 45, 46);
+    check(canvas.input({.kind = K::pointer_cancel}).has_value() && !canvas.interaction_active(),
+          "Pointer cancellation left the brush adjustment active");
+    check(canvas.input({.kind = K::pointer_up, .x = 55, .y = 46}).has_value() && editor.brush_size.get()==16,
+          "A release after cancellation continued the brush adjustment");
+
+    send(K::pointer_down, 30, 46);
+    canvas.presentation = true;
+    send(K::pointer_up, 55, 46, false);
+    canvas.presentation = false;
+    check(editor.brush_size.get()==16 && !canvas.interaction_active(),
+          "Presentation mode retained or completed an active brush adjustment");
+
+    send(K::pointer_down, 30, 46);
+    editor.selected_tool.set("pencil");
+    check(!canvas.interaction_active(), "A brush switch retained the previous profile's drag");
+    editor.selected_tool.set("brush");
+    check(artwork.revision()==revision && !artwork.stroke_active(), "Brush adjustment changed document pixels");
+    canvas.brush_parameter_requested = {};
+}
 }
 
 int main(int argc, char** argv) try {
@@ -138,13 +198,22 @@ int main(int argc, char** argv) try {
     editor.polygon_sides.set(1);
     check(canvas.polygon_options.sides == 3, "Shape side minimum was not preserved");
 
+    // The percentage emitted by the keyboard command reaches the panel and the
+    // actual brush settings through the same edit as a panel interaction.
+    editor.set_parameter(ToolParameter::opacity, 22);
+    check(editor.parameters->label(ToolParameter::opacity) == "22%" &&
+          editor.opacity.get() == .22 && canvas.opacity == .22 &&
+          editor.parameters->brush().opacity == .22,
+          "The exact opacity percentage did not reach the brush panel and canvas");
+
     editor.selected_tool.set("pencil");
     editor.set_brush_size(23);
     editor.set_opacity(.35);
     check(canvas.brush_size == 23 && canvas.opacity == .35, "Pencil settings were not applied");
     editor.selected_tool.set("brush");
-    check(canvas.brush_size == 11 && canvas.opacity == .7,
+    check(canvas.brush_size == 11 && canvas.opacity == .22,
           "Returning to the brush did not restore its own settings");
+    check_brush_drag(canvas, editor, artwork);
 
     check(bool(editor.set_current_color({.8, .4, .2, 1})), "Cannot change foreground");
     check(canvas.color == 0xffcc6633U && canvas.gradient_stops[0].argb == canvas.color,

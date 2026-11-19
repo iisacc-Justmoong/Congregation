@@ -179,13 +179,19 @@ int main(int argc, char** argv) {
     };
     int snapshot_lookups = 0;
     const auto snapshots = [&] { ++snapshot_lookups; return tree->snapshots(); };
-    for (const char* id : {"canvas", "canvas-paint-layers", "shape", "brush-color", "layers", "tool-scroll"}) {
+    const auto workspace_slot = "workspace-host/@native-content";
+    for (const char* id : {"canvas", "canvas-paint-layers", "shape", "brush-color", "layers", "tool-panel-host"}) {
         const auto previous_lookups = snapshot_lookups;
         require(bool(congregation::native::find_scoped_widget(lookup, snapshots,
-                    "workspace-host/@native-content", id)), "Application lookup lost a workspace widget");
+                    workspace_slot, id)), "Application lookup lost a workspace widget");
         if (snapshot_lookups != previous_lookups)
             throw std::runtime_error(std::string("Ordinary input lookup scanned the complete widget tree: ") + id);
     }
+    // The scroll view belongs to the LVUI ToolPanel mounted in its own
+    // content host. Resolve it through that generation's local widget index.
+    const auto tool_panel = take(congregation::native::find_scoped_widget(lookup, snapshots,
+                   workspace_slot, "tool-panel-host"));
+    require(bool(tool_panel.content_item("tool-scroll")), "The Tool panel lost its scroll view");
     require(snapshot_lookups == 0, "Ordinary input lookup scanned the complete widget tree");
     const auto missing = [](std::string_view) -> ii::core::Result<ii::gui::Widget> {
         return ii::core::fail(ii::core::ErrorCode::not_found, "Missing test widget");
@@ -198,12 +204,14 @@ int main(int argc, char** argv) {
     auto ambiguous = congregation::native::find_scoped_widget(missing, duplicate_names, "missing", "repeated");
     require(!ambiguous && ambiguous.error().code == ii::core::ErrorCode::invalid_argument,
             "Ambiguous nested widget ids did not fail explicitly");
+    model->needs_license.set(true);
     validate_scene(tree, {1999, 1080}, "activation");
     validate_window_background(tree, {1999, 1080});
     require(take(widget(tree, "/application-window").snapshot()).visible, "Window material was not mounted");
-    require(take(widget(tree, "/activation").snapshot()).visible &&
-                !take(widget(tree, "/tool-rail").snapshot()).visible,
-            "Unlicensed window did not display its activation view");
+    const auto activation = widget(tree, "/activation");
+    const auto tool_rail_behind_gate = take(widget(tree, "/tool-rail").snapshot());
+    require(take(activation.snapshot()).opened && tool_rail_behind_gate.visible && tool_rail_behind_gate.input_blocked,
+            "Activation did not keep the workspace visible and block its input");
     good(widget(tree, "/activate").activate());
     require(action == congregation::ui::Action::restore_license, "Activation action did not reach the backend");
     model->licensed.set(true);
@@ -216,6 +224,7 @@ int main(int argc, char** argv) {
     good(host.set_extent({1999, 1080}));
     validate_scene(tree, {1999, 1080}, "workspace-restored");
     require(!take(widget(tree, "/activation").snapshot()).visible, "Licensed editor still shows activation");
+    require(!take(widget(tree, "/open").snapshot()).input_blocked, "Licensed editor input stayed blocked");
     require(take(widget(tree, "/tool-rail").snapshot()).visible &&
                 take(widget(tree, "/timeline").snapshot()).visible,
             "The main window did not mount its workspace and timeline");
@@ -228,6 +237,63 @@ int main(int argc, char** argv) {
                 canvas_bounds.height == 692 && timeline_bounds.x == 54 && timeline_bounds.width == 1593 &&
                 timeline_bounds.height == 296,
             "Declarative workspace changed canvas or timeline geometry");
+    // The brush profile owns the visible Opacity slider above the scrolling
+    // panel. A non-brush color picker still edits the foreground alpha.
+    const auto opacity = widget(tree, "/color-alpha");
+    const auto opacity_value = widget(tree, "/color-alpha-value");
+    const auto opacity_text = [&] {
+        const auto field = take(opacity_value.snapshot());
+        return take(opacity_value.text_content({0, field.text_length})).text;
+    };
+    const auto original_color = model->current_color.get();
+    const auto original_opacity = model->opacity.get();
+    good(model->set_current_color({.2, .4, .6, .5}));
+    const auto foreground_alpha = model->current_color.get().alpha;
+    model->set_opacity(.7);
+    require(opacity_text() == "70%", "The inspector value field did not show brush opacity");
+    require(std::abs(take(opacity.snapshot()).value - .7) < .001,
+            "The inspector slider did not show brush opacity");
+    require(std::ranges::none_of(take(tree->snapshots()), [](const auto& node) {
+                return node.visible && node.accessibility_name == "Opacity" &&
+                       node.id.find("tool-panel-host") != std::string::npos;
+            }), "The scrolling brush panel contains a second Opacity control");
+    const auto move_opacity = [&](double fraction) {
+        const auto initial = take(opacity.snapshot());
+        const auto bounds = initial.visual_bounds;
+        const double x = bounds.x + bounds.width * fraction;
+        const double y = bounds.y + bounds.height / 2.0;
+        require(initial.visible && initial.enabled && !initial.input_blocked && bounds.height > 0,
+                "The inspector opacity slider cannot receive input");
+        good(tree->input({.kind = ii::gui::WidgetInputKind::pointer_down,
+                          .x = bounds.x + bounds.width * initial.value, .y = y, .buttons = 1}));
+        good(tree->input({.kind = ii::gui::WidgetInputKind::pointer_move, .x = x, .y = y, .buttons = 1}));
+        good(tree->input({.kind = ii::gui::WidgetInputKind::pointer_up, .x = x, .y = y}));
+        const auto value = take(opacity.snapshot()).value;
+        if (std::abs(value - fraction) >= .05)
+            throw std::runtime_error("Opacity drag at " + std::to_string(x) + "," + std::to_string(y) +
+                                     " reached " + std::to_string(value) + " instead of " + std::to_string(fraction));
+        return value;
+    };
+    const auto brush_position = move_opacity(.4);
+    const auto brush_opacity = model->opacity.get();
+    // Brush preferences store opacity as a whole percentage point. A drag
+    // can leave the slider thumb between two equivalent stored percentages.
+    if (std::abs(brush_opacity - std::round(brush_position * 100) / 100) >= .001)
+        throw std::runtime_error("Brush opacity was " + std::to_string(brush_opacity) +
+                                 " after a slider update to " + std::to_string(brush_position));
+    require(model->current_color.get().alpha == foreground_alpha,
+            "Dragging brush opacity changed the foreground alpha");
+    model->selected_tool.set("rectangle");
+    require(opacity_text() == "50%", "A non-brush picker lost the foreground alpha");
+    const auto color_alpha = move_opacity(.6);
+    require(std::abs(model->current_color.get().alpha - color_alpha) < .001 &&
+            std::abs(model->opacity.get() - brush_opacity) < .001,
+            "A non-brush picker changed brush opacity");
+    model->selected_tool.set("brush");
+    require(std::abs(take(opacity.snapshot()).value - brush_opacity) < .001,
+            "Switching to Brush did not restore the profile's opacity display");
+    model->set_opacity(original_opacity);
+    good(model->set_current_color(original_color));
     model->timeline->scrub(.5);
     require(take(widget(tree, "/timeline-status").snapshot()).text == "00:00.500 / 00:02.000",
             "Declarative status bar did not follow the timeline");

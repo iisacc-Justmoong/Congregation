@@ -15,6 +15,7 @@ constexpr std::array crop{"crop"sv, "perspective-crop"sv};
 constexpr std::array picker{"color-picker"sv};
 constexpr std::array brush{"brush"sv, "pencil"sv, "airbrush"sv, "mixer-brush"sv,
                            "dry-brush"sv, "bristle-brush"sv};
+constexpr auto opacity_digit_interval = std::chrono::milliseconds(300);
 constexpr std::array eraser{"eraser"sv};
 constexpr std::array fill{"gradient"sv, "paint-bucket"sv};
 constexpr std::array soften{"smudge"sv, "blur"sv, "sharpen"sv};
@@ -48,12 +49,45 @@ constexpr std::array groups{
 
 std::span<const ToolShortcutGroup> tool_shortcut_groups() noexcept { return groups; }
 
+// Pair at most two digits. A third starts a new percentage entry even when
+// all three keys were pressed within the same short interval.
+ToolShortcutCommand ToolShortcuts::opacity_digit(int digit, std::string_view tool, Clock::time_point now) {
+    using Kind = ToolShortcutCommand::Kind;
+    if (opacity_digit_ && opacity_digit_->tool == tool && now >= opacity_digit_->pressed_at &&
+        now - opacity_digit_->pressed_at <= opacity_digit_interval) {
+        const int percent = opacity_digit_->digit * 10 + digit;
+        opacity_digit_.reset();
+        return {.kind = Kind::brush_opacity, .opacity_percent = percent};
+    }
+    opacity_digit_ = OpacityDigit{tool, digit, now};
+    return {.kind = Kind::brush_opacity, .opacity_percent = digit == 0 ? 100 : digit * 10};
+}
+
+// Keep numeric entry within a single editing context and leave key releases,
+// text editing, and unrelated modifiers available to their original targets.
 std::optional<ToolShortcutCommand>
-ToolShortcuts::resolve(const ii::gui::WidgetInput& event, std::string_view selected_tool) {
+ToolShortcuts::resolve(const ii::gui::WidgetInput& event, std::string_view selected_tool, Clock::time_point now) {
     using Kind = ToolShortcutCommand::Kind;
     using Key = ii::gui::WidgetKey;
+    using Input = ii::gui::WidgetInputKind;
+    if (event.text_input_active || event.kind == Input::pointer_down ||
+        event.kind == Input::focus_lost || event.kind == Input::key_cancel)
+        opacity_digit_.reset();
     if (event.kind != ii::gui::WidgetInputKind::key_down || event.text_input_active)
         return std::nullopt;
+
+    if (event.key == Key::character && event.text.size() == 1 &&
+        !event.shift && !event.alt && !event.control && !event.meta && !event.numeric_keypad) {
+        const char input = event.text.front();
+        if (input >= '0' && input <= '9') {
+            const auto active = std::ranges::find(brush, selected_tool);
+            if (active != brush.end()) {
+                if (event.key_repeat) return std::nullopt;
+                return opacity_digit(input - '0', *active, now);
+            }
+        }
+    }
+    opacity_digit_.reset();
 
     if (event.control || event.meta) {
         if (event.alt) return std::nullopt;
@@ -85,7 +119,10 @@ ToolShortcuts::resolve(const ii::gui::WidgetInput& event, std::string_view selec
     return ToolShortcutCommand{.kind = Kind::select_tool, .tool = group->tools[next]};
 }
 
+// Preserve cycling order while closing an unfinished entry on a new tool.
 void ToolShortcuts::observe_selection(std::string_view selected_tool) {
+    if (opacity_digit_ && opacity_digit_->tool != selected_tool)
+        opacity_digit_.reset();
     selected_ = selected_tool;
 }
 } // namespace congregation::native

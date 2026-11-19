@@ -175,14 +175,26 @@ int main() {
         },&scope);
     }));
     (void)take(tree->drawing_snapshot({800,600}));
-    auto activate=widget(tree,"/activate");
     scope->backend_0.needs_license.set(true);
-    scope->backend_0.workspace_visible.set(false);
+    const auto gated=take(tree->drawing_snapshot({800,600}));
+    const auto workspace=widget(tree,"/workspace-screen");
+    const auto open=widget(tree,"/open");
+    require(take(workspace.snapshot()).visible&&take(open.snapshot()).input_blocked,
+            "Activation hid the workspace or left its controls interactive");
+    require(std::ranges::count_if(gated.overlays,[&](const auto& layer){
+        return std::ranges::any_of(layer.panels,[&](const auto& panel){
+            return panel.bounds==gated.viewport && panel.top.red==0 && panel.top.green==0 &&
+                   panel.top.blue==0 && std::abs(panel.top.alpha-.48)<.001;
+        });
+    })==1,"Activation did not paint a single 48 percent window scrim");
+    good(tree->input({.kind=ii::gui::WidgetInputKind::key_down,.key=ii::gui::WidgetKey::escape}));
+    require(take(widget(tree,"/activation").snapshot()).opened,"Escape closed the required activation");
+    auto activate=widget(tree,"/activate");
     good(activate.activate());
     require(invoked==congregation::ui::Action::restore_license,"Activation action was not connected");
     scope->backend_0.needs_license.set(false);
-    scope->backend_0.workspace_visible.set(true);
     (void)take(tree->drawing_snapshot({800,600}));
+    require(!take(open.snapshot()).input_blocked,"Successful activation did not restore workspace input");
     auto origin=widget(tree,"/brush");
     auto brush_popup=widget(tree,"/brush-popup");
     good(brush_popup.open_for(origin,0,take(origin.snapshot()).bounds.height));

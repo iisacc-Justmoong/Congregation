@@ -17,6 +17,7 @@ namespace ii::gui { struct TextInputRevision; }
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <numbers>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -215,7 +216,8 @@ int main(int argc, char** argv) try {
         return result;
     };
     auto send = [&](ii::gui::WidgetInputKind kind, double x, double y, double time,
-                    ii::gui::PointerDevice device = ii::gui::PointerDevice::mouse, double pressure = 1) {
+                    ii::gui::PointerDevice device = ii::gui::PointerDevice::mouse, double pressure = 1,
+                    bool alt = false) {
         ii::gui::WidgetInput event;
         event.kind = kind;
         event.x = bounds.x + viewport.x + x * viewport.scale;
@@ -223,10 +225,90 @@ int main(int argc, char** argv) try {
         event.buttons = kind == ii::gui::WidgetInputKind::pointer_up ? 0 : 1;
         event.device = device;
         event.pressure = pressure;
+        event.alt = alt;
         event.timestamp = time;
         good(tree->input(event));
     };
     using K = ii::gui::WidgetInputKind;
+    // Hover, sample and release through the same retained view and input
+    // router as a real stroke. No test interaction may modify the artwork.
+    const auto pointer_at = [&](double x, double y) -> std::optional<ii::gui::ImageRun> {
+        const auto frame = take(tree->drawing_snapshot({2100, 1180}));
+        const auto find = [&](const auto& images) -> std::optional<ii::gui::ImageRun> {
+            for (const auto& run : images) {
+                if (run.image && run.bounds.width <= 80 && run.bounds.height <= 80 &&
+                    std::abs(run.bounds.x + run.bounds.width / 2 - bounds.x - viewport.x - x) < .01 &&
+                    std::abs(run.bounds.y + run.bounds.height / 2 - bounds.y - viewport.y - y) < .01)
+                    return run;
+            }
+            return std::nullopt;
+        };
+        if (auto run = find(frame.images)) return run;
+        for (const auto& overlay : frame.overlays) if (auto run = find(overlay.images)) return run;
+        return std::nullopt;
+    };
+    const auto pointer_revision = artwork.revision();
+    const auto pointer_compositions = canvas.viewport().composition_batches;
+    const auto foreground = canvas.color;
+    send(K::pointer_move, 160, 70, 98);
+    const auto tip = pointer_at(160, 70);
+    check(tip && std::abs(tip->bounds.width - 68) < .01, "brush cursor does not show its 64 px footprint");
+    send(K::pointer_move, 176, 74, 98.1);
+    const auto moved_tip = pointer_at(176, 74);
+    check(moved_tip && moved_tip->image == tip->image, "moving the pointer rasterized its brush tip again");
+    send(K::pointer_down, 176, 74, 98.2, ii::gui::PointerDevice::mouse, 1, true);
+    const auto ring = pointer_at(176, 74);
+    check(ring && ring->bounds.width == 72 && canvas.color == 0xffffffff, "eyedropper did not show its sampling ring");
+    const auto rgba = [&](int y) {
+        const auto& image = *ring->image;
+        const auto offset = (std::size_t(y) * image.width() + image.width() / 2) * 4;
+        const auto pixels = image.rgba();
+        return (std::uint32_t(pixels[offset + 3]) << 24) | (std::uint32_t(pixels[offset]) << 16) |
+               (std::uint32_t(pixels[offset + 1]) << 8) | pixels[offset + 2];
+    };
+    const auto middle_row = int(ring->image->height() / 2);
+    check(rgba(middle_row / 6) == 0xffffffff && rgba(middle_row * 11 / 6) == foreground &&
+          (rgba(middle_row) >> 24) == 0, "sampling ring did not compare the new and previous colors around a clear center");
+    send(K::pointer_up, 176, 74, 98.3);
+    const auto restored_tip = pointer_at(176, 74);
+    check(restored_tip && restored_tip->image == tip->image, "brush cursor did not resume after sampling");
+    canvas.color = foreground;
+    canvas.tool = "eyedropper";
+    send(K::pointer_down, 176, 74, 98.4);
+    const auto standalone_ring = pointer_at(176, 74);
+    check(standalone_ring && standalone_ring->image == ring->image && canvas.tool == "brush",
+          "the eyedropper tool did not show the same color comparison");
+    send(K::pointer_up, 176, 74, 98.5);
+    canvas.color = foreground;
+
+    auto& shape = canvas.settings.engineState->rasterizer.shape;
+    const auto round_tip = shape;
+    shape.kind = BrushTipShape::Square;
+    shape.angleRadians = std::numbers::pi / 2;
+    shape.roundness = .5;
+    canvas.refresh_pointer();
+    const auto rotated_tip = pointer_at(176, 74);
+    check(rotated_tip && std::abs(rotated_tip->bounds.width - 36) < .01 &&
+          std::abs(rotated_tip->bounds.height - 68) < .01, "the cursor lost the tip's roundness or rotation");
+    shape = round_tip;
+    model->set_brush_size(32);
+    const auto smaller_tip = pointer_at(176, 74);
+    check(smaller_tip && std::abs(smaller_tip->bounds.width - 36) < .01,
+          "the cursor did not respond to Size with a stationary pointer");
+    model->set_brush_size(64);
+    check(!artwork.stroke_active() && artwork.revision() == pointer_revision &&
+          canvas.viewport().composition_batches == pointer_compositions,
+          "pointer feedback modified or recomposited the canvas");
+
+    canvas.zoom(.5, viewport.x + 176, viewport.y + 74);
+    const auto zoomed_tip = pointer_at(176, 74);
+    check(zoomed_tip && std::abs(zoomed_tip->bounds.width - 36) < .01,
+          "the brush cursor did not scale with viewport zoom");
+    canvas.zoom(2, viewport.x + 176, viewport.y + 74);
+    good(tree->input({.kind = K::pointer_leave}));
+    check(!pointer_at(176, 74), "brush cursor remained after pointer exit");
+    received.clear();
+
     std::vector<congregation::native::DocumentChange> changes;
     artwork.document_changed = [&](const auto& change) {
         changes.push_back(change);

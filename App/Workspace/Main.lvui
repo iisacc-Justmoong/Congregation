@@ -25,29 +25,29 @@ ApplicationWindow(title: "Congregation", windowChrome: .custom, width: Metric.wi
                 Avatar(size: .small, source: vm.profile_avatar, accessibilityName: "Account") {},
             },
         },
-        VStack(visible: vm.needs_license, alignment: .center, flex: 1) {
-            Spacer() {},
-            AppCard(id: "activation", width: Metric.size540, height: Metric.size340) {
-                VStack(spacing: Metric.space12, alignment: .stretch) {
-                    Label(text: vm.account_title, fontSize: Metric.textTitle, fontWeight: Metric.weightSemiBold) {},
-                    Label(text: vm.account_description, fontSize: Metric.textBody) {},
-                    HStack(spacing: Metric.space12) {
-                        Label(text: "Account") {},
-                        Spacer() {},
-                        Label(text: vm.account_email, fontSize: Metric.textBody) {},
-                    },
-                    Label(text: "Congregation is free. Your account is used to verify access.") {},
-                    Label(id: "account-status", text: vm.account_status) {},
-                    PushButton(id: "account-open-society", text: vm.account_button, onClick: vm.open_society) {},
-                    PushButton(id: "activate", text: "Check license", enabled: vm.can_activate, onClick: vm.restore_license) {},
-                    HStack(spacing: Metric.space8) {
-                        PushButton(id: "cancel-sign-in", visible: vm.signing_in, text: "Cancel", onClick: vm.cancel_sign_in) {},
-                    },
+        Sheet(id: "activation", open: vm.needs_license, presentation: .desktop,
+              showHeader: false, showCloseButton: false, scrollContent: true,
+              preferredWidth: Metric.size540, preferredHeight: Metric.size340, contentPadding: Metric.space16,
+              backdropColor: Color.material.overlay.scrim, accessibilityName: vm.account_title, motionEnabled: false,
+              dismissOnBackground: false, dismissOnEscape: false, dismissOnDrag: false) {
+            VStack(spacing: Metric.space12, alignment: .stretch) {
+                Label(text: vm.account_title, fontSize: Metric.textTitle, fontWeight: Metric.weightSemiBold) {},
+                Label(text: vm.account_description, fontSize: Metric.textBody) {},
+                HStack(spacing: Metric.space12) {
+                    Label(text: "Account") {},
+                    Spacer() {},
+                    Label(text: vm.account_email, fontSize: Metric.textBody) {},
+                },
+                Label(text: "Congregation is free. Your account is used to verify access.") {},
+                Label(id: "account-status", text: vm.account_status) {},
+                PushButton(id: "account-open-society", text: vm.account_button, onClick: vm.open_society) {},
+                PushButton(id: "activate", text: "Check license", enabled: vm.can_activate, onClick: vm.restore_license) {},
+                HStack(spacing: Metric.space8) {
+                    PushButton(id: "cancel-sign-in", visible: vm.signing_in, text: "Cancel", onClick: vm.cancel_sign_in) {},
                 },
             },
-            Spacer() {},
         },
-        VStack(id: "workspace-screen", visible: vm.workspace_visible, spacing: Metric.space0, alignment: .stretch, flex: 1) {
+        VStack(id: "workspace-screen", spacing: Metric.space0, alignment: .stretch, flex: 1) {
             VStack(id: "toolbar", visible: vm.chrome_visible, spacing: Metric.space0, height: Metric.toolbarHeight) {
                 HStack(height: Metric.toolbarHeight - Metric.stroke1, spacing: Metric.space0, alignment: .stretch) {
                     VStack(width: Metric.space4) {},

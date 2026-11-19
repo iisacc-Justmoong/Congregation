@@ -10,7 +10,7 @@
 namespace congregation::native {
 CanvasToolBindings::CanvasToolBindings(ui::EditorBackend& editor, CanvasView& canvas)
 {
-    subscriptions_.reserve(28);
+    subscriptions_.reserve(29);
     const auto observe = [this]<class T, class F>(const ii::core::Observable<T>& source, F apply) {
         subscriptions_.push_back(source.observe(
             [apply = std::move(apply)](const T& value, std::uint64_t) { apply(value); }, true));
@@ -19,8 +19,18 @@ CanvasToolBindings::CanvasToolBindings(ui::EditorBackend& editor, CanvasView& ca
         observe(source, [destination = &target](const T& value) { *destination = value; });
     };
 
-    link(editor.brush_size, canvas.brush_size);
+    observe(editor.brush_size, [&canvas](double size) {
+        canvas.brush_size = size;
+        canvas.refresh_pointer();
+    });
     link(editor.opacity, canvas.opacity);
+    link(editor.hardness, canvas.settings.hardness);
+    // Painting profiles can share the same canvas tool. A drag must not carry
+    // the starting values from the old profile into the newly selected one.
+    observe(editor.selected_tool, [&canvas](const auto&) {
+        canvas.cancel_brush_pointer();
+        canvas.refresh_pointer();
+    });
     link(editor.text_value, canvas.text);
     link(editor.selection_feather, canvas.selection_feather);
     link(editor.magnetic_radius, canvas.magnetic_radius);

@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/PAINTING_INCREMENTAL_RENDERING.md",
-    "sha256": "fd7a750e4c266e2e7502edd18c1092818366ddd9f5178596d6a3a3a348c38127",
-    "bytes": 23167,
-    "line_count": 204,
+    "sha256": "816ab7db1020df50d3a3c8e3a033cb4bf1746761255afd01683ae2a7ed397b79",
+    "bytes": 24735,
+    "line_count": 211,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -650,6 +650,57 @@
       "start_line": 204,
       "end_line": 204,
       "raw": "\n"
+    },
+    {
+      "id": "b000082",
+      "kind": "heading",
+      "start_line": 205,
+      "end_line": 205,
+      "raw": "## 반투명 획의 중첩 성능\n",
+      "level": 2,
+      "title": "반투명 획의 중첩 성능"
+    },
+    {
+      "id": "b000083",
+      "kind": "blank",
+      "start_line": 206,
+      "end_line": 206,
+      "raw": "\n"
+    },
+    {
+      "id": "b000084",
+      "kind": "paragraph",
+      "start_line": 207,
+      "end_line": 207,
+      "raw": "픽셀 격자에 정렬된 영역은 iiSharedCanvas가 래스터 행을 직접 읽는다. 불투명 배경에 브러시 alpha가 포함된 픽셀을 일반 혼합할 때는 iiPaintEngine이 같은 ARGB32 결과를 정수 연산으로 계산한다. 확대·축소 또는 부분 픽셀 이동이 적용된 영역은 해당 영역의 샘플링을 계속 수행한다.\n"
+    },
+    {
+      "id": "b000085",
+      "kind": "blank",
+      "start_line": 208,
+      "end_line": 208,
+      "raw": "\n"
+    },
+    {
+      "id": "b000086",
+      "kind": "paragraph",
+      "start_line": 209,
+      "end_line": 209,
+      "raw": "`tests_stroke_performance --overlap-only`는 1,024×768 문서의 투명 배경과 흰색 벡터 배경에서 96px 브러시의 같은 궤적을 불투명도 100%와 15%로 각각 8회 재생한다. 획당 48개 이동 표본을 사용하고 브러시 투영, 변경 픽셀의 타일 반영, 512×512 영역 합성, 획 확정의 시간을 각각 기록한다. 15% 흰색 배경 시나리오는 기본 회귀 검사에도 포함된다. 겹칠수록 중심 픽셀의 alpha가 커지고, 획 확정과 Undo/Redo 후에도 해당 픽셀이 정확히 복원되는지 확인한다.\n"
+    },
+    {
+      "id": "b000087",
+      "kind": "blank",
+      "start_line": 210,
+      "end_line": 210,
+      "raw": "\n"
+    },
+    {
+      "id": "b000088",
+      "kind": "paragraph",
+      "start_line": 211,
+      "end_line": 211,
+      "raw": "2026-11-19 Mac의 동일한 재생 바이너리에서 15% 획을 비교했다. 512×512 CPU 합성 중앙값은 흰색 벡터 배경에서 29.880ms에서 0.715ms로, 투명 배경에서 2.371ms에서 0.212ms로 줄었다. 흰색 배경의 95백분위는 30.449ms에서 0.853ms로 줄었고 중심 픽셀은 같은 ARGB32 값을 유지했다. GPU 제출과 화면 표시에는 별도의 계측이 필요하다. 내부 임시 저장소에서 획 확정 중앙값은 약 8ms였다. 외장 Storage 볼륨에서 확인한 파일 동기화 대기는 CPU 영역 합성과 별도의 비용이다.\n"
     }
   ],
   "outline": [
@@ -732,6 +783,14 @@
       "title": "완료된 비트맵 이력의 부분 저장 계약",
       "anchor": "완료된-비트맵-이력의-부분-저장-계약",
       "start_line": 165
+    },
+    {
+      "block_id": "b000082",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "반투명 획의 중첩 성능",
+      "anchor": "반투명-획의-중첩-성능",
+      "start_line": 205
     }
   ],
   "indexes": {

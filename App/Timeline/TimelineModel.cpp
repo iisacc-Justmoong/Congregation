@@ -4,6 +4,16 @@
 #include <cstdio>
 namespace congregation::native
 {
+namespace
+{
+// Always allow at least one complete frame, even in a very slow timeline.
+double timeline_duration(double seconds, double rate)
+{
+    const auto first = 1. / rate;
+    return std::clamp(seconds, first, std::max(first, 86400.));
+}
+}
+
 std::string TimelineModel::format_time(double value)
 {
     if (!std::isfinite(value))
@@ -26,12 +36,15 @@ bool TimelineModel::scrub(double seconds)
     state.set(next);
     return true;
 }
-void TimelineModel::set_rate(int rate)
+void TimelineModel::set_rate(double rate)
 {
+    if (!std::isfinite(rate) || rate <= 0 || !std::isfinite(1. / rate))
+        return;
     auto next = state.get();
     const auto time = seconds();
-    next.rate = std::clamp(rate, 1, 240);
-    next.frame = int(std::llround(time * next.rate));
+    next.rate = std::min(rate, 240.);
+    next.duration = timeline_duration(next.duration, next.rate);
+    next.frame = int(std::llround(std::min(time, next.duration) * next.rate));
     state.set(next);
 }
 void TimelineModel::set_duration(double duration)
@@ -39,7 +52,7 @@ void TimelineModel::set_duration(double duration)
     if (!std::isfinite(duration))
         return;
     auto next = state.get();
-    next.duration = std::clamp(duration, 1. / next.rate, 86400.);
+    next.duration = timeline_duration(duration, next.rate);
     next.frame = std::min(next.frame, int(std::llround(next.duration * next.rate)));
     state.set(next);
 }

@@ -5,12 +5,16 @@
 #include "Tools/StrokeProfile.h"
 #include <iiGUI>
 #include <chrono>
+#include <cstddef>
 #include <map>
 #include <tuple>
 #include <vector>
 
 namespace congregation::native
 {
+enum class ToolParameter : std::size_t;
+class CanvasPointerDrawing;
+
 struct Viewport final
 {
     double scale = 1, x = 0, y = 0, width = 1, height = 1;
@@ -51,10 +55,17 @@ class CanvasView final
     bool polygon_active() const noexcept { return polygon_active_; }
     bool crop_active() const noexcept { return crop_.has_value() || perspective_.has_value(); }
     // A pending license denial must not discard an in-flight pointer gesture.
-    bool interaction_active() const noexcept { return drag_; }
+    bool interaction_active() const noexcept { return drag_ || brush_pointer_.has_value(); }
     bool apply_crop();
     void cancel_crop() { if (crop_ || perspective_) cancel(); }
     void cancel_interaction() { cancel(); }
+    // Release a brush shortcut when its original tool profile is no longer active.
+    // Parameter edits already delivered to the profile are retained.
+    void cancel_brush_pointer() noexcept { brush_pointer_.reset(); }
+    // Repaint the pointer after the active tip, zoom or input state changes.
+    void refresh_pointer();
+    // Hide cursor feedback immediately when the workspace becomes unavailable.
+    void clear_pointer();
     std::string tool = "brush", text = "Text";
     std::uint32_t color = 0xff1a1a1a;
     double brush_size = 2, opacity = 1;
@@ -84,10 +95,21 @@ class CanvasView final
     StrokeTaper taper;
     std::function<void(std::string)> status;
     std::function<void(std::uint32_t)> color_picked;
+    // Request an edit through the active tool's parameter model. Size is in
+    // document pixels and hardness is in percentage points (0–100).
+    std::function<void(ToolParameter, double)> brush_parameter_requested;
     std::function<void(bool)> quick_mask_changed;
 
   private:
     iiSharedCanvas::Point world(double x, double y) const;
+    // Intercept a modified primary-pointer gesture before it can start paint.
+    [[nodiscard]] bool brush_pointer_shortcut(const ii::gui::WidgetInput&);
+    // Handle document gestures after recording the viewport-local pointer.
+    ii::core::Result<bool> handle_input(const ii::gui::WidgetInput&);
+    // Publish only the pointer drawing and keep the system pointer in sync.
+    void present_pointer(std::optional<ii::gui::ImageRun>, bool hide_system = false);
+    // Sample one composited pixel at the document point on the visible frame.
+    void sample_canvas_color(iiSharedCanvas::Point);
     bool hit(iiSharedCanvas::Point);
     void cancel();
     void finish_polygon(bool manual = false);
@@ -121,9 +143,13 @@ class CanvasView final
     std::shared_ptr<const iiSharedCanvas::TiledMask> quick_mask_tiled_before_;
     std::uint64_t quick_mask_revision_ = 0;
     ii::gui::Widget widget_;
-    ii::gui::Widget paint_host_, paint_overlay_;
+    ii::gui::Widget paint_host_, paint_overlay_, pointer_overlay_;
     std::vector<ii::gui::Widget> paint_layers_;
     std::vector<std::vector<ii::gui::ImageRun>> presented_tiles_;
+    std::unique_ptr<CanvasPointerDrawing> pointer_graphics_;
+    std::optional<ii::gui::ImageRun> presented_pointer_;
+    std::optional<ii::gui::WidgetPoint> mouse_position_;
+    bool native_pointer_hidden_ = false;
     std::shared_ptr<int> frame_lifetime_ = std::make_shared<int>(0);
     Viewport viewport_;
     using TileKey = std::tuple<int, int, int, int>;
@@ -148,6 +174,20 @@ class CanvasView final
          selecting_ = false;
     bool frame_handler_ready_ = false, stroke_render_pending_ = false, committing_stroke_ = false,
          stroke_preview_unbounded_ = false;
+    // Snapshot the press in logical viewport coordinates so screen motion has
+    // the same effect at every zoom level. One axis owns the drag after slop.
+    struct BrushPointerGesture final {
+        enum class Mode { sample_color, choose_axis, size, hardness };
+        Mode mode;
+        ii::gui::WidgetPoint origin;
+        double size;
+        double hardness_percent;
+        ii::gui::PointerDevice device = ii::gui::PointerDevice::mouse;
+        std::uint64_t device_id = 0;
+        struct Comparison { std::uint32_t sampled, previous; };
+        std::optional<Comparison> comparison;
+    };
+    std::optional<BrushPointerGesture> brush_pointer_;
     iiSharedCanvas::Point down_{}, last_{};
     bool polygon_regular_preview_ = false;
     std::vector<iiSharedCanvas::Point> lasso_path_, polygon_path_, magnetic_preview_;

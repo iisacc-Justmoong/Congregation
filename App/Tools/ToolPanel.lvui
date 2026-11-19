@@ -171,7 +171,6 @@ Window {
                         Label(text: "Brush", fontSize: Metric.textDescription, fontWeight: Metric.weightSemiBold) {},
                         BrushSize(row: panel.row("size")) {},
                         Compact(row: panel.row("flow")) {},
-                        Compact(row: panel.row("opacity")) {},
                         PressureOpacity(row: panel.pressure_row) {},
                         Compact(row: panel.row("hardness")) {},
                         AbsoluteSpacing(row: panel.absolute_spacing_row, display: panel.spacing_label) {},

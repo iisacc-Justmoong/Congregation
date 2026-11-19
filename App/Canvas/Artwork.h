@@ -215,6 +215,9 @@ class Artwork final
         std::string asset_id, layer_id, name;
         std::optional<std::string> artboard;
         iiSharedCanvas::CanvasExtent extent;
+        // Replay an animated layer's exposure and any timeline extension as one edit.
+        std::optional<iiSharedCanvas::LayerFrameRange> frame_range;
+        iiSharedCanvas::FrameIndex frame_count_before = 1;
         bool chunked = false;
         std::size_t bytes() const noexcept {
             return sizeof(*this) + asset_id.capacity() + layer_id.capacity() + name.capacity() +

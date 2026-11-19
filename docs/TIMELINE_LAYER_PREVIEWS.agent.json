@@ -10,9 +10,9 @@
   },
   "source": {
     "path": "docs/TIMELINE_LAYER_PREVIEWS.md",
-    "sha256": "5d3127cca73644fdb0c76ec083bb36a9f94ab04c7e1f1bc79b57fd3c7f9cc84a",
-    "bytes": 3192,
-    "line_count": 29,
+    "sha256": "b51e3e61132922456f7338d997f98c0c41f620646b4ae9962d9d5257420c9e44",
+    "bytes": 5759,
+    "line_count": 51,
     "encoding": "utf-8",
     "language": "ko"
   },
@@ -130,6 +130,123 @@
       "start_line": 29,
       "end_line": 29,
       "raw": "LVUI 목록의 이름과 표시 상태도 해당 행만 교체해 기존 스냅샷과 다른 행을 보존한다. 표시 중인 행의 그리기 명령은 각각 유지하며, 재생 위치만 이동할 때는 눈금과 재생선을 갱신하고 콘텐츠가 달라진 행만 다시 구성한다. iiGUI의 최종 프레임 제출 범위와 실제 지연은 별도의 실행 측정으로 확인해야 한다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "heading",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "## 타임라인 눈금과 레이어 프레임\n",
+      "level": 2,
+      "title": "타임라인 눈금과 레이어 프레임"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "눈금의 화면 범위는 타임라인 줌을 따른다. 기본 줌에서 재생 길이가 2초보다 짧으면 2초 눈금까지 보이며, 확대할 때에도 표시 폭은 최소 두 프레임을 포함한다. 정수 프레임 경계에 눈금을 그리며 초 단위 시간 레이블, 재생선, 행의 프레임 셀과 입력 위치가 이 눈금을 공유한다. 문서 길이는 재생과 탐색 시간의 상한이다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "정적 레이어의 채워진 셀은 iiSharedCanvas Native 0.35.42의 `staticLayerTimelineRange`가 정한다. 유효한 정적 레이어는 활성 구간의 시작 프레임에 한 칸을 차지한다. 활성 범위가 생략되면 첫 칸이고, 자산이 완전히 투명한 새 Paint layer에도 이 규칙을 적용한다. 미래 프레임은 빈 안내 셀을 표시한다. 영상 레이어는 활성 구간을 칠하고 동적 레이어의 키프레임은 같은 눈금에 배치한다. 오디오 트랙의 기본 눈금 간격은 독립적인 0.25초이다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "`Congregation.independent_workspace`는 1프레임 문서에서 미래 눈금과 시간 레이블을 검증한다. 줌과 문서 길이가 바뀐 뒤에도 투명 Paint layer의 셀 폭이 프레임 하나인지 비교한다. 재생선이 활성 범위 밖에 있을 때 범위 시작에 셀 하나가 표시되고, 영상 레이어는 활성 구간을 채우는지 검사한다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "heading",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "## 새 동적 레이어의 기본 길이\n",
+      "level": 2,
+      "title": "새 동적 레이어의 기본 길이",
+      "anchor": "새-동적-레이어의-기본-길이"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 40,
+      "end_line": 40,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 41,
+      "end_line": 43,
+      "raw": "`New Layer`에서 Animated raster 또는 Animated vector를 생성하면 iiSharedCanvas Native 0.35.43의\n`defaultDynamicLayerTimelineRange`를 사용한다. 프레임 0부터 문서의 FPS로 5초를 덮는 최소 정수\n프레임 수를 배정한다. 24fps에서는 120프레임, 30fps에서는 150프레임, 25/2fps에서는 63프레임이다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 45,
+      "end_line": 47,
+      "raw": "문서가 더 짧으면 새 레이어의 마지막 프레임을 포함하도록 타임라인을 늘린다. 긴 문서는 원래 길이를 유지한다.\n빈 자산과 키프레임을 하나씩 만들고, 추가 키를 만들기 전까지 활성 구간에서 그 자산을 사용한다.\n레이어와 타임라인 길이를 함께 저장하며 같은 Undo/Redo 항목에서 적용하고 복원한다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "paragraph",
+      "start_line": 49,
+      "end_line": 51,
+      "raw": "타임라인은 레이어 행에 활성 프레임 범위를 그리며 실제 소수 FPS를 시간 눈금에 반영한다.\n`Congregation.new_layer_integration`은 생성, 저장 후 재열기, Undo/Redo와 저장 실패 시 복원을 검증한다.\n`Congregation.independent_workspace`는 소수 FPS의 셀 범위와 시간 눈금 배치를 검증한다.\n"
     }
   ],
   "outline": [
@@ -148,6 +265,22 @@
       "title": "변경 범위별 갱신 명세",
       "anchor": "변경-범위별-갱신-명세",
       "start_line": 23
+    },
+    {
+      "block_id": "b000017",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "타임라인 눈금과 레이어 프레임",
+      "anchor": "타임라인-눈금과-레이어-프레임",
+      "start_line": 31
+    },
+    {
+      "block_id": "b000025",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "새 동적 레이어의 기본 길이",
+      "anchor": "새-동적-레이어의-기본-길이",
+      "start_line": 39
     }
   ],
   "indexes": {
